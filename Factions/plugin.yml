@@ -3,7 +3,7 @@ name: ${project.name}
 version: ${project.version}
 website: ${project.url}
 description: ${project.description}
-authors: [Madus, Cayorion, Ulumulu1510, MarkehMe, Brettflan]
+authors: [Madus, Cayorion, Ulumulu1510, MarkehMe, Brettflan, Ymerejliaf]
 depend: [MassiveCore]
 softdepend: [PermissionsEx, Permissions, Essentials, EssentialsChat, HeroChat, LocalAreaChat, LWC, ChatManager, AuthMe, Vault, WorldEdit, WorldGuard]
 api-version: 1.13
