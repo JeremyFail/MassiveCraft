@@ -3,7 +3,7 @@
 
 This is a fork of MassiveCraft's projects which combines all of the necessary individual repositories into a single "monorepo" for easier compilation by anyone who wishes to compile the source themselves. The guide below contains basic instructions on how to compile MassiveCore and Factions.
 
-Alternatively, releases will be made available here: [releases](releases)
+Alternatively, releases will be made available here: [releases](https://github.com/JeremyFail/MassiveCraft/releases)
 
 # MassiveCraft Compilation Guide
 
