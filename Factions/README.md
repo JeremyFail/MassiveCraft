@@ -2,4 +2,4 @@
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL_v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-<b>Please read the guide contained in the [parent directory](..) if you want to compile the source of this plugin.</b>
+<b>Please read the guide contained in the parent project directory if you want to compile the source of this plugin.</b>
