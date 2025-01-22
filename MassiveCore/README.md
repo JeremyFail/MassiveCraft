@@ -2,4 +2,4 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<b>Please read the guide contained in the [parent directory](..) if you want to compile the source of this plugin.</b>
+<b>Please read the guide contained in the parent project directory if you want to compile the source of this plugin.</b>
