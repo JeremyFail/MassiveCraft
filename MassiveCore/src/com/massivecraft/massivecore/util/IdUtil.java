@@ -888,19 +888,19 @@ public class IdUtil implements Listener, Runnable
 	
 	public static void loadDatas()
 	{
-		MassiveCore.get().log(Txt.parse("<i>Loading Cachefile datas..."));
+		MassiveCore.get().log(Txt.parse("<i>Loading Cachefile data..."));
 		for (IdData data : getCachefileDatas())
 		{
 			update(data.getId(), data.getName(), data.getMillis(), SenderPresence.OFFLINE);
 		}
 		
-		MassiveCore.get().log(Txt.parse("<i>Loading Onlineplayer datas..."));
+		MassiveCore.get().log(Txt.parse("<i>Loading Onlineplayer data..."));
 		for (IdData data : getLocalPlayerDatas())
 		{
 			update(data.getId(), data.getName(), data.getMillis(), SenderPresence.LOCAL);
 		}
 		
-		MassiveCore.get().log(Txt.parse("<i>Loading Registry datas..."));
+		MassiveCore.get().log(Txt.parse("<i>Loading Registry data..."));
 		for (String id : registryIdToSender.keySet())
 		{
 			String name = id;

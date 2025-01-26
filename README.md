@@ -1,7 +1,7 @@
 # MassiveCraft - Monorepo
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This is a fork of MassiveCraft's projects which combines all of the necessary individual repositories into a single "monorepo" for easier compilation by anyone who wishes to compile the source themselves. The guide below contains basic instructions on how to compile MassiveCore and Factions.
+This is a fork of MassiveCraft's projects which combines all of the necessary individual repositories into a single "monorepo" for easier compilation by anyone who wishes to compile the source themselves. The guide below contains basic instructions on how to compile MassiveCore, CreativeGates, and Factions.
 
 Alternatively, releases will be made available here: [releases](https://github.com/JeremyFail/MassiveCraft/releases)
 
@@ -29,10 +29,11 @@ To compile the project, open the MassiveCraft directory where your code was clon
 It may take a few minutes to build. Once complete (and if successful), the JAR files will be located at:
 ```
 ../MassiveCore/target/MassiveCore.jar
+../CreativeGates/target/CreativeGates.jar
 ../Factions/target/Factions.jar
 ```
 
 ## Other Noteworthy Stuff
 
 ### The version numbers must match
-If you make changes to the code, the version numbers in each of the sub-repository `pom.xml` files must match. The version number in the root `MassiveCraft/pom.xml` can be 1.0.0 forever. However, the version numbers in the sub-repositories must be in sync. Remember to update the version numbers at the same time.
+If you make changes to the code, the version numbers in each of the sub-repository `pom.xml` files must match. The version number in the root `MassiveCraft/pom.xml` can be 1.0.0 forever. However, the version numbers in the sub-repositories must all be in sync. Remember to update the version numbers at the same time if you make changes.

@@ -9,6 +9,7 @@
  
     <!-- Modules -->
     <modules>
+    	<module>CreativeGates</module>
         <module>Factions</module>
         <module>MassiveCore</module>
         <module>MassiveSuper</module>
