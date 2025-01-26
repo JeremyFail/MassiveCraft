@@ -12,49 +12,111 @@ public class EnumerationUtil
 	// -------------------------------------------- //
 	
 	public static final BackstringSet<Material> MATERIALS_EDIT_ON_INTERACT = new BackstringSet<>(Material.class,
-		"REPEATER", // Minecraft 1.?
-		"NOTE_BLOCK", // Minecraft 1.?
-		"CAULDRON", // Minecraft 1.?
-		"FARMLAND", // Minecraft 1.?
-		"DAYLIGHT_DETECTOR", // Minecraft 1.5
-		"COMPARATOR", // Minecraft 1.?
-		"COMPOSTER", // Minecraft 1.14
-		"LECTERN", // Minecraft 1.14
-		"BEEHIVE", // Minecraft 1.15
-		"BEE_NEST", // Minecraft 1.5
-		"FLOWER_POT", // Minecraft 1.?
+		"BEEHIVE", 						// Minecraft 1.15
+		"BEE_NEST", 					// Minecraft 1.15
+		"CAULDRON", 					// Minecraft 1.0
+		"CHISELED_BOOKSHELF",			// Minecraft 1.20
+		"COMPARATOR", 					// Minecraft 1.5
+		"COMPOSTER", 					// Minecraft 1.14
+		"CRAFTER",						// Minecraft 1.21
+		"DAYLIGHT_DETECTOR", 			// Minecraft 1.5
+		"DECORATED_POT",				// Minecraft 1.20
+		"FARMLAND", 					// Minecraft 1.0
+		"FLOWER_POT", 					// Minecraft 1.4.2
+		"LECTERN", 						// Minecraft 1.14
+		"LODESTONE",					// Minecraft 1.16
+		"NOTE_BLOCK", 					// Minecraft 1.?
+		"REPEATER", 					// Minecraft 1.?
+		"VAULT",						// Minecraft 1.20
 
-		// The various flower pots, they had to make each one a different material -.-
-		"POTTED_ACACIA_SAPLING", // Minecraft 1.13
-		"POTTED_ALLIUM", // Minecraft 1.13
-		"POTTED_AZURE_BLUET", // Minecraft 1.13
-		"POTTED_BAMBOO", // Minecraft 1.13
-		"POTTED_BIRCH_SAPLING", // Minecraft 1.13
-		"POTTED_BLUE_ORCHID", // Minecraft 1.13
-		"POTTED_BROWN_MUSHROOM", // Minecraft 1.13
-		"POTTED_CACTUS", // Minecraft 1.13
-		"POTTED_CACTUS", // Minecraft 1.13
-		"POTTED_CORNFLOWER", // Minecraft 1.13
-		"POTTED_DANDELION", // Minecraft 1.13
-		"POTTED_DARK_OAK_SAPLING", // Minecraft 1.13
-		"POTTED_DEAD_BUSH", // Minecraft 1.13
-		"POTTED_FERN", // Minecraft 1.13
-		"POTTED_JUNGLE_SAPLING", // Minecraft 1.13
-		"POTTED_LILY_OF_THE_VALLEY", // Minecraft 1.13
-		"POTTED_OAK_SAPLING", // Minecraft 1.13
-		"POTTED_ORANGE_TULIP", // Minecraft 1.13
-		"POTTED_OXEYE_DAISY", // Minecraft 1.13
-		"POTTED_PINK_TULIP", // Minecraft 1.13
-		"POTTED_POPPY", // Minecraft 1.13
-		"POTTED_RED_MUSHROOM", // Minecraft 1.13
-		"POTTED_RED_TULIP", // Minecraft 1.13
-		"POTTED_SPRUCE_SAPLING", // Minecraft 1.13
-		"POTTED_WHITE_TULIP", // Minecraft 1.13
-		"POTTED_WITHER_ROSE", // Minecraft 1.13
-		"POTTED_CRIMSON_FUNGUS", // Minecraft 1.16
-		"POTTED_CRIMSON_ROOTS", // Minecraft 1.16
-		"POTTED_WARPED_FUNGUS", // Minecraft 1.16
-		"POTTED_WARPED_ROOTS" // Minecraft 1.16
+		// Potted plants - starting with Minecraft 1.13
+		"POTTED_ACACIA_SAPLING", 		// Minecraft 1.13
+		"POTTED_ALLIUM", 				// Minecraft 1.13
+		"POTTED_AZALEA_BUSH",			// Minecraft 1.17
+		"POTTED_AZURE_BLUET", 			// Minecraft 1.13
+		"POTTED_BAMBOO", 				// Minecraft 1.13
+		"POTTED_BIRCH_SAPLING", 		// Minecraft 1.13
+		"POTTED_BLUE_ORCHID", 			// Minecraft 1.13
+		"POTTED_BROWN_MUSHROOM", 		// Minecraft 1.13
+		"POTTED_CACTUS", 				// Minecraft 1.13
+		"POTTED_CHERRY_SAPLING", 		// Minecraft 1.20
+		"POTTED_CLOSED_EYEBLOSSOM",		// Minecraft 1.21.4
+		"POTTED_CORNFLOWER", 			// Minecraft 1.13
+		"POTTED_CRIMSON_FUNGUS",		// Minecraft 1.16
+		"POTTED_CRIMSON_ROOTS",			// Minecraft 1.16
+		"POTTED_DANDELION", 			// Minecraft 1.13
+		"POTTED_DARK_OAK_SAPLING", 		// Minecraft 1.13
+		"POTTED_DEAD_BUSH", 			// Minecraft 1.13
+		"POTTED_FERN", 					// Minecraft 1.13
+		"POTTED_FLOWERING_AZALEA_BUSH", // Minecraft 1.17
+		"POTTED_JUNGLE_SAPLING", 		// Minecraft 1.13
+		"POTTED_LILY_OF_THE_VALLEY", 	// Minecraft 1.13
+		"POTTED_MANGROVE_PROPAGULE",	// Minecraft 1.19
+		"POTTED_OAK_SAPLING", 			// Minecraft 1.13
+		"POTTED_OPEN_EYEBLOSSOM",		// Minecraft 1.21.4
+		"POTTED_ORANGE_TULIP", 			// Minecraft 1.13
+		"POTTED_OXEYE_DAISY", 			// Minecraft 1.13
+		"POTTED_PALE_OAK_SAPLING",		// Minecraft 1.21.4
+		"POTTED_PINK_TULIP", 			// Minecraft 1.13
+		"POTTED_POPPY", 				// Minecraft 1.13
+		"POTTED_RED_MUSHROOM", 			// Minecraft 1.13
+		"POTTED_RED_TULIP", 			// Minecraft 1.13
+		"POTTED_SPRUCE_SAPLING", 		// Minecraft 1.13
+		"POTTED_TORCHFLOWER",			// Minecraft 1.20
+		"POTTED_WARPED_FUNGUS",			// Minecraft 1.16
+		"POTTED_WARPED_ROOTS",			// Minecraft 1.16
+		"POTTED_WHITE_TULIP", 			// Minecraft 1.13
+		"POTTED_WITHER_ROSE", 			// Minecraft 1.13
+		
+		// Sign editing as of Minecraft 1.20
+		"ACACIA_SIGN",					// Minecraft 1.20
+		"ACACIA_HANGING_SIGN",			// Minecraft 1.20
+		"ACACIA_WALL_SIGN",				// Minecraft 1.20
+		"ACACIA_WALL_HANGING_SIGN",		// Minecraft 1.20
+		"BAMBOO_SIGN",					// Minecraft 1.20
+		"BAMBOO_HANGING_SIGN",			// Minecraft 1.20
+		"BAMBOO_WALL_SIGN",				// Minecraft 1.20
+		"BAMBOO_WALL_HANGING_SIGN",		// Minecraft 1.20
+		"BIRCH_SIGN",					// Minecraft 1.20
+		"BIRCH_HANGING_SIGN",			// Minecraft 1.20
+		"BIRCH_WALL_SIGN",				// Minecraft 1.20
+		"BIRCH_WALL_HANGING_SIGN",		// Minecraft 1.20
+		"CHERRY_SIGN",					// Minecraft 1.20
+		"CHERRY_HANGING_SIGN",			// Minecraft 1.20
+		"CHERRY_WALL_SIGN",				// Minecraft 1.20
+		"CHERRY_WALL_HANGING_SIGN",		// Minecraft 1.20
+		"CRIMSON_SIGN",					// Minecraft 1.20
+		"CRIMSON_HANGING_SIGN",			// Minecraft 1.20
+		"CRIMSON_WALL_SIGN",			// Minecraft 1.20
+		"CRIMSON_WALL_HANGING_SIGN",	// Minecraft 1.20
+		"DARK_OAK_SIGN",				// Minecraft 1.20
+		"DARK_OAK_HANGING_SIGN",		// Minecraft 1.20
+		"DARK_OAK_WALL_SIGN",			// Minecraft 1.20
+		"DARK_OAK_WALL_HANGING_SIGN",	// Minecraft 1.20
+		"JUNGLE_SIGN",					// Minecraft 1.20
+		"JUNGLE_HANGING_SIGN",			// Minecraft 1.20
+		"JUNGLE_WALL_SIGN",				// Minecraft 1.20
+		"JUNGLE_WALL_HANGING_SIGN",		// Minecraft 1.20
+		"MANGROVE_SIGN",				// Minecraft 1.20
+		"MANGROVE_HANGING_SIGN",		// Minecraft 1.20
+		"MANGROVE_WALL_SIGN",			// Minecraft 1.20
+		"MANGROVE_WALL_HANGING_SIGN",	// Minecraft 1.20
+		"OAK_SIGN",						// Minecraft 1.20
+		"OAK_HANGING_SIGN",				// Minecraft 1.20
+		"OAK_WALL_SIGN",				// Minecraft 1.20
+		"OAK_WALL_HANGING_SIGN",		// Minecraft 1.20
+		"PALE_OAK_SIGN",				// Minecraft 1.21.4
+		"PALE_OAK_HANGING_SIGN",		// Minecraft 1.21.4
+		"PALE_OAK_WALL_SIGN",			// Minecraft 1.21.4
+		"PALE_OAK_WALL_HANGING_SIGN",	// Minecraft 1.21.4
+		"SPRUCE_SIGN",					// Minecraft 1.20
+		"SPRUCE_HANGING_SIGN",			// Minecraft 1.20
+		"SPRUCE_WALL_SIGN",				// Minecraft 1.20
+		"SPRUCE_WALL_HANGING_SIGN",		// Minecraft 1.20
+		"WARPED_SIGN",					// Minecraft 1.20
+		"WARPED_HANGING_SIGN",			// Minecraft 1.20
+		"WARPED_WALL_SIGN",				// Minecraft 1.20
+		"WARPED_WALL_HANGING_SIGN"		// Minecraft 1.20
 	);
 	
 	public static boolean isMaterialEditOnInteract(Material material)
@@ -67,27 +129,36 @@ public class EnumerationUtil
 	// -------------------------------------------- //
 	
 	public static final BackstringSet<Material> MATERIALS_EDIT_TOOL = new BackstringSet<>(Material.class,
-		"FIRE_CHARGE", // Minecraft 1.?
-		"FLINT_AND_STEEL", // Minecraft 1.?
-		"BUCKET",
-		"WATER_BUCKET", // Minecraft 1.?
-		"LAVA_BUCKET",// Minecraft 1.?
-		"COD_BUCKET",// Minecraft 1.13
-		"PUFFERFISH_BUCKET", // Minecraft 1.13
-		"SALMON_BUCKET", // Minecraft 1.13
+		"BUCKET",				// Minecraft 1.0
+		"WATER_BUCKET", 		// Minecraft 1.0
+		"LAVA_BUCKET",			// Minecraft 1.0
+		"COD_BUCKET",			// Minecraft 1.13
+		"PUFFERFISH_BUCKET", 	// Minecraft 1.13
+		"SALMON_BUCKET", 		// Minecraft 1.13
 		"TROPICAL_FISH_BUCKET", // Minecraft 1.13
-		"ARMOR_STAND", // Minecraft 1.8
-		"END_CRYSTAL", // Minecraft 1.10
+			
+		"ARMOR_STAND", 			// Minecraft 1.8
+		"BRUSH",				// Minecraft 1.20
+		"END_CRYSTAL", 			// Minecraft 1.10
+		"FIRE_CHARGE", 			// Minecraft 1.0
+		"FLINT_AND_STEEL", 		// Minecraft 1.0
+		"HONEYCOMB",			// Minecraft 1.15
+		
+		// Axes used for stripping bark since 1.13, copper scraping since 1.15
+		"DIAMOND_AXE",			// Minecraft 1.13
+		"GOLDEN_AXE",			// Minecraft 1.13
+		"IRON_AXE",				// Minecraft 1.13
+		"NETHERITE_AXE",		// Minecraft 1.16
+		"STONE_AXE",			// Minecraft 1.13
+		"WOODEN_AXE",			// Minecraft 1.13  // TODO: Will this cause issues with WorldEdit? Is that okay?
 		
 		// The duplication bug found in Spigot 1.8 protocol patch
 		// https://github.com/MassiveCraft/Factions/issues/693
-		"CHEST", // Minecraft 1.? // TODO why chest?
-		"SIGN_POST", // Minecraft 1.?
-		"TRAPPED_CHEST", // Minecraft 1.?
-		"SIGN", // Minecraft 1.?
-		"WOOD_DOOR", // Minecraft 1.?
-		"IRON_DOOR", // Minecraft 1.?
-		"BONE_MEAL" // Minecraft 1.?
+		// TODO: Are these needed? Maybe only Bone Meal...?
+		"CHEST", 				// Minecraft 1.0
+		"TRAPPED_CHEST", 		// Minecraft 1.5
+		"IRON_DOOR", 			// Minecraft 1.0
+		"BONE_MEAL" 			// Minecraft 1.0
 	);
 	
 	public static boolean isMaterialEditTool(Material material)
@@ -101,32 +172,39 @@ public class EnumerationUtil
 	
 	// Interacting with these materials placed in the terrain results in door toggling.
 	public static final BackstringSet<Material> MATERIALS_DOOR = new BackstringSet<>(Material.class,
-		"OAK_DOOR",
-		"OAK_TRAPDOOR",
-		"OAK_FENCE_GATE",
-		"ACACIA_DOOR",
-		"ACACIA_TRAPDOOR",
-		"ACACIA_FENCE_GATE",
-		"BIRCH_DOOR",
-		"BIRCH_TRAPDOOR",
-		"BIRCH_FENCE_GATE",
-		"DARK_OAK_DOOR",
-		"DARK_OAK_TRAPDOOR",
-		"DARK_OAK_FENCE_GATE",
-		"JUNGLE_DOOR",
-		"JUNGLE_TRAPDOOR",
-		"JUNGLE_FENCE_GATE",
-		"SPRUCE_DOOR",
-		"SPRUCE_TRAPDOOR",
-		"SPRUCE_FENCE_GATE",
-
-		// Minecraft 1.16
-		"CRIMSON_DOOR",
-		"CRIMSON_TRAPDOOR",
-		"CRIMSON_FENCE_GATE",
-		"WARPED_DOOR",
-		"WARPED_TRAPDOOR",
-		"WARPED_FENCE_GATE"
+		"ACACIA_DOOR",			// Minecraft 1.8
+		"ACACIA_FENCE_GATE",	// Minecraft 1.8
+		"ACACIA_TRAPDOOR",		// Minecraft 1.8
+		"BAMBOO_DOOR",			// Minecraft 1.20
+		"BAMBOO_FENCE_GATE",	// Minecraft 1.20
+		"BAMBOO_TRAPDOOR",		// Minecraft 1.20
+		"BIRCH_DOOR",			// Minecraft 1.8
+		"BIRCH_FENCE_GATE",		// Minecraft 1.8
+		"BIRCH_TRAPDOOR",		// Minecraft 1.8
+		"CHERRY_DOOR",			// Minecraft 1.20
+		"CHERRY_FENCE_GATE",	// Minecraft 1.20
+		"CHERRY_TRAPDOOR",		// Minecraft 1.20
+		"CRIMSON_DOOR",			// Minecraft 1.16
+		"CRIMSON_FENCE_GATE",	// Minecraft 1.16
+		"CRIMSON_TRAPDOOR",		// Minecraft 1.16
+		"DARK_OAK_DOOR",		// Minecraft 1.8
+		"DARK_OAK_FENCE_GATE",	// Minecraft 1.8
+		"DARK_OAK_TRAPDOOR",	// Minecraft 1.8
+		"JUNGLE_DOOR",			// Minecraft 1.8
+		"JUNGLE_FENCE_GATE",	// Minecraft 1.8
+		"JUNGLE_TRAPDOOR",		// Minecraft 1.8
+		"OAK_DOOR",				// Minecraft 1.8
+		"OAK_FENCE_GATE",		// Minecraft 1.8
+		"OAK_TRAPDOOR",			// Minecraft 1.8
+		"PALE_OAK_DOOR",		// Minecraft 1.21.4
+		"PALE_OAK_FENCE_GATE",	// Minecraft 1.21.4
+		"PALE_OAK_TRAPDOOR",	// Minecraft 1.21.4
+		"SPRUCE_DOOR",			// Minecraft 1.8
+		"SPRUCE_FENCE_GATE",	// Minecraft 1.8
+		"SPRUCE_TRAPDOOR",		// Minecraft 1.8
+		"WARPED_DOOR",			// Minecraft 1.16
+		"WARPED_FENCE_GATE",	// Minecraft 1.16
+		"WARPED_TRAPDOOR"		// Minecraft 1.16
 	);
 	
 	public static boolean isMaterialDoor(Material material)
@@ -139,43 +217,43 @@ public class EnumerationUtil
 	// -------------------------------------------- //
 	
 	public static final BackstringSet<Material> MATERIALS_CONTAINER = new BackstringSet<>(Material.class,
-		"DISPENSER",
-		"CHEST",
-		"TRAPPED_CHEST",
-		"FURNACE",
-		"JUKEBOX",
-		"BREWING_STAND",
-		"ENCHANTING_TABLE",
-		"ANVIL",
-		"CHIPPED_ANVIL",
-		"DAMAGED_ANVIL",
-		"BEACON",
-		"HOPPER",
-		"DROPPER",
-		"BARREL", // Minecraft 1.14
-		"BLAST_FURNACE", // Minecraft 1.14
-		"SMOKER", // 1.14
-		"RESPAWN_ANCHOR", // 1.16
+		"DISPENSER",				// Minecraft 1.0
+		"CHEST",					// Minecraft 1.0
+		"TRAPPED_CHEST",			// Minecraft 1.5
+		"FURNACE",					// Minecraft 1.0
+		"JUKEBOX",					// Minecraft 1.0
+		"BREWING_STAND",			// Minecraft 1.0
+		"ENCHANTING_TABLE",			// Minecraft 1.0
+		"ANVIL",					// Minecraft 1.4.2
+		"CHIPPED_ANVIL",			// Minecraft 1.4.2
+		"DAMAGED_ANVIL",			// Minecraft 1.4.2
+		"BEACON",					// Minecraft 1.4.2
+		"HOPPER",					// Minecraft 1.5
+		"DROPPER",					// Minecraft 1.5
+		"BARREL", 					// Minecraft 1.14
+		"BLAST_FURNACE", 			// Minecraft 1.14
+		"SMOKER", 					// Minecraft 1.14
+		"RESPAWN_ANCHOR", 			// Minecraft 1.16
 		
-		// The various shulker boxes, they had to make each one a different material -.-
-		"SHULKER_BOX",
-		"BLACK_SHULKER_BOX",
-		"BLUE_SHULKER_BOX",
-		"BROWN_SHULKER_BOX",
-		"CYAN_SHULKER_BOX",
-		"GRAY_SHULKER_BOX",
-		"GREEN_SHULKER_BOX",
-		"LIGHT_BLUE_SHULKER_BOX",
-		"LIGHT_GRAY_SHULKER_BOX",
-		"LIME_SHULKER_BOX",
-		"MAGENTA_SHULKER_BOX",
-		"ORANGE_SHULKER_BOX",
-		"PINK_SHULKER_BOX",
-		"PURPLE_SHULKER_BOX",
-		"RED_SHULKER_BOX",
-		"SILVER_SHULKER_BOX", // Changed name to light gray, I think. Kept for backwards compatibility
-		"WHITE_SHULKER_BOX",
-		"YELLOW_SHULKER_BOX"
+		// Shulker Boxes
+		"SHULKER_BOX",				// Minecraft 1.11
+		"BLACK_SHULKER_BOX",		// Minecraft 1.11
+		"BLUE_SHULKER_BOX",			// Minecraft 1.11
+		"BROWN_SHULKER_BOX",		// Minecraft 1.11
+		"CYAN_SHULKER_BOX",			// Minecraft 1.11
+		"GRAY_SHULKER_BOX",			// Minecraft 1.11
+		"GREEN_SHULKER_BOX",		// Minecraft 1.11
+		"LIGHT_BLUE_SHULKER_BOX",	// Minecraft 1.11
+		"LIGHT_GRAY_SHULKER_BOX",	// Minecraft 1.11 (renamed SILVER_SHULKER_BOX)
+		"LIME_SHULKER_BOX",			// Minecraft 1.11
+		"MAGENTA_SHULKER_BOX",		// Minecraft 1.11
+		"ORANGE_SHULKER_BOX",		// Minecraft 1.11
+		"PINK_SHULKER_BOX",			// Minecraft 1.11
+		"PURPLE_SHULKER_BOX",		// Minecraft 1.11
+		"RED_SHULKER_BOX",			// Minecraft 1.11
+		"SILVER_SHULKER_BOX", 		// Minecraft 1.11
+		"WHITE_SHULKER_BOX",		// Minecraft 1.11
+		"YELLOW_SHULKER_BOX"		// Minecraft 1.11
 	);
 	
 	public static boolean isMaterialContainer(Material material)
@@ -189,8 +267,10 @@ public class EnumerationUtil
 	
 	// Interacting with these entities results in an edit.
 	public static final BackstringSet<EntityType> ENTITY_TYPES_EDIT_ON_INTERACT = new BackstringSet<>(EntityType.class,
-		"ITEM_FRAME", // Minecraft 1.?
-		"ARMOR_STAND" // Minecraft 1.8
+		"ARMOR_STAND", 			// Minecraft 1.8
+		"GLOW_ITEM_FRAME",		// Minecraft 1.17
+		"ITEM_FRAME", 			// Minecraft 1.4.2
+		"LEASH_KNOT"			// Minecraft 1.6.1
 	);
 	
 	public static boolean isEntityTypeEditOnInteract(EntityType entityType)
@@ -204,9 +284,11 @@ public class EnumerationUtil
 	
 	// Damaging these entities results in an edit.
 	public static final BackstringSet<EntityType> ENTITY_TYPES_EDIT_ON_DAMAGE = new BackstringSet<>(EntityType.class,
-		"ITEM_FRAME", // Minecraft 1.?
-		"ARMOR_STAND", // Minecraft 1.8
-		"ENDER_CRYSTAL" // Minecraft 1.10
+		"ARMOR_STAND", 			// Minecraft 1.8
+		"ENDER_CRYSTAL", 		// Minecraft 1.10
+		"GLOW_ITEM_FRAME",		// Minecraft 1.17
+		"ITEM_FRAME", 			// Minecraft 1.4.2
+		"LEASH_KNOT"			// Minecraft 1.6.1
 	);
 	
 	public static boolean isEntityTypeEditOnDamage(EntityType entityType)
@@ -219,8 +301,18 @@ public class EnumerationUtil
 	// -------------------------------------------- //
 	
 	public static final BackstringSet<EntityType> ENTITY_TYPES_CONTAINER = new BackstringSet<>(EntityType.class,
-		"MINECART_CHEST", // Minecraft 1.?
-		"MINECART_HOPPER" // Minecraft 1.?
+		"ACACIA_CHEST_BOAT",	// Minecraft 1.19
+		"BAMBOO_CHEST_RAFT",	// Minecraft 1.20
+		"BIRCH_CHEST_BOAT",		// Minecraft 1.19
+		"CHERRY_CHEST_BOAT",	// Minecraft 1.20
+		"DARK_OAK_CHEST_BOAT",	// Minecraft 1.19
+		"JUNGLE_CHEST_BOAT",	// Minecraft 1.19
+		"MANGROVE_CHEST_BOAT",	// Minecraft 1.19
+		"OAK_CHEST_BOAT",		// Minecraft 1.19
+		"PALE_OAK_CHEST_BOAT",	// Minecraft 1.21.4
+		"SPRUCE_CHEST_BOAT",	// Minecraft 1.19
+		"MINECART_CHEST", 		// Minecraft 1.0
+		"MINECART_HOPPER" 		// Minecraft 1.5
 	);
 	
 	public static boolean isEntityTypeContainer(EntityType entityType)
@@ -233,44 +325,50 @@ public class EnumerationUtil
 	// -------------------------------------------- //
 	
 	public static final BackstringSet<EntityType> ENTITY_TYPES_MONSTER = new BackstringSet<>(EntityType.class,
-		"BLAZE", // Minecraft 1.?
-		"CAVE_SPIDER", // Minecraft 1.?
-		"CREEPER", // Minecraft 1.?
-		"ELDER_GUARDIAN",
-		"ENDERMAN", // Minecraft 1.?
-		"ENDERMITE", // Minecraft 1.8
-		"ENDER_DRAGON", // Minecraft 1.?
-		"EVOKER",
-		"GUARDIAN", // Minecraft 1.8
-		"GHAST", // Minecraft 1.?
-		"GIANT", // Minecraft 1.?
-		"HUSK",
-		"MAGMA_CUBE", // Minecraft 1.?
-		"PIG_ZOMBIE", // Minecraft 1.?
-		"POLAR_BEAR", // Minecraft 1.10
-		"SILVERFISH", // Minecraft 1.?
-		"SHULKER", // Minecraft 1.10
-		"SKELETON", // Minecraft 1.?
-		"SLIME", // Minecraft 1.?
-		"SPIDER", // Minecraft 1.?
-		"STRAY",
-		"VINDICATOR",
-		"VEX",
-		"WITCH", // Minecraft 1.?
-		"WITHER", // Minecraft 1.?
-		"WITHER_SKELETON",
-		"STRAY", // Minecraft 1.?
-		"ZOMBIE", // Minecraft 1.?
-		"ZOMBIE_VILLAGER",
-		"ILLUSIONER", // Minecraft 1.12
-		"PHANTOM", // Minecraft 1.13
-		"DOLPHIN", // Minecraft 1.13
-		"DROWNED", // Minecraft 1.13
-		"PILLAGER", // Minecraft 1.14
-		"RAVAGER", // Minercraft 1.14
-		"ZOMBIFIED_PIGLIN", // Minecraft 1.16 (rename of PIG_ZOMBIE)
-		"HOGLIN", // Minecraft 1.16
-		"ZOGLIN" // 1.16
+		"BOGGED", 			// Minecraft 1.21
+		"BLAZE", 			// Minecraft 1.0
+		"BREEZE", 			// Minecraft 1.21
+		"CAVE_SPIDER", 		// Minecraft 1.0
+		"CREEPER", 			// Minecraft 1.0
+		"CREAKING", 		// Minecraft 1.21.4
+		"DROWNED", 			// Minecraft 1.13
+		"ELDER_GUARDIAN", 	// Minecraft 1.8
+		"ENDERMAN", 		// Minecraft 1.0
+		"ENDERMITE", 		// Minecraft 1.8
+		"ENDER_DRAGON",     // Minecraft 1.0
+		"EVOKER", 			// Minecraft 1.11
+		"GUARDIAN", 		// Minecraft 1.8
+		"GHAST", 			// Minecraft 1.0
+		"GIANT", 			// Minecraft 1.0
+		"HOGLIN", 			// Minecraft 1.16
+		"HUSK", 			// Minecraft 1.10
+		"ILLUSIONER", 		// Minecraft 1.12
+		"MAGMA_CUBE", 		// Minecraft 1.0
+		"PHANTOM", 			// Minecraft 1.13
+		"PIG_ZOMBIE", 		// Minecraft 1.0
+		"PIGLIN", 			// Minecraft 1.16
+		"PIGLIN_BRUTE", 	// Minecraft 1.16
+		"PILLAGER", 		// Minecraft 1.14
+		"POLAR_BEAR", 		// Minecraft 1.10
+		"RAVAGER", 			// Minecraft 1.14
+		"SHULKER", 			// Minecraft 1.10
+		"SILVERFISH", 		// Minecraft 1.0
+		"SKELETON", 		// Minecraft 1.0
+		"SKELETON_HORSE",	// Minecraft 1.6.1
+		"SLIME", 			// Minecraft 1.0
+		"SPIDER", 			// Minecraft 1.0
+		"STRAY", 			// Minecraft 1.10
+		"VEX", 				// Minecraft 1.11
+		"VINDICATOR", 		// Minecraft 1.11
+		"WARDEN", 			// Minecraft 1.19
+		"WITCH", 			// Minecraft 1.4.2
+		"WITHER", 			// Minecraft 1.4.2
+		"WITHER_SKELETON", 	// Minecraft 1.4.2
+		"ZOGLIN", 			// Minecraft 1.16
+		"ZOMBIE", 			// Minecraft 1.0
+		"ZOMBIE_HORSE",		// Minecraft 1.6.1
+		"ZOMBIE_VILLAGER",  // Minecraft 1.4.2
+		"ZOMBIFIED_PIGLIN"  // Minecraft 1.16 (rename of PIG_ZOMBIE)
 	);
 	
 	public static boolean isEntityTypeMonster(EntityType entityType)
@@ -283,34 +381,46 @@ public class EnumerationUtil
 	// -------------------------------------------- //
 	
 	public static final BackstringSet<EntityType> ENTITY_TYPES_ANIMAL = new BackstringSet<>(EntityType.class,
-		"BAT", // Minecraft 1.?
-		"CHICKEN", // Minecraft 1.?
-		"COW", // Minecraft 1.?
-		"DONKEY",
-		"HORSE", // Minecraft 1.?
-		"LLAMA",
-		"MULE",
-		"MUSHROOM_COW", // Minecraft 1.?
-		"OCELOT", // Minecraft 1.?
-		"PIG", // Minecraft 1.?
-		"RABBIT", // Minecraft 1.?
-		"SHEEP", // Minecraft 1.?
-		"SKELETON_HORSE",
-		"SQUID", // Minecraft 1.?
-		"WOLF", // Minecraft 1.?
-		"ZOMBIE_HORSE",
-		"PARROT", // Minecraft 1.12
-		"COD", // Minecraft 1.13
-    	"SALMON", // Minecraft 1.13
-    	"PUFFERFISH", // Minecraft 1.13
-    	"TROPICAL_FISH", // Minecraft 1.13
-		"TURTLE", // Minecraft 1.13
-		"CAT", // Minecraft 1.14
-		"FOX", // Minecraft 1.14
-		"PANDA", // Minecraft 1.14
-		"LLAMA", // Minecraft 1.14
-		"LLAMA_SPIT", // Minecraft 1.14
-		"STRIDER" // Minecraft 1.16
+		"ALLAY", 			// Minecraft 1.19
+		"ARMADILLO",		// Minecraft 1.20.5
+		"AXOLOTL",			// Minecraft 1.17
+		"BAT", 				// Minecraft 1.4.2
+		"BEE",				// Minecraft 1.15
+		"CAMEL",			// Minecraft 1.20
+		"CAT",				// Minecraft 1.14
+		"CHICKEN", 			// Minecraft 1.0
+		"COD",				// Minecraft 1.13
+		"COW", 				// Minecraft 1.0
+		"DOLPHIN", 			// Minecraft 1.13
+		"DONKEY",			// Minecraft 1.6.1
+		"FOX",				// Minecraft 1.14
+		"FROG",				// Minecraft 1.19
+		"GLOW_SQUID",		// Minecraft 1.17
+		"HORSE", 			// Minecraft 1.6.1
+		"GOAT",				// Minecraft 1.17
+		"LLAMA",			// Minecraft 1.14
+		"LLAMA_SPIT", 		// Minecraft 1.14
+		"MOOSHROOM",		// Minecraft 1.11 (rename of MUSHROOM_COW)
+		"MULE",				// Minecraft 1.6.1
+		"MUSHROOM_COW", 	// Minecraft 1.0
+		"OCELOT", 			// Minecraft 1.2.1
+		"PANDA", 			// Minecraft 1.14
+		"PARROT",			// Minecraft 1.12
+		"PIG", 				// Minecraft 1.0
+		"POLAR_BEAR",		// Minecraft 1.10
+		"PUFFERFISH",		// Minecraft 1.13
+		"RABBIT", 			// Minecraft 1.8
+		"SALMON",			// Minecraft 1.13
+		"SHEEP", 			// Minecraft 1.0
+		"SKELETON_HORSE",	// Minecraft 1.6.1
+		"SNIFFER",			// Minecraft 1.20
+		"SQUID", 			// Minecraft 1.0
+		"STRIDER", 			// Minecraft 1.16
+		"TADPOLE",			// Minecraft 1.19
+		"TROPICAL_FISH", 	// Minecraft 1.13
+		"TURTLE", 			// Minecraft 1.13
+		"WOLF", 			// Minecraft 1.0
+		"ZOMBIE_HORSE"		// Minecraft 1.6.1
 	);
 	
 	public static boolean isEntityTypeAnimal(EntityType entityType)
