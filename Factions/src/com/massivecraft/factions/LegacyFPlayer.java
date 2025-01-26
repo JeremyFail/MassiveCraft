@@ -331,9 +331,9 @@ public class LegacyFPlayer implements FPlayer
         // TODO: Implement
 //        com.massivecraft.factions.entity.Faction realFaction = FactionColl.get().getFixed(forFaction.getId());
 //        return realPlayer.isOverriding() || 
-//                realFaction.getId() != Factions.ID_NONE && (realFaction == realPlayer.getFaction() && this.getFaction().hasAccess(this, PermissibleActions.TERRITORY, null)) || 
-//                (realFaction.getId() == Factions.ID_SAFEZONE && Permission.MANAGE_SAFE_ZONE.has(getPlayer())) || 
-//                (realFaction.getId() == Factions.ID_WARZONE && Permission.MANAGE_WAR_ZONE.has(getPlayer()));
+//                !realFaction.getId().equals(Factions.ID_NONE) && (realFaction == realPlayer.getFaction() && this.getFaction().hasAccess(this, PermissibleActions.TERRITORY, null)) || 
+//                (realFaction.getId().equals(Factions.ID_SAFEZONE) && Permission.MANAGE_SAFE_ZONE.has(getPlayer())) || 
+//                (realFaction.getId().equals(Factions.ID_WARZONE) && Permission.MANAGE_WAR_ZONE.has(getPlayer()));
         return false;
     }
 
@@ -476,9 +476,9 @@ public class LegacyFPlayer implements FPlayer
         
         // TODO: Check Wilderness, Safezone, Warzone once fly permission can be per player
 //      return realPlayer.isOverriding() || 
-//              realFaction.getId() != Factions.ID_NONE && (realFaction == realPlayer.getFaction() && this.getFaction().hasAccess(this, PermissibleActions.TERRITORY, null)) || 
-//              (realFaction.getId() == Factions.ID_SAFEZONE && Permission.MANAGE_SAFE_ZONE.has(getPlayer())) || 
-//              (realFaction.getId() == Factions.ID_WARZONE && Permission.MANAGE_WAR_ZONE.has(getPlayer()));
+//              !realFaction.getId().equals(Factions.ID_NONE) && (realFaction == realPlayer.getFaction() && this.getFaction().hasAccess(this, PermissibleActions.TERRITORY, null)) || 
+//              (realFaction.getId().equals(Factions.ID_SAFEZONE) && Permission.MANAGE_SAFE_ZONE.has(getPlayer())) || 
+//              (realFaction.getId().equals(Factions.ID_WARZONE) && Permission.MANAGE_WAR_ZONE.has(getPlayer()));
         
         if (realPlayer.isOverriding())
         {

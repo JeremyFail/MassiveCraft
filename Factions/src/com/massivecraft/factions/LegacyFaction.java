@@ -282,19 +282,19 @@ public class LegacyFaction implements Faction
     @Override
     public boolean isWilderness()
     {
-        return realFaction.getId() == Factions.ID_NONE;
+        return realFaction.getId().equals(Factions.ID_NONE);
     }
 
     @Override
     public boolean isSafeZone()
     {
-        return realFaction.getId() == Factions.ID_SAFEZONE;
+        return realFaction.getId().equals(Factions.ID_SAFEZONE);
     }
 
     @Override
     public boolean isWarZone()
     {
-        return realFaction.getId() == Factions.ID_WARZONE;
+        return realFaction.getId().equals(Factions.ID_WARZONE);
     }
 
     @Override

@@ -38,12 +38,12 @@ public class Board
     {
         com.massivecraft.factions.entity.Board realBoard = BoardColl.get().get(location.getLocation().getWorld());
         com.massivecraft.factions.entity.Faction realFaction = realBoard.getFactionAt(PS.valueOf(location.getLocation()).getChunkCoords(true));
-        
-        if (realFaction.getId() == Factions.ID_NONE)
+
+        if (realFaction.getId().equals(Factions.ID_NONE))
         {
             return null;
         }
-        
+
         return new LegacyFaction(realFaction);
     }
     
