@@ -224,6 +224,7 @@ public class EnumerationUtil
         "DISPENSER",                // Minecraft 1.0
         "DROPPER",                  // Minecraft 1.5
         "ENCHANTING_TABLE",         // Minecraft 1.0
+        "ENDER_CHEST",              // Minecraft 1.3.1
         "FURNACE",                  // Minecraft 1.0
         "HOPPER",                   // Minecraft 1.5
         "JUKEBOX",                  // Minecraft 1.0
