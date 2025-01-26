@@ -723,6 +723,27 @@ public class MPlayer extends SenderEntity<MPlayer> implements FactionsParticipat
 		if (ps == null) return false;
 		return BoardColl.get().getFactionAt(ps) == this.getFaction();
 	}
+	
+	public boolean isInOthersTerritory()
+    {
+        PS ps = MixinSenderPs.get().getSenderPs(this.getId());
+        if (ps == null) return false;
+        return BoardColl.get().getFactionAt(ps) != this.getFaction();
+    }
+	
+	public boolean isInAllyTerritory()
+    {
+        PS ps = MixinSenderPs.get().getSenderPs(this.getId());
+        if (ps == null) return false;
+        return BoardColl.get().getFactionAt(ps).getRelationTo(this) == Rel.ALLY;
+    }
+	
+	public boolean isInNeutralTerritory()
+    {
+        PS ps = MixinSenderPs.get().getSenderPs(this.getId());
+        if (ps == null) return false;
+        return BoardColl.get().getFactionAt(ps).getRelationTo(this) == Rel.NEUTRAL;
+    }
 
 	public boolean isInEnemyTerritory()
 	{

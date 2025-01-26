@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * # Introduction
+ * <h1>Introduction</h1>
  * PS stands for PhysicalState.
  * This class stores data related to just that.
  * When coding plugins you may find yourself wanting to store a player location.
@@ -32,7 +32,7 @@ import java.util.Set;
  * This class is supposed to be usable in all those cases.
  * Hopefully this class will save you from implementing special classes for all those combinations.
  * 
- * # Field Groups
+ * <h1>Field Groups</h1>
  * velocity: velocityX, velocityY, velocityZ
  * blockCoords: blockX, blockY, blockZ
  * locationCoords: locationX, locationY, locationZ
