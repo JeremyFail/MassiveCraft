@@ -25,8 +25,8 @@ public class EnumerationUtil
         "FLOWER_POT",                   // Minecraft 1.4.2
         "LECTERN",                      // Minecraft 1.14
         "LODESTONE",                    // Minecraft 1.16
-        "NOTE_BLOCK",                   // Minecraft 1.?
-        "REPEATER",                     // Minecraft 1.?
+        "NOTE_BLOCK",                   // Minecraft 1.0
+        "REPEATER",                     // Minecraft 1.0
         "VAULT",                        // Minecraft 1.20
         
         // Potted plants - starting with Minecraft 1.13
@@ -132,9 +132,12 @@ public class EnumerationUtil
         "BUCKET",               // Minecraft 1.0
         "WATER_BUCKET",         // Minecraft 1.0
         "LAVA_BUCKET",          // Minecraft 1.0
+        "AXOLOTL_BUCKET",       // Minecraft 1.17
         "COD_BUCKET",           // Minecraft 1.13
+        "POWDER_SNOW_BUCKET",   // Minecraft 1.17
         "PUFFERFISH_BUCKET",    // Minecraft 1.13
         "SALMON_BUCKET",        // Minecraft 1.13
+        "TADPOLE_BUCKET",       // Minecraft 1.19
         "TROPICAL_FISH_BUCKET", // Minecraft 1.13
         
         "ARMOR_STAND",          // Minecraft 1.8
@@ -209,23 +212,24 @@ public class EnumerationUtil
     // -------------------------------------------- //
     
     public static final BackstringSet<Material> MATERIALS_CONTAINER = new BackstringSet<>(Material.class, 
-        "DISPENSER",                // Minecraft 1.0
-        "CHEST",                    // Minecraft 1.0
-        "TRAPPED_CHEST",            // Minecraft 1.5
-        "FURNACE",                  // Minecraft 1.0
-        "JUKEBOX",                  // Minecraft 1.0
-        "BREWING_STAND",            // Minecraft 1.0
-        "ENCHANTING_TABLE",         // Minecraft 1.0
         "ANVIL",                    // Minecraft 1.4.2
         "CHIPPED_ANVIL",            // Minecraft 1.4.2
         "DAMAGED_ANVIL",            // Minecraft 1.4.2
-        "BEACON",                   // Minecraft 1.4.2
-        "HOPPER",                   // Minecraft 1.5
-        "DROPPER",                  // Minecraft 1.5
+        
         "BARREL",                   // Minecraft 1.14
+        "BEACON",                   // Minecraft 1.4.2
         "BLAST_FURNACE",            // Minecraft 1.14
-        "SMOKER",                   // Minecraft 1.14
+        "BREWING_STAND",            // Minecraft 1.0
+        "CHEST",                    // Minecraft 1.0
+        "DISPENSER",                // Minecraft 1.0
+        "DROPPER",                  // Minecraft 1.5
+        "ENCHANTING_TABLE",         // Minecraft 1.0
+        "FURNACE",                  // Minecraft 1.0
+        "HOPPER",                   // Minecraft 1.5
+        "JUKEBOX",                  // Minecraft 1.0
         "RESPAWN_ANCHOR",           // Minecraft 1.16
+        "SMOKER",                   // Minecraft 1.14
+        "TRAPPED_CHEST",            // Minecraft 1.5
         
         // Shulker Boxes
         "SHULKER_BOX",              // Minecraft 1.11
