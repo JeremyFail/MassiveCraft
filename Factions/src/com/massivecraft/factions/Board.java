@@ -37,9 +37,14 @@ public class Board
     public Faction getFactionAt(FLocation location)
     {
         com.massivecraft.factions.entity.Board realBoard = BoardColl.get().get(location.getLocation().getWorld());
-        com.massivecraft.factions.entity.Faction faction = realBoard.getFactionAt(PS.valueOf(location.getLocation()).getChunkCoords(true));
+        com.massivecraft.factions.entity.Faction realFaction = realBoard.getFactionAt(PS.valueOf(location.getLocation()).getChunkCoords(true));
         
-        return new LegacyFaction(faction);
+        if (realFaction.getId() == Factions.ID_NONE)
+        {
+            return null;
+        }
+        
+        return new LegacyFaction(realFaction);
     }
     
 }
