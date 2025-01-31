@@ -1,6 +1,6 @@
 # MassiveSuper
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 This sub-repository contains only a `pom.xml` file, which contains the majority of the inherited dependencies (for easier maintenance of pom files).
 

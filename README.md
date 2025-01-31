@@ -1,5 +1,5 @@
 # MassiveCraft - Monorepo
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 This is a fork of MassiveCraft's projects which combines all of the necessary individual repositories into a single "monorepo" for easier compilation by anyone who wishes to compile the source themselves. The guide below contains basic instructions on how to compile MassiveCore, CreativeGates, and Factions.
 

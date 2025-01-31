@@ -34,6 +34,11 @@ public class LegacyFPlayer implements FPlayer
     {
         this.realPlayer = MPlayer.get(player);
     }
+
+    public LegacyFPlayer(MPlayer player)
+    {
+        this.realPlayer = player;
+    }
     
     public Faction getFaction()
     {

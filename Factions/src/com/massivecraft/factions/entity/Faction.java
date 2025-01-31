@@ -177,14 +177,44 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	
 	// FINER
 	
+    /**
+     * Checks if the current Faction is Wilderness (none).
+     * 
+     * @return True if the current Faction is Wilderness (none). False otherwise.
+     */
 	public boolean isNone()
 	{
 		return this.getId().equals(Factions.ID_NONE);
 	}
 	
+    /**
+     * Checks if the current faction is a normal faction (not Wilderness/none).
+     * 
+     * @return True if the current Faction is NOT Wilderness (none). False otherwise.
+     */
 	public boolean isNormal()
 	{
 		return ! this.isNone();
+	}
+
+    /**
+     * Checks if the current faction is WarZone.
+     * 
+     * @return True if the current Faction is WarZone. False otherwise.
+     */
+	public boolean isWarZone()
+	{
+		return this.getId().equals(Factions.ID_WARZONE);
+	}
+
+    /**
+     * Checks if the current faction is SafeZone.
+     * 
+     * @return True if the current Faction is SafeZone. False otherwise.
+     */
+	public boolean isSafeZone()
+	{
+		return this.getId().equals(Factions.ID_SAFEZONE);
 	}
 	
 	// -------------------------------------------- //

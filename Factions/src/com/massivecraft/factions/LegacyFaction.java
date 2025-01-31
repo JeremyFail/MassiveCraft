@@ -1,5 +1,6 @@
 package com.massivecraft.factions;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -177,15 +178,13 @@ public class LegacyFaction implements Faction
     @Override
     public String getTag(Faction otherFaction)
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
+        return realFaction.getName(com.massivecraft.factions.entity.Faction.get(otherFaction.getId()));
     }
 
     @Override
     public String getTag(FPlayer otherFplayer)
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
+        return realFaction.getName(MPlayer.get(otherFplayer.getPlayer()));
     }
 
     @Override
@@ -197,8 +196,7 @@ public class LegacyFaction implements Faction
     @Override
     public String getComparisonTag()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
+        return realFaction.getComparisonName();
     }
 
     @Override
@@ -243,7 +241,7 @@ public class LegacyFaction implements Faction
     @Override
     public long getFoundedDate()
     {
-        // TODO: not sure if this value is the same...
+        // TODO: verify this value is the same...
         return realFaction.getCreatedAtMillis();
     }
 
@@ -275,33 +273,32 @@ public class LegacyFaction implements Faction
     @Override
     public boolean isNormal()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return false;
+        return !(realFaction.isNone() || realFaction.isSafeZone() || realFaction.isWarZone());
     }
 
     @Override
     public boolean isWilderness()
     {
-        return realFaction.getId().equals(Factions.ID_NONE);
+        return realFaction.isNone();
     }
 
     @Override
     public boolean isSafeZone()
     {
-        return realFaction.getId().equals(Factions.ID_SAFEZONE);
+        return realFaction.isSafeZone();
     }
 
     @Override
     public boolean isWarZone()
     {
-        return realFaction.getId().equals(Factions.ID_WARZONE);
+        return realFaction.isWarZone();
     }
 
+    // is the faction a faction that cannot be joined
     @Override
     public boolean isPlayerFreeType()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return false;
+        return realFaction.isSafeZone() || realFaction.isWarZone();
     }
 
     @Override
@@ -314,55 +311,6 @@ public class LegacyFaction implements Faction
     public int getLandRoundedInWorld(String worldName)
     {
         return realFaction.getLandCountInWorld(worldName);
-    }
-
-    @Override
-    public double getDTR()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return 0;
-    }
-
-    @Override
-    public double getDTRWithoutUpdate()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return 0;
-    }
-
-    @Override
-    public void setDTR(double dtr)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        
-    }
-
-    @Override
-    public long getLastDTRUpdateTime()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return 0;
-    }
-
-    @Override
-    public long getFrozenDTRUntilTime()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return 0;
-    }
-
-    @Override
-    public void setFrozenDTR(long time)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        
-    }
-
-    @Override
-    public boolean isFrozenDTR()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return false;
     }
 
     @Override
@@ -390,24 +338,9 @@ public class LegacyFaction implements Faction
     }
 
     @Override
-    public Integer getPermanentPower()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        // realFaction.getPowerBoost()?
-        return 0;
-    }
-
-    @Override
-    public void setPermanentPower(Integer permanentPower)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        
-    }
-
-    @Override
     public boolean hasPermanentPower()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+        // TODO: Factions3 does not have permanent power except for the permanent flag and a power boost?
         return false;
     }
 
@@ -424,24 +357,16 @@ public class LegacyFaction implements Faction
     }
 
     @Override
-    public boolean hasLandInflation()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return false;
-    }
-
-    @Override
     public boolean isPowerFrozen()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+        // Factions3 does not freeze faction power
         return false;
     }
 
     @Override
     public void refreshFPlayers()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        
+        // Factions3 does not store players this way - as a result, this does nothing
     }
 
     @Override
@@ -461,36 +386,79 @@ public class LegacyFaction implements Faction
     @Override
     public int getSize()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return 0;
+        return realFaction.getMPlayers().size();
     }
 
     @Override
     public Set<FPlayer> getFPlayers()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
+        Set<FPlayer> players = new HashSet<>();
+        if (this.isNormal())
+        {
+            for (MPlayer player : realFaction.getMPlayers())
+            {
+                players.add(new LegacyFPlayer(player));
+            }
+        }
+        return players;
     }
 
     @Override
     public Set<FPlayer> getFPlayersWhereOnline(boolean online)
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
+        Set<FPlayer> players = new HashSet<>();
+        if (this.isNormal())
+        {
+            for (MPlayer player : realFaction.getMPlayersWhereOnline(online))
+            {
+                players.add(new LegacyFPlayer(player));
+            }
+        }
+        return players;
     }
 
     @Override
     public Set<FPlayer> getFPlayersWhereOnline(boolean online, FPlayer viewer)
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
+        // If we want offline, just return all offline players
+        if (viewer == null || !online)
+        {
+            return getFPlayersWhereOnline(online);
+        }
+        
+        Set<FPlayer> players = new HashSet<>();
+        if (this.isNormal()) 
+        {
+            for (MPlayer viewed : realFaction.getMPlayersWhereOnline(online)) 
+            {
+                if (viewed.getPlayer() != null
+                        && viewer.getPlayer() != null
+                        && viewer.getPlayer().canSee(viewed.getPlayer()))
+                {
+                    players.add(new LegacyFPlayer(viewed));
+                }
+            }
+        }
+
+        return players;
     }
 
     @Override
     public FPlayer getFPlayerAdmin()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
+        FPlayer leader = null;
+        if (this.isNormal())
+        {
+            for (MPlayer player : realFaction.getMPlayers())
+            {
+                if (player.getRank().isLeader())
+                {
+                    leader = new LegacyFPlayer(player);
+                    break;
+                }
+            }
+        }
+        return leader;
     }
 
 //    @Override
@@ -515,29 +483,26 @@ public class LegacyFaction implements Faction
     @Override
     public void memberLoggedOff()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        
+        // Factions3 does not track last online time - this does nothing.
     }
 
     @Override
     public void promoteNewLeader()
     {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        
+        realFaction.promoteNewLeader();
     }
 
 //    @Override
 //    public Role getDefaultRole()
 //    {
-//        // TODO Auto-generated method stub
+//        // TODO: Can we convert Factions3 Ranks to Legacy Roles?
 //        return null;
 //    }
 
 //    @Override
 //    public void setDefaultRole(Role role)
 //    {
-//        // TODO Auto-generated method stub
-//        
+//        // TODO: Factions3 doesn't have configurable default roles?
 //    }
 
     @Override
@@ -552,101 +517,101 @@ public class LegacyFaction implements Faction
         realFaction.msg(messages);
     }
 
-    @Override
-    public Map<FLocation, Set<String>> getClaimOwnership()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
-    }
+    // @Override
+    // public Map<FLocation, Set<String>> getClaimOwnership()
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    //     return null;
+    // }
 
-    @Override
-    public void clearAllClaimOwnership()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-    }
+    // @Override
+    // public void clearAllClaimOwnership()
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    // }
 
-    @Override
-    public void clearClaimOwnership(FLocation loc)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    // @Override
+    // public void clearClaimOwnership(FLocation loc)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
         
-    }
+    // }
 
-    @Override
-    public void clearClaimOwnership(FPlayer player)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    // @Override
+    // public void clearClaimOwnership(FPlayer player)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
         
-    }
+    // }
 
-    @Override
-    public int getCountOfClaimsWithOwners()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return 0;
-    }
+    // @Override
+    // public int getCountOfClaimsWithOwners()
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    //     return 0;
+    // }
 
-    @Override
-    public boolean doesLocationHaveOwnersSet(FLocation loc)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return false;
-    }
+    // @Override
+    // public boolean doesLocationHaveOwnersSet(FLocation loc)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    //     return false;
+    // }
 
-    @Override
-    public boolean isPlayerInOwnerList(FPlayer player, FLocation loc)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return false;
-    }
+    // @Override
+    // public boolean isPlayerInOwnerList(FPlayer player, FLocation loc)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    //     return false;
+    // }
 
-    @Override
-    public void setPlayerAsOwner(FPlayer player, FLocation loc)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    // @Override
+    // public void setPlayerAsOwner(FPlayer player, FLocation loc)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
         
-    }
+    // }
 
-    @Override
-    public void removePlayerAsOwner(FPlayer player, FLocation loc)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    // @Override
+    // public void removePlayerAsOwner(FPlayer player, FLocation loc)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
         
-    }
+    // }
 
-    @Override
-    public Set<String> getOwnerList(FLocation loc)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
-    }
+    // @Override
+    // public Set<String> getOwnerList(FLocation loc)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    //     return null;
+    // }
 
-    @Override
-    public String getOwnerListString(FLocation loc)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
-    }
+    // @Override
+    // public String getOwnerListString(FLocation loc)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    //     return null;
+    // }
 
-    @Override
-    public boolean playerHasOwnershipRights(FPlayer fplayer, FLocation loc)
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return false;
-    }
+    // @Override
+    // public boolean playerHasOwnershipRights(FPlayer fplayer, FLocation loc)
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    //     return false;
+    // }
 
-    @Override
-    public void remove()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    // @Override
+    // public void remove()
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
         
-    }
+    // }
 
-    @Override
-    public Set<FLocation> getAllClaims()
-    {
-        // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
-        return null;
-    }
+    // @Override
+    // public Set<FLocation> getAllClaims()
+    // {
+    //     // TODO: Look at how this is used in FactionsUUID - https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFaction.java
+    //     return null;
+    // }
     
 }

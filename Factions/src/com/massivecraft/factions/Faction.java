@@ -135,29 +135,29 @@ public interface Faction
     // Relation and relation colors
     // -------------------------------
 
-//    Relation getRelationWish(Faction otherFaction);
-//
-//    void setRelationWish(Faction otherFaction, Relation relation);
-//
-//    int getRelationCount(Relation relation);
+    // Relation getRelationWish(Faction otherFaction);
+
+    // void setRelationWish(Faction otherFaction, Relation relation);
+
+    // int getRelationCount(Relation relation);
 
     // ----------------------------------------------//
-    // DTR
+    // DTR (Deaths 'til Raidable)
     // ----------------------------------------------//
+    
+    // double getDTR();
 
-    double getDTR();
+    // double getDTRWithoutUpdate();
 
-    double getDTRWithoutUpdate();
+    // void setDTR(double dtr);
 
-    void setDTR(double dtr);
+    // long getLastDTRUpdateTime();
 
-    long getLastDTRUpdateTime();
+    // long getFrozenDTRUntilTime();
 
-    long getFrozenDTRUntilTime();
+    // void setFrozenDTR(long time);
 
-    void setFrozenDTR(long time);
-
-    boolean isFrozenDTR();
+    // boolean isFrozenDTR();
 
     // ----------------------------------------------//
     // Power
@@ -170,9 +170,9 @@ public interface Faction
 
     int getPowerMaxRounded();
 
-    Integer getPermanentPower();
+    // Integer getPermanentPower();
 
-    void setPermanentPower(Integer permanentPower);
+    // void setPermanentPower(Integer permanentPower);
 
     boolean hasPermanentPower();
 
@@ -180,7 +180,7 @@ public interface Faction
 
     void setPowerBoost(double powerBoost);
 
-    boolean hasLandInflation();
+    // boolean hasLandInflation();
 
     boolean isPowerFrozen();
 
@@ -205,7 +205,7 @@ public interface Faction
 
     FPlayer getFPlayerAdmin();
 
-//    List<FPlayer> getFPlayersWhereRole(Role role);
+    // List<FPlayer> getFPlayersWhereRole(Role role);
 
     List<Player> getOnlinePlayers();
 
@@ -219,9 +219,9 @@ public interface Faction
     // promotes new leader, or disbands faction if no other members left
     void promoteNewLeader();
 
-//    Role getDefaultRole();
+    // Role getDefaultRole();
 
-//    void setDefaultRole(Role role);
+    // void setDefaultRole(Role role);
 
     void sendMessage(String message);
 
@@ -231,35 +231,35 @@ public interface Faction
     // Ownership of specific claims
     // ----------------------------------------------//
 
-    Map<FLocation, Set<String>> getClaimOwnership();
+    // Map<FLocation, Set<String>> getClaimOwnership();
 
-    void clearAllClaimOwnership();
+    // void clearAllClaimOwnership();
 
-    void clearClaimOwnership(FLocation loc);
+    // void clearClaimOwnership(FLocation loc);
 
-    void clearClaimOwnership(FPlayer player);
+    // void clearClaimOwnership(FPlayer player);
 
-    int getCountOfClaimsWithOwners();
+    // int getCountOfClaimsWithOwners();
 
-    boolean doesLocationHaveOwnersSet(FLocation loc);
+    // boolean doesLocationHaveOwnersSet(FLocation loc);
 
-    boolean isPlayerInOwnerList(FPlayer player, FLocation loc);
+    // boolean isPlayerInOwnerList(FPlayer player, FLocation loc);
 
-    void setPlayerAsOwner(FPlayer player, FLocation loc);
+    // void setPlayerAsOwner(FPlayer player, FLocation loc);
 
-    void removePlayerAsOwner(FPlayer player, FLocation loc);
+    // void removePlayerAsOwner(FPlayer player, FLocation loc);
 
-    Set<String> getOwnerList(FLocation loc);
+    // Set<String> getOwnerList(FLocation loc);
 
-    String getOwnerListString(FLocation loc);
+    // String getOwnerListString(FLocation loc);
 
-    boolean playerHasOwnershipRights(FPlayer fplayer, FLocation loc);
+    // boolean playerHasOwnershipRights(FPlayer fplayer, FLocation loc);
 
-    // ----------------------------------------------//
-    // Persistance and entity management
-    // ----------------------------------------------//
-    void remove();
+    // // ----------------------------------------------//
+    // // Persistance and entity management
+    // // ----------------------------------------------//
+    // void remove();
 
-    Set<FLocation> getAllClaims();
+    // Set<FLocation> getAllClaims();
     
 }
