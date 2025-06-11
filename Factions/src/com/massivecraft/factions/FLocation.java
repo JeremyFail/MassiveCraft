@@ -14,6 +14,8 @@ import org.bukkit.Location;
 public class FLocation
 {
     
+    // TODO: Add more methods from legacy factions?
+
     private Location location;
     
     public FLocation(Location location)

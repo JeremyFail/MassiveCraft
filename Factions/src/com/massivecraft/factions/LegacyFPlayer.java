@@ -351,8 +351,7 @@ public class LegacyFPlayer implements FPlayer
     @Override
     public boolean canClaimForFactionAtLocation(Faction forFaction, FLocation location, boolean notifyFailure)
     {
-        // TODO: Implement - see https://github.com/FactionsU/UID/blob/main/src/main/java/com/massivecraft/factions/data/MemoryFPlayer.java
-        return false;
+        return canClaimForFactionAtLocation(forFaction, location.getLocation(), notifyFailure);
     }
 
     @Override

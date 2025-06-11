@@ -22,6 +22,7 @@ import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.ArrayList;
@@ -90,7 +91,11 @@ public class EngineCanCombatHappen extends Engine
 	public void canCombatDamageHappen(AreaEffectCloudApplyEvent event)
 	{
 		// If a harmful potion effect cloud is present ...
-		if ( ! MUtil.isHarmfulPotion(event.getEntity().getBasePotionData().getType().getEffectType())) return;
+	    List<PotionEffect> potionEffects = event.getEntity().getCustomEffects();
+	    for (PotionEffect potionEffect : potionEffects)
+	    {
+	        if ( ! MUtil.isHarmfulPotion(potionEffect)) return;
+	    }
 
 		ProjectileSource projectileSource = event.getEntity().getSource();
 		if ( ! (projectileSource instanceof Entity)) return;

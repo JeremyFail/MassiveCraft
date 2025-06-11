@@ -34,6 +34,7 @@ public class Board
     // METHODS
     // -------------------------------------------- //
     
+    // TODO: Add more methods from legacy Factions
     public Faction getFactionAt(FLocation location)
     {
         com.massivecraft.factions.entity.Board realBoard = BoardColl.get().get(location.getLocation().getWorld());
