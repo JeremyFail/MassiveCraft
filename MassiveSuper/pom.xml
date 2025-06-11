@@ -5,7 +5,7 @@
     <groupId>com.massivecraft.massivesuper</groupId>
     <artifactId>MassiveSuper</artifactId>
     <!-- Change this release version when making updates to the code - update in all pom files -->
-    <version>3.4.0-alpha-2</version>
+    <version>3.4.0-alpha-3</version>
     <packaging>pom</packaging>
 
     <!-- Info -->
