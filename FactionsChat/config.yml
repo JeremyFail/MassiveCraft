@@ -1,0 +1,42 @@
+#
+# Determines the range in a circular area centered on the sender
+# for other players to see the local chat
+#
+#
+LocalChatRange: 1000
+#
+# Chat prefixes for each channel
+#
+# <fcolor> is a placeholder for the faction colors set in factions config files
+#
+ChatPrefixes:
+  Ally: '§e[<fcolor>ALLY§e]§r '
+  Truce: '§e[<fcolor>TRUCE§e]§r '
+  Faction: '§e[<fcolor>FACTION§e]§r '
+  Enemy: '§e[<fcolor>ENEMY§e]§r '
+  Neutral: '§e[<fcolor>NEUTRAL§e]§r '
+  Local: '§e[§rLOCAL§e]§r '
+  Global: '§e[§6GLOBAL§e]§r '
+  Staff: '§e[§4STAFF§e]§r '
+  World: '§e[§3WORLD§e]§r '
+
+TextColors:
+  Ally: '<fcolor>'
+  Truce: '<fcolor>'
+  Faction: '<fcolor>'
+  Enemy: '<fcolor>'
+  Neutral: '<fcolor>'
+  Local: '§r'
+  Global: '§6'
+  Staff: '§4'
+  World: '§3'
+#
+# Discord settings. Requires DiscordSRV to be installed
+#
+# The channel ID for the channel in your discord guild to link staff chat to
+#
+# Right click the text channel, select "copy ID" and replace the current value with copied ID
+#
+DiscordStaffChannel: '000000000000000000'
+
+

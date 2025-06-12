@@ -1,0 +1,54 @@
+main: ${project.groupId}.${project.name}
+name: ${project.name}
+version: ${project.version}
+website: ${project.url}
+description: ${project.description}
+authors: [eirikh1996, Ymerejliaf]
+api-version: 1.21
+depend: [Factions, MassiveCore]
+softdepend: [DiscordSRV, Essentials]
+
+permissions:
+  # -------------------------------------------- #
+  # THE REAL NODES
+  # -------------------------------------------- #
+  factionschat.ally:
+    description: Access ally chat channel
+    default: op
+  factionschat.truce:
+    description: Access truce chat channel
+    default: op
+  factionschat.faction:
+    description: Access faction chat channel
+    default: op
+  factionschat.local:
+    description: Access local chat channel
+    default: op
+  factionschat.global:
+    description: Access global chat channel
+    default: op
+  factionschat.enemy:
+    description: Access enemy chat channel
+    default: op
+  factionschat.neutral:
+    description: Access neutral chat channel
+    default: op
+  factionschat.world:
+    description: Access world chat channel
+    default: op
+  factionschat.staff:
+    description: Access staff chat channel
+    default: op
+# -------------------------------------------- #
+# STAR NOTATION
+# -------------------------------------------- #
+  factionschat.*:
+    children:
+      factionschat.ally: true
+      factionschat.truce: true
+      factionschat.faction: true
+      factionschat.local: true
+      factionschat.global: true
+      factionschat.enemy: true
+      factionschat.neutral: true
+      factionschat.world: true

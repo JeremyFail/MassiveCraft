@@ -10,6 +10,7 @@
     <!-- Modules -->
     <modules>
     	<module>CreativeGates</module>
+    	<module>FactionsChat</module>
         <module>Factions</module>
         <module>MassiveCore</module>
         <module>MassiveSuper</module>

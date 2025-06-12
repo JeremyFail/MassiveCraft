@@ -1,7 +1,7 @@
 # MassiveCraft - Monorepo
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-This is a fork of MassiveCraft's projects which combines all of the necessary individual repositories into a single "monorepo" for easier compilation by anyone who wishes to compile the source themselves. The guide below contains basic instructions on how to compile MassiveCore, CreativeGates, and Factions.
+This is a fork of MassiveCraft's projects which combines all of the necessary individual repositories into a single "monorepo" for easier compilation by anyone who wishes to compile the source themselves. The guide below contains basic instructions on how to compile MassiveCore, CreativeGates, Factions, and FactionsChat.
 
 Alternatively, releases will be made available here: [releases](https://github.com/JeremyFail/MassiveCraft/releases)
 
@@ -31,6 +31,7 @@ It may take a few minutes to build. Once complete (and if successful), the JAR f
 ../MassiveCore/target/MassiveCore.jar
 ../CreativeGates/target/CreativeGates.jar
 ../Factions/target/Factions.jar
+../FactionsChat/target/FactionsChat.jar
 ```
 
 ## Other Noteworthy Stuff

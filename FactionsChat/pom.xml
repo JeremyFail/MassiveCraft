@@ -1,6 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
     <!-- Parent -->
     <parent>
         <groupId>com.massivecraft.massivesuper</groupId>
@@ -10,15 +10,15 @@
     </parent>
 
     <!-- Basics -->
-    <groupId>com.massivecraft.creativegates</groupId>
-    <artifactId>CreativeGates</artifactId>
+    <groupId>com.massivecraft.factionschat</groupId>
+    <artifactId>FactionsChat</artifactId>
     <packaging>jar</packaging>
 
     <!-- Info -->
     <name>${project.artifactId}</name>
-    <description>${massiveColorInfo}${project.name} is a portal plugin. ${massiveDescriptionSuffix}</description>
-    <url>${massiveBaseUrl}/creativegates</url>
-
+    <description>${massiveColorInfo}${project.name} allows players to chat in different channels, including their global chat, their faction, allies, and more. ${massiveDescriptionSuffix}</description>
+    <url>${massiveBaseUrl}/factionschat</url>
+    
     <!-- Dependencies -->
     <dependencies>
         <!-- Spigot -->
@@ -31,8 +31,23 @@
             <groupId>com.massivecraft.massivecore</groupId>
             <artifactId>MassiveCore</artifactId>
         </dependency>
+        <!-- Factions -->
+        <dependency>
+            <groupId>com.massivecraft.factions</groupId>
+            <artifactId>Factions</artifactId>
+        </dependency>
+        <!-- DiscordSRV -->
+        <dependency>
+            <groupId>com.discordsrv</groupId>
+            <artifactId>discordsrv</artifactId>
+        </dependency>
+        <!-- Essentials -->
+        <dependency>
+            <groupId>net.ess3</groupId>
+            <artifactId>EssentialsX</artifactId>
+        </dependency>
     </dependencies>
-
+    
     <!-- Build -->
     <build>
         <!-- Resources -->
@@ -52,5 +67,4 @@
             </resource>
         </resources>
     </build>
-
 </project>
