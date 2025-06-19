@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
+// TODO: This file needs to be updated to reference new URLs for this fork. It is currently unused.
 public class UpdateManager extends BukkitRunnable implements Listener
 {
     @Override

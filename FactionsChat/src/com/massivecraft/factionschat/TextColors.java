@@ -3,7 +3,11 @@ package com.massivecraft.factionschat;
 import com.massivecraft.factions.entity.MConf;
 import org.bukkit.configuration.ConfigurationSection;
 
-public class TextColors {
+/**
+ * The text colors for the various chat channels.
+ */
+public class TextColors 
+{
     public static String ALLY;
     public static String TRUCE;
     public static String FACTION;
@@ -14,6 +18,12 @@ public class TextColors {
     public static String STAFF;
     public static String WORLD;
 
+    /**
+     * Initializes the text colors for the various chat channels from the
+     * specified config settings.
+     * 
+     * @param cfg The {@link ConfigurationSection} containing the text color configurations.
+     */
     public static void initialize(ConfigurationSection cfg) 
     {
         ALLY = cfg.getString("Ally", "<fcolor>").replace("<fcolor>", MConf.get().colorAlly.toString());
@@ -27,6 +37,12 @@ public class TextColors {
         WORLD = cfg.getString("World", "§3");
     }
 
+    /**
+     * Retrieves the color code string for the specified {@link ChatMode}.
+     * 
+     * @param chatMode The {@link ChatMode} to retrieve the color string for.
+     * @return The color string for the specified {@link ChatMode}.
+     */
     public static String getColor(ChatMode chatMode) 
     {
         switch (chatMode) 

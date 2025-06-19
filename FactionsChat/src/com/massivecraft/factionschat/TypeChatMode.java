@@ -5,6 +5,9 @@ import org.bukkit.command.CommandSender;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * A MassiveCraft {@link TypeAbstract} that represents the supported ChatModes.
+ */
 public class TypeChatMode extends TypeAbstract<ChatMode> 
 {
     private static final TypeChatMode INSTANCE = new TypeChatMode();
@@ -24,14 +27,14 @@ public class TypeChatMode extends TypeAbstract<ChatMode>
     {
         Collection<String> args = new ArrayList<>();
         
-        for (ChatMode cm : ChatMode.values())
+        for (ChatMode chatMode : ChatMode.values())
         {
-            String arg = cm.name().toLowerCase();
+            String arg = chatMode.name().toLowerCase();
             if (input != null && !arg.startsWith(input)) 
             {
                 continue;
             }
-            if (sender == null || !sender.hasPermission("factionschat." + cm.name().toLowerCase()))
+            if (sender == null || !sender.hasPermission("factionschat." + chatMode.name().toLowerCase()))
             {
                 continue;
             }

@@ -19,8 +19,12 @@ import java.util.UUID;
 import java.util.Set;
 import java.util.Map;
 
+/**
+ * The main chat listener for the FactionsChat plugin.
+ */
 public class FactionChatListener implements Listener 
 {
+    // Players sending quick messages
     public static final Map<UUID, ChatMode> qmPlayers = new HashMap<>();
 
     @EventHandler
@@ -55,7 +59,20 @@ public class FactionChatListener implements Listener
 
         qmPlayers.remove(event.getPlayer().getUniqueId());
     }
-
+    
+    /**
+     * Checks if the specified recipient should be excluded from receiving a particular chat message.
+     * Recipients will be excluded if they don't have permission for a specific chat channel, or if 
+     * they don't meet the necessary relationship requirements for the player sending the message.
+     * 
+     * @param chatMode The {@link ChatMode} of the current message being sent. 
+     * @param mSender The {@link MPlayer} representation of the sender of the current message.
+     * @param mRecipient The {@link MPlayer} representation of the possible recipient of the current message.
+     * @param recipient The {@link Player} representation of the possible recipient of the current message.
+     * @param sender The {@link Player} representation of the sender of the current message.
+     * @return True or False depending on if the recipient meets the criteria to receive the message 
+     * (True if they should <strong>NOT</strong> receive the message). 
+     */
     private boolean shouldExcludeRecipient(ChatMode chatMode, MPlayer mSender, MPlayer mRecipient, Player recipient, Player sender) 
     {
         switch (chatMode) 

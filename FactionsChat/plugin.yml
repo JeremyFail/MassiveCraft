@@ -39,6 +39,9 @@ permissions:
   factionschat.staff:
     description: Access staff chat channel
     default: op
+  factionschat.reload:
+    description: Reload the plugin configuration file
+    default: op
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #

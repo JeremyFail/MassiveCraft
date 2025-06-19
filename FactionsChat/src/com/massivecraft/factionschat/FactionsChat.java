@@ -4,7 +4,6 @@ import com.earth2me.essentials.Essentials;
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factionschat.commands.CmdFactionsChat;
-import com.massivecraft.factionschat.commands.CmdQuickMessage;
 import com.massivecraft.factionschat.listeners.DiscordSRVListener;
 import com.massivecraft.factionschat.listeners.FactionChatListener;
 import com.massivecraft.factions.cmd.CmdFactions;
@@ -24,14 +23,23 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+/**
+ * The FactionsChat plugin.
+ */
 public class FactionsChat extends JavaPlugin 
 {
+    /**
+     * Singleton instance of the plugin.
+     */
+    public static FactionsChat instance;
+    
     private final Map<UUID, ChatMode> chatModes = new HashMap<>();
     private int localChatRange = 1000;
     private DiscordSRV discordSrvPlugin;
     private Factions factionsPlugin;
     private Essentials essentialsPlugin;
-    private UpdateManager updateManager;
+    // TODO: Reimplement update manager?
+    // private UpdateManager updateManager;
     
     @Override
     public void onEnable() 
@@ -62,7 +70,6 @@ public class FactionsChat extends JavaPlugin
         updateConfig();
 
         CmdFactions.get().addChild(new CmdFactionsChat());
-        CmdFactions.get().addChild(new CmdQuickMessage());
 
         localChatRange = getConfig().getInt("LocalChatRange", 1000);
 
@@ -70,13 +77,30 @@ public class FactionsChat extends JavaPlugin
 
         checkPlugins();
 
-        updateManager = new UpdateManager();
+        // updateManager = new UpdateManager();
 
         getServer().getPluginManager().registerEvents(new FactionChatListener(), this);
-        getServer().getPluginManager().registerEvents(updateManager, this);
-        updateManager.run();
+        // getServer().getPluginManager().registerEvents(updateManager, this);
+        // updateManager.run();
     }
     
+    @Override
+    public void onLoad() 
+    {
+        instance = this;
+    }
+
+    @Override
+    public void reloadConfig()
+    {
+        super.reloadConfig();
+
+        localChatRange = getConfig().getInt("LocalChatRange", 1000);
+        setupChatPrefixes();
+        saveChatModesFile(); // Save chat modes after reloading config
+    }
+    
+    // - - - - - GETTERS - - - - -
     public Map<UUID, ChatMode> getPlayerChatModes()
     {
         return chatModes;
@@ -100,62 +124,13 @@ public class FactionsChat extends JavaPlugin
     {
         return this.essentialsPlugin;
     }
-
-    private void setupChatPrefixes() 
-    {
-        ConfigurationSection chatPrefix = getConfig().getConfigurationSection("ChatPrefixes");
-        if (chatPrefix != null) 
-        {
-            ChatPrefixes.ALLY = chatPrefix.getString("Ally", "§e[<fcolor>ALLY§e]§r ")
-                    .replace("<fcolor>", MConf.get().colorAlly.toString());
-            ChatPrefixes.TRUCE = chatPrefix.getString("Truce", "§e[<fcolor>TRUCE§e]§r ")
-                    .replace("<fcolor>", MConf.get().colorTruce.toString());
-            ChatPrefixes.FACTION = chatPrefix.getString("Faction", "§e[<fcolor>FACTION§e]§r ")
-                    .replace("<fcolor>", MConf.get().colorMember.toString());
-            ChatPrefixes.ENEMY = chatPrefix.getString("Enemy", "§e[<fcolor>ENEMY§e]§r ")
-                    .replace("<fcolor>", MConf.get().colorEnemy.toString());
-            ChatPrefixes.NEUTRAL = chatPrefix.getString("Neutral", "§e[<fcolor>NEUTRAL§e]§r ")
-                    .replace("<fcolor>", MConf.get().colorNeutral.toString());
-            ChatPrefixes.LOCAL = chatPrefix.getString("Local", "§e[§rLOCAL§e]§r ");
-            ChatPrefixes.GLOBAL = chatPrefix.getString("Global", "§e[§6GLOBAL§e]§r ");
-            ChatPrefixes.STAFF = chatPrefix.getString("Staff", "§e[§4STAFF§e]§r ");
-            ChatPrefixes.WORLD = chatPrefix.getString("World", "§e[§3WORLD§e]§r ");
-        }
-        TextColors.initialize(getConfig().getConfigurationSection("TextColors"));
-    }
-
-    private void checkPlugins() 
-    {
-        Logger logger = getLogger();
-        factionsPlugin = (Factions) getServer().getPluginManager().getPlugin("Factions");
-        if (factionsPlugin == null || !factionsPlugin.isEnabled()) 
-        {
-            logger.severe("Factions is required, but was not found or is disabled.");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-        logger.info("Factions detected");
-
-        discordSrvPlugin = (DiscordSRV) getServer().getPluginManager().getPlugin("DiscordSRV");
-        if (discordSrvPlugin != null) 
-        {
-            logger.info("DiscordSRV detected");
-            DiscordSRV.api.subscribe(new DiscordSRVListener());
-        }
-
-        essentialsPlugin = (Essentials) getServer().getPluginManager().getPlugin("Essentials");
-        if (essentialsPlugin != null) 
-        {
-            logger.info("Essentials detected");
-        }
-    }
-
-    @Override
-    public void onLoad() 
-    {
-        instance = this;
-    }
-
+    
+    // - - - - - PUBLIC METHODS - - - - -
+    
+    /**
+     * Saves the <code>chatmodes.yml</code> file, which contains a list of players and what
+     * chat mode they're currently using.
+     */
     public void saveChatModesFile()
     {
         File chatmodesFile = new File(getDataFolder(), "chatmodes.yml");
@@ -175,7 +150,12 @@ public class FactionsChat extends JavaPlugin
             e.printStackTrace();
         }
     }
-
+    
+    
+    // - - - - - PRIVATE METHODS - - - - -
+    /**
+     * Updates the main <code>config.yml</code> file for FactionsChat. 
+     */
     private void updateConfig()
     {
         try
@@ -206,6 +186,59 @@ public class FactionsChat extends JavaPlugin
             e.printStackTrace();
         }
     }
+    
+    /**
+     * Sets up the chat prefixes specified in the config.
+     */
+    private void setupChatPrefixes() 
+    {
+        ConfigurationSection chatPrefix = getConfig().getConfigurationSection("ChatPrefixes");
+        if (chatPrefix != null) 
+        {
+            ChatPrefixes.ALLY = chatPrefix.getString("Ally", "§e[<fcolor>ALLY§e]§r ")
+                    .replace("<fcolor>", MConf.get().colorAlly.toString());
+            ChatPrefixes.TRUCE = chatPrefix.getString("Truce", "§e[<fcolor>TRUCE§e]§r ")
+                    .replace("<fcolor>", MConf.get().colorTruce.toString());
+            ChatPrefixes.FACTION = chatPrefix.getString("Faction", "§e[<fcolor>FACTION§e]§r ")
+                    .replace("<fcolor>", MConf.get().colorMember.toString());
+            ChatPrefixes.ENEMY = chatPrefix.getString("Enemy", "§e[<fcolor>ENEMY§e]§r ")
+                    .replace("<fcolor>", MConf.get().colorEnemy.toString());
+            ChatPrefixes.NEUTRAL = chatPrefix.getString("Neutral", "§e[<fcolor>NEUTRAL§e]§r ")
+                    .replace("<fcolor>", MConf.get().colorNeutral.toString());
+            ChatPrefixes.LOCAL = chatPrefix.getString("Local", "§e[§rLOCAL§e]§r ");
+            ChatPrefixes.GLOBAL = chatPrefix.getString("Global", "§e[§6GLOBAL§e]§r ");
+            ChatPrefixes.STAFF = chatPrefix.getString("Staff", "§e[§4STAFF§e]§r ");
+            ChatPrefixes.WORLD = chatPrefix.getString("World", "§e[§3WORLD§e]§r ");
+        }
+        TextColors.initialize(getConfig().getConfigurationSection("TextColors"));
+    }
+    
+    /**
+     * Checks for required or integrated plugins.
+     */
+    private void checkPlugins() 
+    {
+        Logger logger = getLogger();
+        factionsPlugin = (Factions) getServer().getPluginManager().getPlugin("Factions");
+        if (factionsPlugin == null || !factionsPlugin.isEnabled()) 
+        {
+            logger.severe("Factions is required, but was not found or is disabled.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        logger.info("Factions detected");
 
-    public static FactionsChat instance;
+        discordSrvPlugin = (DiscordSRV) getServer().getPluginManager().getPlugin("DiscordSRV");
+        if (discordSrvPlugin != null) 
+        {
+            logger.info("DiscordSRV detected");
+            DiscordSRV.api.subscribe(new DiscordSRVListener());
+        }
+
+        essentialsPlugin = (Essentials) getServer().getPluginManager().getPlugin("Essentials");
+        if (essentialsPlugin != null) 
+        {
+            logger.info("Essentials detected");
+        }
+    }
 }

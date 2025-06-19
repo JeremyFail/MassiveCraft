@@ -13,6 +13,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+/**
+ * An event listener that hooks into the DiscordSRV plugin to send staff
+ * chats to a discord server channel. Requires the server have DiscordSRV
+ * installed and the config file to be setup with the Discord channel ID.
+ */
 public class DiscordSRVListener implements Listener
 {
     @EventHandler

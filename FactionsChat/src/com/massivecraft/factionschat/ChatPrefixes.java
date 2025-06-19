@@ -1,5 +1,8 @@
 package com.massivecraft.factionschat;
 
+/**
+ * The chat prefixes for the various chat channels.
+ */
 public class ChatPrefixes 
 {
     public static String ALLY = "[ALLY]";
@@ -11,7 +14,14 @@ public class ChatPrefixes
     public static String GLOBAL = "[GLOBAL]";
     public static String STAFF = "[STAFF]";
     public static String WORLD = "[WORLD]";
-
+    
+    /**
+     * Retrieves the prefix for the specified {@link ChatMode}.
+     * 
+     * @param chatMode The {@link ChatMode} to retrieve the prefix for.
+     * @return The prefix for the specified {@link ChatMode}, or an empty
+     * string if an invalid {@link ChatMode} was specified.
+     */
     public static String getPrefix(ChatMode chatMode) 
     {
         switch (chatMode) 
