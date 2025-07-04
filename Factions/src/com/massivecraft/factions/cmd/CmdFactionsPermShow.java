@@ -42,6 +42,12 @@ public class CmdFactionsPermShow extends FactionsCommand
 		Set<String> permittedIds = faction.getPerms().get(mperm.getId());
 		List<MPermable> permables = new MassiveList<>();
 
+		if (permittedIds == null || permittedIds.isEmpty())
+		{
+			msg("<i>In <reset>%s<i> permission <reset>%s<i> is not currently granted to anyone.", faction.describeTo(msender), mperm.getDesc(true, false));
+			return;
+		}
+
 		for (String permitted : permittedIds)
 		{
 			permables.add(MPerm.idToMPermable(permitted));
@@ -55,7 +61,7 @@ public class CmdFactionsPermShow extends FactionsCommand
 		String permableNames = Txt.implodeCommaAnd(permableList, Txt.parse("<i>"));
 
 		// Create messages
-		msg("<i>In <reset>%s <i>permission <reset>%s <i>is granted to <reset>%s<i>.", faction.describeTo(msender), mperm.getDesc(true, false), permableNames);
+		msg("<i>In <reset>%s<i> permission <reset>%s<i> is granted to <reset>%s<i>.", faction.describeTo(msender), mperm.getDesc(true, false), permableNames);
 	}
 
 	@Deprecated
