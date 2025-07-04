@@ -111,7 +111,7 @@ public class MigratorRoot implements Migrator, Active
 		int entityVersionExpected = this.getVersion() - 1;
 
 		// ... make sure they match ...
-		if (entityVersionCurrent != entityVersionExpected) throw new IllegalArgumentException(String.format("Entiy version: %d Expected: %d", entityVersionCurrent, entityVersionExpected));
+		if (entityVersionCurrent != entityVersionExpected) throw new IllegalArgumentException(String.format("Entity version: %d Expected: %d", entityVersionCurrent, entityVersionExpected));
 
 		// ... do the migration.
 

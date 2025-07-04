@@ -38,6 +38,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public final static transient String ID_PAINBUILD = "painbuild";
 	public final static transient String ID_DOOR = "door";
 	public final static transient String ID_BUTTON = "button";
+	public final static transient String ID_PRESSURE_PLATE = "pressureplate";
 	public final static transient String ID_LEVER = "lever";
 	public final static transient String ID_CONTAINER = "container";
 	
@@ -67,6 +68,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public final static transient int PRIORITY_PAINBUILD = 2000;
 	public final static transient int PRIORITY_DOOR = 3000;
 	public final static transient int PRIORITY_BUTTON = 4000;
+	public final static transient int PRIORITY_PRESSURE_PLATE = 4500;
 	public final static transient int PRIORITY_LEVER = 5000;
 	public final static transient int PRIORITY_CONTAINER = 6000;
 	
@@ -120,6 +122,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 		getPermPainbuild();
 		getPermDoor();
 		getPermButton();
+		getPermPressurePlate();
 		getPermLever();
 		getPermContainer();
 		
@@ -149,7 +152,8 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public static MPerm getPermBuild() { return getCreative(PRIORITY_BUILD, ID_BUILD, ID_BUILD, "edit the terrain", true, true, true); }
 	public static MPerm getPermPainbuild() { return getCreative(PRIORITY_PAINBUILD, ID_PAINBUILD, ID_PAINBUILD, "edit, take damage", true, true, true); }
 	public static MPerm getPermDoor() { return getCreative(PRIORITY_DOOR, ID_DOOR, ID_DOOR, "use doors", true, true, true); }
-	public static MPerm getPermButton() { return getCreative(PRIORITY_BUTTON, ID_BUTTON, ID_BUTTON, "use stone buttons", true, true, true); }
+	public static MPerm getPermButton() { return getCreative(PRIORITY_BUTTON, ID_BUTTON, ID_BUTTON, "use buttons", true, true, true); }
+	public static MPerm getPermPressurePlate() { return getCreative(PRIORITY_PRESSURE_PLATE, ID_PRESSURE_PLATE, ID_PRESSURE_PLATE, "use pressure plates", true, true, true); }
 	public static MPerm getPermLever() { return getCreative(PRIORITY_LEVER, ID_LEVER, ID_LEVER, "use levers", true, true, true); }
 	public static MPerm getPermContainer() { return getCreative(PRIORITY_CONTAINER, ID_CONTAINER, ID_CONTAINER, "use containers", true, true, true); }
 	
@@ -222,7 +226,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	// VERSION
 	// -------------------------------------------- //
 
-	public int version = 2;
+	public int version = 3;
 
 	// -------------------------------------------- //
 	// FIELDS
@@ -380,8 +384,6 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 		
 		if (mplayer.isOverriding()) return true;
 		
-		Rel rel = mplayer.getRelationTo(hostFaction);
-		MPermable permable = rel == Rel.FACTION ? mplayer.getRank() : rel;
 		if (hostFaction.isPlayerPermitted(mplayer, this)) return true;
 		
 		if (verboose) mplayer.message(this.createDeniedMessage(mplayer, hostFaction));

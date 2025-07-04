@@ -13,6 +13,7 @@ import com.massivecraft.factions.util.EnumerationUtil;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.util.MUtil;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -30,6 +31,7 @@ import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
@@ -43,8 +45,10 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class EnginePermBuild extends Engine
 {
@@ -87,7 +91,10 @@ public class EnginePermBuild extends Engine
 	public static Boolean protect(ProtectCase protectCase, boolean verboose, Player player, PS ps, Object object, Cancellable cancellable)
 	{
 		Boolean ret = isProtected(protectCase, verboose, MPlayer.get(player), ps, object);
-		if (Boolean.TRUE.equals(ret) && cancellable != null) cancellable.setCancelled(true);
+		if (Boolean.TRUE.equals(ret) && cancellable != null) 
+		{
+			cancellable.setCancelled(true);
+		}
 
 		return ret;
 	}
@@ -114,6 +121,11 @@ public class EnginePermBuild extends Engine
 	public static Boolean useBlock(Player player, Block block, boolean verboose, Cancellable cancellable)
 	{
 		return protect(ProtectCase.USE_BLOCK, verboose, player, PS.valueOf(block), block.getType(), cancellable);
+	}
+
+	public static Boolean useRedstoneBlock(Player player, Block block, Material material, boolean verboose)
+	{
+		return protect(ProtectCase.USE_REDSTONE_BLOCK, verboose, player, PS.valueOf(block), material, null);
 	}
 	
 	// -------------------------------------------- //
@@ -191,7 +203,49 @@ public class EnginePermBuild extends Engine
 	
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void useItem(PlayerBucketFillEvent event) { useItem(event.getPlayer(), event.getBlockClicked(), event.getBucket(), event); }
-	
+
+
+	// -------------------------------------------- //
+	// USE > REDSTONE BLOCK
+	// -------------------------------------------- //
+
+	// Track last plate messaged per player
+	private static final Map<UUID, Location> lastPlateMessaged = new HashMap<>();
+
+	@EventHandler
+	public void onBlockRedstoneChange(BlockRedstoneEvent event)
+	{
+		Block block = event.getBlock();
+		Material blockMaterial = block.getType();
+
+		// Only care about pressure plates (for now)
+		if (!EnumerationUtil.isMaterialPressurePlate(blockMaterial)) return;
+
+		// Only check entities within a small radius (should cover standing on the plate)
+		Location blockLocation = block.getLocation();
+    	for (Entity entity : block.getWorld().getNearbyEntities(blockLocation, 1, 1, 1))
+		{
+			// If the entity is not a player, skip it
+			if (entity == null || MUtil.isntPlayer(entity)) continue;
+
+        	Player player = (Player) entity;
+			UUID uuid = player.getUniqueId();
+			Location last = lastPlateMessaged.get(uuid);
+			boolean verboose = (last == null || !last.equals(blockLocation));
+
+			Boolean prevent = useRedstoneBlock(player, block, blockMaterial, verboose);
+
+			if (Boolean.TRUE.equals(prevent))
+			{
+				event.setNewCurrent(0);
+				if (verboose)
+				{
+                	lastPlateMessaged.put(uuid, blockLocation);
+				}
+            }
+    	}
+	}
+
 	// -------------------------------------------- //
 	// USE > ENTITY
 	// -------------------------------------------- //

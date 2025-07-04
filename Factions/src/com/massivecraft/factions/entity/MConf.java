@@ -565,6 +565,7 @@ public class MConf extends Entity<MConf>
 		MPerm.ID_PAINBUILD, MUtil.set(),
 		MPerm.ID_DOOR, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_BUTTON, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
+		MPerm.ID_PRESSURE_PLATE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_LEVER, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_CONTAINER, MUtil.set("LEADER", "OFFICER", "MEMBER"),
 
@@ -612,6 +613,12 @@ public class MConf extends Entity<MConf>
 	
 	// Interacting with these materials placed in the terrain results in opening a container.
 	public BackstringSet<Material> materialsContainer = new BackstringSet<>(Material.class);
+
+	// Interacting with these materials placed in the terrain results in button toggling.
+	public BackstringSet<Material> materialsButton = new BackstringSet<>(Material.class);
+
+	// Interacting with these materials placed in the terrain results in pressure plate activation.
+	public BackstringSet<Material> materialsPressurePlate = new BackstringSet<>(Material.class);
 	
 	// Interacting with these entities results in an edit.
 	public BackstringSet<EntityType> entityTypesEditOnInteract = new BackstringSet<>(EntityType.class);

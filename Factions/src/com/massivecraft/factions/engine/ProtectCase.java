@@ -16,6 +16,7 @@ public enum ProtectCase
 	USE_BLOCK,
 	USE_ITEM,
 	USE_ENTITY,
+	USE_REDSTONE_BLOCK,
 	
 	// END OF LIST
 	;
@@ -42,6 +43,7 @@ public enum ProtectCase
 				EntityType type = entity.getType();
 				if (EnumerationUtil.isEntityTypeContainer(type)) return MPerm.getPermContainer();
 				if (EnumerationUtil.isEntityTypeEditOnInteract(type)) return MPerm.getPermBuild();
+				return null;
 				
 			case USE_BLOCK:
 				if (!(object instanceof Material)) return null;
@@ -49,8 +51,15 @@ public enum ProtectCase
 				if (EnumerationUtil.isMaterialEditOnInteract(material)) return MPerm.getPermBuild();
 				if (EnumerationUtil.isMaterialContainer(material)) return MPerm.getPermContainer();
 				if (EnumerationUtil.isMaterialDoor(material)) return MPerm.getPermDoor();
-				if (material == Material.STONE_BUTTON) return MPerm.getPermButton();
+				if (EnumerationUtil.isMaterialButton(material)) return MPerm.getPermButton();
 				if (material == Material.LEVER) return MPerm.getPermLever();
+				return null;
+			
+			case USE_REDSTONE_BLOCK:
+				if (!(object instanceof Material)) return null;
+				Material steppedMaterial = (Material) object;
+				if (EnumerationUtil.isMaterialPressurePlate(steppedMaterial)) return MPerm.getPermPressurePlate();
+				return null;
 				
 			default:
 				return null;

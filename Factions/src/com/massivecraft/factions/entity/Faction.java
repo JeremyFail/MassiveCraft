@@ -106,7 +106,7 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	// VERSION
 	// -------------------------------------------- //
 	
-	public int version = 4;
+	public int version = 5;
 	
 	// -------------------------------------------- //
 	// FIELDS: RAW

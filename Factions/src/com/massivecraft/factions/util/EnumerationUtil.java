@@ -257,6 +257,62 @@ public class EnumerationUtil
     {
         return MATERIALS_CONTAINER.contains(material) || MConf.get().materialsContainer.contains(material);
     }
+
+    // -------------------------------------------- //
+    // MATERIAL BUTTON
+    // -------------------------------------------- //
+
+    public static final BackstringSet<Material> MATERIALS_BUTTON = new BackstringSet<>(Material.class,
+        "ACACIA_BUTTON",              // Minecraft 1.13
+        "BAMBOO_BUTTON",              // Minecraft 1.20
+        "BIRCH_BUTTON",               // Minecraft 1.13
+        "CHERRY_BUTTON",              // Minecraft 1.20
+        "CRIMSON_BUTTON",             // Minecraft 1.16
+        "DARK_OAK_BUTTON",            // Minecraft 1.13
+        "JUNGLE_BUTTON",              // Minecraft 1.13
+        "LEGACY_WOOD_BUTTON",         // Minecraft 1.13 (deprecated)
+        "LEGACY_STONE_BUTTON",        // Minecraft 1.13 (deprecated
+        "MANGROVE_BUTTON",            // Minecraft 1.19
+        "OAK_BUTTON",                 // Minecraft 1.4.2
+        "PALE_OAK_BUTTON",            // Minecraft 1.21.4
+        "POLISHED_BLACKSTONE_BUTTON", // Minecraft 1.16
+        "SPRUCE_BUTTON",              // Minecraft 1.13
+        "STONE_BUTTON",               // Minecraft 1.0
+        "WARPED_BUTTON"               // Minecraft 1.16
+    );
+
+    public static boolean isMaterialButton(Material material)
+    {
+        return MATERIALS_BUTTON.contains(material) || MConf.get().materialsButton.contains(material);
+    }
+
+    // -------------------------------------------- //
+    // MATERIAL PRESSURE PLATE
+    // -------------------------------------------- //
+
+    public static final BackstringSet<Material> MATERIALS_PRESSURE_PLATES = new BackstringSet<>(Material.class,
+        "ACACIA_PRESSURE_PLATE",              // Minecraft 1.13
+        "BAMBOO_PRESSURE_PLATE",              // Minecraft 1.20
+        "BIRCH_PRESSURE_PLATE",               // Minecraft 1.13
+        "CHERRY_PRESSURE_PLATE",              // Minecraft 1.20
+        "CRIMSON_PRESSURE_PLATE",             // Minecraft 1.16
+        "DARK_OAK_PRESSURE_PLATE",            // Minecraft 1.13
+        "HEAVY_WEIGHTED_PRESSURE_PLATE",      // Minecraft 1.5
+        "JUNGLE_PRESSURE_PLATE",              // Minecraft 1.13
+        "LIGHT_WEIGHTED_PRESSURE_PLATE",      // Minecraft 1.5
+        "MANGROVE_PRESSURE_PLATE",            // Minecraft 1.19
+        "OAK_PRESSURE_PLATE",                 // Minecraft 1.0
+        "PALE_OAK_PRESSURE_PLATE",            // Minecraft 1.21.4
+        "POLISHED_BLACKSTONE_PRESSURE_PLATE", // Minecraft 1.16
+        "SPRUCE_PRESSURE_PLATE",              // Minecraft 1.13
+        "STONE_PRESSURE_PLATE",               // Minecraft 1.0
+        "WARPED_PRESSURE_PLATE"               // Minecraft 1.16
+    );
+
+    public static boolean isMaterialPressurePlate(Material material)
+    {
+        return MATERIALS_PRESSURE_PLATES.contains(material) || MConf.get().materialsPressurePlate.contains(material);
+    }
     
     // -------------------------------------------- //
     // ENTITY TYPE EDIT ON INTERACT
@@ -322,51 +378,62 @@ public class EnumerationUtil
     // ENTITY TYPE MONSTER
     // -------------------------------------------- //
     
+    // https://minecraft.wiki/w/Mob#Hostile_mobs
+    // https://minecraft.wiki/w/Mob#Neutral_mobs (some of these are considered animals)
     public static final BackstringSet<EntityType> ENTITY_TYPES_MONSTER = new BackstringSet<>(EntityType.class, 
-        "BOGGED",           // Minecraft 1.21
+        // - - - Hostile Mobs - - -    
         "BLAZE",            // Minecraft 1.0
+        "BOGGED",           // Minecraft 1.21
         "BREEZE",           // Minecraft 1.21
-        "CAVE_SPIDER",      // Minecraft 1.0
-        "CREEPER",          // Minecraft 1.0
         "CREAKING",         // Minecraft 1.21.4
-        "DROWNED",          // Minecraft 1.13
+        "CREEPER",          // Minecraft 1.0
         "ELDER_GUARDIAN",   // Minecraft 1.8
-        "ENDERMAN",         // Minecraft 1.0
         "ENDERMITE",        // Minecraft 1.8
-        "ENDER_DRAGON",     // Minecraft 1.0
         "EVOKER",           // Minecraft 1.11
-        "GUARDIAN",         // Minecraft 1.8
         "GHAST",            // Minecraft 1.0
-        "GIANT",            // Minecraft 1.0
+        "GUARDIAN",         // Minecraft 1.8
         "HOGLIN",           // Minecraft 1.16
         "HUSK",             // Minecraft 1.10
-        "ILLUSIONER",       // Minecraft 1.12
         "MAGMA_CUBE",       // Minecraft 1.0
         "PHANTOM",          // Minecraft 1.13
-        "PIG_ZOMBIE",       // Minecraft 1.0
-        "PIGLIN",           // Minecraft 1.16
         "PIGLIN_BRUTE",     // Minecraft 1.16
         "PILLAGER",         // Minecraft 1.14
-        "POLAR_BEAR",       // Minecraft 1.10
         "RAVAGER",          // Minecraft 1.14
         "SHULKER",          // Minecraft 1.10
         "SILVERFISH",       // Minecraft 1.0
         "SKELETON",         // Minecraft 1.0
-        "SKELETON_HORSE",   // Minecraft 1.6.1
         "SLIME",            // Minecraft 1.0
-        "SPIDER",           // Minecraft 1.0
         "STRAY",            // Minecraft 1.10
         "VEX",              // Minecraft 1.11
         "VINDICATOR",       // Minecraft 1.11
         "WARDEN",           // Minecraft 1.19
         "WITCH",            // Minecraft 1.4.2
-        "WITHER",           // Minecraft 1.4.2
         "WITHER_SKELETON",  // Minecraft 1.4.2
         "ZOGLIN",           // Minecraft 1.16
         "ZOMBIE",           // Minecraft 1.0
-        "ZOMBIE_HORSE",     // Minecraft 1.6.1
         "ZOMBIE_VILLAGER",  // Minecraft 1.4.2
-        "ZOMBIFIED_PIGLIN"  // Minecraft 1.16 (rename of PIG_ZOMBIE)
+        "PIG_ZOMBIE",       // Minecraft 1.0
+        "ZOMBIFIED_PIGLIN", // Minecraft 1.16 (rename of PIG_ZOMBIE)
+
+        // - - - Boss Mobs - - -
+        "ENDER_DRAGON",     // Minecraft 1.0
+        "WITHER",           // Minecraft 1.4.2
+
+        // - - - Neutral Mobs - - -
+        "CAVE_SPIDER",      // Minecraft 1.0
+        "DROWNED",          // Minecraft 1.13
+        "ENDERMAN",         // Minecraft 1.0
+        "PIGLIN",           // Minecraft 1.16
+        "POLAR_BEAR",       // Minecraft 1.10
+        "SPIDER",           // Minecraft 1.0
+
+        // - - - Passive Mobs - - -
+        "SKELETON_HORSE",   // Minecraft 1.6.1
+
+        // - - - Unused Mobs - - -
+        "GIANT",            // Minecraft 1.0
+        "ILLUSIONER",       // Minecraft 1.12
+        "ZOMBIE_HORSE"      // Minecraft 1.6.1
     );
     
     public static boolean isEntityTypeMonster(EntityType entityType)
@@ -378,34 +445,30 @@ public class EnumerationUtil
     // ENTITY TYPE ANIMAL
     // -------------------------------------------- //
     
+    // https://minecraft.wiki/w/Mob#Passive_mobs
+    // https://minecraft.wiki/w/Mob#Neutral_mobs (some of these are considered monsters)
     public static final BackstringSet<EntityType> ENTITY_TYPES_ANIMAL = new BackstringSet<>(EntityType.class, 
+        // - - - Passive Mobs - - -
         "ALLAY",            // Minecraft 1.19
         "ARMADILLO",        // Minecraft 1.20.5
         "AXOLOTL",          // Minecraft 1.17
         "BAT",              // Minecraft 1.4.2
-        "BEE",              // Minecraft 1.15
         "CAMEL",            // Minecraft 1.20
         "CAT",              // Minecraft 1.14
         "CHICKEN",          // Minecraft 1.0
         "COD",              // Minecraft 1.13
         "COW",              // Minecraft 1.0
-        "DOLPHIN",          // Minecraft 1.13
         "DONKEY",           // Minecraft 1.6.1
-        "FOX",              // Minecraft 1.14
         "FROG",             // Minecraft 1.19
         "GLOW_SQUID",       // Minecraft 1.17
+        "HAPPY_GHAST",      // Minecraft 1.21.6
         "HORSE",            // Minecraft 1.6.1
-        "GOAT",             // Minecraft 1.17
-        "LLAMA",            // Minecraft 1.14
-        "LLAMA_SPIT",       // Minecraft 1.14
+        "MUSHROOM_COW",     // Minecraft 1.0
         "MOOSHROOM",        // Minecraft 1.11 (rename of MUSHROOM_COW)
         "MULE",             // Minecraft 1.6.1
-        "MUSHROOM_COW",     // Minecraft 1.0
         "OCELOT",           // Minecraft 1.2.1
-        "PANDA",            // Minecraft 1.14
         "PARROT",           // Minecraft 1.12
         "PIG",              // Minecraft 1.0
-        "POLAR_BEAR",       // Minecraft 1.10
         "PUFFERFISH",       // Minecraft 1.13
         "RABBIT",           // Minecraft 1.8
         "SALMON",           // Minecraft 1.13
@@ -417,7 +480,19 @@ public class EnumerationUtil
         "TADPOLE",          // Minecraft 1.19
         "TROPICAL_FISH",    // Minecraft 1.13
         "TURTLE",           // Minecraft 1.13
+
+        // - - - Neutral Mobs - - -
+        "BEE",              // Minecraft 1.15
+        "DOLPHIN",          // Minecraft 1.13
+        "FOX",              // Minecraft 1.14
+        "GOAT",             // Minecraft 1.17
+        "LLAMA",            // Minecraft 1.14
+        "LLAMA_SPIT",       // Minecraft 1.14
+        "PANDA",            // Minecraft 1.14
+        "POLAR_BEAR",       // Minecraft 1.10
         "WOLF",             // Minecraft 1.0
+
+        // - - - Unused Mobs - - -
         "ZOMBIE_HORSE"      // Minecraft 1.6.1
     );
     
