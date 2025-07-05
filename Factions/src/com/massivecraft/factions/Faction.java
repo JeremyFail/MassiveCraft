@@ -105,7 +105,8 @@ public interface Faction
      * @deprecated use {@link #isWilderness()} instead
      */
     @Deprecated
-    default boolean isNone() {
+    default boolean isNone()
+    {
         return isWilderness();
     }
 

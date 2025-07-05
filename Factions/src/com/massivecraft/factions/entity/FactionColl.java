@@ -91,6 +91,7 @@ public class FactionColl extends Coll<Faction>
 		faction.setPermittedRelations(MPerm.getPermButton(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermPressurePlate(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermLever(), MPerm.getPermables(faction));
+		faction.setPermittedRelations(MPerm.getPermLeashMob(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermDeposit(), Collections.singleton(faction.getLeaderRank())); // Wilderness deposit should be limited as an anti spam meassure.
 		
 		return faction;
@@ -127,6 +128,7 @@ public class FactionColl extends Coll<Faction>
 		faction.setPermittedRelations(MPerm.getPermButton(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermPressurePlate(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermLever(), MPerm.getPermables(faction));
+		faction.setPermittedRelations(MPerm.getPermLeashMob(), MPerm.getPermables(faction));
 		
 		return faction;
 	}
@@ -162,6 +164,7 @@ public class FactionColl extends Coll<Faction>
 		faction.setPermittedRelations(MPerm.getPermButton(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermPressurePlate(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermLever(), MPerm.getPermables(faction));
+		faction.setPermittedRelations(MPerm.getPermLeashMob(), MPerm.getPermables(faction));
 		
 		return faction;
 	}

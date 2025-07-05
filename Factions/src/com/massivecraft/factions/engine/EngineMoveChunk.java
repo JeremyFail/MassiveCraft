@@ -98,7 +98,7 @@ public class EngineMoveChunk extends Engine
 		if (faction == null) throw new NullPointerException("faction");
 		
 		string = Txt.parse(string);
-		string = string.replace("{name}", faction.getName());
+		string = string.replace("{name}", faction.getNameUnsanitized());
 		string = string.replace("{relcolor}", faction.getColorTo(mplayer).toString());
 		string = string.replace("{desc}", faction.getDescriptionDesc());
 		

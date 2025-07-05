@@ -373,6 +373,38 @@ public class EnumerationUtil
     {
         return ENTITY_TYPES_CONTAINER.contains(entityType) || MConf.get().entityTypesContainer.contains(entityType);
     }
+
+    // -------------------------------------------- //
+    // ENTITY TYPE BOAT
+    // -------------------------------------------- //
+
+    public static final BackstringSet<EntityType> ENTITY_TYPES_BOAT = new BackstringSet<>(EntityType.class,
+        "ACACIA_BOAT",              // Minecraft 1.9
+        "ACACIA_CHEST_BOAT",        // Minecraft 1.19
+        "BAMBOO_RAFT",              // Minecraft 1.20
+        "BAMBOO_CHEST_RAFT",        // Minecraft 1.20
+        "BIRCH_BOAT",               // Minecraft 1.9
+        "BIRCH_CHEST_BOAT",         // Minecraft 1.19
+        "CHERRY_BOAT",              // Minecraft 1.20
+        "CHERRY_CHEST_BOAT",        // Minecraft 1.20
+        "DARK_OAK_BOAT",            // Minecraft 1.9
+        "DARK_OAK_CHEST_BOAT",      // Minecraft 1.19
+        "JUNGLE_BOAT",              // Minecraft 1.9
+        "JUNGLE_CHEST_BOAT",        // Minecraft 1.19
+        "MANGROVE_BOAT",            // Minecraft 1.19
+        "MANGROVE_CHEST_BOAT",      // Minecraft 1.19
+        "OAK_BOAT",                 // Minecraft 1.0
+        "OAK_CHEST_BOAT",           // Minecraft 1.19
+        "PALE_OAK_BOAT",            // Minecraft 1.21.4
+        "PALE_OAK_CHEST_BOAT",      // Minecraft 1.21.4
+        "SPRUCE_BOAT",              // Minecraft 1.9
+        "SPRUCE_CHEST_BOAT"         // Minecraft 1.19
+    );
+
+    public static boolean isEntityBoat(EntityType entityType)
+	{
+		return ENTITY_TYPES_BOAT.contains(entityType) || MConf.get().entityTypesBoats.contains(entityType);
+	}
     
     // -------------------------------------------- //
     // ENTITY TYPE MONSTER

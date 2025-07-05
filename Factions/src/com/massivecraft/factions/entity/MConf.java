@@ -435,7 +435,7 @@ public class MConf extends Entity<MConf>
 	// Should Factions set the chat format?
 	// This should be kept at false if you use an external chat format plugin.
 	// If you are planning on running a more lightweight server you can set this to true.
-	public boolean chatSetFormat = true;
+	public boolean chatSetFormat = false;
 	
 	// At which event priority should the chat format be set in such case?
 	// Choose between: LOWEST, LOW, NORMAL, HIGH and HIGHEST.
@@ -568,6 +568,7 @@ public class MConf extends Entity<MConf>
 		MPerm.ID_PRESSURE_PLATE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_LEVER, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_CONTAINER, MUtil.set("LEADER", "OFFICER", "MEMBER"),
+		MPerm.ID_LEASH, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 
 		MPerm.ID_NAME, MUtil.set("LEADER"),
 		MPerm.ID_DESC, MUtil.set("LEADER", "OFFICER"),
@@ -628,6 +629,9 @@ public class MConf extends Entity<MConf>
 	
 	// Interacting with these entities results in opening a container.
 	public BackstringSet<EntityType> entityTypesContainer = new BackstringSet<>(EntityType.class);
+
+	// The complete list of entities considered to be boats.
+	public BackstringSet<EntityType> entityTypesBoats = new BackstringSet<>(EntityType.class);
 	
 	// The complete list of entities considered to be monsters.
 	public BackstringSet<EntityType> entityTypesMonsters = new BackstringSet<>(EntityType.class);

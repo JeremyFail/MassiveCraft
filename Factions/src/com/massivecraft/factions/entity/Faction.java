@@ -226,7 +226,8 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	@Override
 	public String getName()
 	{
-		return this.name;
+		// Some factions have a custom color - strip it by default
+		return ChatColor.stripColor(this.name);
 	}
 	
 	public void setName(String name)
@@ -245,21 +246,77 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	}
 	
 	// FINER
-	
-	public String getComparisonName()
+
+	/**
+	 * Get the name of this faction (unsanitized).
+	 * 
+	 * This is useful primarily to retrieve specially formatted 
+	 * faction names (such as Wilderness) which have a custom color.
+	 * 
+	 * @return The name of this faction, unsanitized of custom color codes.
+	 */
+	public String getNameUnsanitized()
 	{
-		return MiscUtil.getComparisonString(this.getName());
+		return this.name;
 	}
 	
+	/**
+	 * Retrieves the name of this faction, suitable for comparison purposes.
+	 * The name will be all lowercase, stripped of color codes, and without any special characters.
+	 * 
+	 * @return The name of this faction, formatted for comparison.
+	 */
+	public String getComparisonName()
+	{
+		return MiscUtil.getComparisonString(this.getNameUnsanitized());
+	}
+	
+	/**
+	 * Retrieves the name of this faction with a specified prefix.
+	 * 
+	 * @param prefix The prefix to add to the faction name.
+	 * @return The name of this faction with the specified prefix.
+	 */
 	public String getName(String prefix)
 	{
 		return prefix + this.getName();
 	}
+
+	/**
+	 * Retrieves the name of this faction with a specified prefix, unsanitized of any custom color codes.
+	 * 
+	 * @param prefix The prefix to add to the faction name.
+	 * @return The name of this faction with the specified prefix, unsanitized of any custom color codes.
+	 */
+	public String getNameUnsanitized(String prefix)
+	{
+		return prefix + this.getNameUnsanitized();
+	}
 	
+	/**
+	 * Retrieves the name of this faction, with the relationship color based on
+	 * the observer's relation to the faction.
+	 * 
+	 * @param observer The observer to format the name for.
+	 * @return The formatted name of this faction with the relationship color for the specified observer.
+	 */
 	public String getName(RelationParticipator observer)
 	{
-		if (observer == null) return getName();
+		if (observer == null) return this.getName();
 		return this.getName(this.getColorTo(observer).toString());
+	}
+
+	/**
+	 * Retrieves the name of this faction, with the relationship color based on
+	 * the observer's relation to the faction - unsanitized of any custom color codes.
+	 * 
+	 * @param prefix The prefix to add to the faction name.
+	 * @return The name of this faction with the relationship color for the specified observer, unsanitized of any custom color codes.
+	 */
+	public String getNameUnsanitized(RelationParticipator observer)
+	{
+		if (observer == null) return this.getNameUnsanitized();
+		return this.getNameUnsanitized(this.getColorTo(observer).toString());
 	}
 	
 	// -------------------------------------------- //

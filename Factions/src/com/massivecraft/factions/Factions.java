@@ -56,7 +56,7 @@ import com.massivecraft.factions.entity.migrator.MigratorFaction001Invitations;
 import com.massivecraft.factions.entity.migrator.MigratorFaction002Ranks;
 import com.massivecraft.factions.entity.migrator.MigratorFaction003Warps;
 import com.massivecraft.factions.entity.migrator.MigratorFaction004WarpsPerms;
-import com.massivecraft.factions.entity.migrator.MigratorFaction005PressurePlatesPerm;
+import com.massivecraft.factions.entity.migrator.MigratorFaction005PressurePlatesAndLeadsPerm;
 import com.massivecraft.factions.entity.migrator.MigratorMConf001EnumerationUtil;
 import com.massivecraft.factions.entity.migrator.MigratorMConf002CleanInactivity;
 import com.massivecraft.factions.entity.migrator.MigratorMConf003CleanInactivity;
@@ -151,7 +151,7 @@ public class Factions extends MassivePlugin
 			MigratorFaction002Ranks.class,
 			MigratorFaction003Warps.class,
 			MigratorFaction004WarpsPerms.class,
-			MigratorFaction005PressurePlatesPerm.class,
+			MigratorFaction005PressurePlatesAndLeadsPerm.class,
 			MigratorMConf001EnumerationUtil.class,
 			MigratorMConf002CleanInactivity.class,
 			MigratorMConf003CleanInactivity.class,

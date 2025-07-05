@@ -17,6 +17,7 @@ public enum ProtectCase
 	USE_ITEM,
 	USE_ENTITY,
 	USE_REDSTONE_BLOCK,
+	LEASH_MOB,
 	
 	// END OF LIST
 	;
@@ -60,7 +61,10 @@ public enum ProtectCase
 				Material steppedMaterial = (Material) object;
 				if (EnumerationUtil.isMaterialPressurePlate(steppedMaterial)) return MPerm.getPermPressurePlate();
 				return null;
-				
+
+			case LEASH_MOB:
+				return MPerm.getPermLeashMob();
+
 			default:
 				return null;
 		}

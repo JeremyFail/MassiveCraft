@@ -41,6 +41,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public final static transient String ID_PRESSURE_PLATE = "pressureplate";
 	public final static transient String ID_LEVER = "lever";
 	public final static transient String ID_CONTAINER = "container";
+	public final static transient String ID_LEASH = "lead";
 	
 	public final static transient String ID_NAME = "name";
 	public final static transient String ID_DESC = "desc";
@@ -71,7 +72,8 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public final static transient int PRIORITY_PRESSURE_PLATE = 4500;
 	public final static transient int PRIORITY_LEVER = 5000;
 	public final static transient int PRIORITY_CONTAINER = 6000;
-	
+	public final static transient int PRIORITY_LEASH = 6500;
+
 	public final static transient int PRIORITY_NAME = 7000;
 	public final static transient int PRIORITY_DESC = 8000;
 	public final static transient int PRIORITY_MOTD = 9000;
@@ -125,6 +127,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 		getPermPressurePlate();
 		getPermLever();
 		getPermContainer();
+		getPermLeashMob();
 		
 		getPermName();
 		getPermDesc();
@@ -156,7 +159,8 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public static MPerm getPermPressurePlate() { return getCreative(PRIORITY_PRESSURE_PLATE, ID_PRESSURE_PLATE, ID_PRESSURE_PLATE, "use pressure plates", true, true, true); }
 	public static MPerm getPermLever() { return getCreative(PRIORITY_LEVER, ID_LEVER, ID_LEVER, "use levers", true, true, true); }
 	public static MPerm getPermContainer() { return getCreative(PRIORITY_CONTAINER, ID_CONTAINER, ID_CONTAINER, "use containers", true, true, true); }
-	
+	public static MPerm getPermLeashMob() { return getCreative(PRIORITY_LEASH, ID_LEASH, ID_LEASH, "attach/detach leads", true, true, true); }
+
 	public static MPerm getPermName() { return getCreative(PRIORITY_NAME, ID_NAME, ID_NAME, "set name", false, true, true); }
 	public static MPerm getPermDesc() { return getCreative(PRIORITY_DESC, ID_DESC, ID_DESC, "set description", false, true, true); }
 	public static MPerm getPermMotd() { return getCreative(PRIORITY_MOTD, ID_MOTD, ID_MOTD, "set motd", false, true, true); }
@@ -203,7 +207,6 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	@Override
 	public MPerm load(MPerm that)
 	{
-		//System.out.println("Loading MPerm");
 		this.priority = that.priority;
 		this.name = that.name;
 		this.desc = that.desc;

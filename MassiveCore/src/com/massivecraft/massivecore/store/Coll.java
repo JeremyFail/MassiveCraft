@@ -304,9 +304,12 @@ public class Coll<E extends Entity<E>> extends CollAbstract<E>
 
 		// Migrate if another version is wanted
 		boolean migrated;
-		try {
+		try 
+		{
 			migrated = MigratorUtil.migrate(this.getEntityClass(), raw);
-		} catch (RuntimeException e) {
+		} 
+		catch (RuntimeException e) 
+		{
 			System.out.println("FAILURE FOR CLASS: " + this.getEntityClass());
 			throw e;
 		}

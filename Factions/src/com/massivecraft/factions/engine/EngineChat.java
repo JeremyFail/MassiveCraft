@@ -52,10 +52,6 @@ public class EngineChat extends Engine
 		if (MConf.get().chatParseTags)
 		{
 			Bukkit.getPluginManager().registerEvent(AsyncPlayerChatEvent.class, this, MConf.get().chatParseTagsAt, new ParseTagsEventExecutor(), Factions.get(), true);
-		}
-		
-		if (MConf.get().chatParseTags)
-		{
 			Bukkit.getPluginManager().registerEvent(EventMassiveCorePlayerToRecipientChat.class, this, EventPriority.NORMAL, new ParseRelcolorEventExecutor(), Factions.get(), true);
 		}
 	}

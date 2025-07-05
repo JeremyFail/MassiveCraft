@@ -126,7 +126,7 @@ public class AsciiMap
 		Faction faction = this.getBoard().getFactionAt(chunk);
 		int chunkX = chunk.getChunkX();
 		int chunkZ = chunk.getChunkZ();
-		String factionName = faction.getName(this.getRelationParticipator());
+		String factionName = faction.getNameUnsanitized(this.getRelationParticipator());
 
 		boolean showCoords = showChunkCoords(chunk);
 
@@ -201,7 +201,7 @@ public class AsciiMap
 		
 		// Create descriptions
 		ChatColor color = faction.getColorTo(this.getRelationParticipator());
-		String name = faction.getName(this.getRelationParticipator());
+		String name = faction.getNameUnsanitized(this.getRelationParticipator());
 		String tooltip = color.toString() + name;
 		
 		// Is overflown?
@@ -230,7 +230,7 @@ public class AsciiMap
 			Mson factionChar = entry.getValue();
 			ChatColor color = here.getColorTo(this.getRelationParticipator());
 			
-			ret.add(mson(factionChar, LEGEND_SEPARATOR, here.getName()).color(color));
+			ret.add(mson(factionChar, LEGEND_SEPARATOR, here.getNameUnsanitized()).color(color));
 		}
 		
 		// Add overflown message if needed

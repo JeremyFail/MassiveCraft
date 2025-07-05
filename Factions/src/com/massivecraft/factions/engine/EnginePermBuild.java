@@ -36,6 +36,7 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerLeashEntityEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -43,6 +44,7 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerUnleashEntityEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.HashMap;
@@ -127,6 +129,11 @@ public class EnginePermBuild extends Engine
 	{
 		return protect(ProtectCase.USE_REDSTONE_BLOCK, verboose, player, PS.valueOf(block), material, null);
 	}
+
+	public static Boolean leashMob(Player player, Entity entity, Cancellable cancellable)
+	{
+		return protect(ProtectCase.LEASH_MOB, true, player, PS.valueOf(entity.getLocation()), player, cancellable);
+	}
 	
 	// -------------------------------------------- //
 	// LOGIC > PROTECT > BUILD
@@ -165,7 +172,7 @@ public class EnginePermBuild extends Engine
 	{
 		// Handling lilypads being broken by boats
 		Entity entity = event.getEntity();
-		if (!isEntityBoat(entity.getType()) || entity.getPassengers().size() <= 0) return;
+		if (!EnumerationUtil.isEntityBoat(entity.getType()) || entity.getPassengers().size() <= 0) return;
 		Entity player = entity.getPassengers().stream().filter(MUtil::isPlayer).findAny().orElse(entity);
 
 		build(player, event.getBlock(), event);
@@ -212,6 +219,7 @@ public class EnginePermBuild extends Engine
 	// Track last plate messaged per player
 	private static final Map<UUID, Location> lastPlateMessaged = new HashMap<>();
 
+	// Prevent certain redstone blocks from being activated by players
 	@EventHandler
 	public void onBlockRedstoneChange(BlockRedstoneEvent event)
 	{
@@ -244,6 +252,29 @@ public class EnginePermBuild extends Engine
 				}
             }
     	}
+	}
+
+	// -------------------------------------------- //
+	// ENTITY > LEASH
+	// -------------------------------------------- //
+
+	// These event handlers primarily have been added to handle changes to leads in Minecraft 1.21.6
+	// Prevent players from attaching leashes to entities
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onEntityLeash(PlayerLeashEntityEvent event)
+	{
+		Player player = event.getPlayer();
+		if (MUtil.isntPlayer(player)) return;
+		leashMob(player, event.getEntity(), event);
+	}
+
+	// Prevent players from unleashing entities
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onEntityUnleash(PlayerUnleashEntityEvent event)
+	{
+		Player player = event.getPlayer();
+		if (MUtil.isntPlayer(player)) return;
+		leashMob(player, event.getEntity(), event);
 	}
 
 	// -------------------------------------------- //
@@ -328,7 +359,7 @@ public class EnginePermBuild extends Engine
 	// BUILD > PISTON
 	// -------------------------------------------- //
 	
-		/*
+	/*
 	 * Note: With 1.8 and the slime blocks, retracting and extending pistons
 	 * became more of a problem. Blocks located on the border of a chunk
 	 * could have easily been stolen. That is the reason why every block
@@ -469,31 +500,4 @@ public class EnginePermBuild extends Engine
 		// ... cancel the event!
 		event.setCancelled(true);
 	}
-	
-	private boolean isEntityBoat(EntityType entityType)
-	{
-		if (entityType == EntityType.ACACIA_BOAT ||
-				entityType == EntityType.ACACIA_CHEST_BOAT ||
-				entityType == EntityType.BIRCH_BOAT ||
-				entityType == EntityType.BIRCH_CHEST_BOAT ||
-				entityType == EntityType.CHERRY_BOAT ||
-				entityType == EntityType.CHERRY_CHEST_BOAT ||
-				entityType == EntityType.DARK_OAK_BOAT ||
-				entityType == EntityType.DARK_OAK_CHEST_BOAT || 
-				entityType == EntityType.JUNGLE_BOAT || 
-				entityType == EntityType.JUNGLE_CHEST_BOAT ||
-				entityType == EntityType.MANGROVE_BOAT ||
-				entityType == EntityType.MANGROVE_CHEST_BOAT ||
-				entityType == EntityType.OAK_BOAT ||
-				entityType == EntityType.OAK_CHEST_BOAT ||
-				entityType == EntityType.PALE_OAK_BOAT ||
-				entityType == EntityType.PALE_OAK_CHEST_BOAT ||
-				entityType == EntityType.SPRUCE_BOAT ||
-				entityType == EntityType.SPRUCE_CHEST_BOAT)
-		{
-			return true;
-		}
-		return false;
-	}
-	
 }
