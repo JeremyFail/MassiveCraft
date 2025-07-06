@@ -1,11 +1,9 @@
 package com.massivecraft.factionschat.commands;
 
 import com.massivecraft.factions.cmd.FactionsCommand;
-import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.TypeChatMode;
-import com.massivecraft.factionschat.listeners.FactionChatListener;
 import com.massivecraft.massivecore.MassiveException;
 import com.massivecraft.massivecore.command.type.primitive.TypeString;
 
@@ -19,8 +17,8 @@ public class CmdFactionsChat extends FactionsCommand
 {
     public CmdFactionsChat()
     {
-        addParameter(TypeChatMode.getInstance());
-        addParameter(TypeString.get(), true);
+        addParameter(TypeChatMode.getInstance(), "chat mode");
+        addParameter(TypeString.get(), false, "message", "message", true);
         setDesc("Switches chat modes or sends a quick message to a channel");
         addAliases("chat", "c");
     }
@@ -28,13 +26,19 @@ public class CmdFactionsChat extends FactionsCommand
     @Override
     public void perform()
     {
-        // Check for reload subcommand
+        // Get the first argument, which is the chat mode or reload command
         String firstArg = arg();
+        if (firstArg == null)
+        {
+            msender.message(ChatColor.RED + "Invalid chat mode: " + ChatColor.DARK_AQUA + firstArg);
+        }
+
+        // Check for reload subcommand
         if (firstArg != null && firstArg.equalsIgnoreCase("reload"))
         {
             if (!msender.getPlayer().hasPermission("factionschat.reload"))
             {
-                msender.message(ChatColor.RED + "Invalid chat mode: " + arg());
+                msender.message(ChatColor.RED + "Invalid chat mode: " + ChatColor.DARK_AQUA + firstArg);
                 return;
             }
             FactionsChat.instance.reloadConfig();
@@ -43,47 +47,51 @@ public class CmdFactionsChat extends FactionsCommand
         }
 
         // Normal chat mode switching or quick message sending
-        ChatMode chatMode;
-        try 
+        ChatMode chatMode = null;
+        try
         {
-            chatMode = readArg();
-        } 
-        catch (MassiveException e) 
+            chatMode = TypeChatMode.getInstance().read(firstArg.toUpperCase());
+        }
+        catch (MassiveException e)
         {
-            msender.message(ChatColor.YELLOW + "Invalid chat mode: " + arg());
+            msender.message(ChatColor.RED + "Invalid chat mode: " + ChatColor.DARK_AQUA + firstArg);
             return;
         }
 
-        if (msender.getFaction().equals(FactionColl.get().getNone()) && 
+        // If the chat mode was not retrieved
+        if (chatMode == null)
+        {
+            msender.message(ChatColor.RED + "Invalid chat mode: " + ChatColor.DARK_AQUA + firstArg);
+            return;
+        }
+
+        // For faction-related chat modes, check if the player is in a faction
+        if (msender.getFaction().isNone() && 
             (chatMode == ChatMode.FACTION || chatMode == ChatMode.ALLY || chatMode == ChatMode.TRUCE || chatMode == ChatMode.ENEMY)) 
         {
-            msender.message(ChatColor.YELLOW + "You are not in a faction");
+            msender.message(ChatColor.RED + "You are not in a faction");
             return;
         }
 
-        if (chatMode == null) 
-        {
-            msender.message(ChatColor.YELLOW + "Invalid argument: " + arg());
-            return;
-        }
-
+        // Validate permissions for the chat mode
         if (!msender.getPlayer().hasPermission("factionschat." + chatMode.name().toLowerCase())) 
         {
-            msender.message(ChatColor.YELLOW + "You don't have permission for the following chat mode: " + chatMode.name().toLowerCase());
+            msender.message(ChatColor.RED + "Invalid chat mode: " + ChatColor.DARK_AQUA + firstArg);
             return;
         }
         
         // If the player is sending a quick message (not switching to the channel)
-        try
+        String msg = arg();
+        if (msg != null)
         {
-            String msg = readArg();
-            FactionChatListener.qmPlayers.put(msender.getPlayer().getUniqueId(), chatMode);
+            FactionsChat.qmPlayers.put(msender.getPlayer().getUniqueId(), chatMode);
             msender.getPlayer().chat(msg);
         }
-        catch (MassiveException e)
+        // Otherwise, switch the chat mode
+        else
         {
             FactionsChat.instance.getPlayerChatModes().put(msender.getUuid(), chatMode);
-            msender.message(ChatColor.YELLOW + "Chatmode set: " + chatMode.name());
+            msender.message(ChatColor.YELLOW + "Chatmode set: " + ChatColor.DARK_AQUA + chatMode.name());
             FactionsChat.instance.saveChatModesFile();
         }
     }

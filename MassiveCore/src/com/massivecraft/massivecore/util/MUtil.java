@@ -73,9 +73,25 @@ import java.util.regex.Pattern;
 public class MUtil
 {
 	// -------------------------------------------- //
+	// GET SERVER-RELATED INFORMATION
+	// -------------------------------------------- //
+	public static boolean isPaper()
+	{
+		try 
+		{
+			Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
+			return true;
+		} 
+		catch (ClassNotFoundException e) 
+		{
+			return false;
+		}
+	}
+
+	// -------------------------------------------- //
 	// GET ONLINE PLAYERS
 	// -------------------------------------------- //
-	// Old thing that had to do with the converfrion from 1.17 to 1.8
+	// Old thing that had to do with the conversion from 1.17 to 1.8
 
 	@Deprecated
 	public static Collection<Player> getOnlinePlayers()

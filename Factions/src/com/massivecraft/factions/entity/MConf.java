@@ -2,7 +2,6 @@ package com.massivecraft.factions.entity;
 
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.Rel;
-import com.massivecraft.factions.engine.EngineChat;
 import com.massivecraft.factions.event.EventFactionsChunkChangeType;
 import com.massivecraft.factions.integration.dynmap.DynmapStyle;
 import com.massivecraft.factions.integration.dynmap.IntegrationDynmap;
@@ -45,16 +44,6 @@ public class MConf extends Entity<MConf>
 	public MConf load(MConf that)
 	{
 		super.load(that);
-		
-		// Reactivate EngineChat if currently active.
-		// This way some event listeners are registered with the correct priority based on the config.
-		EngineChat engine = EngineChat.get();
-		if (engine.isActive())
-		{
-			engine.setActive(false);
-			engine.setActive(true);
-		}
-		
 		return this;
 	}
 	
@@ -62,7 +51,7 @@ public class MConf extends Entity<MConf>
 	// VERSION
 	// -------------------------------------------- //
 	
-	public int version = 5;
+	public int version = 6;
 	
 	// -------------------------------------------- //
 	// COMMAND ALIASES
@@ -429,31 +418,6 @@ public class MConf extends Entity<MConf>
 	);
 	
 	// -------------------------------------------- //
-	// CHAT
-	// -------------------------------------------- //
-	
-	// Should Factions set the chat format?
-	// This should be kept at false if you use an external chat format plugin.
-	// If you are planning on running a more lightweight server you can set this to true.
-	public boolean chatSetFormat = false;
-	
-	// At which event priority should the chat format be set in such case?
-	// Choose between: LOWEST, LOW, NORMAL, HIGH and HIGHEST.
-	public EventPriority chatSetFormatAt = EventPriority.LOWEST;
-	
-	// What format should be set?
-	public String chatSetFormatTo = "<{factions_relcolor}§l{factions_roleprefix}§r{factions_relcolor}{factions_name|rp}§f%1$s> %2$s";
-	
-	// Should the chat tags such as {factions_name} be parsed?
-	// NOTE: You can set this to true even with chatSetFormat = false.
-	// But in such case you must set the chat format using an external chat format plugin.
-	public boolean chatParseTags = true;
-	
-	// At which event priority should the faction chat tags be parsed in such case?
-	// Choose between: LOWEST, LOW, NORMAL, HIGH, HIGHEST.
-	public EventPriority chatParseTagsAt = EventPriority.LOW;
-	
-	// -------------------------------------------- //
 	// COLORS
 	// -------------------------------------------- //
 	
@@ -671,14 +635,6 @@ public class MConf extends Entity<MConf>
 	// Enable the WorldGuard check per-world 
 	// Specify which worlds the WorldGuard Check can be used in
 	public WorldExceptionSet worldguardCheckWorldsEnabled = new WorldExceptionSet();
-
-	// -------------------------------------------- //
-	// INTEGRATION: VentureChat
-	// -------------------------------------------- //
-
-	public String ventureChatFactionChannelName = "faction";
-	public String ventureChatAllyChannelName = "ally";
-	public boolean ventureChatAllowFactionchatBetweenFactionless = false;
 
 	// -------------------------------------------- //
 	// INTEGRATION: ECONOMY

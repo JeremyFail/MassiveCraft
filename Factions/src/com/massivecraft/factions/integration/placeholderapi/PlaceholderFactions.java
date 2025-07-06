@@ -42,6 +42,12 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
     }
 
     @Override
+    public boolean persist()
+    {
+        return true;
+    }
+
+    @Override
     public String onPlaceholderRequest(Player player1, Player player2, String placeholder)
     {
         if (player1 == null || player2 == null || placeholder == null) return null;
@@ -135,12 +141,34 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
             case "player_rank":
             case "role":
             case "rank":
+                if (!mplayer.hasFaction())
+                {
+                    return "";
+                }
+                return mplayer.getRank().getName();
+            
+            // return a player rank even if the player is not in a faction
+            case "player_roleforce":
+            case "player_rankforce":
+            case "roleforce":
+            case "rankforce":
                 return mplayer.getRank().getName();
             
             case "player_roleprefix":
             case "player_rankprefix":
             case "roleprefix":
             case "rankprefix":
+                if (!mplayer.hasFaction())
+                {
+                    return "";
+                }
+                return mplayer.getRank().getPrefix();
+            
+            // Return a player rank prefix even if the player is not in a faction
+            case "player_roleprefixforce":
+            case "player_rankprefixforce":
+            case "roleprefixforce":
+            case "rankprefixforce":
                 return mplayer.getRank().getPrefix();
         }
 

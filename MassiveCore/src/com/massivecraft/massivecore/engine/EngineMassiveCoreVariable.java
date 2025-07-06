@@ -13,7 +13,6 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -38,15 +37,6 @@ public class EngineMassiveCoreVariable extends Engine
 	
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void variable(PlayerCommandPreprocessEvent event)
-	{
-		Player player = event.getPlayer();
-		if (MUtil.isntPlayer(player)) return;
-		
-		event.setMessage(variable(player, event.getMessage()));
-	}
-	
-	@EventHandler(priority = EventPriority.LOW)
-	public void variable(AsyncPlayerChatEvent event)
 	{
 		Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;

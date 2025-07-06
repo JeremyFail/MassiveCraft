@@ -26,6 +26,11 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
         </dependency>
+        <!-- Paper -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+        </dependency>
         <!-- MassiveCore -->
         <dependency>
             <groupId>com.massivecraft.massivecore</groupId>
@@ -45,6 +50,11 @@
         <dependency>
             <groupId>net.ess3</groupId>
             <artifactId>EssentialsX</artifactId>
+        </dependency>
+        <!-- PlaceholderAPI -->
+        <dependency>
+          <groupId>me.clip</groupId>
+          <artifactId>placeholderapi</artifactId>
         </dependency>
     </dependencies>
     

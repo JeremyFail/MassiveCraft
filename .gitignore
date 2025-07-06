@@ -1,6 +1,7 @@
 #################### Misc ####################
 # Home made stuff not present in the gitignore project.
 # Manually forged MassiveCraft stuff.
+.vscode
 
 # Eclipse jar description files
 *.jardesc

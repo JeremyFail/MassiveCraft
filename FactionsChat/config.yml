@@ -1,14 +1,30 @@
+version: 1
+
+# The chat format for FactionsChat. Supports PlaceholderAPI placeholders if PAPI is installed.
+# Also supports color codes.
 #
+# Available built-in tags - see the documentation for more details:
+#   - %factions_faction_name%
+#   - %factions_faction_nameforce%
+#   - %factions_player_rank%
+#   - %factions_player_rankforce%
+#   - %factions_player_rankprefix%
+#   - %factions_player_rankprefixforce%
+#   - %factions_player_title%
+#   - %rel_factions_relation%
+#   - %rel_factions_relation_color%
+#   - %factions_chat_prefix%
+#   - %factions_chat_color%
+#   - %DISPLAYNAME%
+#   - %MESSAGE%
+ChatFormat: '%factions_chat_prefix% &f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name%&r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%'
+
 # Determines the range in a circular area centered on the sender
 # for other players to see the local chat
-#
-#
 LocalChatRange: 1000
-#
+
 # Chat prefixes for each channel
-#
 # <fcolor> is a placeholder for the faction colors set in factions config files
-#
 ChatPrefixes:
   Ally: '§e[<fcolor>ALLY§e]§r '
   Truce: '§e[<fcolor>TRUCE§e]§r '
@@ -30,13 +46,10 @@ TextColors:
   Global: '§6'
   Staff: '§4'
   World: '§3'
-#
+
 # Discord settings. Requires DiscordSRV to be installed
-#
 # The channel ID for the channel in your discord guild to link staff chat to
-#
 # Right click the text channel, select "copy ID" and replace the current value with copied ID
-#
 DiscordStaffChannel: '000000000000000000'
 
 

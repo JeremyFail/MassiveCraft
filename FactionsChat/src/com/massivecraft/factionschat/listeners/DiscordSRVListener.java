@@ -23,19 +23,23 @@ public class DiscordSRVListener implements Listener
     @EventHandler
     public void onGameChatMessage(GameChatMessagePreProcessEvent event)
     {
-        ChatMode cm = FactionChatListener.qmPlayers.containsKey(event.getPlayer().getUniqueId()) 
-                ? FactionChatListener.qmPlayers.get(event.getPlayer().getUniqueId()) 
+        ChatMode cm = FactionsChat.qmPlayers.containsKey(event.getPlayer().getUniqueId()) 
+                ? FactionsChat.qmPlayers.get(event.getPlayer().getUniqueId()) 
                 : FactionsChat.instance.getPlayerChatModes().getOrDefault(event.getPlayer().getUniqueId(), ChatMode.GLOBAL);
 
+        // Send global messages to default Discord channel
         if (cm == ChatMode.GLOBAL)
         {
             return;
         } 
+        // Send staff messages to the staff channel
         else if (cm == ChatMode.STAFF)
         {
             event.setChannel("staff");
             return;
         }
+
+        // Ignore all other chat modes
         event.setCancelled(true);
     }
 

@@ -3,6 +3,7 @@ package com.massivecraft.factions.integration.lwc;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.Integration;
 
+// Lightweight Chests integration for Factions
 public class IntegrationLwc extends Integration
 {
 	// -------------------------------------------- //

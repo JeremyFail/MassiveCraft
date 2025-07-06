@@ -50,7 +50,7 @@
 
         <!-- https://hub.spigotmc.org/nexus/content/groups/public/org/spigotmc/spigot-api/ -->
         <massiveSpigotVersion>1.21.4-R0.1-SNAPSHOT</massiveSpigotVersion>
-        <massivePaperVersion>1.16.4-R0.1-SNAPSHOT</massivePaperVersion>
+        <massivePaperVersion>1.21.4-R0.1-SNAPSHOT</massivePaperVersion>
 
         <!-- http://nexus.hc.to/content/repositories/pub_releases/net/milkbowl/vault/Vault/ -->
         <massiveVaultVersion>1.5.6</massiveVaultVersion>
@@ -71,9 +71,6 @@
 
         <!-- http://repo.howaner.de/com/vexsoftware/votifier/ -->
         <massiveVotifierVersion>1.9</massiveVotifierVersion>
-
-        <!-- https://github.com/kangarko/ChatControl-Pro/wiki/Developer-API -->
-        <massiveMineverseChatVersion>3.7.1</massiveMineverseChatVersion>
 
         <!-- http://repo.mikeprimm.com/us/dynmap/dynmap/ -->
         <massiveDynmapVersion>3.7-beta8</massiveDynmapVersion>
@@ -111,7 +108,7 @@
         <!-- Paper API -->
         <repository>
             <id>destroystokyo-repo</id>
-            <url>https://repo.destroystokyo.com/repository/maven-snapshots/</url>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <!-- Vault-->
         <repository>
@@ -296,6 +293,12 @@
                 <groupId>org.spigotmc</groupId>
                 <artifactId>spigot-api</artifactId>
                 <version>${massiveSpigotVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.papermc.paper</groupId>
+                <artifactId>paper-api</artifactId>
+                <version>${massivePaperVersion}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -539,18 +542,6 @@
                 <version>${massiveLwcVersion}</version>
                 <scope>provided</scope>
             </dependency>
-
-            <!--
-                Page: https://www.spigotmc.org/resources/venturechat.771/
-                Intall: mvn install:install-file -DgroupId=mineverse.Aust1n46.chat -DartifactId=MineverseChat -Dversion=2.20.2 -Dpackaging=jar -Dfile=VentureChat2.22.2.jar
-                Test: mvn dependency:get -Dartifact=mineverse.Aust1n46.chat:MineverseChat:2.20.2
-            -->
-            <dependency>
-                <groupId>mineverse.Aust1n46.chat</groupId>
-                <artifactId>MineverseChat</artifactId>
-                <version>${massiveMineverseChatVersion}</version>
-                <scope>provided</scope>
-            </dependency><!-- https://github.com/kangarko/ChatControl-Pro/wiki/Developer-API -->
 
             <!-- NMS - Full Spigot servers including NMS that may not be distributed. -->
             <!-- This section is relevant to supporting multiple minecraft versions for plugins using NMS. -->

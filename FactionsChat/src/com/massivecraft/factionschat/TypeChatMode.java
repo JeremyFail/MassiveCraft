@@ -41,8 +41,16 @@ public class TypeChatMode extends TypeAbstract<ChatMode>
             args.add(arg);
         }
         
+        // Add the public chat mode option
         args.add("public");
         args.add("p");
+
+        // Add the reload command if the sender has permission
+        if (sender.hasPermission("factionschat.reload")) 
+        {
+            args.add("reload");
+        }
+
         return args;
     }
 

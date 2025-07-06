@@ -64,11 +64,6 @@
           <groupId>me.clip</groupId>
           <artifactId>placeholderapi</artifactId>
         </dependency>
-        <!-- MineverseChat/VentureChat -->
-        <dependency>
-          <groupId>mineverse.Aust1n46.chat</groupId>
-          <artifactId>MineverseChat</artifactId>
-        </dependency>
         <!-- Dynmap -->
         <dependency>
           <groupId>us.dynmap</groupId>

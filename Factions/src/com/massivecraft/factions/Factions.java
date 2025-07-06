@@ -4,24 +4,10 @@ import com.google.gson.GsonBuilder;
 import com.massivecraft.factions.adapter.BoardAdapter;
 import com.massivecraft.factions.adapter.BoardMapAdapter;
 import com.massivecraft.factions.adapter.TerritoryAccessAdapter;
-import com.massivecraft.factions.chat.modifier.ChatModifierLc;
-import com.massivecraft.factions.chat.modifier.ChatModifierLp;
-import com.massivecraft.factions.chat.modifier.ChatModifierParse;
-import com.massivecraft.factions.chat.modifier.ChatModifierRp;
-import com.massivecraft.factions.chat.modifier.ChatModifierUc;
-import com.massivecraft.factions.chat.modifier.ChatModifierUcf;
-import com.massivecraft.factions.chat.tag.ChatTagName;
-import com.massivecraft.factions.chat.tag.ChatTagNameforce;
-import com.massivecraft.factions.chat.tag.ChatTagRelcolor;
-import com.massivecraft.factions.chat.tag.ChatTagRole;
-import com.massivecraft.factions.chat.tag.ChatTagRoleprefix;
-import com.massivecraft.factions.chat.tag.ChatTagRoleprefixforce;
-import com.massivecraft.factions.chat.tag.ChatTagTitle;
 import com.massivecraft.factions.cmd.CmdFactions;
 import com.massivecraft.factions.cmd.type.TypeFactionChunkChangeType;
 import com.massivecraft.factions.cmd.type.TypeRel;
 import com.massivecraft.factions.engine.EngineCanCombatHappen;
-import com.massivecraft.factions.engine.EngineChat;
 import com.massivecraft.factions.engine.EngineChunkChange;
 import com.massivecraft.factions.engine.EngineCleanInactivity;
 import com.massivecraft.factions.engine.EngineDenyCommands;
@@ -62,6 +48,7 @@ import com.massivecraft.factions.entity.migrator.MigratorMConf002CleanInactivity
 import com.massivecraft.factions.entity.migrator.MigratorMConf003CleanInactivity;
 import com.massivecraft.factions.entity.migrator.MigratorMConf004Rank;
 import com.massivecraft.factions.entity.migrator.MigratorMConf005Warps;
+import com.massivecraft.factions.entity.migrator.MigratorMConf006RemoveChat;
 import com.massivecraft.factions.entity.migrator.MigratorMPerm001Warps;
 import com.massivecraft.factions.entity.migrator.MigratorMPerm002MoveStandard;
 import com.massivecraft.factions.entity.migrator.MigratorMPerm003RenameStoneButtons;
@@ -72,7 +59,6 @@ import com.massivecraft.factions.event.EventFactionsChunkChangeType;
 import com.massivecraft.factions.integration.dynmap.IntegrationDynmap;
 import com.massivecraft.factions.integration.lwc.IntegrationLwc;
 import com.massivecraft.factions.integration.placeholderapi.IntegrationPlaceholderAPI;
-import com.massivecraft.factions.integration.venturechat.IntegrationVentureChat;
 import com.massivecraft.factions.integration.worldguard.IntegrationWorldGuard;
 import com.massivecraft.factions.mixin.PowerMixin;
 import com.massivecraft.factions.task.TaskFlagPermCreate;
@@ -138,8 +124,6 @@ public class Factions extends MassivePlugin
 
 		// Activate
 		this.activateAuto();
-		this.activate(getClassesActiveChat());
-
 	}
 
 	// These are overriden because the reflection trick was buggy and didn't work on all systems
@@ -157,6 +141,7 @@ public class Factions extends MassivePlugin
 			MigratorMConf003CleanInactivity.class,
 			MigratorMConf004Rank.class,
 			MigratorMConf005Warps.class,
+			MigratorMConf006RemoveChat.class,
 			MigratorMPerm001Warps.class,
 			MigratorMPerm002MoveStandard.class,
 			MigratorMPerm003RenameStoneButtons.class,
@@ -200,7 +185,6 @@ public class Factions extends MassivePlugin
 	{
 		return MUtil.list(
 			IntegrationPlaceholderAPI.class,
-			IntegrationVentureChat.class,
 			IntegrationLwc.class,
 			IntegrationWorldGuard.class,
 			IntegrationDynmap.class
@@ -222,7 +206,6 @@ public class Factions extends MassivePlugin
 	{
 		return MUtil.list(
 			EngineCanCombatHappen.class,
-			EngineChat.class,
 			EngineChunkChange.class,
 			EngineCleanInactivity.class,
 			EngineDenyCommands.class,
@@ -261,25 +244,6 @@ public class Factions extends MassivePlugin
 	public List<Class<?>> getClassesActiveTests()
 	{
 		return MUtil.list();
-	}
-
-	public List<Class<?>> getClassesActiveChat()
-	{
-		return MUtil.list(
-			ChatModifierLc.class,
-			ChatModifierLp.class,
-			ChatModifierParse.class,
-			ChatModifierRp.class,
-			ChatModifierUc.class,
-			ChatModifierUcf.class,
-			ChatTagName.class,
-			ChatTagNameforce.class,
-			ChatTagRelcolor.class,
-			ChatTagRole.class,
-			ChatTagRoleprefix.class,
-			ChatTagRoleprefixforce.class,
-			ChatTagTitle.class
-		);
 	}
 
 	@Override

@@ -8,8 +8,6 @@ import com.massivecraft.massivecore.entity.MassiveCoreMConf;
 import com.massivecraft.massivecore.event.EventMassiveCoreAfterPlayerRespawn;
 import com.massivecraft.massivecore.event.EventMassiveCoreAfterPlayerTeleport;
 import com.massivecraft.massivecore.event.EventMassiveCorePermissionDeniedFormat;
-import com.massivecraft.massivecore.event.EventMassiveCorePlayerToRecipientChat;
-import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.mixin.MixinVisibility;
 import com.massivecraft.massivecore.predicate.PredicateStartsWithIgnoreCase;
 import com.massivecraft.massivecore.util.IdUtil;
@@ -21,7 +19,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerChatTabCompleteEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -29,7 +26,6 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -44,50 +40,6 @@ public class EngineMassiveCoreMain extends Engine
 	
 	private static EngineMassiveCoreMain i = new EngineMassiveCoreMain();
 	public static EngineMassiveCoreMain get() { return i; }
-	
-	// -------------------------------------------- //
-	// RECIPIENT CHAT
-	// -------------------------------------------- //
-	// A system to create per recipient events.
-	// It clears the recipient set so the event isn't cancelled completely.
-	// It will cause non async chat events not to fire.
-	
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void recipientChat(final AsyncPlayerChatEvent event)
-	{
-		// Return unless we are using the recipient chat event
-		if ( ! MassiveCoreMConf.get().recipientChatEventEnabled) return;
-		
-		// Prepare vars
-		EventMassiveCorePlayerToRecipientChat recipientEvent;
-		final Player sender = event.getPlayer();
-		if (MUtil.isntPlayer(sender)) return;
-		
-		String message = event.getMessage();
-		String format = event.getFormat();
-		
-		// Pick the recipients to avoid the message getting sent without canceling the event.
-		Set<Player> players = new HashSet<>(event.getRecipients());
-		event.getRecipients().clear();
-		
-		// For each of the players
-		for (Player recipient : players)
-		{
-			// Run the event for this unique recipient
-			recipientEvent = new EventMassiveCorePlayerToRecipientChat(event.isAsynchronous(), sender, recipient, message, format);
-			recipientEvent.run();
-			
-			// Format and send with the format and message from this recipient's own event. 
-			String recipientMessage = String.format(recipientEvent.getFormat(), sender.getDisplayName(), recipientEvent.getMessage());
-			MixinMessage.get().messageOne(recipient, recipientMessage);
-		}
-		
-		// For the console
-		recipientEvent = new EventMassiveCorePlayerToRecipientChat(event.isAsynchronous(), sender, Bukkit.getConsoleSender(), message, format);
-		recipientEvent.run();
-		event.setMessage(recipientEvent.getMessage());
-		event.setFormat(recipientEvent.getFormat());
-	}
 	
 	// -------------------------------------------- //
 	// PERMISSION DENIED FORMAT
