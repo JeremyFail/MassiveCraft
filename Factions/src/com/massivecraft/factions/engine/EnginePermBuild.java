@@ -19,6 +19,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.Cancellable;
@@ -60,6 +61,10 @@ public class EnginePermBuild extends Engine
 
 	private static EnginePermBuild i = new EnginePermBuild();
 	public static EnginePermBuild get() { return i; }
+
+	// Map to track last location messaged per player - only used by some events
+	// This is used to prevent spam messages from certain events
+	private static final Map<UUID, Location> lastMessagedLoc = new HashMap<>();
 
 	// -------------------------------------------- //
 	// LOGIC > PROTECT
@@ -103,10 +108,14 @@ public class EnginePermBuild extends Engine
 	
 	public static Boolean build(Entity entity, Block block, Event event)
 	{
+		return build(entity, block, !isFake(event), event);
+	}
+
+	public static Boolean build(Entity entity, Block block, boolean verboose, Event event)
+	{
 		if (!(event instanceof Cancellable)) return true;
 		if (MUtil.isntPlayer(entity)) return false;
 		Player player = (Player) entity;
-		boolean verboose = !isFake(event);
 		return protect(ProtectCase.BUILD, verboose, player, PS.valueOf(block), block, (Cancellable) event);
 	}
 	
@@ -132,7 +141,7 @@ public class EnginePermBuild extends Engine
 
 	public static Boolean leashMob(Player player, Entity entity, Cancellable cancellable)
 	{
-		return protect(ProtectCase.LEASH_MOB, true, player, PS.valueOf(entity.getLocation()), player, cancellable);
+		return protect(ProtectCase.LEASH_MOB, true, player, PS.valueOf(entity.getLocation()), entity, cancellable);
 	}
 	
 	// -------------------------------------------- //
@@ -161,9 +170,54 @@ public class EnginePermBuild extends Engine
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void build(SignChangeEvent event) { build(event.getPlayer(), event.getBlock(), event); }
 	
+	// Handles placing entity items such as item frames, paintings, leashes
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void build(HangingPlaceEvent event) { build(event.getPlayer(), event.getBlock(), event); }
+	public void build(HangingPlaceEvent event) 
+	{ 
+		Player player = event.getPlayer();
+		// Check if block is a fence post
+		Material type = event.getBlock().getType();
+		// TODO: Do we need to add fences to the EnumerationUtil, or is this sufficient?
+		boolean isFence = type.toString().endsWith("_FENCE");
+		// Check if player has any leashed entities
+		boolean hasLeashed = player.getWorld().getNearbyEntities(player.getLocation(), 20, 20, 20).stream()
+			.filter(e -> e instanceof LivingEntity)
+			.map(e -> (LivingEntity) e)
+			.anyMatch(e -> e.isLeashed() && player.equals(e.getLeashHolder()));
+
+		// If player clicks on a fence and has leashed animals, we may need to prevent multiple messages
+		boolean verboose = true;
+		if (isFence && hasLeashed)
+		{
+			UUID uuid = player.getUniqueId();
+			Location eventLocation = event.getBlock().getLocation();
+
+			boolean isLeash = event.getEntity().getType().equals(EntityType.LEASH_KNOT);
+			boolean playerIsHoldingLead = player.getInventory().getItemInMainHand().getType() == Material.LEAD
+					|| player.getInventory().getItemInOffHand().getType() == Material.LEAD;
+			boolean performLeashChecks = isLeash && playerIsHoldingLead;
+
+			// If the player is holding a lead, we'll use the lastMessagedLoc map to prevent multiple messages.
+			// This has to be done because both the leash event and the item-in-hand event will have the same entity 
+			// type, which means we can't differentiate between the two events.
+			if (performLeashChecks)
+			{
+				Location last = lastMessagedLoc.get(uuid);
+				verboose = (last == null || !last.equals(eventLocation));
+			}
+			// Otherwise we'll just set verboose to false if it's the leash event
+			// so the item-in-hand event will be the only one that sends the message
+			else
+			{
+				verboose = !isLeash;
+			}
+			lastMessagedLoc.put(uuid, eventLocation);
+		}
+
+		build(event.getPlayer(), event.getBlock(), verboose, event);
+	}
 	
+	// Handles breaking entity items such as item frames, paintings, leashes
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void build(HangingBreakByEntityEvent event) { build(event.getRemover(), event.getEntity().getLocation().getBlock(), event); }
 
@@ -211,13 +265,9 @@ public class EnginePermBuild extends Engine
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void useItem(PlayerBucketFillEvent event) { useItem(event.getPlayer(), event.getBlockClicked(), event.getBucket(), event); }
 
-
 	// -------------------------------------------- //
 	// USE > REDSTONE BLOCK
 	// -------------------------------------------- //
-
-	// Track last plate messaged per player
-	private static final Map<UUID, Location> lastPlateMessaged = new HashMap<>();
 
 	// Prevent certain redstone blocks from being activated by players
 	@EventHandler
@@ -231,14 +281,14 @@ public class EnginePermBuild extends Engine
 
 		// Only check entities within a small radius (should cover standing on the plate)
 		Location blockLocation = block.getLocation();
-    	for (Entity entity : block.getWorld().getNearbyEntities(blockLocation, 1, 1, 1))
+		for (Entity entity : block.getWorld().getNearbyEntities(blockLocation, 1, 1, 1))
 		{
 			// If the entity is not a player, skip it
 			if (entity == null || MUtil.isntPlayer(entity)) continue;
 
-        	Player player = (Player) entity;
+			Player player = (Player) entity;
 			UUID uuid = player.getUniqueId();
-			Location last = lastPlateMessaged.get(uuid);
+			Location last = lastMessagedLoc.get(uuid);
 			boolean verboose = (last == null || !last.equals(blockLocation));
 
 			Boolean prevent = useRedstoneBlock(player, block, blockMaterial, verboose);
@@ -248,10 +298,10 @@ public class EnginePermBuild extends Engine
 				event.setNewCurrent(0);
 				if (verboose)
 				{
-                	lastPlateMessaged.put(uuid, blockLocation);
+					lastMessagedLoc.put(uuid, blockLocation);
 				}
-            }
-    	}
+			}
+		}
 	}
 
 	// -------------------------------------------- //
@@ -360,12 +410,12 @@ public class EnginePermBuild extends Engine
 	// -------------------------------------------- //
 	
 	/*
-	 * Note: With 1.8 and the slime blocks, retracting and extending pistons
-	 * became more of a problem. Blocks located on the border of a chunk
-	 * could have easily been stolen. That is the reason why every block
-	 * needs to be checked now, whether he moved into a territory which
-	 * he actually may not move into.
-	 */
+	* Note: With 1.8 and the slime blocks, retracting and extending pistons
+	* became more of a problem. Blocks located on the border of a chunk
+	* could have easily been stolen. That is the reason why every block
+	* needs to be checked now, whether he moved into a territory which
+	* he actually may not move into.
+	*/
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void blockBuild(BlockPistonExtendEvent event)
 	{

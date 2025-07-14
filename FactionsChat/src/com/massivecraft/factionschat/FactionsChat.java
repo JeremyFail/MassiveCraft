@@ -328,6 +328,7 @@ public class FactionsChat extends JavaPlugin
         unsupportedChatPlugins.add("EssentialsChat");
         unsupportedChatPlugins.add("LPC");
         unsupportedChatPlugins.add("LuckPermsChat");
+        unsupportedChatPlugins.add("HeroChat");
         unsupportedChatPlugins.add("AdvancedChat");
         unsupportedChatPlugins.add("FairyChat");
         unsupportedChatPlugins.add("LokiChat");
