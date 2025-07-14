@@ -12,46 +12,61 @@ permissions:
   # -------------------------------------------- #
   # THE REAL NODES
   # -------------------------------------------- #
-  factionschat.ally:
+  factions.chat.ally:
     description: Access ally chat channel
     default: op
-  factionschat.truce:
+  factions.chat.truce:
     description: Access truce chat channel
     default: op
-  factionschat.faction:
+  factions.chat.faction:
     description: Access faction chat channel
     default: op
-  factionschat.local:
+  factions.chat.local:
     description: Access local chat channel
     default: op
-  factionschat.global:
+  factions.chat.global:
     description: Access global chat channel
     default: op
-  factionschat.enemy:
+  factions.chat.enemy:
     description: Access enemy chat channel
     default: op
-  factionschat.neutral:
+  factions.chat.neutral:
     description: Access neutral chat channel
     default: op
-  factionschat.world:
+  factions.chat.world:
     description: Access world chat channel
     default: op
-  factionschat.staff:
-    description: Access staff chat channel
+  factions.chat.color:
+    description: Use color codes in chat messages
     default: op
-  factionschat.reload:
+  factions.chat.format:
+    description: Use formatting codes in chat messages
+    default: op
+  factions.chat.magic:
+    description: Use magic codes in chat messages
+    default: op
+  factions.chat.rgb:
+    description: Use RGB (hex) color codes in chat messages
+    default: op
+  factions.chat.url:
+    description: Send clickable URLs in chat messages
+    default: op
+  factions.chat.reload:
     description: Reload the plugin configuration file
+    default: op
+  factions.chat.staff:
+    description: Access staff chat channel
     default: op
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
-  factionschat.*:
+  factions.chat.*:
     children:
-      factionschat.ally: true
-      factionschat.truce: true
-      factionschat.faction: true
-      factionschat.local: true
-      factionschat.global: true
-      factionschat.enemy: true
-      factionschat.neutral: true
-      factionschat.world: true
+      factions.chat.ally: true
+      factions.chat.truce: true
+      factions.chat.faction: true
+      factions.chat.local: true
+      factions.chat.global: true
+      factions.chat.enemy: true
+      factions.chat.neutral: true
+      factions.chat.world: true

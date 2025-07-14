@@ -50,7 +50,7 @@ public class UpdateManager extends BukkitRunnable implements Listener
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) 
     {
-        if (!event.getPlayer().hasPermission("factionschat.update"))
+        if (!event.getPlayer().hasPermission("factions.chat.update"))
         {
             return;
         }

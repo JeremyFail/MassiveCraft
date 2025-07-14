@@ -44,8 +44,20 @@ public class FactionsChat extends JavaPlugin
      */
     public static final Map<UUID, ChatMode> qmPlayers = new HashMap<>();
     
+    /**
+     * A map of player chat modes (what mode they are currently using).
+     * The key is the player's UUID, and the value is the ChatMode they are currently using.
+     */
     private final Map<UUID, ChatMode> chatModes = new HashMap<>();
     private int localChatRange = 1000;
+    
+    // Chat config settings
+    // TODO: should these be stored in a config class? Should we also have a value for the chat format?
+    private boolean allowColorCodes = true;
+    private boolean allowUrl = true;
+    private boolean allowUrlUnderline = true;
+    
+    // Plugin instances for optional integrations
     private DiscordSRV discordSrvPlugin;
     private Factions factionsPlugin;
     private Essentials essentialsPlugin;
@@ -150,6 +162,36 @@ public class FactionsChat extends JavaPlugin
     }
 
     /**
+     * Retrieves the config setting for whether color/format codes are allowed in chat messages.
+     * 
+     * @return True if color/format codes are allowed, false otherwise.
+     */
+    public boolean getAllowColorCodes() 
+    {
+        return this.allowColorCodes;
+    }
+
+    /**
+     * Retrieves the config setting for whether clickable URLs are allowed in chat messages.
+     * 
+     * @return True if clickable URLs are allowed, false otherwise.
+     */
+    public boolean getAllowUrl() 
+    {
+        return this.allowUrl;
+    }
+
+    /**
+     * Retrieves the config setting for whether URLs in chat messages should be underlined.
+     * 
+     * @return True if URLs should be underlined, false otherwise.
+     */
+    public boolean getAllowUrlUnderline() 
+    {
+        return this.allowUrlUnderline;
+    }
+
+    /**
      * Retrieves the DiscordSRV plugin instance if it is available.
      *
      * @return The DiscordSRV plugin instance, or null if not found.
@@ -223,31 +265,69 @@ public class FactionsChat extends JavaPlugin
     {
         try
         {
-            YamlConfiguration cfg = YamlConfiguration.loadConfiguration(new InputStreamReader(getResource("config.yml")));
             File configFile = new File(getDataFolder(), "config.yml");
-            if (configFile.exists())
+            if (!configFile.exists())
             {
-                YamlConfiguration tmp = YamlConfiguration.loadConfiguration(configFile);
-                boolean changesMade = false;
-                for (String key : cfg.getKeys(true))
-                {
-                    if (!tmp.contains(key))
-                    {
-                        tmp.set(key, cfg.get(key));
-                        changesMade = true;
-                    }
-                }
+                saveDefaultConfig();
+                getLogger().info("Generated config.yml with default settings.");
+                return;
+            }
 
-                if (changesMade)
+            // Compare the current config with the default config and update if necessary
+            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(getResource("config.yml")));
+            YamlConfiguration serverConfig = YamlConfiguration.loadConfiguration(configFile);
+
+            String defaultVersion = defaultConfig.getString("version", "1");
+            String serverVersion = serverConfig.getString("version", "1");
+            if (!defaultVersion.equals(serverVersion))
+            {
+                boolean changed = mergeConfigSections(defaultConfig, serverConfig, "");
+                serverConfig.set("version", defaultVersion); // Always update version
+                if (changed)
                 {
-                    tmp.save(configFile);
+                    serverConfig.save(configFile);
+                    getLogger().info("Upgraded config.yml to version " + defaultVersion + ". New settings have been added where missing. Please review your config.");
                 }
             }
-        } 
+        }
         catch (IOException e)
         {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Recursively merges missing keys from source into target, preserving nested structure.
+     * Returns true if any changes were made.
+     */
+    private boolean mergeConfigSections(YamlConfiguration source, YamlConfiguration target, String path)
+    {
+        boolean changed = false;
+        for (String key : source.getConfigurationSection(path.isEmpty() ? "" : path).getKeys(false))
+        {
+            String fullKey = path.isEmpty() ? key : path + "." + key;
+            if (source.isConfigurationSection(fullKey))
+            {
+                if (!target.isConfigurationSection(fullKey))
+                {
+                    target.createSection(fullKey);
+                    changed = true;
+                }
+                if (mergeConfigSections(source, target, fullKey))
+                {
+                    changed = true;
+                }
+            }
+            else
+            {
+                if (!target.contains(fullKey))
+                {
+                    target.set(fullKey, source.get(fullKey));
+                    changed = true;
+                }
+            }
+        }
+        return changed;
     }
 
     /**
@@ -256,7 +336,10 @@ public class FactionsChat extends JavaPlugin
     private void initializeChat()
     {
         FileConfiguration config = getConfig();
-        localChatRange = config.getInt("LocalChatRange", 1000);
+        localChatRange = config.getInt("ChatSettings.LocalChatRange", 1000);
+        allowColorCodes = config.getBoolean("ChatSettings.AllowColorCodes", true);
+        allowUrl = config.getBoolean("ChatSettings.AllowClickableLinks", true);
+        allowUrlUnderline = config.getBoolean("ChatSettings.AllowClickableLinksUnderline", true);
         ChatPrefixes.initialize(config.getConfigurationSection("ChatPrefixes"));
         TextColors.initialize(config.getConfigurationSection("TextColors"));
     }

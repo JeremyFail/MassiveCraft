@@ -36,7 +36,7 @@ public class CmdFactionsChat extends FactionsCommand
         // Check for reload subcommand
         if (firstArg != null && firstArg.equalsIgnoreCase("reload"))
         {
-            if (!msender.getPlayer().hasPermission("factionschat.reload"))
+            if (!msender.getPlayer().hasPermission("factions.chat.reload"))
             {
                 msender.message(ChatColor.RED + "Invalid chat mode: " + ChatColor.DARK_AQUA + firstArg);
                 return;
@@ -69,12 +69,12 @@ public class CmdFactionsChat extends FactionsCommand
         if (msender.getFaction().isNone() && 
             (chatMode == ChatMode.FACTION || chatMode == ChatMode.ALLY || chatMode == ChatMode.TRUCE || chatMode == ChatMode.ENEMY)) 
         {
-            msender.message(ChatColor.RED + "You are not in a faction");
+            msender.message(ChatColor.RED + "Cannot switch to that chat mode as you are not in a faction");
             return;
         }
 
         // Validate permissions for the chat mode
-        if (!msender.getPlayer().hasPermission("factionschat." + chatMode.name().toLowerCase())) 
+        if (!msender.getPlayer().hasPermission("factions.chat." + chatMode.name().toLowerCase())) 
         {
             msender.message(ChatColor.RED + "Invalid chat mode: " + ChatColor.DARK_AQUA + firstArg);
             return;

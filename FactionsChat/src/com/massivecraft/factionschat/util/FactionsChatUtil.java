@@ -78,27 +78,27 @@ public class FactionsChatUtil
         switch (chatMode)
         {
             case TRUCE:
-                return !recipient.hasPermission("factionschat.truce")
+                return !recipient.hasPermission("factions.chat.truce")
                         || (mSender.getRelationTo(mRecipient) != Rel.TRUCE && mSender.getRelationTo(mRecipient) != Rel.FACTION);
             case ALLY:
-                return !recipient.hasPermission("factionschat.ally")
+                return !recipient.hasPermission("factions.chat.ally")
                         || (mSender.getRelationTo(mRecipient) != Rel.ALLY && mSender.getRelationTo(mRecipient) != Rel.FACTION);
             case FACTION:
-                return !recipient.hasPermission("factionschat.faction") 
+                return !recipient.hasPermission("factions.chat.faction") 
                         || mSender.getRelationTo(mRecipient) != Rel.FACTION;
             case ENEMY:
-                return !recipient.hasPermission("factionschat.enemy")
+                return !recipient.hasPermission("factions.chat.enemy")
                         || (mSender.getRelationTo(mRecipient) != Rel.ENEMY && mSender.getRelationTo(mRecipient) != Rel.FACTION);
             case NEUTRAL:
-                return !recipient.hasPermission("factionschat.neutral")
+                return !recipient.hasPermission("factions.chat.neutral")
                         || (mSender.getRelationTo(mRecipient) != Rel.NEUTRAL && mSender.getRelationTo(mRecipient) != Rel.FACTION);
             case LOCAL:
-                return !recipient.hasPermission("factionschat.local")
+                return !recipient.hasPermission("factions.chat.local")
                         || sender.getLocation().toVector().subtract(recipient.getLocation().toVector()).length() > FactionsChat.instance.getLocalChatRange();
             case STAFF:
-                return !recipient.hasPermission("factionschat.staff");
+                return !recipient.hasPermission("factions.chat.staff");
             case WORLD:
-                return !recipient.hasPermission("factionschat.world") 
+                return !recipient.hasPermission("factions.chat.world") 
                         || !recipient.getWorld().equals(sender.getWorld());
             default:
                 return false;

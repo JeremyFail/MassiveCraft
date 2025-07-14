@@ -6,6 +6,7 @@ description: ${project.description}
 authors: [Madus, Cayorion, Ulumulu1510, Ymerejliaf]
 load: startup
 api-version: 1.21
+softdepend: [Vault]
 permissions:
 # -------------------------------------------- #
 # THE REAL NODES

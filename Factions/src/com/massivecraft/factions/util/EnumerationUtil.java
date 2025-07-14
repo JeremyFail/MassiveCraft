@@ -339,7 +339,8 @@ public class EnumerationUtil
     // Damaging these entities results in an edit.
     public static final BackstringSet<EntityType> ENTITY_TYPES_EDIT_ON_DAMAGE = new BackstringSet<>(EntityType.class,
         "ARMOR_STAND",          // Minecraft 1.8
-        "ENDER_CRYSTAL",        // Minecraft 1.10
+        "ENDER_CRYSTAL",        // Minecraft 1.0
+        "END_CRYSTAL",          // Minecraft 1.9 (rename of ENDER_CRYSTAL)
         "GLOW_ITEM_FRAME",      // Minecraft 1.17
         "ITEM_FRAME",           // Minecraft 1.4.2
         "LEASH_KNOT"            // Minecraft 1.6.1

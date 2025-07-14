@@ -34,7 +34,7 @@ public class TypeChatMode extends TypeAbstract<ChatMode>
             {
                 continue;
             }
-            if (sender == null || !sender.hasPermission("factionschat." + chatMode.name().toLowerCase()))
+            if (sender == null || !sender.hasPermission("factions.chat." + chatMode.name().toLowerCase()))
             {
                 continue;
             }
@@ -46,7 +46,7 @@ public class TypeChatMode extends TypeAbstract<ChatMode>
         args.add("p");
 
         // Add the reload command if the sender has permission
-        if (sender.hasPermission("factionschat.reload")) 
+        if (sender.hasPermission("factions.chat.reload")) 
         {
             args.add("reload");
         }

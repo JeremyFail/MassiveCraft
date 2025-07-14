@@ -56,7 +56,7 @@ public class DiscordSRVListener implements Listener
         event.setCancelled(true);
 
         // Broadcast message in staff channel
-        Bukkit.broadcast(ChatPrefixes.STAFF + event.getProcessedMessage(), "factionschat.staff");
+        Bukkit.broadcast(ChatPrefixes.STAFF + event.getProcessedMessage(), "factions.chat.staff");
     }
 
     @EventHandler
