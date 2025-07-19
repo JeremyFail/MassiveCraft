@@ -32,11 +32,17 @@ public class LegacyFPlayer implements FPlayer
     
     public LegacyFPlayer(OfflinePlayer player)
     {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         this.realPlayer = MPlayer.get(player);
     }
 
     public LegacyFPlayer(MPlayer player)
     {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         this.realPlayer = player;
     }
     

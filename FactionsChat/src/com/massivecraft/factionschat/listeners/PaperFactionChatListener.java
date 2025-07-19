@@ -42,7 +42,7 @@ public class PaperFactionChatListener implements Listener
      * 
      * @param event The AsyncChatEvent triggered through chat
      */
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOW)
     public void onAsyncChat(AsyncChatEvent event)
     {
         Player sender = event.getPlayer();
@@ -84,7 +84,7 @@ public class PaperFactionChatListener implements Listener
 
         // Use a lambda to capture the chatMode for this event
         event.renderer((source, sourceDisplayName, message, viewer) -> {
-            String format = FactionsChat.instance.getConfig().getString("ChatFormat", "%factions_chat_prefix% &f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name% &r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%");
+            String format = FactionsChat.instance.getChatFormat();
             String displayName = source.getDisplayName();
             String originalMessage = serializer.serialize(message);
             Player recipient = viewer == null || MUtil.isntPlayer(viewer) ? null : (Player) viewer;

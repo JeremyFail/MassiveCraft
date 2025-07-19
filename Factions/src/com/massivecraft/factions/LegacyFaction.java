@@ -30,6 +30,9 @@ public class LegacyFaction implements Faction
     
     public LegacyFaction(com.massivecraft.factions.entity.Faction realFaction)
     {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         this.realFaction = realFaction;
     }
     

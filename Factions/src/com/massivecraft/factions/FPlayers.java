@@ -21,6 +21,9 @@ public class FPlayers
     private static FPlayers instance;
     public static FPlayers getInstance() 
     { 
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         if (instance == null) {
             instance = new FPlayers();
         }
@@ -36,11 +39,17 @@ public class FPlayers
     // TODO: Add more methods from legacy factions
     public FPlayer getByPlayer(Player player)
     {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         return new LegacyFPlayer(player);
     }
     
     public FPlayer getByOfflinePlayer(OfflinePlayer player)
     {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         return new LegacyFPlayer(player);
     }
     

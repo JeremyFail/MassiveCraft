@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 
 public class FactionsChatUtil 
 {
+    public static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix% &f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name% &r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%";
+    
     /**
      * Parses non-relational (single player) tags in the format string.
      */

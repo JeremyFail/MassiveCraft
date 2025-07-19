@@ -7,6 +7,7 @@ import com.massivecraft.factionschat.integrations.PlaceholderFactionsChat;
 import com.massivecraft.factionschat.listeners.DiscordSRVListener;
 import com.massivecraft.factionschat.listeners.PaperFactionChatListener;
 import com.massivecraft.factionschat.listeners.SpigotFactionChatListener;
+import com.massivecraft.factionschat.util.FactionsChatUtil;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.factions.cmd.CmdFactions;
 import github.scarsz.discordsrv.DiscordSRV;
@@ -49,13 +50,14 @@ public class FactionsChat extends JavaPlugin
      * The key is the player's UUID, and the value is the ChatMode they are currently using.
      */
     private final Map<UUID, ChatMode> chatModes = new HashMap<>();
-    private int localChatRange = 1000;
     
     // Chat config settings
     // TODO: should these be stored in a config class? Should we also have a value for the chat format?
+    private String chatFormat = FactionsChatUtil.DEFAULT_CHAT_FORMAT;
     private boolean allowColorCodes = true;
     private boolean allowUrl = true;
     private boolean allowUrlUnderline = true;
+    private int localChatRange = 1000;
     
     // Plugin instances for optional integrations
     private DiscordSRV discordSrvPlugin;
@@ -132,7 +134,9 @@ public class FactionsChat extends JavaPlugin
     @Override
     public void reloadConfig()
     {
+        saveDefaultConfig();
         super.reloadConfig();
+        
         // Reinitilize chat config
         initializeChat();
         saveChatModesFile(); // Save chat modes after reloading config
@@ -151,14 +155,13 @@ public class FactionsChat extends JavaPlugin
     }
 
     /**
-     * Retrieves the local chat range, which is the distance in blocks
-     * within which players can hear each other in local chat.
-     *
-     * @return The local chat range in blocks.
+     * Retrieves the chat format string used for formatting chat messages.
+     * 
+     * @return The chat format string.
      */
-    public int getLocalChatRange() 
+    public String getChatFormat() 
     {
-        return this.localChatRange;
+        return this.chatFormat;
     }
 
     /**
@@ -189,6 +192,17 @@ public class FactionsChat extends JavaPlugin
     public boolean getAllowUrlUnderline() 
     {
         return this.allowUrlUnderline;
+    }
+
+    /**
+     * Retrieves the local chat range, which is the distance in blocks
+     * within which players can hear each other in local chat.
+     *
+     * @return The local chat range in blocks.
+     */
+    public int getLocalChatRange() 
+    {
+        return this.localChatRange;
     }
 
     /**
@@ -336,10 +350,11 @@ public class FactionsChat extends JavaPlugin
     private void initializeChat()
     {
         FileConfiguration config = getConfig();
-        localChatRange = config.getInt("ChatSettings.LocalChatRange", 1000);
+        chatFormat = config.getString("ChatSettings.ChatFormat", FactionsChatUtil.DEFAULT_CHAT_FORMAT);
         allowColorCodes = config.getBoolean("ChatSettings.AllowColorCodes", true);
         allowUrl = config.getBoolean("ChatSettings.AllowClickableLinks", true);
         allowUrlUnderline = config.getBoolean("ChatSettings.AllowClickableLinksUnderline", true);
+        localChatRange = config.getInt("ChatSettings.LocalChatRange", 1000);
         ChatPrefixes.initialize(config.getConfigurationSection("ChatPrefixes"));
         TextColors.initialize(config.getConfigurationSection("TextColors"));
     }

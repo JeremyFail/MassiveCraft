@@ -20,6 +20,9 @@ public class FLocation
     
     public FLocation(Location location)
     {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         this.location = location;
     }
     

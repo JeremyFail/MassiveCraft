@@ -9,6 +9,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import java.util.HashSet;
@@ -32,7 +33,7 @@ public class SpigotFactionChatListener implements Listener
      * 
      * @param event The AsyncPlayerChatEvent triggered through chat
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         MPlayer mSender = MPlayerColl.get().get(player);
@@ -74,7 +75,7 @@ public class SpigotFactionChatListener implements Listener
      */
     private void handleChat(Player sender, String message, Set<Player> recipients, ChatMode chatMode)
     {
-        String format = FactionsChat.instance.getConfig().getString("ChatFormat", "%factions_chat_prefix% &f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name% &r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%");
+        String format = FactionsChat.instance.getChatFormat();
         String displayName = sender.getDisplayName();
         String originalMessage = message;
 

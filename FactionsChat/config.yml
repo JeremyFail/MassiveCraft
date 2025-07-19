@@ -17,7 +17,7 @@ ChatSettings:
   #
   # See the wiki for a list of built-in/supported tags and for more details:
   # https://github.com/JeremyFail/MassiveCraft/wiki/FactionsChat#configuration
-  ChatFormat: '%factions_chat_prefix% &f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name%&r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%'
+  ChatFormat: '%factions_chat_prefix% &f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name% &r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%'
   # If true, allows color codes/formatting in chat messages (if players also have permission to use them)
   AllowColorCodes: true
   # If true, allows clickable links in chat messages (if players also have permission to send them)

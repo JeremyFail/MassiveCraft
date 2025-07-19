@@ -22,6 +22,9 @@ public class Board
     private static Board instance;
     public static Board getInstance() 
     { 
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         if (instance == null) {
             instance = new Board();
         }
@@ -37,6 +40,9 @@ public class Board
     // TODO: Add more methods from legacy Factions
     public Faction getFactionAt(FLocation location)
     {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
         com.massivecraft.factions.entity.Board realBoard = BoardColl.get().get(location.getLocation().getWorld());
         com.massivecraft.factions.entity.Faction realFaction = realBoard.getFactionAt(PS.valueOf(location.getLocation()).getChunkCoords(true));
 
