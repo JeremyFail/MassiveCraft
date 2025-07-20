@@ -134,7 +134,7 @@ public class RelationUtil
 		Faction thatFaction = getFaction(that);
 		if (thatFaction != null && thatFaction != getFaction(me))
 		{
-			if (thatFaction.getFlag(MFlag.getFlagFriendlyire())) return MConf.get().colorFriendlyFire;
+			if (thatFaction.getFlag(MFlag.getFlagFriendlyFire())) return MConf.get().colorFriendlyFire;
 			
 			if (!thatFaction.getFlag(MFlag.getFlagPvp())) return MConf.get().colorNoPVP;
 		}

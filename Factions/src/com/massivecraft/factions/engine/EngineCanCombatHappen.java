@@ -235,7 +235,7 @@ public class EngineCanCombatHappen extends Engine
 		Rel relation = defendFaction.getRelationTo(attackFaction);
 
 		// Check the relation
-		if (relation.isFriend() && defenderPsFaction.getFlag(MFlag.getFlagFriendlyire()) == false)
+		if (relation.isFriend() && defenderPsFaction.getFlag(MFlag.getFlagFriendlyFire()) == false)
 		{
 			ret = falseUnlessDisallowedPvpEventCancelled(attacker, defender, DisallowCause.FRIENDLYFIRE, event);
 			if (!ret && notify) uattacker.msg("<i>You can't hurt %s<i>.", relation.getDescPlayerMany());

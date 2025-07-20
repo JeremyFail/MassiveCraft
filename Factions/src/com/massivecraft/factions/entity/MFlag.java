@@ -85,9 +85,9 @@ public class MFlag extends Entity<MFlag> implements Prioritized, Registerable, N
 		getFlagPowerloss();
 		getFlagPowergain();
 		getFlagPvp();
-		getFlagFriendlyire();
+		getFlagFriendlyFire();
 		getFlagExplosions();
-		getFlagOfflineexplosions();
+		getFlagOfflineExplosions();
 		getFlagFirespread();
 		getFlagEndergrief();
 		getFlagZombiegrief();
@@ -104,9 +104,9 @@ public class MFlag extends Entity<MFlag> implements Prioritized, Registerable, N
 	public static MFlag getFlagPowerloss() { return getCreative(PRIORITY_POWERLOSS, ID_POWERLOSS, ID_POWERLOSS, "Is power lost on death in this territory?", "Power is lost on death in this territory.", "Power is NOT lost on death in this territory.", true, false, true); }
 	public static MFlag getFlagPowergain() { return getCreative(PRIORITY_POWERGAIN, ID_POWERGAIN, ID_POWERGAIN, "Can power be gained in this territory?", "Power can be gained in this territory.", "Power is NOT gained in this territory.", true, false, true); }
 	public static MFlag getFlagPvp() { return getCreative(PRIORITY_PVP, ID_PVP, ID_PVP, "Can you PVP in territory?", "You can PVP in this territory.", "You can NOT PVP in this territory.", true, false, true); }
-	public static MFlag getFlagFriendlyire() { return getCreative(PRIORITY_FRIENDLYFIRE, ID_FRIENDLYFIRE, ID_FRIENDLYFIRE, "Can friends hurt eachother in this territory?", "Friendly fire is on here.", "Friendly fire is off here.", false, false, true); }
+	public static MFlag getFlagFriendlyFire() { return getCreative(PRIORITY_FRIENDLYFIRE, ID_FRIENDLYFIRE, ID_FRIENDLYFIRE, "Can friends hurt eachother in this territory?", "Friendly fire is on here.", "Friendly fire is off here.", false, false, true); }
 	public static MFlag getFlagExplosions() { return getCreative(PRIORITY_EXPLOSIONS, ID_EXPLOSIONS, ID_EXPLOSIONS, "Can explosions occur in this territory?", "Explosions can occur in this territory.", "Explosions can NOT occur in this territory.", true, false, true); }
-	public static MFlag getFlagOfflineexplosions() { return getCreative(PRIORITY_OFFLINEEXPLOSIONS, ID_OFFLINEEXPLOSIONS, ID_OFFLINEEXPLOSIONS, "Can explosions occur if faction is offline?", "Explosions if faction is offline.", "No explosions if faction is offline.", false, false, true); }
+	public static MFlag getFlagOfflineExplosions() { return getCreative(PRIORITY_OFFLINEEXPLOSIONS, ID_OFFLINEEXPLOSIONS, ID_OFFLINEEXPLOSIONS, "Can explosions occur if faction is offline?", "Explosions if faction is offline.", "No explosions if faction is offline.", false, false, true); }
 	public static MFlag getFlagFirespread() { return getCreative(PRIORITY_FIRESPREAD, ID_FIRESPREAD, ID_FIRESPREAD, "Can fire spread in territory?", "Fire can spread in this territory.", "Fire can NOT spread in this territory.", true, false, true); }
 	public static MFlag getFlagEndergrief() { return getCreative(PRIORITY_ENDERGRIEF, ID_ENDERGRIEF, ID_ENDERGRIEF, "Can endermen grief in this territory?", "Endermen can grief in this territory.", "Endermen can NOT grief in this territory.", false, false, true); }
 	public static MFlag getFlagZombiegrief() { return getCreative(PRIORITY_ZOMBIEGRIEF, ID_ZOMBIEGRIEF, ID_ZOMBIEGRIEF, "Can zombies break doors in this territory?", "Zombies can break doors in this territory.", "Zombies can NOT break doors in this territory.", false, false, true); }
@@ -115,7 +115,21 @@ public class MFlag extends Entity<MFlag> implements Prioritized, Registerable, N
 	public static MFlag getFlagInfpower() { return getCreative(PRIORITY_INFPOWER, ID_INFPOWER, ID_INFPOWER, "Does the faction have infinite power?", "The faction has infinite power.", "The faction power works as usual.", false, false, true); }
 	public static MFlag getFlagFly() { return getCreative(PRIORITY_FLY, ID_FLY, ID_FLY, "Is flying allowed for members in faction territory?", "Members can fly in faction territory.", "Members can not fly in faction territory.", false, false, true); }
 	public static MFlag getFlagTaxKick() { return getCreative(PRIORITY_TAXKICK, ID_TAXKICK, ID_TAXKICK, "Are players kicked for not paying taxes?", "Members are kicked for not paying taxes.", "Members are not kicked for not paying taxes.",  false, true, true); }
-	
+
+	// TODO: Remove these deprecated methods in a future version.
+	@Deprecated
+	/**
+	 * This method is deprecated (typo). Use getFlagFriendlyFire() instead.
+	 * @return
+	 */
+	public static MFlag getFlagFriendlyire() { return getFlagFriendlyFire(); }
+	@Deprecated
+	/**
+	 * This method is deprecated (typo). Use getFlagOfflineExplosions() instead.
+	 * @return
+	 */
+	public static MFlag getFlagOfflineexplosions() { return getFlagOfflineExplosions(); }
+
 	public static MFlag getCreative(int priority, String id, String name, String desc, String descYes, String descNo, boolean standard, boolean editable, boolean visible)
 	{
 		MFlag ret = MFlagColl.get().get(id, false);

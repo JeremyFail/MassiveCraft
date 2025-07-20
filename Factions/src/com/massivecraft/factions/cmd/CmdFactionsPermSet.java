@@ -40,7 +40,7 @@ public class CmdFactionsPermSet extends FactionsCommand
 
 		MPerm.MPermable permable = TypeMPermable.get(faction).read(this.argAt(1), sender);
 		
-		// Do the sender have the right to change perms for this faction?
+		// Does the sender have the right to change perms for this faction?
 		if ( ! MPerm.getPermPerms().has(msender, faction, true)) return;
 		
 		// Is this perm editable?

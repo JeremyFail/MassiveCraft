@@ -174,7 +174,7 @@ public class CmdFactionsRankSet extends FactionsCommand
 		if (senderRank == targetRank)
 		{
 			// You can't change someones rank if it is equal to yours.
-			throw new MassiveException().addMsg("<h>%s <b>can't manage eachother.", senderRank.getName()+"s");
+			throw new MassiveException().addMsg("<h>%s <b>can't manage each other.", senderRank.getName()+"s");
 		}
 		
 		if (senderRank.isLessThan(targetRank))

@@ -1373,7 +1373,7 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	public boolean isExplosionsAllowed()
 	{
 		boolean explosions = this.getFlag(MFlag.getFlagExplosions());
-		boolean offlineexplosions = this.getFlag(MFlag.getFlagOfflineexplosions());
+		boolean offlineexplosions = this.getFlag(MFlag.getFlagOfflineExplosions());
 
 		if (explosions && offlineexplosions) return true;
 		if ( ! explosions && ! offlineexplosions) return false;
