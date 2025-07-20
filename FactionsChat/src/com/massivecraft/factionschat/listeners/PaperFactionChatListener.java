@@ -12,7 +12,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -41,12 +40,13 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
      * This method processes the chat message, applies the appropriate chat mode,
      * and sends formatted messages to appropriate recipients as server messages.
      * 
-     * @param event The AsyncChatEvent triggered through chat
+     * @param event The AsyncChatEvent triggered through chat.
      */
     @EventHandler(priority = EventPriority.LOW)
     public void onAsyncChat(AsyncChatEvent event)
     {
         Player sender = event.getPlayer();
+        String originalMessage = serializer.serialize(event.message());
         
         // Cancel the original chat event - we'll send our own formatted messages
         event.setCancelled(true);
@@ -56,10 +56,11 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
 
         // Apply general placeholders to the chat format (this is the same for all recipients)
         String preParsedFormat = applyNonRelationalPlaceholders(sender, FactionsChat.instance.getChatFormat(), chatMode);
+        
         TextColor baseColor = getBaseColorFromFormat(preParsedFormat);
         
         // Process the message to apply any formatting (this is the same for all recipients)
-        Component processedMessageComponent = processMessageForSender(sender, serializer.serialize(event.message()), baseColor, chatMode);
+        Component processedMessageComponent = processMessageForSender(sender, originalMessage, baseColor, chatMode);
         
         // Filter and send to viewers
         for (Audience audience : event.viewers())
@@ -74,7 +75,8 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
             // Send the formatted message if this player should receive it
             if (!shouldExcludeRecipient(chatMode, sender, player))
             {
-                audience.sendMessage(formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, player, baseColor, chatMode));
+                Component finalMessage = formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, player, baseColor, chatMode);
+                audience.sendMessage(finalMessage);
             }
         }
         
@@ -159,9 +161,9 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
         ChatPermissions permissions = getPlayerChatPermissions(sender);
 
         // Remove disallowed codes and parse legacy color/format codes in the original message
-        String processedMessage = stripColorFormatCodes(originalMessage, permissions.allowColor, permissions.allowFormat, permissions.allowMagic, permissions.allowRgb);
+        String processedMessage = stripColorFormatCodes(originalMessage, permissions);
 
-        // - - - - - RGB Color Code Processing - - - - -
+        // - - - - - RGB Processing - - - - -
         Component messageComponent;
         if (permissions.allowRgb && (processedMessage.contains("&#") || processedMessage.contains("§#") || processedMessage.contains("§x")))
         {
@@ -169,153 +171,123 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
         }
         else
         {
-            messageComponent = Component.text(processedMessage).color(baseColor);
+            messageComponent = serializer.deserialize(processedMessage).colorIfAbsent(baseColor);
         }
 
-        // - - - - - Clickable URL Processing - - - - -
+        // - - - - - URL Processing - - - - -
         if (permissions.allowUrl)
         {
-            messageComponent = processLinks(messageComponent, permissions.underlineUrl, baseColor);
+            messageComponent = processLinksInComponent(messageComponent, permissions.underlineUrl);
         }
 
         return messageComponent;
     }
 
     /**
-     * Processes links in the input Component and makes them clickable.
-     * After each link, reapplies the most recent color (legacy or RGB) found before the link.
+     * Processes links in a Component and makes them clickable while preserving all formatting.
+     * This works directly with Components to avoid serialization issues that lose RGB color fidelity.
      *
      * @param input The input Component containing potential links.
      * @param underline Whether to underline the links.
-     * @param baseColor The base color to apply if no color code is found.
-     * @return A Component with clickable links.
+     * @return A Component with clickable links and preserved formatting.
      */
-    private Component processLinks(Component input, boolean underline, TextColor baseColor)
+    private Component processLinksInComponent(Component input, boolean underline)
     {
-        Pattern urlPattern = Pattern.compile(URL_REGEX);
-        // Use the serializer to get the correct plain text with color codes
-        String inputStr = LegacyComponentSerializer.legacySection().serialize(input);
-        Matcher matcher = urlPattern.matcher(inputStr);
-        int lastEnd = 0;
-        Component comp = Component.empty();
-        while (matcher.find())
-        {
-            String before = inputStr.substring(lastEnd, matcher.start());
-            // Find the most recent color code (legacy or RGB) in 'before'
-            TextColor lastColor = getLastTextColor(before, baseColor);
-            if (!before.isEmpty())
-            {
-                comp = comp.append(Component.text(before).color(lastColor));
-            }
-            String url = matcher.group(1);
-            Component urlComponent = Component.text(url).color(lastColor)
-                .clickEvent(ClickEvent.openUrl(url));
-            if (underline)
-            {
-                urlComponent = urlComponent.decorate(TextDecoration.UNDERLINED);
-            }
-            comp = comp.append(urlComponent);
-            lastEnd = matcher.end();
-        }
-        if (lastEnd < inputStr.length())
-        {
-            // Find the most recent color code in the last segment
-            TextColor lastColor = getLastTextColor(inputStr.substring(0, lastEnd), baseColor);
-            comp = comp.append(Component.text(inputStr.substring(lastEnd)).color(lastColor));
-        }
-        return comp;
+        // Recursively process all text components to find and replace URLs
+        return processComponentForLinks(input, underline, 0);
     }
-
+    
     /**
-     * Finds the last color code (legacy or RGB) in the given text, or returns the base color if none found.
-     * Supports modern RGB (&#RRGGBB), legacy Bukkit RGB (§x§R§R§G§G§B§B), and legacy color codes (§[0-9a-fA-F]).
-     * 
-     * @param text The text to search for color codes.
-     * @param baseColor The base color to fall back to if no color code is found.
-     * @return The last found TextColor, or the base color if no color code is found.
+     * Recursively processes a Component tree to find and replace URLs with clickable links.
+     * This preserves all formatting (color, bold, italic, etc.) while making URLs clickable.
+     *
+     * @param component The component to process.
+     * @param underline Whether URLs should be underlined.
+     * @param depth Current recursion depth (for logging).
+     * @return A new component with URLs processed.
      */
-    private TextColor getLastTextColor(String text, TextColor baseColor)
+    private Component processComponentForLinks(Component component, boolean underline, int depth)
     {
-        TextColor lastColor = null;
-        int lastColorPosition = -1;
-
-        // Look for RGB color codes using the comprehensive regex pattern
-        Pattern rgbPattern = Pattern.compile(RGB_REGEX);
-        Matcher rgbMatcher = rgbPattern.matcher(text);
-        
-        while (rgbMatcher.find())
+        // If this is a TextComponent, process its content for URLs
+        if (component instanceof TextComponent)
         {
-            try
+            TextComponent textComponent = (TextComponent) component;
+            String content = textComponent.content();
+            
+            if (content != null && !content.isEmpty())
             {
-                String hex = null;
+                Pattern urlPattern = Pattern.compile(URL_REGEX);
+                Matcher matcher = urlPattern.matcher(content);
                 
-                // Check which group matched (modern vs legacy format)
-                if (rgbMatcher.group(1) != null)
+                if (matcher.find())
                 {
-                    // Modern format: &#RRGGBB or §#RRGGBB
-                    hex = rgbMatcher.group(1);
-                }
-                else if (rgbMatcher.group(2) != null)
-                {
-                    // Legacy Bukkit format: §x§R§R§G§G§B§B
-                    String legacyHex = rgbMatcher.group(2);
-                    // Extract hex digits from §R§R§G§G§B§B format
-                    StringBuilder hexBuilder = new StringBuilder();
-                    for (int i = 1; i < legacyHex.length(); i += 2)
+                    // URLs found - need to split the component
+                    Component result = Component.empty();
+                    int lastEnd = 0;
+                    
+                    // Reset matcher to process all URLs
+                    matcher.reset();
+                    while (matcher.find())
                     {
-                        hexBuilder.append(legacyHex.charAt(i));
-                    }
-                    hex = hexBuilder.toString();
-                }
-                
-                if (hex != null)
-                {
-                    // Convert 3-digit hex to 6-digit hex if needed
-                    if (hex.length() == 3)
-                    {
-                        hex = "" + hex.charAt(0) + hex.charAt(0) + 
-                                  hex.charAt(1) + hex.charAt(1) + 
-                                  hex.charAt(2) + hex.charAt(2);
+                        String url = matcher.group(1);
+                        
+                        // Add text before URL (if any)
+                        if (matcher.start() > lastEnd)
+                        {
+                            String beforeUrl = content.substring(lastEnd, matcher.start());
+                            result = result.append(Component.text(beforeUrl).style(textComponent.style()));
+                        }
+                        
+                        // Create clickable URL component with preserved style
+                        Component urlComponent = Component.text(url)
+                            .style(textComponent.style())
+                            .clickEvent(ClickEvent.openUrl(url));
+                        
+                        // Add underline if requested
+                        if (underline)
+                        {
+                            urlComponent = urlComponent.decorate(TextDecoration.UNDERLINED);
+                        }
+                        
+                        result = result.append(urlComponent);
+                        lastEnd = matcher.end();
                     }
                     
-                    TextColor color = TextColor.fromHexString("#" + hex);
-                    if (rgbMatcher.end() > lastColorPosition)
+                    // Add any remaining text after the last URL
+                    if (lastEnd < content.length())
                     {
-                        lastColor = color;
-                        lastColorPosition = rgbMatcher.end();
+                        String afterUrl = content.substring(lastEnd);
+                        result = result.append(Component.text(afterUrl).style(textComponent.style()));
                     }
+                    
+                    // Process children recursively and add them to result
+                    for (Component child : textComponent.children())
+                    {
+                        result = result.append(processComponentForLinks(child, underline, depth + 1));
+                    }
+                    
+                    return result;
                 }
-            }
-            catch (Exception ignored) 
-            {
-                // Invalid hex code, continue searching
             }
         }
         
-        // Look for legacy color codes (§[0-9a-fA-F])
-        for (int i = text.length() - 2; i >= 0; i--)
+        // No URLs found in this TextComponent, or it's not a TextComponent
+        // Process children recursively and return component with processed children
+        if (component.children().isEmpty())
         {
-            if (text.charAt(i) == '§' && i + 1 < text.length())
-            {
-                char code = text.charAt(i + 1);
-                ChatColor chatColor = ChatColor.getByChar(code);
-                if (chatColor != null && chatColor.isColor())
-                {
-                    // Check if this legacy color code is more recent than any RGB code found
-                    if (i + 2 > lastColorPosition)
-                    {
-                        java.awt.Color awtColor = chatColor.asBungee().getColor();
-                        lastColor = TextColor.color(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
-                    }
-                    break; // We found the most recent legacy color, stop searching
-                }
-            }
+            return component; // Leaf component with no URLs
         }
-        
-        // Return the most recent color found, or base color if none
-        return lastColor != null ? lastColor : baseColor;
+        else
+        {
+            // Process all children recursively
+            return component.children(
+                component.children().stream()
+                    .map(child -> processComponentForLinks(child, underline, depth + 1))
+                    .collect(Collectors.toList())
+            );
+        }
     }
-
+    
     /**
      * Processes RGB color codes in multiple formats and converts them to TextColor components.
      * Supports modern RGB (&#RRGGBB), legacy Bukkit RGB (§x§R§R§G§G§B§B), and 3-digit hex codes.
@@ -328,6 +300,16 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
     {
         Pattern rgbPattern = Pattern.compile(RGB_REGEX);
         Matcher rgbMatcher = rgbPattern.matcher(message);
+        
+        if (!rgbMatcher.find())
+        {
+            // No RGB codes found, use legacy deserializer to preserve all formatting codes
+            return serializer.deserialize(message).colorIfAbsent(baseColor);
+        }
+        
+        // RGB codes found, need custom processing
+        rgbMatcher.reset(); // Reset matcher for actual processing
+        
         int lastEnd = 0;
         Component comp = Component.empty();
         TextColor currentColor = null;
@@ -335,18 +317,15 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
         // Iterate through all matches of the RGB pattern
         while (rgbMatcher.find())
         {
-            // Get the substring before the current match and append it to the component with the current color
+            // Get the substring before the current match and deserialize it (preserves formatting)
             String before = message.substring(lastEnd, rgbMatcher.start());
             if (!before.isEmpty())
             {
-                if (currentColor != null)
-                {
-                    comp = comp.append(Component.text(before).color(currentColor));
-                }
-                else
-                {
-                    comp = comp.append(Component.text(before).color(baseColor));
-                }
+                TextColor colorToUse = currentColor != null ? currentColor : baseColor;
+                
+                // Use legacy deserializer to preserve formatting codes, then apply color
+                Component beforeComponent = serializer.deserialize(before).colorIfAbsent(colorToUse);
+                comp = comp.append(beforeComponent);
             }
             
             // Extract the hex color code based on which format matched
@@ -373,7 +352,7 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
             {
                 try
                 {
-                    // Convert 3-digit hex to 6-digit hex if needed
+                    // Convert 3-digit hex to 6-digit if needed
                     if (hex.length() == 3)
                     {
                         hex = "" + hex.charAt(0) + hex.charAt(0) + 
@@ -382,7 +361,7 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
                     }
                     currentColor = TextColor.fromHexString("#" + hex);
                 }
-                catch (IllegalArgumentException ignored)
+                catch (IllegalArgumentException e)
                 {
                     // Invalid hex code, keep current color
                 }
@@ -395,16 +374,13 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
         if (lastEnd < message.length())
         {
             String after = message.substring(lastEnd);
-            if (currentColor != null)
-            {
-                comp = comp.append(Component.text(after).color(currentColor));
-            }
-            else
-            {
-                comp = comp.append(Component.text(after).color(baseColor));
-            }
+            TextColor colorToUse = currentColor != null ? currentColor : baseColor;
+            
+            // Use legacy deserializer to preserve formatting codes, then apply color
+            Component afterComponent = serializer.deserialize(after).colorIfAbsent(colorToUse);
+            comp = comp.append(afterComponent);
         }
-        
+
         return comp;
     }
 

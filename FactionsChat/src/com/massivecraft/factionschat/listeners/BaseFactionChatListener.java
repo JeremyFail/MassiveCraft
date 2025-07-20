@@ -34,7 +34,7 @@ public abstract class BaseFactionChatListener
      * Supports http and https protocols, allows for non-ASCII characters in the URL,
      * and supports subdomains, paths, and query parameters.
      */
-    public static final String URL_REGEX = "^(https?://)[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[\\p{L}0-9+&@#/%=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|!:,.;]*\\.[a-zA-Z]{2,6}(/[-a-zA-Z0-9+&@#/%=~_|!:,.;]*[\\p{L}0-9+&@#/%=~_|!:,.;]*)?$";
+    public static final String URL_REGEX = "(https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[\\p{L}0-9+&@#/%=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|!:,.;]*\\.[a-zA-Z]{2,6}(?:/[-a-zA-Z0-9+&@#/%=~_|!:,.;]*[\\p{L}0-9+&@#/%=~_|!:,.;]*)*)";
     /**
      * Placeholder for the message content in chat formats.
      */
@@ -48,10 +48,10 @@ public abstract class BaseFactionChatListener
      * Applies non-relational placeholders to the chat format string.
      * This includes PlaceholderAPI placeholders, built-in placeholders, and color code translation.
      * 
-     * @param sender The player sending the message
-     * @param format The chat format string
-     * @param chatMode The chat mode being used
-     * @return The format with non-relational placeholders replaced and color codes translated
+     * @param sender The player sending the message.
+     * @param format The chat format string.
+     * @param chatMode The chat mode being used.
+     * @return The format with non-relational placeholders replaced and color codes translated.
      */
     protected String applyNonRelationalPlaceholders(Player sender, String format, ChatMode chatMode)
     {
@@ -77,10 +77,10 @@ public abstract class BaseFactionChatListener
     /**
      * Applies relational placeholders for a specific sender-recipient pair.
      * 
-     * @param sender The player sending the message
-     * @param recipient The player receiving the message (can be null for console)
-     * @param format The format string to process
-     * @return The format with relational placeholders replaced
+     * @param sender The player sending the message.
+     * @param recipient The player receiving the message (can be null for console).
+     * @param format The format string to process.
+     * @return The format with relational placeholders replaced.
      */
     protected String applyRelationalPlaceholders(Player sender, Player recipient, String format)
     {
@@ -106,8 +106,8 @@ public abstract class BaseFactionChatListener
      * Extracts the base color from the chat format string by finding the last color code before %MESSAGE%.
      * Supports legacy color codes, modern RGB, and legacy Bukkit RGB formats.
      * 
-     * @param format The chat format string
-     * @return BaseColorResult containing both legacy and RGB color information
+     * @param format The chat format string.
+     * @return BaseColorResult containing both legacy and RGB color information.
      */
     protected BaseColorResult extractBaseColorFromFormat(String format)
     {
@@ -180,55 +180,69 @@ public abstract class BaseFactionChatListener
                                      lastHexCode.charAt(1) + lastHexCode.charAt(1) + 
                                      lastHexCode.charAt(2) + lastHexCode.charAt(2);
                 }
-                return new BaseColorResult(lastHexCode);
+                BaseColorResult result = new BaseColorResult(lastHexCode);
+                return result;
             }
-            catch (Exception ignored)
+            catch (Exception e)
             {
                 // Invalid hex code, fall back to legacy or default
             }
         }
         
         // Use legacy color or default
-        return new BaseColorResult(legacyColor != null ? legacyColor : ChatColor.WHITE);
+        ChatColor finalColor = legacyColor != null ? legacyColor : ChatColor.WHITE;
+        return new BaseColorResult(finalColor);
     }
 
     /**
      * Strips disallowed color and formatting codes from a message.
      * 
-     * @param message The message to process
-     * @param allowColor Whether to allow basic color codes
-     * @param allowFormat Whether to allow formatting codes
-     * @param allowMagic Whether to allow magic codes
-     * @param allowRgb Whether to allow RGB codes
-     * @return The processed message with disallowed codes removed
+     * @param message The message to process.
+     * @param permissions The ChatPermissions object containing permission flags.
+     * @return The processed message with disallowed codes removed.
      */
-    protected String stripColorFormatCodes(String message, boolean allowColor, boolean allowFormat, boolean allowMagic, boolean allowRgb)
+    protected String stripColorFormatCodes(String message, ChatPermissions permissions)
     {
-        if (!allowColor)
-        {
-            message = message.replaceAll("&([0-9a-fA-F])", "");
-        }
-        if (!allowFormat)
-        {
-            message = message.replaceAll("&([lmnorLMNOR])", "");
-        }
-        if (!allowMagic)
-        {
-            message = message.replaceAll("&([kK])", "");
-        }
-        if (!allowRgb)
+        // Strip RGB codes if not allowed
+        if (!permissions.allowRgb)
         {
             // Strip all RGB formats: modern (&#RRGGBB) and legacy Bukkit (§x§R§R§G§G§B§B)
             message = message.replaceAll(RGB_REGEX, "");
         }
+
+        if (!permissions.allowColor)
+        {
+            // Strip legacy color codes, but avoid touching RGB hex codes if they're allowed
+            if (permissions.allowRgb)
+            {
+                message = message.replaceAll("&(?!#)([0-9a-fA-F])", "");
+            }
+            else
+            {
+                // RGB already stripped above, safe to use simple regex
+                message = message.replaceAll("&([0-9a-fA-F])", "");
+            }
+        }
+
+        if (!permissions.allowFormat)
+        {
+            message = message.replaceAll("&([lmnorLMNOR])", "");
+        }
+
+        if (!permissions.allowMagic)
+        {
+            message = message.replaceAll("&([kK])", "");
+        }
+        
+        // Final translation step
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     /**
      * Gets permission settings for a player's chat capabilities.
      * 
-     * @param sender The player to check permissions for
-     * @return ChatPermissions object containing all permission flags
+     * @param sender The player to check permissions for.
+     * @return ChatPermissions object containing all permission flags.
      */
     protected ChatPermissions getPlayerChatPermissions(Player sender)
     {
@@ -236,7 +250,7 @@ public abstract class BaseFactionChatListener
         boolean settingAllowUrl = FactionsChat.instance.getAllowUrl();
         boolean settingUnderlineUrl = FactionsChat.instance.getAllowUrlUnderline();
         
-        return new ChatPermissions(
+        ChatPermissions perms = new ChatPermissions(
             settingAllowColorCodes && sender.hasPermission("factions.chat.color"),
             settingAllowColorCodes && sender.hasPermission("factions.chat.format"),
             settingAllowColorCodes && sender.hasPermission("factions.chat.magic"),
@@ -244,13 +258,15 @@ public abstract class BaseFactionChatListener
             settingAllowUrl && sender.hasPermission("factions.chat.url"),
             settingUnderlineUrl
         );
+        
+        return perms;
     }
 
     /**
      * Determines the chat mode for a player, checking quick chat modes first.
      * 
-     * @param sender The player to get the chat mode for
-     * @return The chat mode to use
+     * @param sender The player to get the chat mode for.
+     * @return The chat mode to use.
      */
     protected ChatMode determinePlayerChatMode(Player sender)
     {
@@ -262,10 +278,10 @@ public abstract class BaseFactionChatListener
     /**
      * Checks if a recipient should be excluded from receiving a message based on chat mode and social spy.
      * 
-     * @param chatMode The chat mode being used
-     * @param sender The player sending the message
-     * @param recipient The potential recipient
-     * @return true if the recipient should be excluded, false if they should receive the message
+     * @param chatMode The chat mode being used.
+     * @param sender The player sending the message.
+     * @param recipient The potential recipient.
+     * @return true if the recipient should be excluded, false if they should receive the message.
      */
     protected boolean shouldExcludeRecipient(ChatMode chatMode, Player sender, Player recipient)
     {

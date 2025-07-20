@@ -29,7 +29,7 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
      * This method processes the chat message, applies the appropriate chat mode,
      * and formats the message for each recipient.
      * 
-     * @param event The AsyncPlayerChatEvent triggered through chat
+     * @param event The AsyncPlayerChatEvent triggered through chat.
      */
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerChat(AsyncPlayerChatEvent event)
@@ -59,10 +59,10 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
     /**
      * Handles the chat message formatting and sending to recipients.
      * 
-     * @param sender The player sending the message
-     * @param message The chat message being sent
-     * @param recipients Set of players who should receive the message
-     * @param chatMode The chat mode being used (e.g., GLOBAL, FACTION, ALLY, etc.)
+     * @param sender The player sending the message.
+     * @param message The chat message being sent.
+     * @param recipients Set of players who should receive the message.
+     * @param chatMode The chat mode being used (e.g., GLOBAL, FACTION, ALLY, etc.).
      */
     private void handleChat(Player sender, String message, Set<Player> recipients, ChatMode chatMode)
     {
@@ -77,9 +77,9 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
         ChatColor baseColor = baseColorResult.legacyColor;
 
         // Process the message content
-        String processedMessage = stripColorFormatCodes(message, permissions.allowColor, permissions.allowFormat, permissions.allowMagic, permissions.allowRgb);
+        String processedMessage = stripColorFormatCodes(message, permissions);
         processedMessage = processRgbColorCodes(processedMessage, permissions.allowRgb);
-        processedMessage = processLinks(processedMessage, permissions.allowUrl, permissions.underlineUrl, baseColor);
+        processedMessage = processLinks(processedMessage, permissions, baseColor);
 
         // Replace %MESSAGE% placeholder
         format = format.replace(PLACEHOLDER_MESSAGE, processedMessage);
@@ -96,9 +96,9 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
      * Processes RGB color codes in multiple formats and converts them to Bukkit's legacy RGB format.
      * Supports modern RGB (&#RRGGBB, &#RGB), legacy modern (§#RRGGBB, §#RGB), and legacy Bukkit (§x§R§R§G§G§B§B).
      * 
-     * @param message The message to process
-     * @param allowRgb Whether RGB codes are allowed
-     * @return The processed message with RGB codes converted to §x§R§R§G§G§B§B format
+     * @param message The message to process.
+     * @param allowRgb Whether RGB codes are allowed.
+     * @return The processed message with RGB codes converted to §x§R§R§G§G§B§B format.
      */
     private static String processRgbColorCodes(String message, boolean allowRgb)
     {
@@ -145,7 +145,8 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
                 {
                     bukkit.append('§').append(c);
                 }
-                matcher.appendReplacement(sb, bukkit.toString());
+                String bukkitFormat = bukkit.toString();
+                matcher.appendReplacement(sb, bukkitFormat);
             }
         }
         
@@ -157,15 +158,14 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
      * Processes links in the message for Spigot's string-based chat system.
      * Ensures links are underlined if allowed, and re-applies the most recent color code after each link.
      *
-     * @param message The message to process
-     * @param allowUrl Whether URLs are allowed
-     * @param underline Whether to underline the links
-     * @param baseColor The base ChatColor to use if no color code is found
-     * @return The processed message
+     * @param message The message to process.
+     * @param permissions The ChatPermissions object containing permission flags.
+     * @param baseColor The base ChatColor to use if no color code is found.
+     * @return The processed message.
      */
-    private static String processLinks(String message, boolean allowUrl, boolean underline, ChatColor baseColor)
+    private static String processLinks(String message, ChatPermissions permissions, ChatColor baseColor)
     {
-        if (!allowUrl)
+        if (!permissions.allowUrl)
         {
             // Break links by removing periods
             Pattern urlPattern = Pattern.compile(URL_REGEX);
@@ -190,11 +190,11 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
             String before = message.substring(lastEnd, matcher.start());
             String url = matcher.group(1);
             
-            // Find the most recent color code (including §x hex) in 'before'
-            String colorCode = getLastColorCodeString(before, baseColor);
+            // Find the most recent color code (including §x hex) and formatting codes in 'before'
+            String colorAndFormatCodes = getLastColorCodeString(before, baseColor);
             
-            // Underline the link if requested (using §n), then reset and re-apply the most recent color code
-            String replacement = underline ? ChatColor.UNDERLINE + url + ChatColor.RESET + colorCode : url + colorCode;
+            // Underline the link if requested (using §n), then reset and re-apply the most recent color and formatting codes
+            String replacement = permissions.underlineUrl ? ChatColor.UNDERLINE + url + ChatColor.RESET + colorAndFormatCodes : url + colorAndFormatCodes;
             matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
             lastEnd = matcher.end();
         }
@@ -204,13 +204,18 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
     }
 
     /**
-     * Finds the last color code (legacy or RGB) in the given text as a string for Spigot.
-     * Supports modern RGB (&#RRGGBB), legacy Bukkit RGB (§x§R§R§G§G§B§B), and legacy color codes (§[0-9a-fA-F]).
+     * Finds the last color code and formatting codes in the given text as a string for Spigot.
+     * Supports modern RGB (&#RRGGBB), legacy Bukkit RGB (§x§R§R§G§G§B§B), legacy color codes (§[0-9a-fA-F]),
+     * and formatting codes (§[lmnork]).
+     * 
+     * @param text The text to search for color codes.
+     * @return The last color code string, including any active formatting codes.
      */
     private static String getLastColorCodeString(String text, ChatColor baseColor)
     {
         String lastColorCode = null;
         int lastColorPosition = -1;
+        StringBuilder activeFormattingCodes = new StringBuilder();
 
         // Look for RGB color codes using the comprehensive regex
         Pattern rgbPattern = Pattern.compile(RGB_REGEX);
@@ -271,13 +276,46 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
                     if (i + 2 > lastColorPosition)
                     {
                         lastColorCode = "§" + code;
+                        lastColorPosition = i + 2;
                     }
                     break; // We found the most recent legacy color, stop searching
                 }
             }
         }
         
-        // Return the most recent color found, or base color if none
-        return lastColorCode != null ? lastColorCode : baseColor.toString();
+        // Now collect all active formatting codes that come after the last color code
+        // Look for formatting codes starting from the last color position
+        int searchStart = Math.max(0, lastColorPosition);
+        for (int i = searchStart; i < text.length() - 1; i++)
+        {
+            if (text.charAt(i) == '§' && i + 1 < text.length())
+            {
+                char code = text.charAt(i + 1);
+                ChatColor chatColor = ChatColor.getByChar(code);
+                
+                if (chatColor != null)
+                {
+                    if (chatColor.isFormat())
+                    {
+                        // This is a formatting code (bold, italic, underline, etc.)
+                        String formatCode = "§" + code;
+                        if (!activeFormattingCodes.toString().contains(formatCode))
+                        {
+                            activeFormattingCodes.append(formatCode);
+                        }
+                    }
+                    else if (chatColor == ChatColor.RESET)
+                    {
+                        // Reset clears all formatting
+                        activeFormattingCodes.setLength(0);
+                    }
+                    // Note: We don't process color codes here as we already found the last one above
+                }
+            }
+        }
+        
+        // Build the final result: color code + formatting codes
+        String finalColorCode = lastColorCode != null ? lastColorCode : baseColor.toString();
+        return finalColorCode + activeFormattingCodes.toString();
     }
 }
