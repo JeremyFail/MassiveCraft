@@ -5,6 +5,7 @@ import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.ChatPrefixes;
 import com.massivecraft.factionschat.TextColors;
+
 import org.bukkit.entity.Player;
 
 /**

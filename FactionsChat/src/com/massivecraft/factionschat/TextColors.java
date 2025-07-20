@@ -1,6 +1,7 @@
 package com.massivecraft.factionschat;
 
 import com.massivecraft.factions.entity.MConf;
+
 import org.bukkit.configuration.ConfigurationSection;
 
 /**

@@ -7,6 +7,7 @@ import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.util.InternalPlaceholders;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 

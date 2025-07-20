@@ -1,7 +1,9 @@
 package com.massivecraft.factionschat;
 
 import com.massivecraft.massivecore.command.type.TypeAbstract;
+
 import org.bukkit.command.CommandSender;
+
 import java.util.ArrayList;
 import java.util.Collection;
 

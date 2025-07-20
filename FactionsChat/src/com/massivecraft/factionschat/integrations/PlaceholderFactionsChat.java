@@ -1,11 +1,12 @@
 package com.massivecraft.factionschat.integrations;
 
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.ChatPrefixes;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.TextColors;
 
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 /**
