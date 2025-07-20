@@ -39,7 +39,6 @@ public class CmdFactionsDisband extends FactionsCommand
 	{
 		// Args
 		Faction faction = this.readArg();
-		String confirmationString = this.readArg(null);
 
 		if (MConf.get().requireConfirmationForFactionDisbanding) ConfirmationUtil.tryConfirm(this);
 		
@@ -51,13 +50,15 @@ public class CmdFactionsDisband extends FactionsCommand
 		{
 			throw new MassiveException().addMsg("<i>This faction is designated as permanent, so you cannot disband it.");
 		}
+		if (faction.isNone())
+		{
+			throw new MassiveException().addMsg("<i>You cannot disband %s.", faction.getName());
+		}
 
 		// Event
 		EventFactionsDisband event = new EventFactionsDisband(me, faction);
 		event.run();
 		if (event.isCancelled()) return;
-
-		// Merged Apply and Inform
 		
 		// Run event for each player in the faction
 		for (MPlayer mplayer : faction.getMPlayers())
