@@ -23,6 +23,9 @@ public class CmdFactionsList extends FactionsCommand
 	
 	public CmdFactionsList()
 	{
+		// Aliases
+		this.addAliases("list", "l");
+		
 		// Parameters
 		this.addParameter(Parameter.getPage());
 	}

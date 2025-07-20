@@ -15,7 +15,7 @@ public class CmdFactionsOverride extends FactionsCommand
 	public CmdFactionsOverride()
 	{
 		// Aliases
-		this.addAliases("admin");
+		this.addAliases("admin", "override");
 
 		// Parameters
 		this.addParameter(TypeBooleanYes.get(), "on/off", "flip");
