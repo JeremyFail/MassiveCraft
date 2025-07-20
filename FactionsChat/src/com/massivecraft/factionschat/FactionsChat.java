@@ -421,15 +421,19 @@ public class FactionsChat extends JavaPlugin
         // Even if a plugin is not in this list, we do not support any chat plugins 
         // that modify the chat format or handle chat events in a way that conflicts 
         // with FactionsChat. Only one chat plugin should be active at a time.
+        // TODO: Make this dynamic? Can we see if other plugins are hooking into chat events?
         List<String> unsupportedChatPlugins = new ArrayList<>();
-        unsupportedChatPlugins.add("ChatControl");
-        unsupportedChatPlugins.add("EssentialsChat");
-        unsupportedChatPlugins.add("LPC");
-        unsupportedChatPlugins.add("LuckPermsChat");
-        unsupportedChatPlugins.add("HeroChat");
         unsupportedChatPlugins.add("AdvancedChat");
+        unsupportedChatPlugins.add("ChatChat");
+        unsupportedChatPlugins.add("ChatControl");
+        unsupportedChatPlugins.add("ChatEx");
+        unsupportedChatPlugins.add("ChatManager");
+        unsupportedChatPlugins.add("EssentialsChat");
         unsupportedChatPlugins.add("FairyChat");
+        unsupportedChatPlugins.add("HeroChat");
         unsupportedChatPlugins.add("LokiChat");
+        unsupportedChatPlugins.add("LuckPermsChat");
+        unsupportedChatPlugins.add("LPC");
         unsupportedChatPlugins.add("VentureChat");
         
         // Check for unsupported/conflicting chat plugins
