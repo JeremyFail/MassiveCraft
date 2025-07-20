@@ -2,6 +2,8 @@ package com.massivecraft.factionschat;
 
 import java.util.HashMap;
 
+import org.bukkit.entity.Player;
+
 /**
  * Enum of chat modes (i.e. channels).
  */
@@ -50,5 +52,20 @@ public enum ChatMode
     public static ChatMode getChatModeByName(String value)
     {
         return getAllChatModes().get(value);
+    }
+
+    /**
+     * Retrieves the {@link ChatMode} for the specified player.
+     * Checks the quick chat modes first, then falls back to the player's stored chat mode.
+     * 
+     * @param player The player to get the chat mode for.
+     * @return The {@link ChatMode} for the player, or the default chat mode if none is set.
+     */
+    public static ChatMode getChatModeForPlayer(Player player)
+    {
+        if (player == null) return ChatMode.GLOBAL; // Default to GLOBAL if player is null
+        return FactionsChat.qmPlayers.containsKey(player.getUniqueId())
+            ? FactionsChat.qmPlayers.get(player.getUniqueId())
+            : FactionsChat.instance.getPlayerChatModes().getOrDefault(player.getUniqueId(), ChatMode.GLOBAL);
     }
 }

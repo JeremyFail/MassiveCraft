@@ -52,7 +52,7 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
         event.setCancelled(true);
         
         // Use quick chat mode if present, otherwise persistent
-        final ChatMode chatMode = determinePlayerChatMode(sender);
+        final ChatMode chatMode = ChatMode.getChatModeForPlayer(sender);
 
         // Apply general placeholders to the chat format (this is the same for all recipients)
         String preParsedFormat = applyNonRelationalPlaceholders(sender, FactionsChat.instance.getChatFormat(), chatMode);
@@ -83,6 +83,12 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
         // Always send to console (console should see all chat messages)
         Component consoleMessage = formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, null, baseColor, chatMode);
         Bukkit.getConsoleSender().sendMessage(serializer.serialize(consoleMessage));
+
+        // Remove from quick chat mode if they were using it
+        if (FactionsChat.qmPlayers.containsKey(sender.getUniqueId()))
+        {
+            FactionsChat.qmPlayers.remove(sender.getUniqueId());
+        }
     }
 
     /**

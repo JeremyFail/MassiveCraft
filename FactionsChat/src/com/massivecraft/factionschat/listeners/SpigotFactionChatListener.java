@@ -3,6 +3,7 @@ package com.massivecraft.factionschat.listeners;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -37,7 +38,7 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
         Player sender = event.getPlayer();
         
         // Use quick chat mode if present, otherwise persistent
-        final ChatMode chatMode = determinePlayerChatMode(sender);
+        final ChatMode chatMode = ChatMode.getChatModeForPlayer(sender);
 
         // Filter recipients based on chat mode
         Set<Player> notReceiving = new HashSet<>();
@@ -89,6 +90,16 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
         {
             String personalizedFormat = applyRelationalPlaceholders(sender, recipient, format);
             recipient.sendMessage(personalizedFormat);
+        }
+        
+        // Always send to console (console should see all chat messages)
+        String consoleFormat = applyRelationalPlaceholders(sender, null, format);
+        Bukkit.getConsoleSender().sendMessage(consoleFormat);
+
+        // Remove from quick chat mode if they were using it
+        if (FactionsChat.qmPlayers.containsKey(sender.getUniqueId()))
+        {
+            FactionsChat.qmPlayers.remove(sender.getUniqueId());
         }
     }
 

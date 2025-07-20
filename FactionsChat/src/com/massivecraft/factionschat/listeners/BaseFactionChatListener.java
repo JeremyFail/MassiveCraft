@@ -263,19 +263,6 @@ public abstract class BaseFactionChatListener
     }
 
     /**
-     * Determines the chat mode for a player, checking quick chat modes first.
-     * 
-     * @param sender The player to get the chat mode for.
-     * @return The chat mode to use.
-     */
-    protected ChatMode determinePlayerChatMode(Player sender)
-    {
-        return FactionsChat.qmPlayers.containsKey(sender.getUniqueId())
-            ? FactionsChat.qmPlayers.remove(sender.getUniqueId())
-            : FactionsChat.instance.getPlayerChatModes().getOrDefault(sender.getUniqueId(), ChatMode.GLOBAL);
-    }
-
-    /**
      * Checks if a recipient should be excluded from receiving a message based on chat mode and social spy.
      * 
      * @param chatMode The chat mode being used.
