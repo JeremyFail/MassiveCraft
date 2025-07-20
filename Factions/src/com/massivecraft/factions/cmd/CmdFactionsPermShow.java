@@ -2,6 +2,7 @@ package com.massivecraft.factions.cmd;
 
 import com.massivecraft.factions.cmd.type.TypeFaction;
 import com.massivecraft.factions.cmd.type.TypeMPerm;
+import com.massivecraft.factions.cmd.type.TypeMPermable;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.MPerm;
 import com.massivecraft.factions.entity.MPerm.MPermable;
@@ -42,26 +43,34 @@ public class CmdFactionsPermShow extends FactionsCommand
 		Set<String> permittedIds = faction.getPerms().get(mperm.getId());
 		List<MPermable> permables = new MassiveList<>();
 
-		if (permittedIds == null || permittedIds.isEmpty())
+		if (permittedIds != null && !permittedIds.isEmpty())
 		{
-			msg("<i>In <reset>%s<i> permission <reset>%s<i> is not currently granted to anyone.", faction.describeTo(msender), mperm.getDesc(true, false));
+			for (String permitted : permittedIds)
+			{
+				MPermable mPermable = TypeMPermable.get(faction).read(permitted, sender);
+				if (mPermable == null) continue;
+				permables.add(mPermable);
+			}
+		}
+
+		// If no one has this permission, inform the sender
+		if (permables.isEmpty())
+		{
+			msg(
+				"<i>In <reset>%s<i> permission <reset>%s<i> is not currently granted to anyone.", 
+				faction.describeTo(msender), 
+				mperm.getDesc(true, false)
+			);
 			return;
 		}
 
-		for (String permitted : permittedIds)
-		{
-			permables.add(MPerm.idToMPermable(permitted));
-		}
-
-		String removeString = Txt.parse(" of ") + faction.getDisplayName(msender);
-		List<String> permableList = permables.stream()
-				.map(permable -> permable.getDisplayName(msender))
-				.map(s -> s.replace(removeString, ""))
-				.collect(Collectors.toList());
-		String permableNames = Txt.implodeCommaAnd(permableList, Txt.parse("<i>"));
-
-		// Create messages
-		msg("<i>In <reset>%s<i> permission <reset>%s<i> is granted to <reset>%s<i>.", faction.describeTo(msender), mperm.getDesc(true, false), permableNames);
+		// Otherwise, create messages
+		msg(
+			"<i>In <reset>%s <i>permission <reset>%s <i>is granted to <reset>%s<i>.",
+			faction.describeTo(msender),
+			mperm.getDesc(true, false),
+			permablesToDisplayString(permables, me)
+		);
 	}
 
 	@Deprecated
