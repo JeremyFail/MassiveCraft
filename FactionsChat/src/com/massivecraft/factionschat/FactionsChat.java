@@ -426,8 +426,10 @@ public class FactionsChat extends JavaPlugin
         unsupportedChatPlugins.add("AdvancedChat");
         unsupportedChatPlugins.add("ChatChat");
         unsupportedChatPlugins.add("ChatControl");
+        unsupportedChatPlugins.add("ChatControlRed");
         unsupportedChatPlugins.add("ChatEx");
         unsupportedChatPlugins.add("ChatManager");
+        unsupportedChatPlugins.add("ChatSentry");
         unsupportedChatPlugins.add("EssentialsChat");
         unsupportedChatPlugins.add("FairyChat");
         unsupportedChatPlugins.add("HeroChat");
