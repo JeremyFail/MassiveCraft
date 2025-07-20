@@ -17,6 +17,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Container;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -33,6 +35,7 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
@@ -45,7 +48,10 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerUnleashEntityEvent;
+import org.bukkit.event.vehicle.VehicleDestroyEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.HashMap;
@@ -114,7 +120,34 @@ public class EnginePermBuild extends Engine
 	public static Boolean build(Entity entity, Block block, boolean verboose, Event event)
 	{
 		if (!(event instanceof Cancellable)) return true;
-		if (MUtil.isntPlayer(entity)) return false;
+
+		// If the entity is a projectile, we need to check its shooter
+		if (entity instanceof Arrow && ((Arrow) entity).getShooter() instanceof Entity) 
+		{
+			entity = ((Entity) ((Arrow) entity).getShooter());
+		}
+
+		// If the entity is not a player, we need to check any passengers if applicable
+		if (entity != null && MUtil.isntPlayer(entity))
+		{
+			List<Entity> passengers = entity.getPassengers();
+			if (!passengers.isEmpty())
+			{
+				for (Entity passenger : passengers)
+				{
+					if (MUtil.isPlayer(passenger))
+					{
+						entity = passenger;
+						break;
+					}
+				}
+			}
+			else return false;
+		}
+
+		// If the entity is still not a player return false
+		if (entity == null || MUtil.isntPlayer(entity)) return false;
+		
 		Player player = (Player) entity;
 		return protect(ProtectCase.BUILD, verboose, player, PS.valueOf(block), block, (Cancellable) event);
 	}
@@ -231,7 +264,6 @@ public class EnginePermBuild extends Engine
 
 		build(player, event.getBlock(), event);
 	}
-
 
 	// -------------------------------------------- //
 	// USE > ITEM
@@ -364,6 +396,26 @@ public class EnginePermBuild extends Engine
 		EnginePermBuild.useEntity(player, entity, verboose, event);
 	}
 
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void handleLectern(PlayerTakeLecternBookEvent event)
+	{
+		// If the player tries to take from a lectern ...
+		
+		// Gather Info
+		final Player player = event.getPlayer();
+		if (MUtil.isntPlayer(player)) return;
+		final MPlayer mplayer = MPlayer.get(player);
+		final Block block = event.getLectern().getBlock();
+		final boolean verbose = true;
+		
+		// ... and they're not bypassing/overriding ...
+		if (MConf.get().playersWhoBypassAllProtection.contains(mplayer.getName())) return;
+		if (mplayer.isOverriding()) return;
+		
+		// ... check if they can use containers
+		if (Boolean.TRUE.equals(!MPerm.getPermContainer().has(mplayer, PS.valueOf(block), verbose))) event.setCancelled(true);
+	}
+
 	// -------------------------------------------- //
 	// BUILD > ENTITY
 	// -------------------------------------------- //
@@ -403,6 +455,61 @@ public class EnginePermBuild extends Engine
 		// ... and the player can't build there, cancel the event
 		Block block = entityTarget.getLocation().getBlock();
 		protect(ProtectCase.BUILD, false, player, PS.valueOf(block), block, event);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void vehicleDestroy(VehicleDestroyEvent event)
+	{
+		// If a player destroys a vehicle...
+		if (MUtil.isntPlayer(event.getAttacker())) return;
+		Player player = (Player) event.getAttacker();
+		
+		// then check for build permissions.
+		build(player, player.getLocation().getBlock(), event);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void frostWalker(EntityBlockFormEvent event)
+	{
+		// If a player forms a block (I.e. FrostWalker) ...
+		Entity entity = event.getEntity();
+		if (MUtil.isntPlayer(entity)) return;
+		Player player = (Player) entity;
+		
+		// ... and the player can't build there, cancel the event
+		protect(ProtectCase.BUILD, false, player, PS.valueOf(event.getBlock()), event.getBlock(), event);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void containerBreak(BlockBreakEvent event)
+	{
+		Block block  = event.getBlock();
+		
+		// If a block is a container...
+		Container container = null;
+		if (block.getState() instanceof Container)
+		{
+			container = (Container) block.getState();
+		} 
+		else
+		{
+			return;
+		}
+		
+		// ...and the entity breaking the block is a player...
+		if (MUtil.isntPlayer(event.getPlayer())) return;
+		MPlayer mPlayer = MPlayer.get(event.getPlayer());
+		
+		Inventory inventory = container.getInventory();
+		
+		// ...and the inventory of the container isn't empty...
+		if (inventory.isEmpty()) return;
+		
+		if (MConf.get().playersWhoBypassAllProtection.contains(mPlayer.getName())) return;
+		if (mPlayer.isOverriding()) return;
+		
+		// ...check if they have container permissions.
+		if (Boolean.TRUE.equals(!MPerm.getPermContainer().has(mPlayer, PS.valueOf(block), true))) event.setCancelled(true);
 	}
 	
 	// -------------------------------------------- //
