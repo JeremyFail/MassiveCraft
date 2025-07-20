@@ -5,8 +5,9 @@ import com.massivecraft.massivecore.util.Txt;
 
 import java.util.List;
 
+import org.bukkit.ChatColor;
+
 import static com.massivecraft.massivecore.mson.Mson.mson;
-import static org.bukkit.ChatColor.*;
 
 public class Test
 {
@@ -50,7 +51,7 @@ public class Test
 					mson("this ", "is only ", "one way to do it!")
 				)
 			).link("www.massivecraft,com")
-		).color(BLUE)
+		).color(ChatColor.BLUE)
 		.tooltip("Holy Moly");
 		
 		test("child");
@@ -108,7 +109,7 @@ public class Test
 			"1 2 3 4 5 6 1 7 tests",
 			" 1+1+1",
 			"herpiderp"
-		).style(BLUE).replaceAll("1", mson("0"));
+		).style(ChatColor.BLUE).replaceAll("1", mson("0"));
 		test("replaceAll1");
 		
 		mson = mson
@@ -150,11 +151,11 @@ public class Test
 		// Example: Would you like to [allow] or [deny]?
 		mson = mson(
 			"Would you like to ",
-			mson("[allow]").style(RED).command("/asfd blah allow"),
+			mson("[allow]").style(ChatColor.RED).command("/asfd blah allow"),
 			" or ",
-			mson("[deny]").style(GREEN).command("/asfd blah deny"),
+			mson("[deny]").style(ChatColor.GREEN).command("/asfd blah deny"),
 			"?"
-		).style(YELLOW);
+		).style(ChatColor.YELLOW);
 		test("Would you like to [allow] or [deny]?");
 
 		// -------------------------------------------- //
@@ -164,8 +165,8 @@ public class Test
 
 		// Text multiColoredText = Texts.builder("Sponges are ").color(TextColors.YELLOW).append(Texts.builder("invincible!").color(TextColors.RED).build()).build();
 		mson = mson(
-			mson("Sponges are ").color(YELLOW),
-			mson("invincible!").color(RED)
+			mson("Sponges are ").color(ChatColor.YELLOW),
+			mson("invincible!").color(ChatColor.RED)
 		);
 		test("Sponges are invincible");
 		

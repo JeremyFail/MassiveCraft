@@ -51,12 +51,12 @@ public class Econ
 
 	public static void modifyUniverseMoney(Object universe, double delta)
 	{
-		if ( ! isEnabled()) return;
+		if (!isEnabled()) return;
 
 		if (MConf.get().econUniverseAccount == null) return;
 		if (MConf.get().econUniverseAccount.length() == 0) return;
 		
-		if ( ! Money.exists(MConf.get().econUniverseAccount)) return;
+		if (!Money.exists(MConf.get().econUniverseAccount)) return;
 
 		Money.spawn(MConf.get().econUniverseAccount, null, delta);
 	}
@@ -102,7 +102,7 @@ public class Econ
 	}
 	public static boolean transferMoney(EconomyParticipator from, EconomyParticipator to, EconomyParticipator by, double amount, boolean notify)
 	{
-		if ( ! isEnabled()) return false;
+		if (!isEnabled()) return false;
 
 		// The amount must be positive.
 		// If the amount is negative we must flip and multiply amount with -1.
@@ -115,13 +115,13 @@ public class Econ
 		}
 		
 		// Check Permissions
-		if ( ! isMePermittedYou(by, from, MPerm.getPermWithdraw()))
+		if (!isMePermittedYou(by, from, MPerm.getPermWithdraw()))
 		{
 			by.msg("<h>%s<i> lack permission to withdraw money from <h>%s<i>.", by.describeTo(by, true), from.describeTo(by));
 			return false;
 		}
 		
-		if ( ! isMePermittedYou(by, to, MPerm.getPermDeposit()))
+		if (!isMePermittedYou(by, to, MPerm.getPermDeposit()))
 		{
 			by.msg("<h>%s<i> lack permission to deposit money to <h>%s<i>.", by.describeTo(by, true), to.describeTo(by));
 			return false;
@@ -222,7 +222,7 @@ public class Econ
 
 	public static boolean hasAtLeast(EconomyParticipator ep, double delta, String toDoThis)
 	{
-		if ( ! isEnabled()) return true;
+		if (!isEnabled()) return true;
 
 		if (getMoney(ep) < delta)
 		{
@@ -237,7 +237,7 @@ public class Econ
 
 	public static boolean modifyMoney(EconomyParticipator ep, double delta, String actionDescription)
 	{
-		if ( ! isEnabled()) return false;
+		if (!isEnabled()) return false;
 		if (delta == 0) return true;
 		
 		String You = ep.describeTo(ep, true);

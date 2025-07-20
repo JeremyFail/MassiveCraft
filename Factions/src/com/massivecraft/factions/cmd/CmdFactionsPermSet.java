@@ -70,7 +70,8 @@ public class CmdFactionsPermSet extends FactionsCommand
 		}
 		
 		// The following is to make sure the leader always has the right to change perms if that is our goal.
-		if (perm == MPerm.getPermPerms() && MConf.get().perm2default.get(MPerm.ID_PERMS).contains("LEADER"))
+		boolean leaderCanEditPerms = MConf.get().perm2default.get(MPerm.ID_PERMS).contains(MConf.get().defaultRanks.get(0).getName().toUpperCase());
+		if (perm == MPerm.getPermPerms() && leaderCanEditPerms)
 		{
 			faction.setPermitted( faction.getLeaderRank(), MPerm.getPermPerms(), true);
 		}

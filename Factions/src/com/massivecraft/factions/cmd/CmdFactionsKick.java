@@ -43,22 +43,22 @@ public class CmdFactionsKick extends FactionsCommand
 			return;
 		}
 		
-		if ( !msender.isOverriding() && mplayer.getRank().isLeader())
+		if (!msender.isOverriding() && mplayer.getRank().isLeader())
 		{
 			throw new MassiveException().addMsg("<b>The leader cannot be kicked.");
 		}
 		
-		if (! msender.isOverriding() && mplayer.getFaction() == msenderFaction && mplayer.getRank().isMoreThan(msender.getRank()) )
+		if (!msender.isOverriding() && mplayer.getFaction() == msenderFaction && mplayer.getRank().isMoreThan(msender.getRank()) )
 		{
 			throw new MassiveException().addMsg("<b>You can't kick people of higher rank than yourself.");
 		}
 		
-		if (! msender.isOverriding() && mplayer.getRank() == msender.getRank())
+		if (!msender.isOverriding() && mplayer.getRank() == msender.getRank())
 		{
 			throw new MassiveException().addMsg("<b>You can't kick people of the same rank as yourself.");
 		}
 
-		if ( ! msender.isOverriding() && ! MConf.get().canLeaveWithNegativePower && mplayer.getPower() < 0)
+		if (!msender.isOverriding() && !MConf.get().canLeaveWithNegativePower && mplayer.getPower() < 0)
 		{
 			msg("<b>You can't kick that person until their power is positive.");
 			return;
@@ -66,7 +66,7 @@ public class CmdFactionsKick extends FactionsCommand
 		
 		// MPerm
 		Faction mplayerFaction = mplayer.getFaction();
-		if ( ! MPerm.getPermKick().has(msender, mplayerFaction, true)) return;
+		if (!MPerm.getPermKick().has(msender, mplayerFaction, true)) return;
 
 		// Event
 		EventFactionsMembershipChange event = new EventFactionsMembershipChange(sender, mplayer, FactionColl.get().getNone(), MembershipChangeReason.KICK);
