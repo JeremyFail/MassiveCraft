@@ -1,11 +1,7 @@
 package com.massivecraft.factionschat.listeners;
 
-import com.massivecraft.factions.entity.MPlayer;
-import com.massivecraft.factions.entity.MPlayerColl;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
-import com.massivecraft.factionschat.util.FactionsChatUtil;
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,7 +20,7 @@ import java.util.regex.Pattern;
  *
  * This listener is only registered if the server is running Spigot (not Paper).
  */
-public class SpigotFactionChatListener implements Listener
+public class SpigotFactionChatListener extends BaseFactionChatListener implements Listener
 {
     /**
      * Handles the AsyncPlayerChatEvent.
@@ -34,32 +30,25 @@ public class SpigotFactionChatListener implements Listener
      * @param event The AsyncPlayerChatEvent triggered through chat
      */
     @EventHandler(priority = EventPriority.LOW)
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
-        Player player = event.getPlayer();
-        MPlayer mSender = MPlayerColl.get().get(player);
-        ChatMode chatMode = FactionsChat.qmPlayers.containsKey(player.getUniqueId()) ?
-                FactionsChat.qmPlayers.remove(player.getUniqueId()) :
-                FactionsChat.instance.getPlayerChatModes().getOrDefault(player.getUniqueId(), ChatMode.GLOBAL);
+    public void onPlayerChat(AsyncPlayerChatEvent event)
+    {
+        Player sender = event.getPlayer();
+        
+        // Use quick chat mode if present, otherwise persistent
+        final ChatMode chatMode = determinePlayerChatMode(sender);
 
+        // Filter recipients based on chat mode
         Set<Player> notReceiving = new HashSet<>();
         for (Player recipient : event.getRecipients())
         {
-            if (recipient.equals(player)) continue;
-            
-            // Skip recipients who have social spy enabled in Essentials
-            if (FactionsChat.instance.getEssentialsPlugin() != null && FactionsChat.instance.getEssentialsPlugin().getUser(recipient).isSocialSpyEnabled())
-            {
-                continue;
-            }
-
-            MPlayer mRecipient = MPlayerColl.get().get(recipient);
-            if (FactionsChatUtil.filterRecipient(chatMode, mSender, mRecipient, player, recipient))
+            if (shouldExcludeRecipient(chatMode, sender, recipient))
             {
                 notReceiving.add(recipient);
             }
         }
         event.getRecipients().removeAll(notReceiving);
-        handleChat(player, event.getMessage(), event.getRecipients(), chatMode);
+        
+        handleChat(sender, event.getMessage(), event.getRecipients(), chatMode);
 
         // Event is cancelled as we handle the chat manually
         event.setCancelled(true);
@@ -75,107 +64,39 @@ public class SpigotFactionChatListener implements Listener
      */
     private void handleChat(Player sender, String message, Set<Player> recipients, ChatMode chatMode)
     {
-        String format = FactionsChat.instance.getChatFormat();
-        String displayName = sender.getDisplayName();
-        String originalMessage = message;
+        // Get player permissions
+        ChatPermissions permissions = getPlayerChatPermissions(sender);
+        
+        // Apply non-relational placeholders to the format
+        String format = applyNonRelationalPlaceholders(sender, FactionsChat.instance.getChatFormat(), chatMode);
+        
+        // Extract base color from format
+        BaseColorResult baseColorResult = extractBaseColorFromFormat(format);
+        ChatColor baseColor = baseColorResult.legacyColor;
 
-        boolean settingAllowColorCodes = FactionsChat.instance.getAllowColorCodes();
-        boolean settingAllowUrl = FactionsChat.instance.getAllowUrl();
-        boolean settingUnderlineUrl = FactionsChat.instance.getAllowUrlUnderline();
-        boolean allowColor = settingAllowColorCodes && sender.hasPermission("factions.chat.color");
-        boolean allowFormat = settingAllowColorCodes && sender.hasPermission("factions.chat.format");
-        boolean allowMagic = settingAllowColorCodes && sender.hasPermission("factions.chat.magic");
-        boolean allowRgb = settingAllowColorCodes && sender.hasPermission("factions.chat.rgb");
-        boolean allowUrl = settingAllowUrl && sender.hasPermission("factions.chat.url");
+        // Process the message content
+        String processedMessage = stripColorFormatCodes(message, permissions.allowColor, permissions.allowFormat, permissions.allowMagic, permissions.allowRgb);
+        processedMessage = processRgbColorCodes(processedMessage, permissions.allowRgb);
+        processedMessage = processLinks(processedMessage, permissions.allowUrl, permissions.underlineUrl, baseColor);
 
-        // Placeholder replacement and color code translation for format
-        if (FactionsChat.instance.isPapiEnabled())
-        {
-            format = PlaceholderAPI.setPlaceholders(sender, format);
-        }
-        else
-        {
-            format = FactionsChatUtil.setPlaceholders(sender, format, chatMode);
-        }
-        format = format.replace("%DISPLAYNAME%", displayName);
-        format = ChatColor.translateAlternateColorCodes('&', format);
-
-        // Extract the base color from the format (after color code translation)
-        ChatColor baseColor = ChatColor.WHITE;
-        {
-            int msgIdx = format.indexOf("%MESSAGE%");
-            if (msgIdx > 0) {
-                String beforeMsg = format.substring(0, msgIdx);
-                int colorIdx = beforeMsg.lastIndexOf('§');
-                if (colorIdx != -1 && colorIdx + 1 < beforeMsg.length()) {
-                    char colorChar = beforeMsg.charAt(colorIdx + 1);
-                    ChatColor chatColor = ChatColor.getByChar(colorChar);
-                    if (chatColor != null && chatColor.isColor()) {
-                        baseColor = chatColor;
-                    }
-                }
-            }
-        }
-
-        // Process color/format/magic/rgb codes
-        String processedMessage = processLegacyColorCodes(originalMessage, allowColor, allowFormat, allowMagic, allowRgb);
-        processedMessage = processRgbColorCodes(processedMessage, allowRgb);
-        // Process links (break or underline, and re-apply base color after links)
-        processedMessage = processLinks(processedMessage, allowUrl, settingUnderlineUrl, baseColor);
-
-        format = format.replace("%MESSAGE%", processedMessage);
+        // Replace %MESSAGE% placeholder
+        format = format.replace(PLACEHOLDER_MESSAGE, processedMessage);
+        
+        // Send to each recipient with relational placeholders
         for (Player recipient : recipients)
         {
-            String formatted = format;
-            if (FactionsChat.instance.isPapiEnabled())
-            {
-                formatted = PlaceholderAPI.setRelationalPlaceholders(sender, recipient, format);
-            }
-            else
-            {
-                formatted = FactionsChatUtil.setRelationalPlaceholders(sender, recipient, format);
-            }
-            recipient.sendMessage(ChatColor.translateAlternateColorCodes('&', formatted));
+            String personalizedFormat = applyRelationalPlaceholders(sender, recipient, format);
+            recipient.sendMessage(personalizedFormat);
         }
     }
 
     /**
-     * Processes legacy color and format codes in the message.
+     * Processes RGB color codes in multiple formats and converts them to Bukkit's legacy RGB format.
+     * Supports modern RGB (&#RRGGBB, &#RGB), legacy modern (§#RRGGBB, §#RGB), and legacy Bukkit (§x§R§R§G§G§B§B).
      * 
      * @param message The message to process
-     * @param allowColor Whether to color codes are allowed
-     * @param allowFormat Whether to format codes are allowed
-     * @param allowMagic Whether to magic codes are allowed
-     * @param allowRgb Whether to RGB codes are allowed
-     * @return The processed message
-     */
-    private static String processLegacyColorCodes(String message, boolean allowColor, boolean allowFormat, boolean allowMagic, boolean allowRgb)
-    {
-        if (!allowColor)
-        {
-            message = message.replaceAll("&([0-9a-fA-F])", "");
-        }
-        if (!allowFormat)
-        {
-            message = message.replaceAll("&([lmnorLMNOR])", "");
-        }
-        if (!allowMagic)
-        {
-            message = message.replaceAll("&([kK])", "");
-        }
-        if (!allowRgb)
-        {
-            message = message.replaceAll("&?#([A-Fa-f0-9]{6})", "");
-        }
-        return ChatColor.translateAlternateColorCodes('&', message);
-    }
-
-    /**
-     * Processes RGB color codes in the message.
-     * 
-     * @param message The message to process
-     * @param allowRgb Whether to RGB codes are allowed
-     * @return The processed message
+     * @param allowRgb Whether RGB codes are allowed
+     * @return The processed message with RGB codes converted to §x§R§R§G§G§B§B format
      */
     private static String processRgbColorCodes(String message, boolean allowRgb)
     {
@@ -183,26 +104,55 @@ public class SpigotFactionChatListener implements Listener
         {
             return message;
         }
-        // Replace all occurrences of &#RRGGBB with Bukkit's hex color format (§x§R§R§G§G§B§B)
-        Pattern pattern = Pattern.compile("&#([A-Fa-f0-9]{6})");
+        
+        // Use the comprehensive regex to find all RGB formats
+        Pattern pattern = Pattern.compile(RGB_REGEX);
         Matcher matcher = pattern.matcher(message);
         StringBuffer sb = new StringBuffer();
+        
         while (matcher.find())
         {
-            String hex = matcher.group(1);
-            StringBuilder b = new StringBuilder("§x");
-            for (char c : hex.toCharArray())
+            String hex = null;
+            
+            // Check which group matched (modern vs legacy format)
+            if (matcher.group(1) != null)
             {
-                b.append('§').append(c);
+                // Modern format: &#RRGGBB or §#RRGGBB
+                hex = matcher.group(1);
             }
-            matcher.appendReplacement(sb, b.toString());
+            else if (matcher.group(2) != null)
+            {
+                // Legacy Bukkit format: §x§R§R§G§G§B§B - already in correct format
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(0)));
+                continue;
+            }
+            
+            if (hex != null)
+            {
+                // Convert 3-digit hex to 6-digit hex if needed
+                if (hex.length() == 3)
+                {
+                    hex = "" + hex.charAt(0) + hex.charAt(0) + 
+                              hex.charAt(1) + hex.charAt(1) + 
+                              hex.charAt(2) + hex.charAt(2);
+                }
+                
+                // Convert to Bukkit's hex color format (§x§R§R§G§G§B§B)
+                StringBuilder bukkit = new StringBuilder("§x");
+                for (char c : hex.toCharArray())
+                {
+                    bukkit.append('§').append(c);
+                }
+                matcher.appendReplacement(sb, bukkit.toString());
+            }
         }
+        
         matcher.appendTail(sb);
         return sb.toString();
     }
 
     /**
-     * Processes links in the message.
+     * Processes links in the message for Spigot's string-based chat system.
      * Ensures links are underlined if allowed, and re-applies the most recent color code after each link.
      *
      * @param message The message to process
@@ -213,63 +163,119 @@ public class SpigotFactionChatListener implements Listener
      */
     private static String processLinks(String message, boolean allowUrl, boolean underline, ChatColor baseColor)
     {
-        String urlRegex = "(https?://[\\w\\-._~:/?#\\[\\]@!$&'()*+,;=%]+)";
-        java.util.regex.Pattern urlPattern = java.util.regex.Pattern.compile(urlRegex);
-        java.util.regex.Matcher matcher = urlPattern.matcher(message);
+        if (!allowUrl)
+        {
+            // Break links by removing periods
+            Pattern urlPattern = Pattern.compile(URL_REGEX);
+            Matcher matcher = urlPattern.matcher(message);
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find())
+            {
+                String url = matcher.group(1);
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(url.replace('.', ' ')));
+            }
+            matcher.appendTail(sb);
+            return sb.toString();
+        }
+        
+        Pattern urlPattern = Pattern.compile(URL_REGEX);
+        Matcher matcher = urlPattern.matcher(message);
         StringBuffer sb = new StringBuffer();
         int lastEnd = 0;
+        
         while (matcher.find())
         {
             String before = message.substring(lastEnd, matcher.start());
             String url = matcher.group(1);
+            
             // Find the most recent color code (including §x hex) in 'before'
-            String colorCode = getLastColorCode(before, baseColor);
-            if (allowUrl)
-            {
-                // Underline the link if requested (using §n), then reset and re-apply the most recent color code
-                String replacement = underline ? ChatColor.UNDERLINE + url + ChatColor.RESET + colorCode : url + colorCode;
-                matcher.appendReplacement(sb, java.util.regex.Matcher.quoteReplacement(replacement));
-            }
-            else
-            {
-                // Remove periods to break the link
-                matcher.appendReplacement(sb, java.util.regex.Matcher.quoteReplacement(url.replace('.', ' ')));
-            }
+            String colorCode = getLastColorCodeString(before, baseColor);
+            
+            // Underline the link if requested (using §n), then reset and re-apply the most recent color code
+            String replacement = underline ? ChatColor.UNDERLINE + url + ChatColor.RESET + colorCode : url + colorCode;
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
             lastEnd = matcher.end();
         }
+        
         matcher.appendTail(sb);
         return sb.toString();
     }
 
     /**
-     * Finds the last color code (including §x hex) in the given text, or returns the base color if none found.
+     * Finds the last color code (legacy or RGB) in the given text as a string for Spigot.
+     * Supports modern RGB (&#RRGGBB), legacy Bukkit RGB (§x§R§R§G§G§B§B), and legacy color codes (§[0-9a-fA-F]).
      */
-    private static String getLastColorCode(String text, ChatColor baseColor)
+    private static String getLastColorCodeString(String text, ChatColor baseColor)
     {
-        // Look for the last §x hex code
-        int idx = text.lastIndexOf("§x");
-        if (idx != -1 && idx + 13 <= text.length())
+        String lastColorCode = null;
+        int lastColorPosition = -1;
+
+        // Look for RGB color codes using the comprehensive regex
+        Pattern rgbPattern = Pattern.compile(RGB_REGEX);
+        Matcher rgbMatcher = rgbPattern.matcher(text);
+        
+        while (rgbMatcher.find())
         {
-            String hexSeq = text.substring(idx, idx + 14); // §x§R§R§G§G§B§B
-            if (hexSeq.matches("§x(§[0-9a-fA-F]){6}"))
+            String hex = null;
+            
+            // Check which group matched (modern vs legacy format)
+            if (rgbMatcher.group(1) != null)
             {
-                return hexSeq;
+                // Modern format: &#RRGGBB or §#RRGGBB
+                hex = rgbMatcher.group(1);
+                
+                // Convert 3-digit hex to 6-digit hex if needed
+                if (hex.length() == 3)
+                {
+                    hex = "" + hex.charAt(0) + hex.charAt(0) + 
+                              hex.charAt(1) + hex.charAt(1) + 
+                              hex.charAt(2) + hex.charAt(2);
+                }
+                
+                // Convert to Bukkit's hex color format (§x§R§R§G§G§B§B)
+                StringBuilder bukkit = new StringBuilder("§x");
+                for (char c : hex.toCharArray())
+                {
+                    bukkit.append('§').append(c);
+                }
+                
+                if (rgbMatcher.end() > lastColorPosition)
+                {
+                    lastColorCode = bukkit.toString();
+                    lastColorPosition = rgbMatcher.end();
+                }
+            }
+            else if (rgbMatcher.group(2) != null)
+            {
+                // Legacy Bukkit format: §x§R§R§G§G§B§B - already in correct format
+                if (rgbMatcher.end() > lastColorPosition)
+                {
+                    lastColorCode = rgbMatcher.group(0); // Full match including §x
+                    lastColorPosition = rgbMatcher.end();
+                }
             }
         }
-        // Otherwise, look for the last §[0-9a-fA-F] color code
+        
+        // Look for legacy color codes (§[0-9a-fA-F])
         for (int i = text.length() - 2; i >= 0; i--)
         {
-            if (text.charAt(i) == '§')
+            if (text.charAt(i) == '§' && i + 1 < text.length())
             {
                 char code = text.charAt(i + 1);
                 ChatColor chatColor = ChatColor.getByChar(code);
                 if (chatColor != null && chatColor.isColor())
                 {
-                    return "§" + code;
+                    // Check if this legacy color code is more recent than any RGB code found
+                    if (i + 2 > lastColorPosition)
+                    {
+                        lastColorCode = "§" + code;
+                    }
+                    break; // We found the most recent legacy color, stop searching
                 }
             }
         }
-        // Fallback to base color
-        return baseColor.toString();
+        
+        // Return the most recent color found, or base color if none
+        return lastColorCode != null ? lastColorCode : baseColor.toString();
     }
 }

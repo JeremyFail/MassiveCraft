@@ -1,16 +1,17 @@
 package com.massivecraft.factionschat;
 
 import com.earth2me.essentials.Essentials;
+import github.scarsz.discordsrv.DiscordSRV;
+
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factionschat.commands.CmdFactionsChat;
 import com.massivecraft.factionschat.integrations.PlaceholderFactionsChat;
 import com.massivecraft.factionschat.listeners.DiscordSRVListener;
 import com.massivecraft.factionschat.listeners.PaperFactionChatListener;
 import com.massivecraft.factionschat.listeners.SpigotFactionChatListener;
-import com.massivecraft.factionschat.util.FactionsChatUtil;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.factions.cmd.CmdFactions;
-import github.scarsz.discordsrv.DiscordSRV;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -50,10 +51,15 @@ public class FactionsChat extends JavaPlugin
      * The key is the player's UUID, and the value is the ChatMode they are currently using.
      */
     private final Map<UUID, ChatMode> chatModes = new HashMap<>();
+
+    /**
+     * The default chat format used by FactionsChat.
+     */
+    private static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix% &f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name% &r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%";
     
     // Chat config settings
-    // TODO: should these be stored in a config class? Should we also have a value for the chat format?
-    private String chatFormat = FactionsChatUtil.DEFAULT_CHAT_FORMAT;
+    // TODO: should these be stored in a static config class?
+    private String chatFormat = DEFAULT_CHAT_FORMAT;
     private boolean allowColorCodes = true;
     private boolean allowUrl = true;
     private boolean allowUrlUnderline = true;
@@ -350,7 +356,7 @@ public class FactionsChat extends JavaPlugin
     private void initializeChat()
     {
         FileConfiguration config = getConfig();
-        chatFormat = config.getString("ChatSettings.ChatFormat", FactionsChatUtil.DEFAULT_CHAT_FORMAT);
+        chatFormat = config.getString("ChatSettings.ChatFormat", DEFAULT_CHAT_FORMAT);
         allowColorCodes = config.getBoolean("ChatSettings.AllowColorCodes", true);
         allowUrl = config.getBoolean("ChatSettings.AllowClickableLinks", true);
         allowUrlUnderline = config.getBoolean("ChatSettings.AllowClickableLinksUnderline", true);

@@ -8,6 +8,9 @@ import com.massivecraft.factionschat.TextColors;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
+/**
+ * PlaceholderAPI Expansion for FactionsChat, providing player-specific chat mode information.
+ */
 public class PlaceholderFactionsChat extends PlaceholderExpansion
 {
     @Override

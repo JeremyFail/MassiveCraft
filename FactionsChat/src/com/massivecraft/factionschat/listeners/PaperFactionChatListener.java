@@ -1,44 +1,45 @@
 package com.massivecraft.factionschat.listeners;
 
-import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
-import com.massivecraft.factionschat.util.FactionsChatUtil;
-import com.massivecraft.massivecore.util.MUtil;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
+import java.awt.Color;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
- * Listens for Paper's AsyncChatEvent and sets a custom ChatRenderer for FactionsChat.
+ * Listens for Paper's AsyncChatEvent and handles FactionsChat formatting.
  * 
- * This allows per-recipient, per-message formatting using PlaceholderAPI or built-in tags,
- * using the format string from the config.
+ * This cancels the original chat event and sends custom formatted messages
+ * as server messages which allows per-recipient, per-message formatting
+ * using Placeholder API or built-in tags, using the format string from the config.
  *
  * This listener is only registered if the server is running Paper.
  */
-public class PaperFactionChatListener implements Listener
-{
+public class PaperFactionChatListener extends BaseFactionChatListener implements Listener
+{    
     private final LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
 
     /**
      * Handles the AsyncChatEvent.
      * This method processes the chat message, applies the appropriate chat mode,
-     * and formats the message for each recipient through the ChatRenderer interface.
+     * and sends formatted messages to appropriate recipients as server messages.
      * 
      * @param event The AsyncChatEvent triggered through chat
      */
@@ -46,144 +47,152 @@ public class PaperFactionChatListener implements Listener
     public void onAsyncChat(AsyncChatEvent event)
     {
         Player sender = event.getPlayer();
-        MPlayer mSender = MPlayer.get(sender);
+        
+        // Cancel the original chat event - we'll send our own formatted messages
+        event.setCancelled(true);
+        
         // Use quick chat mode if present, otherwise persistent
-        final ChatMode chatMode = FactionsChat.qmPlayers.containsKey(sender.getUniqueId())
-            ? FactionsChat.qmPlayers.remove(sender.getUniqueId())
-            : FactionsChat.instance.getPlayerChatModes().getOrDefault(sender.getUniqueId(), ChatMode.GLOBAL);
+        final ChatMode chatMode = determinePlayerChatMode(sender);
 
-        // Remove recipients who should not receive the message based on chat mode and permissions
-        event.viewers().removeIf(aud -> 
+        // Apply general placeholders to the chat format (this is the same for all recipients)
+        String preParsedFormat = applyNonRelationalPlaceholders(sender, FactionsChat.instance.getChatFormat(), chatMode);
+        TextColor baseColor = getBaseColorFromFormat(preParsedFormat);
+        
+        // Process the message to apply any formatting (this is the same for all recipients)
+        Component processedMessageComponent = processMessageForSender(sender, serializer.serialize(event.message()), baseColor, chatMode);
+        
+        // Filter and send to viewers
+        for (Audience audience : event.viewers())
         {
-            // Non-player audiences should not be filtered
-            if (aud == null || MUtil.isntPlayer(aud))
+            if (!(audience instanceof Player))
             {
-                return false;
+                continue; // Skip non-player audiences (console isn't usually in viewers anyway)
             }
 
-            // Don't filter the sender
-            Player recipient = (Player) aud;
-            if (recipient.equals(sender))
+            Player player = (Player) audience;
+            
+            // Send the formatted message if this player should receive it
+            if (!shouldExcludeRecipient(chatMode, sender, player))
             {
-                return false;
+                audience.sendMessage(formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, player, baseColor, chatMode));
             }
+        }
+        
+        // Always send to console (console should see all chat messages)
+        Component consoleMessage = formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, null, baseColor, chatMode);
+        Bukkit.getConsoleSender().sendMessage(serializer.serialize(consoleMessage));
+    }
 
-            // Don't filter recipients who have social spy enabled in Essentials
-            if (FactionsChat.instance.getEssentialsPlugin() != null && FactionsChat.instance.getEssentialsPlugin().getUser(recipient).isSocialSpyEnabled())
+    /**
+     * Extracts the base color from the chat format string and converts to TextColor.
+     * This method looks for the last color code (legacy or RGB) before the %MESSAGE% placeholder.
+     *
+     * @param format The chat format string.
+     * @return The base color extracted from the format. Defaults to white if no color is found.
+     */
+    private TextColor getBaseColorFromFormat(String format)
+    {
+        BaseColorResult result = extractBaseColorFromFormat(format);
+        
+        if (result.isRgb)
+        {
+            try
             {
-                return false;
+                return TextColor.fromHexString("#" + result.hexCode);
             }
-
-            // Validate permissions and chat mode and remove if necessary
-            MPlayer mRecipient = MPlayer.get(recipient);
-            return FactionsChatUtil.filterRecipient(chatMode, mSender, mRecipient, sender, recipient);
-        });
-
-        // Ensure sender is in the viewers set - add if not present
-        event.viewers().add((Audience) sender);
-
-        // Use a lambda to capture the chatMode for this event
-        event.renderer((source, sourceDisplayName, message, viewer) -> {
-            String format = FactionsChat.instance.getChatFormat();
-            String displayName = source.getDisplayName();
-            String originalMessage = serializer.serialize(message);
-            Player recipient = viewer == null || MUtil.isntPlayer(viewer) ? null : (Player) viewer;
-
-            // - - - - - Color/Format Processing - - - - -
-            boolean settingAllowColorCodes = FactionsChat.instance.getAllowColorCodes();
-            boolean settingAllowUrl = FactionsChat.instance.getAllowUrl();
-            boolean settingUnderlineUrl = FactionsChat.instance.getAllowUrlUnderline();
-            boolean allowColor = settingAllowColorCodes && source.hasPermission("factions.chat.color");
-            boolean allowFormat = settingAllowColorCodes && source.hasPermission("factions.chat.format");
-            boolean allowMagic = settingAllowColorCodes && source.hasPermission("factions.chat.magic");
-            boolean allowRgb = settingAllowColorCodes && source.hasPermission("factions.chat.rgb");
-            boolean allowUrl = settingAllowUrl && source.hasPermission("factions.chat.url");
-
-            // Replace placeholders based on whether PlaceholderAPI is enabled
-            if (FactionsChat.instance.isPapiEnabled())
+            catch (IllegalArgumentException ignored)
             {
-                format = PlaceholderAPI.setPlaceholders(source, format);
-                format = PlaceholderAPI.setRelationalPlaceholders(source, recipient, format);
-            } 
-            else
-            {
-                format = FactionsChatUtil.setPlaceholders(source, format, chatMode);
-                format = FactionsChatUtil.setRelationalPlaceholders(source, recipient, format);
+                // Invalid hex code, fall back to legacy
             }
+        }
+        
+        // Convert legacy ChatColor to TextColor
+        Color awtColor = result.legacyColor.asBungee().getColor();
+        return TextColor.color(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
+    }
 
-            // Replace general placeholders and color codes (except %MESSAGE%)
-            format = ChatColor.translateAlternateColorCodes('&', format);
-            format = format.replace("%DISPLAYNAME%", displayName);
+    /**
+     * Formats a message for a specific recipient using the chat format and permissions.
+     * The message component is already processed and consistent for all recipients.
+     * 
+     * @param sender The player sending the message.
+     * @param format The pre-parsed chat format string (non-relational placeholders already replaced).
+     * @param processedMessageComponent The processed message component for the sender.
+     * @param recipient The player receiving the message.
+     * @param baseColor The base color to apply to the message.
+     * @param chatMode The chat mode being used (e.g., GLOBAL, FACTION, ALLY, etc.).
+     */
+    private Component formatMessageForRecipient(Player sender, String preParsedFormat, Component processedMessageComponent, Player recipient, TextColor baseColor, ChatMode chatMode)
+    {
+        // Replace placeholders based on whether PlaceholderAPI is enabled
+        preParsedFormat = applyRelationalPlaceholders(sender, recipient, preParsedFormat);
 
-            // Extract the base color from the format (after color code translation)
-            TextColor baseColor = null;
-            {
-                // Try to extract the color code just before %MESSAGE%
-                int msgIdx = format.indexOf("%MESSAGE%");
-                if (msgIdx > 0) {
-                    // Look backwards for the last color code (\u00A7[0-9a-fA-F])
-                    String beforeMsg = format.substring(0, msgIdx);
-                    int colorIdx = beforeMsg.lastIndexOf('\u00A7');
-                    if (colorIdx != -1 && colorIdx + 1 < beforeMsg.length()) {
-                        char colorChar = beforeMsg.charAt(colorIdx + 1);
-                        ChatColor chatColor = ChatColor.getByChar(colorChar);
-                        if (chatColor != null && chatColor.isColor()) {
-                            java.awt.Color awtColor = chatColor.asBungee().getColor();
-                            baseColor = TextColor.color(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
-                        }
-                    }
-                }
-            }
-            if (baseColor == null) baseColor = TextColor.color(255, 255, 255); // fallback to white
+        // Process the entire format string into a component (handling RGB codes if present)
+        Component processedFormatComponent;
+        if (preParsedFormat.contains("&#") || preParsedFormat.contains("§#") || preParsedFormat.contains("§x"))
+        {
+            processedFormatComponent = processRgbColorCodes(preParsedFormat, baseColor);
+        }
+        else
+        {
+            processedFormatComponent = serializer.deserialize(preParsedFormat);
+        }
 
-            // Remove disallowed codes and parse legacy color/format codes
-            String processedMessage = processLegacyColorCodes(originalMessage, allowColor, allowFormat, allowMagic, allowRgb);
+        // Replace the placeholder with the actual message component
+        return replaceComponentPlaceholder(processedFormatComponent, PLACEHOLDER_MESSAGE, processedMessageComponent);
+    }
 
-            // - - - - - RGB Color Code Processing - - - - -
-            Component messageComponent;
-            if (allowRgb && processedMessage.contains("&#"))
-            {
-                messageComponent = processRgbColorCodes(processedMessage, baseColor);
-            }
-            else
-            {
-                messageComponent = Component.text(processedMessage).color(baseColor);
-            }
+    /**
+     * Processes the message content for the sender (color codes, permissions, etc.).
+     * This is done once per chat message and reused for all recipients since 
+     * the message content itself doesn't change per recipient.
+     * 
+     * @param sender The player sending the message.
+     * @param originalMessage The original message content from the player.
+     * @param baseColor The base color to apply to the message.
+     * @param chatMode The chat mode being used (e.g., GLOBAL, FACTION, ALLY, etc.).
+     * @return A Component with the processed message ready for sending.
+     */
+    private Component processMessageForSender(Player sender, String originalMessage, TextColor baseColor, ChatMode chatMode)
+    {
+        // Get player permissions
+        ChatPermissions permissions = getPlayerChatPermissions(sender);
 
-            // - - - - - Clickable URL Processing - - - - -
-            if (allowUrl)
-            {
-                messageComponent = processLinks(messageComponent, settingUnderlineUrl, baseColor);
-            }
+        // Remove disallowed codes and parse legacy color/format codes in the original message
+        String processedMessage = stripColorFormatCodes(originalMessage, permissions.allowColor, permissions.allowFormat, permissions.allowMagic, permissions.allowRgb);
 
-            // Insert the processed message component in place of %MESSAGE%
-            String[] parts = format.split("%MESSAGE%", -1);
-            net.kyori.adventure.text.Component result = net.kyori.adventure.text.Component.empty();
-            for (int i = 0; i < parts.length; i++)
-            {
-                result = result.append(serializer.deserialize(parts[i]));
-                if (i < parts.length - 1)
-                {
-                    result = result.append(messageComponent);
-                }
-            }
-            return result;
-        });
+        // - - - - - RGB Color Code Processing - - - - -
+        Component messageComponent;
+        if (permissions.allowRgb && (processedMessage.contains("&#") || processedMessage.contains("§#") || processedMessage.contains("§x")))
+        {
+            messageComponent = processRgbColorCodes(processedMessage, baseColor);
+        }
+        else
+        {
+            messageComponent = Component.text(processedMessage).color(baseColor);
+        }
+
+        // - - - - - Clickable URL Processing - - - - -
+        if (permissions.allowUrl)
+        {
+            messageComponent = processLinks(messageComponent, permissions.underlineUrl, baseColor);
+        }
+
+        return messageComponent;
     }
 
     /**
      * Processes links in the input Component and makes them clickable.
      * After each link, reapplies the most recent color (legacy or RGB) found before the link.
      *
-     * @param input The input Component containing potential links
-     * @param underline Whether to underline the links
-     * @param baseColor The base color to apply if no color code is found
-     * @return A Component with clickable links
+     * @param input The input Component containing potential links.
+     * @param underline Whether to underline the links.
+     * @param baseColor The base color to apply if no color code is found.
+     * @return A Component with clickable links.
      */
-    private static Component processLinks(Component input, boolean underline, TextColor baseColor)
+    private Component processLinks(Component input, boolean underline, TextColor baseColor)
     {
-        String urlRegex = "(https?://[\\w\\-._~:/?#\\[\\]@!$&'()*+,;=%]+)";
-        Pattern urlPattern = Pattern.compile(urlRegex);
+        Pattern urlPattern = Pattern.compile(URL_REGEX);
         // Use the serializer to get the correct plain text with color codes
         String inputStr = LegacyComponentSerializer.legacySection().serialize(input);
         Matcher matcher = urlPattern.matcher(inputStr);
@@ -219,62 +228,110 @@ public class PaperFactionChatListener implements Listener
 
     /**
      * Finds the last color code (legacy or RGB) in the given text, or returns the base color if none found.
+     * Supports modern RGB (&#RRGGBB), legacy Bukkit RGB (§x§R§R§G§G§B§B), and legacy color codes (§[0-9a-fA-F]).
+     * 
+     * @param text The text to search for color codes.
+     * @param baseColor The base color to fall back to if no color code is found.
+     * @return The last found TextColor, or the base color if no color code is found.
      */
-    private static TextColor getLastTextColor(String text, TextColor baseColor)
+    private TextColor getLastTextColor(String text, TextColor baseColor)
     {
-        // Look for the last RGB hex code (e.g., §x§R§R§G§G§B§B)
-        int idx = text.lastIndexOf("§x");
-        if (idx != -1 && idx + 13 < text.length())
-        {
-            String hexSeq = text.substring(idx, idx + 14); // §x§R§R§G§G§B§B
-            if (hexSeq.matches("§x(§[0-9a-fA-F]){6}"))
-            {
-                StringBuilder hex = new StringBuilder();
-                for (int i = 2; i < 14; i += 2)
-                {
-                    hex.append(hexSeq.charAt(i + 1));
-                }
+        TextColor lastColor = null;
+        int lastColorPosition = -1;
 
-                try
+        // Look for RGB color codes using the comprehensive regex pattern
+        Pattern rgbPattern = Pattern.compile(RGB_REGEX);
+        Matcher rgbMatcher = rgbPattern.matcher(text);
+        
+        while (rgbMatcher.find())
+        {
+            try
+            {
+                String hex = null;
+                
+                // Check which group matched (modern vs legacy format)
+                if (rgbMatcher.group(1) != null)
                 {
-                    return TextColor.fromHexString("#" + hex.toString());
-                } 
-                catch (Exception ignored) { }
+                    // Modern format: &#RRGGBB or §#RRGGBB
+                    hex = rgbMatcher.group(1);
+                }
+                else if (rgbMatcher.group(2) != null)
+                {
+                    // Legacy Bukkit format: §x§R§R§G§G§B§B
+                    String legacyHex = rgbMatcher.group(2);
+                    // Extract hex digits from §R§R§G§G§B§B format
+                    StringBuilder hexBuilder = new StringBuilder();
+                    for (int i = 1; i < legacyHex.length(); i += 2)
+                    {
+                        hexBuilder.append(legacyHex.charAt(i));
+                    }
+                    hex = hexBuilder.toString();
+                }
+                
+                if (hex != null)
+                {
+                    // Convert 3-digit hex to 6-digit hex if needed
+                    if (hex.length() == 3)
+                    {
+                        hex = "" + hex.charAt(0) + hex.charAt(0) + 
+                                  hex.charAt(1) + hex.charAt(1) + 
+                                  hex.charAt(2) + hex.charAt(2);
+                    }
+                    
+                    TextColor color = TextColor.fromHexString("#" + hex);
+                    if (rgbMatcher.end() > lastColorPosition)
+                    {
+                        lastColor = color;
+                        lastColorPosition = rgbMatcher.end();
+                    }
+                }
+            }
+            catch (Exception ignored) 
+            {
+                // Invalid hex code, continue searching
             }
         }
-        // Otherwise, look for the last §[0-9a-fA-F] color code
+        
+        // Look for legacy color codes (§[0-9a-fA-F])
         for (int i = text.length() - 2; i >= 0; i--)
         {
-            if (text.charAt(i) == '§')
+            if (text.charAt(i) == '§' && i + 1 < text.length())
             {
                 char code = text.charAt(i + 1);
                 ChatColor chatColor = ChatColor.getByChar(code);
                 if (chatColor != null && chatColor.isColor())
                 {
-                    java.awt.Color awtColor = chatColor.asBungee().getColor();
-                    return TextColor.color(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
+                    // Check if this legacy color code is more recent than any RGB code found
+                    if (i + 2 > lastColorPosition)
+                    {
+                        java.awt.Color awtColor = chatColor.asBungee().getColor();
+                        lastColor = TextColor.color(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
+                    }
+                    break; // We found the most recent legacy color, stop searching
                 }
             }
         }
-        // Fallback to base color
-        return baseColor;
+        
+        // Return the most recent color found, or base color if none
+        return lastColor != null ? lastColor : baseColor;
     }
 
     /**
-     * Processes RGB color codes in the format &#[hex] and converts them to TextColor components.
+     * Processes RGB color codes in multiple formats and converts them to TextColor components.
+     * Supports modern RGB (&#RRGGBB), legacy Bukkit RGB (§x§R§R§G§G§B§B), and 3-digit hex codes.
      *
-     * @param message The message containing RGB color codes
-     * @param baseColor The base color to use if no RGB code is present
-     * @return A Component with the RGB colors applied
+     * @param message The message containing RGB color codes.
+     * @param baseColor The base color to use if no RGB code is present.
+     * @return A Component with the RGB colors applied.
      */
-    private static Component processRgbColorCodes(String message, TextColor baseColor)
+    private Component processRgbColorCodes(String message, TextColor baseColor)
     {
-        String rgbRegex = "&?#([A-Fa-f0-9]{6})";
-        Pattern rgbPattern = Pattern.compile(rgbRegex);
+        Pattern rgbPattern = Pattern.compile(RGB_REGEX);
         Matcher rgbMatcher = rgbPattern.matcher(message);
         int lastEnd = 0;
         Component comp = Component.empty();
         TextColor currentColor = null;
+        
         // Iterate through all matches of the RGB pattern
         while (rgbMatcher.find())
         {
@@ -291,11 +348,49 @@ public class PaperFactionChatListener implements Listener
                     comp = comp.append(Component.text(before).color(baseColor));
                 }
             }
-            // Extract the hex color code and create a TextColor
-            String hex = rgbMatcher.group(1);
-            currentColor = TextColor.fromHexString("#" + hex);
+            
+            // Extract the hex color code based on which format matched
+            String hex = null;
+            if (rgbMatcher.group(1) != null)
+            {
+                // Modern format: &#RRGGBB or §#RRGGBB
+                hex = rgbMatcher.group(1);
+            }
+            else if (rgbMatcher.group(2) != null)
+            {
+                // Legacy Bukkit format: §x§R§R§G§G§B§B
+                String legacyHex = rgbMatcher.group(2);
+                // Extract hex digits from §R§R§G§G§B§B format
+                StringBuilder hexBuilder = new StringBuilder();
+                for (int i = 1; i < legacyHex.length(); i += 2)
+                {
+                    hexBuilder.append(legacyHex.charAt(i));
+                }
+                hex = hexBuilder.toString();
+            }
+            
+            if (hex != null)
+            {
+                try
+                {
+                    // Convert 3-digit hex to 6-digit hex if needed
+                    if (hex.length() == 3)
+                    {
+                        hex = "" + hex.charAt(0) + hex.charAt(0) + 
+                                  hex.charAt(1) + hex.charAt(1) + 
+                                  hex.charAt(2) + hex.charAt(2);
+                    }
+                    currentColor = TextColor.fromHexString("#" + hex);
+                }
+                catch (IllegalArgumentException ignored)
+                {
+                    // Invalid hex code, keep current color
+                }
+            }
+            
             lastEnd = rgbMatcher.end();
         }
+        
         // Append any remaining text after the last RGB code
         if (lastEnd < message.length())
         {
@@ -309,37 +404,62 @@ public class PaperFactionChatListener implements Listener
                 comp = comp.append(Component.text(after).color(baseColor));
             }
         }
+        
         return comp;
     }
 
     /**
-     * Processes legacy color and format codes in the message.
+     * Replaces a text placeholder in a Component with another Component.
+     * This method recursively walks through the component tree to find and replace text placeholders.
      * 
-     * @param message The message containing legacy color codes
-     * @param allowColor Whether to allow color codes
-     * @param allowFormat Whether to allow format codes
-     * @param allowMagic Whether to allow magic codes
-     * @param allowRgb Whether to allow RGB codes
-     * @return The processed message
+     * @param component The component to search in.
+     * @param placeholder The text placeholder to replace.
+     * @param replacement The component to replace the placeholder with.
+     * @return A new Component with the placeholder replaced.
      */
-    private static String processLegacyColorCodes(String message, boolean allowColor, boolean allowFormat, boolean allowMagic, boolean allowRgb)
+    private Component replaceComponentPlaceholder(Component component, String placeholder, Component replacement)
     {
-        if (!allowColor)
+        // Check if this is a text component containing our placeholder
+        if (component instanceof TextComponent)
         {
-            message = message.replaceAll("&([0-9a-fA-F])", "");
+            TextComponent textComponent = (TextComponent) component;
+            String content = textComponent.content();
+            
+            if (content.contains(placeholder))
+            {
+                // Split the text around the placeholder
+                String[] parts = content.split(Pattern.quote(placeholder), -1);
+                Component result = Component.empty();
+                
+                for (int i = 0; i < parts.length; i++)
+                {
+                    if (!parts[i].isEmpty())
+                    {
+                        result = result.append(Component.text(parts[i]).style(textComponent.style()));
+                    }
+                    if (i < parts.length - 1)
+                    {
+                        result = result.append(replacement);
+                    }
+                }
+                
+                // Preserve any children components
+                for (Component child : textComponent.children())
+                {
+                    result = result.append(replaceComponentPlaceholder(child, placeholder, replacement));
+                }
+                
+                return result;
+            }
         }
-        if (!allowFormat)
-        {
-            message = message.replaceAll("&([lmnorLMNOR])", "");
-        }
-        if (!allowMagic)
-        {
-            message = message.replaceAll("&([kK])", "");
-        }
-        if (!allowRgb)
-        {
-            message = message.replaceAll("&?#([A-Fa-f0-9]{6})", "");
-        }
-        return ChatColor.translateAlternateColorCodes('&', message);
+        
+        // If no placeholder found in this component, check children
+        Component result = component.children().isEmpty() 
+            ? component 
+            : component.children(component.children().stream()
+                .map(child -> replaceComponentPlaceholder(child, placeholder, replacement))
+                .collect(Collectors.toList()));
+        
+        return result;
     }
 }

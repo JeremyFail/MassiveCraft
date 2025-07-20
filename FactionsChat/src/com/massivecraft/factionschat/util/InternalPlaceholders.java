@@ -4,14 +4,15 @@ import com.massivecraft.factions.Rel;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.ChatPrefixes;
-import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.TextColors;
 import org.bukkit.entity.Player;
 
-public class FactionsChatUtil 
+/**
+ * Internal placeholder utility class for FactionsChat.
+ * This class is only used if external placeholder plugins are not available.
+ */
+public class InternalPlaceholders 
 {
-    public static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix% &f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name% &r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%";
-    
     /**
      * Parses non-relational (single player) tags in the format string.
      */
@@ -62,48 +63,5 @@ public class FactionsChatUtil
                 .replace("%rel_factions_relation_color%", relationColor)
                 .replace("%rel_factions_relation%", relationName)
                 .replace("%rel_factions_relation_lowercase%", relationName.toLowerCase());
-    }
-
-    /**
-     * Whether the recipient should be excluded from receiving the message based on the chat mode and permissions.
-     * 
-     * @param chatMode The chat mode being used (e.g., GLOBAL, FACTION, ALLY, etc.).
-     * @param mSender The MPlayer object of the sender.
-     * @param mRecipient The MPlayer object of the recipient.
-     * @param sender The Player object of the sender.
-     * @param recipient The Player object of the recipient.
-     * 
-     * @return Whether the recipient should be excluded from receiving the message.
-     */
-    public static boolean filterRecipient(ChatMode chatMode, MPlayer mSender, MPlayer mRecipient, Player sender, Player recipient)
-    {
-        switch (chatMode)
-        {
-            case TRUCE:
-                return !recipient.hasPermission("factions.chat.truce")
-                        || (mSender.getRelationTo(mRecipient) != Rel.TRUCE && mSender.getRelationTo(mRecipient) != Rel.FACTION);
-            case ALLY:
-                return !recipient.hasPermission("factions.chat.ally")
-                        || (mSender.getRelationTo(mRecipient) != Rel.ALLY && mSender.getRelationTo(mRecipient) != Rel.FACTION);
-            case FACTION:
-                return !recipient.hasPermission("factions.chat.faction") 
-                        || mSender.getRelationTo(mRecipient) != Rel.FACTION;
-            case ENEMY:
-                return !recipient.hasPermission("factions.chat.enemy")
-                        || (mSender.getRelationTo(mRecipient) != Rel.ENEMY && mSender.getRelationTo(mRecipient) != Rel.FACTION);
-            case NEUTRAL:
-                return !recipient.hasPermission("factions.chat.neutral")
-                        || (mSender.getRelationTo(mRecipient) != Rel.NEUTRAL && mSender.getRelationTo(mRecipient) != Rel.FACTION);
-            case LOCAL:
-                return !recipient.hasPermission("factions.chat.local")
-                        || sender.getLocation().toVector().subtract(recipient.getLocation().toVector()).length() > FactionsChat.instance.getLocalChatRange();
-            case STAFF:
-                return !recipient.hasPermission("factions.chat.staff");
-            case WORLD:
-                return !recipient.hasPermission("factions.chat.world") 
-                        || !recipient.getWorld().equals(sender.getWorld());
-            default:
-                return false;
-        }
     }
 }
