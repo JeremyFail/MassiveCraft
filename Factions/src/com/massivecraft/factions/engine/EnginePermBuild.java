@@ -385,8 +385,8 @@ public class EnginePermBuild extends Engine
 	}
 	
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void combustEntity(EntityCombustByEntityEvent event) {
-		
+	public void combustEntity(EntityCombustByEntityEvent event)
+	{	
 		// If a burning projectile ...
 		if (!(event.getCombuster() instanceof Projectile)) return;
 		Projectile entityProjectile = (Projectile)event.getCombuster();

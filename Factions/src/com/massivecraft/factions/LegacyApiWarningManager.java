@@ -4,8 +4,8 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
-import java.util.logging.Level;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Manages warnings for plugins using the legacy Factions API compatibility layer.
@@ -18,6 +18,7 @@ public class LegacyApiWarningManager
     // -------------------------------------------- //
     
     private static final Set<String> warnedPlugins = new HashSet<>();
+    private static final Logger logger = Factions.get().getLogger();
     
     // Package names to exclude when looking for the calling plugin
     private static final String[] EXCLUDED_PACKAGES = {
@@ -134,28 +135,26 @@ public class LegacyApiWarningManager
      */
     private static void logLegacyApiWarning(Plugin plugin)
     {
+        logger.warning("######################################################################");
+        logger.warning("Legacy Factions Compatibility Layer in use by the plugin:");
+
+        // Build plugin info string
         String pluginInfo = "'" + plugin.getName() + "'";
         String version = plugin.getDescription().getVersion();
         String authors = String.join(", ", plugin.getDescription().getAuthors());
-        
-        Factions.get().log(Level.WARNING, "######################################################################");
-        Factions.get().log(Level.WARNING, "Legacy Factions Compatibility Layer enabled for the plugin:");
-
         if (version != null && !version.isEmpty())
         {
             pluginInfo += " v" + version;
         }
-        
         if (!authors.isEmpty())
         {
             pluginInfo += " by " + authors;
         }
+        logger.warning(pluginInfo);
 
-        Factions.get().log(Level.WARNING, pluginInfo);
-
-        Factions.get().log(Level.WARNING, "This integration is UNSUPPORTED by Factions.");
-        Factions.get().log(Level.WARNING, "Please contact the plugin author(s) for assistance with any issues.");
-        Factions.get().log(Level.WARNING, "######################################################################");
+        logger.warning("This integration is UNSUPPORTED by Factions and may or may not work.");
+        logger.warning("Please contact the plugin author(s) for assistance with any issues.");
+        logger.warning("######################################################################");
     }
     
     /**
