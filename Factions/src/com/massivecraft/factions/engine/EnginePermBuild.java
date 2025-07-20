@@ -51,6 +51,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerUnleashEntityEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.projectiles.ProjectileSource;
 
@@ -172,6 +173,16 @@ public class EnginePermBuild extends Engine
 		return protect(ProtectCase.USE_REDSTONE_BLOCK, verboose, player, PS.valueOf(block), material, null);
 	}
 
+	public static Boolean useLeash(Player player, Block block, Material material, Cancellable cancellable)
+	{
+		return protect(ProtectCase.LEASH_MOB, true, player, PS.valueOf(block), material, cancellable);
+	}
+
+	public static Boolean useLeashEntity(Player player, Entity entity, Cancellable cancellable)
+	{
+		return protect(ProtectCase.LEASH_MOB, true, player, PS.valueOf(entity.getLocation()), entity, cancellable);
+	}
+
 	public static Boolean leashMob(Player player, Entity entity, Cancellable cancellable)
 	{
 		return protect(ProtectCase.LEASH_MOB, true, player, PS.valueOf(entity.getLocation()), entity, cancellable);
@@ -207,47 +218,7 @@ public class EnginePermBuild extends Engine
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void build(HangingPlaceEvent event) 
 	{ 
-		Player player = event.getPlayer();
-		// Check if block is a fence post
-		Material type = event.getBlock().getType();
-		// TODO: Do we need to add fences to the EnumerationUtil, or is this sufficient?
-		boolean isFence = type.toString().endsWith("_FENCE");
-		// Check if player has any leashed entities
-		boolean hasLeashed = player.getWorld().getNearbyEntities(player.getLocation(), 20, 20, 20).stream()
-			.filter(e -> e instanceof LivingEntity)
-			.map(e -> (LivingEntity) e)
-			.anyMatch(e -> e.isLeashed() && player.equals(e.getLeashHolder()));
-
-		// If player clicks on a fence and has leashed animals, we may need to prevent multiple messages
-		boolean verboose = true;
-		if (isFence && hasLeashed)
-		{
-			UUID uuid = player.getUniqueId();
-			Location eventLocation = event.getBlock().getLocation();
-
-			boolean isLeash = event.getEntity().getType().equals(EntityType.LEASH_KNOT);
-			boolean playerIsHoldingLead = player.getInventory().getItemInMainHand().getType() == Material.LEAD
-					|| player.getInventory().getItemInOffHand().getType() == Material.LEAD;
-			boolean performLeashChecks = isLeash && playerIsHoldingLead;
-
-			// If the player is holding a lead, we'll use the lastMessagedLoc map to prevent multiple messages.
-			// This has to be done because both the leash event and the item-in-hand event will have the same entity 
-			// type, which means we can't differentiate between the two events.
-			if (performLeashChecks)
-			{
-				Location last = lastMessagedLoc.get(uuid);
-				verboose = (last == null || !last.equals(eventLocation));
-			}
-			// Otherwise we'll just set verboose to false if it's the leash event
-			// so the item-in-hand event will be the only one that sends the message
-			else
-			{
-				verboose = !isLeash;
-			}
-			lastMessagedLoc.put(uuid, eventLocation);
-		}
-
-		build(event.getPlayer(), event.getBlock(), verboose, event);
+		build(event.getPlayer(), event.getBlock(), true, event);
 	}
 	
 	// Handles breaking entity items such as item frames, paintings, leashes
@@ -285,7 +256,32 @@ public class EnginePermBuild extends Engine
 		
 		// ... or are allowed to right click with the item, this event is safe to perform.
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		useItem(player, block, event.getMaterial(), event);
+
+		// Check if we're dealing with a lead/fence attachment or just regular item use
+		Material material = event.getMaterial();
+		boolean blockIsFence = block.getType().toString().endsWith("_FENCE");
+		if (blockIsFence)
+		{
+			boolean playerHasLeashedEntities = player.getWorld().getNearbyEntities(player.getLocation(), 20, 20, 20).stream()
+				.filter(e -> e instanceof LivingEntity)
+				.map(e -> (LivingEntity) e)
+				.anyMatch(e -> e.isLeashed() && player.equals(e.getLeashHolder()));
+
+			// Make sure we don't run this twice (for both hands)
+			if (playerHasLeashedEntities && event.getHand() != EquipmentSlot.OFF_HAND)
+			{
+				useLeash(player, block, material, event);
+			}
+			else
+			{
+				// If the player does not have leashed entities, we can use the item normally
+				useItem(player, block, material, event);
+			}
+		}
+		else
+		{
+			useItem(player, block, material, event);
+		}
 	}
 
 	// For some reason onPlayerInteract() sometimes misses bucket events depending on distance
@@ -370,7 +366,17 @@ public class EnginePermBuild extends Engine
 	{
 		// Ignore Off Hand
 		if (isOffHand(event)) return;
-		useEntity(event.getPlayer(), event.getRightClicked(), true, event);
+
+		Player player = event.getPlayer();
+		Entity entity = event.getRightClicked();
+		if (entity.getType() == EntityType.LEASH_KNOT)
+		{
+			useLeashEntity(player, entity, event);
+		}
+		else
+		{
+			useEntity(player, entity, true, event);
+		}
 	}
 
 	// This is a special Spigot event that fires for Minecraft 1.8 armor stands.

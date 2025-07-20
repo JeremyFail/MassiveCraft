@@ -389,7 +389,8 @@ public class EnumerationUtil
         "ARMOR_STAND",          // Minecraft 1.8
         "GLOW_ITEM_FRAME",      // Minecraft 1.17
         "ITEM_FRAME",           // Minecraft 1.4.2
-        "LEASH_KNOT"            // Minecraft 1.6.1
+        "LEASH_KNOT",           // Minecraft 1.6.1
+        "PAINTING"              // Minecraft 1.0
     );
     
     public static boolean isEntityTypeEditOnInteract(EntityType entityType)
