@@ -79,7 +79,7 @@ public class EngineMoveChunk extends Engine
 		if (mplayer.isTerritoryInfoTitles())
 		{
 			String titleMain = parseTerritoryInfo(MConf.get().territoryInfoTitlesMain, mplayer, factionTo);
-			String titleSub = parseTerritoryInfo(MConf.get().territoryInfoTitlesSub, mplayer, factionTo);
+			String titleSub = parseTerritoryInfo(MConf.get().territoryInfoTitlesSub, mplayer, factionTo).replace('\n',' ');
 			int ticksIn = MConf.get().territoryInfoTitlesTicksIn;
 			int ticksStay = MConf.get().territoryInfoTitlesTicksStay;
 			int ticksOut = MConf.get().territoryInfoTitleTicksOut;
@@ -87,7 +87,7 @@ public class EngineMoveChunk extends Engine
 		}
 		else
 		{
-			String message = parseTerritoryInfo(MConf.get().territoryInfoChat, mplayer, factionTo);
+			String message = parseTerritoryInfo(MConf.get().territoryInfoChat, mplayer, factionTo).replace('\n',' ');
 			player.sendMessage(message);
 		}
 	}
