@@ -77,28 +77,8 @@ public class FactionsChat extends JavaPlugin
     @Override
     public void onEnable() 
     {
-        // Create chatmodes data file if it doesn't exist
-        File chatmodesFile = new File(getDataFolder(), "chatmodes.yml");
-        if (chatmodesFile.exists())
-        {
-            try (FileInputStream fileInputStream = new FileInputStream(chatmodesFile))
-            {
-                Yaml yaml = new Yaml();
-                Map<String, String> data = yaml.load(fileInputStream);
-                if (data != null)
-                {
-                    for (Map.Entry<String, String> entry : data.entrySet())
-                    {
-                        UUID id = UUID.fromString(entry.getKey());
-                        chatModes.put(id, ChatMode.getChatModeByName(entry.getValue()));
-                    }
-                }
-            } 
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
+        // Load any current chat modes from the chatmodes.yml file
+        loadChatModesFromFile();
         
         // Save and update the main config file
         saveDefaultConfig();
@@ -135,6 +115,13 @@ public class FactionsChat extends JavaPlugin
     public void onLoad() 
     {
         instance = this;
+    }
+
+    @Override
+    public void onDisable()
+    {
+        // Save chat modes to file on disable
+        saveChatModesFile();
     }
 
     @Override
@@ -252,6 +239,41 @@ public class FactionsChat extends JavaPlugin
     
     // - - - - - PUBLIC METHODS - - - - -
     
+    /**
+     * Loads the <code>chatmodes.yml</code> file, which contains a list of players and what
+     * chat mode they're currently using. This stores the chat modes in the
+     * {@link #chatModes} map, where the key is the player's UUID and the value is the 
+     * {@link ChatMode} they are using.
+     */
+    public void loadChatModesFromFile()
+    {
+        File chatmodesFile = new File(getDataFolder(), "chatmodes.yml");
+        if (!chatmodesFile.exists()) 
+        {
+            // If the file doesn't exist, create it with an empty configuration
+            try 
+            {
+                chatmodesFile.createNewFile();
+            } 
+            catch (IOException e) 
+            {
+                e.printStackTrace();
+            }
+        }
+
+        YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(chatmodesFile);
+        for (String key : yamlConfig.getKeys(false)) 
+        {
+            UUID playerUUID = UUID.fromString(key);
+            String chatModeName = yamlConfig.getString(key);
+            ChatMode chatMode = ChatMode.getChatModeByName(chatModeName);
+            if (chatMode != null) 
+            {
+                chatModes.put(playerUUID, chatMode);
+            }
+        }
+    }
+
     /**
      * Saves the <code>chatmodes.yml</code> file, which contains a list of players and what
      * chat mode they're currently using.

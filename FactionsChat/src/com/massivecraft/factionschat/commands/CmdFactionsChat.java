@@ -92,7 +92,6 @@ public class CmdFactionsChat extends FactionsCommand
         {
             FactionsChat.instance.getPlayerChatModes().put(msender.getUuid(), chatMode);
             msender.message(ChatColor.YELLOW + "Chatmode set: " + ChatColor.DARK_AQUA + chatMode.name());
-            FactionsChat.instance.saveChatModesFile();
         }
     }
 }
