@@ -585,7 +585,13 @@ public class MConf extends Entity<MConf>
 
 	// Interacting with these materials placed in the terrain results in pressure plate activation.
 	public BackstringSet<Material> materialsPressurePlate = new BackstringSet<>(Material.class);
+
+	// Using ender pearls on these materials results in ender pearl clip logic running.
+	public BackstringSet<Material> materialsNarrowBlocksFences = new BackstringSet<>(Material.class);
 	
+	// Using ender pearls on these materials results in ender pearl clip logic running.
+	public BackstringSet<Material> materialsNarrowBlocksPanes = new BackstringSet<>(Material.class);
+
 	// Interacting with these entities results in an edit.
 	public BackstringSet<EntityType> entityTypesEditOnInteract = new BackstringSet<>(EntityType.class);
 	

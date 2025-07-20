@@ -329,6 +329,56 @@ public class EnumerationUtil
     {
         return MATERIALS_PRESSURE_PLATES.contains(material) || MConf.get().materialsPressurePlate.contains(material);
     }
+
+    // -------------------------------------------- //
+    // MATERIAL NARROW BLOCKS
+    // -------------------------------------------- //
+    public static final BackstringSet<Material> MATERIALS_NARROW_BLOCKS_FENCES = new BackstringSet<>(Material.class,
+        "ACACIA_FENCE",              // Minecraft 1.8
+        "BAMBOO_FENCE",              // Minecraft 1.20
+        "BIRCH_FENCE",               // Minecraft 1.8
+        "CHERRY_FENCE",              // Minecraft 1.20
+        "CRIMSON_FENCE",             // Minecraft 1.16
+        "DARK_OAK_FENCE",            // Minecraft 1.8
+        "JUNGLE_FENCE",              // Minecraft 1.8
+        "MANGROVE_FENCE",            // Minecraft 1.19
+        "NETHER_BRICK_FENCE",        // Minecraft 1.0
+        "OAK_FENCE",                 // Minecraft 1.8
+        "PALE_OAK_FENCE",            // Minecraft 1.21.4
+        "SPRUCE_FENCE",              // Minecraft 1.8
+        "WARPED_FENCE"               // Minecraft 1.16
+    );
+
+    public static boolean isMaterialNarrowBlockFence(Material material)
+    {
+        return MATERIALS_NARROW_BLOCKS_FENCES.contains(material) || MConf.get().materialsNarrowBlocksFences.contains(material);
+    }
+
+    public static final BackstringSet<Material> MATERIALS_NARROW_BLOCKS_PANES = new BackstringSet<>(Material.class,
+        "GLASS_PANE",                    // Minecraft 1.0
+        "IRON_BARS",                     // Minecraft 1.0
+        "BLACK_STAINED_GLASS_PANE",      // Minecraft 1.7.2
+        "BLUE_STAINED_GLASS_PANE",       // Minecraft 1.7.2
+        "BROWN_STAINED_GLASS_PANE",      // Minecraft 1.7.2
+        "CYAN_STAINED_GLASS_PANE",       // Minecraft 1.7.2
+        "GRAY_STAINED_GLASS_PANE",       // Minecraft 1.7.2
+        "GREEN_STAINED_GLASS_PANE",      // Minecraft 1.7.2
+        "LIGHT_BLUE_STAINED_GLASS_PANE", // Minecraft 1.7.2
+        "LIGHT_GRAY_STAINED_GLASS_PANE", // Minecraft 1.7.2
+        "LIME_STAINED_GLASS_PANE",       // Minecraft 1.7.2
+        "MAGENTA_STAINED_GLASS_PANE",    // Minecraft 1.7.2
+        "ORANGE_STAINED_GLASS_PANE",     // Minecraft 1.7.2
+        "PINK_STAINED_GLASS_PANE",       // Minecraft 1.7.2
+        "PURPLE_STAINED_GLASS_PANE",     // Minecraft 1.7.2
+        "RED_STAINED_GLASS_PANE",        // Minecraft 1.7.2
+        "WHITE_STAINED_GLASS_PANE",      // Minecraft 1.7.2
+        "YELLOW_STAINED_GLASS_PANE"      // Minecraft 1.7.2
+    );
+
+    public static boolean isMaterialNarrowBlockPane(Material material)
+    {
+        return MATERIALS_NARROW_BLOCKS_PANES.contains(material) || MConf.get().materialsNarrowBlocksPanes.contains(material);
+    }
     
     // -------------------------------------------- //
     // ENTITY TYPE EDIT ON INTERACT
