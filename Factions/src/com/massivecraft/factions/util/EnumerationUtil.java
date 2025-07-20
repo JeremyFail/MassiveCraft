@@ -14,19 +14,26 @@ public class EnumerationUtil
     public static final BackstringSet<Material> MATERIALS_EDIT_ON_INTERACT = new BackstringSet<>(Material.class,
         "BEEHIVE",                      // Minecraft 1.15
         "BEE_NEST",                     // Minecraft 1.15
+        "CAKE",                         // Minecraft 1.0
         "CAULDRON",                     // Minecraft 1.0
         "CHISELED_BOOKSHELF",           // Minecraft 1.20
-        "COMPARATOR",                   // Minecraft 1.5
+        "COMPARATOR",                   // Minecraft 1.13 (renamed from REDSTONE_COMPARATOR)
         "COMPOSTER",                    // Minecraft 1.14
         "CRAFTER",                      // Minecraft 1.21
         "DAYLIGHT_DETECTOR",            // Minecraft 1.5
+        "DAYLIGHT_DETECTOR_INVERTED",   // Minecraft 1.5
         "DECORATED_POT",                // Minecraft 1.20
-        "FARMLAND",                     // Minecraft 1.0
+        "DIODE_BLOCK_OFF",              // Minecraft < 1.13
+        "DIODE_BLOCK_ON",               // Minecraft < 1.13
+        "FARMLAND",                     // Minecraft 1.13 (renamed from SOIL)
         "FLOWER_POT",                   // Minecraft 1.4.2
         "LECTERN",                      // Minecraft 1.14
         "LODESTONE",                    // Minecraft 1.16
         "NOTE_BLOCK",                   // Minecraft 1.0
-        "REPEATER",                     // Minecraft 1.0
+        "REDSTONE_COMPARATOR_OFF",      // Minecraft < 1.13
+        "REDSTONE_COMPARATOR_ON",       // Minecraft < 1.13
+        "REPEATER",                     // Minecraft 1.13 (renamed from DIODE_BLOCK)
+        "SOIL",                         // Minecraft < 1.13
         "VAULT",                        // Minecraft 1.20
         
         // Potted plants - starting with Minecraft 1.13
@@ -129,6 +136,7 @@ public class EnumerationUtil
     // -------------------------------------------- //
     
     public static final BackstringSet<Material> MATERIALS_EDIT_TOOL = new BackstringSet<>(Material.class, 
+        // Buckets    
         "BUCKET",               // Minecraft 1.0
         "WATER_BUCKET",         // Minecraft 1.0
         "LAVA_BUCKET",          // Minecraft 1.0
@@ -140,20 +148,27 @@ public class EnumerationUtil
         "TADPOLE_BUCKET",       // Minecraft 1.19
         "TROPICAL_FISH_BUCKET", // Minecraft 1.13
         
+        // Misc edit tools
         "ARMOR_STAND",          // Minecraft 1.8
         "BRUSH",                // Minecraft 1.20
         "END_CRYSTAL",          // Minecraft 1.10
-        "FIRE_CHARGE",          // Minecraft 1.0
+        "FIREBALL",             // Minecraft 1.0
+        "FIRE_CHARGE",          // Minecraft 1.13 (renamed from FIREBALL)
         "FLINT_AND_STEEL",      // Minecraft 1.0
+        "GLOW_INK_SAC",         // Minecraft 1.17
         "HONEYCOMB",            // Minecraft 1.15
         
         // The duplication bug found in Spigot 1.8 protocol patch
         // https://github.com/MassiveCraft/Factions/issues/693
-        // TODO: Are these needed? Maybe only Bone Meal...?
+        // TODO: Are these still needed?
         "CHEST",                // Minecraft 1.0
         "TRAPPED_CHEST",        // Minecraft 1.5
         "IRON_DOOR",            // Minecraft 1.0
-        "BONE_MEAL"             // Minecraft 1.0
+        "BONE_MEAL",            // Minecraft 1.0
+
+        // Signs
+        "SIGN",                 // Minecraft 1.0
+        "SIGN_POST"             // Minecraft 1.0
     );
     
     public static boolean isMaterialEditTool(Material material)
@@ -220,6 +235,7 @@ public class EnumerationUtil
         "BEACON",                   // Minecraft 1.4.2
         "BLAST_FURNACE",            // Minecraft 1.14
         "BREWING_STAND",            // Minecraft 1.0
+        "CAMPFIRE",                 // Minecraft 1.14
         "CHEST",                    // Minecraft 1.0
         "DISPENSER",                // Minecraft 1.0
         "DROPPER",                  // Minecraft 1.5
@@ -343,7 +359,8 @@ public class EnumerationUtil
         "END_CRYSTAL",          // Minecraft 1.9 (rename of ENDER_CRYSTAL)
         "GLOW_ITEM_FRAME",      // Minecraft 1.17
         "ITEM_FRAME",           // Minecraft 1.4.2
-        "LEASH_KNOT"            // Minecraft 1.6.1
+        "LEASH_KNOT",           // Minecraft 1.6.1
+        "TURTLE_EGG"            // Minecraft 1.13
     );
     
     public static boolean isEntityTypeEditOnDamage(EntityType entityType)
