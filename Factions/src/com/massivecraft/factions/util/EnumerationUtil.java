@@ -236,15 +236,23 @@ public class EnumerationUtil
         "BLAST_FURNACE",            // Minecraft 1.14
         "BREWING_STAND",            // Minecraft 1.0
         "CAMPFIRE",                 // Minecraft 1.14
+        "CARTOGRAPHY_TABLE",        // Minecraft 1.14
+        "CAULDRON",                 // Minecraft 1.0
         "CHEST",                    // Minecraft 1.0
+        "COMPOSTER",                // Minecraft 1.14
         "DISPENSER",                // Minecraft 1.0
         "DROPPER",                  // Minecraft 1.5
         "ENCHANTING_TABLE",         // Minecraft 1.0
         "ENDER_CHEST",              // Minecraft 1.3.1
+        "FLETCHING_TABLE",          // Minecraft 1.14
         "FURNACE",                  // Minecraft 1.0
+        "GRINDSTONE",               // Minecraft 1.14
         "HOPPER",                   // Minecraft 1.5
         "JUKEBOX",                  // Minecraft 1.0
+        "LECTERN",                  // Minecraft 1.14
+        "LOOM",                     // Minecraft 1.14
         "RESPAWN_ANCHOR",           // Minecraft 1.16
+        "SMITHING_TABLE",           // Minecraft 1.14
         "SMOKER",                   // Minecraft 1.14
         "TRAPPED_CHEST",            // Minecraft 1.5
         
