@@ -369,7 +369,7 @@ public class EngineMain extends Engine
 			// ... check if the place is occupied ...
 			if (currentGate != null)
 			{
-				message = Txt.parse("<b>There is no room for a new gate since there already is one here.");
+				message = Txt.parse("<b>There is no room for a new gate since there is already one here.");
 				MixinMessage.get().messageOne(player, message);
 				return;
 			}
@@ -389,7 +389,7 @@ public class EngineMain extends Engine
 			Entry<GateOrientation, Set<Block>> gateFloodInfo = FloodUtil.getGateFloodInfo(startBlock);
 			if (gateFloodInfo == null)
 			{
-				message = Txt.parse("<b>There is no frame for the gate, or it's to big.", Txt.getMaterialName(material));
+				message = Txt.parse("<b>There is no frame for the gate, or it's too big.", Txt.getMaterialName(material));
 				MixinMessage.get().messageOne(player, message);
 				return;
 			}
