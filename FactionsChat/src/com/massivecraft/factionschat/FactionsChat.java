@@ -53,7 +53,7 @@ public class FactionsChat extends JavaPlugin
     /**
      * The default chat format used by FactionsChat.
      */
-    private static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix|rp%&r&f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%";
+    private static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%";
     
     // Chat config settings
     // TODO: should these be stored in a static config class?
