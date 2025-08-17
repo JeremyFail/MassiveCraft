@@ -5,7 +5,7 @@
 #           Main Configuration File          #
 #                                            #
 ##############################################
-version: 1
+version: 2
 
 
 
@@ -72,4 +72,5 @@ TextColors:
 # Settings for the DiscordSRV integration (requires DiscordSRV to be installed).
 # The channel ID for the channel in your discord guild to link staff chat to
 # Right click the text channel, select "copy ID" and replace the current value with copied ID
-DiscordStaffChannel: '000000000000000000'
+DiscordSRV:
+  StaffChannel: '000000000000000000'
