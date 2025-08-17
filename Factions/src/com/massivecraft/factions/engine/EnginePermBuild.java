@@ -359,16 +359,19 @@ public class EnginePermBuild extends Engine
 	// USE > ENTITY
 	// -------------------------------------------- //
 	
-	// This event will not fire for Minecraft 1.8 armor stands.
-	// Armor stands are handled in EngineSpigot instead.
+	// Handles right-clicking entities, such as containers, leashes, etc.
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void useEntity(PlayerInteractEntityEvent event)
 	{
 		// Ignore Off Hand
 		if (isOffHand(event)) return;
 
+		// Gather Info
 		Player player = event.getPlayer();
+		if (MUtil.isntPlayer(player)) return;
 		Entity entity = event.getRightClicked();
+
+		// Process based on entity type
 		if (entity.getType() == EntityType.LEASH_KNOT)
 		{
 			useLeashEntity(player, entity, event);
@@ -463,15 +466,35 @@ public class EnginePermBuild extends Engine
 		protect(ProtectCase.BUILD, false, player, PS.valueOf(block), block, event);
 	}
 
+	// Handles placing vehicles
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void vehiclePlace(PlayerInteractEvent event) 
+	{
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+		if (event.getItem() == null) return;
+
+		Material item = event.getItem().getType();
+		Block block = event.getClickedBlock();
+		Player player = event.getPlayer();
+		if (MUtil.isntPlayer(player)) return;
+		
+		// If the item is a vehicle material
+		if (EnumerationUtil.isMaterialVehicle(item))
+		{
+			build(player, block, event);
+		}
+	}
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void vehicleDestroy(VehicleDestroyEvent event)
 	{
 		// If a player destroys a vehicle...
 		if (MUtil.isntPlayer(event.getAttacker())) return;
 		Player player = (Player) event.getAttacker();
+		Block block = event.getVehicle().getLocation().getBlock();
 		
 		// then check for build permissions.
-		build(player, player.getLocation().getBlock(), event);
+		build(player, block, event);
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

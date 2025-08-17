@@ -339,6 +339,47 @@ public class EnumerationUtil
     }
 
     // -------------------------------------------- //
+    // MATERIAL VEHICLE
+    // -------------------------------------------- //
+    public static final BackstringSet<Material> MATERIALS_VEHICLE = new BackstringSet<>(Material.class,
+        // BOATS    
+    "ACACIA_BOAT",              // Minecraft 1.9
+        "ACACIA_CHEST_BOAT",        // Minecraft 1.19
+        "BAMBOO_RAFT",              // Minecraft 1.20
+        "BAMBOO_CHEST_RAFT",        // Minecraft 1.20
+        "BIRCH_BOAT",               // Minecraft 1.9
+        "BIRCH_CHEST_BOAT",         // Minecraft 1.19
+        "CHERRY_BOAT",              // Minecraft 1.20
+        "CHERRY_CHEST_BOAT",        // Minecraft 1.20
+        "DARK_OAK_BOAT",            // Minecraft 1.9
+        "DARK_OAK_CHEST_BOAT",      // Minecraft 1.19
+        "JUNGLE_BOAT",              // Minecraft 1.9
+        "JUNGLE_CHEST_BOAT",        // Minecraft 1.19
+        "MANGROVE_BOAT",            // Minecraft 1.19
+        "MANGROVE_CHEST_BOAT",      // Minecraft 1.19
+        "OAK_BOAT",                 // Minecraft 1.0
+        "OAK_CHEST_BOAT",           // Minecraft 1.19
+        "PALE_OAK_BOAT",            // Minecraft 1.21.4
+        "PALE_OAK_CHEST_BOAT",      // Minecraft 1.21.4
+        "SPRUCE_BOAT",              // Minecraft 1.9
+        "SPRUCE_CHEST_BOAT",        // Minecraft 1.19
+
+        // MINECARTS
+        "MINECART",               // Minecraft 1.0
+        "CHEST_MINECART",         // Minecraft 1.0
+        "COMMAND_BLOCK_MINECART", // Minecraft 1.7.2
+        "FURNACE_MINECART",       // Minecraft 1.0
+        "HOPPER_MINECART",        // Minecraft 1.5
+        "SPAWNER_MINECART",       // Minecraft 1.5
+        "TNT_MINECART"            // Minecraft 1.5
+    );
+
+    public static boolean isMaterialVehicle(Material material)
+    {
+        return MATERIALS_VEHICLE.contains(material) || MConf.get().materialsVehicle.contains(material);
+    }
+
+    // -------------------------------------------- //
     // MATERIAL NARROW BLOCKS
     // -------------------------------------------- //
     public static final BackstringSet<Material> MATERIALS_NARROW_BLOCKS_FENCES = new BackstringSet<>(Material.class,
@@ -442,8 +483,8 @@ public class EnumerationUtil
         "OAK_CHEST_BOAT",       // Minecraft 1.19
         "PALE_OAK_CHEST_BOAT",  // Minecraft 1.21.4
         "SPRUCE_CHEST_BOAT",    // Minecraft 1.19
-        "MINECART_CHEST",       // Minecraft 1.0
-        "MINECART_HOPPER"       // Minecraft 1.5
+        "CHEST_MINECART",       // Minecraft 1.0
+        "HOPPER_MINECART"       // Minecraft 1.5
     );
     
     public static boolean isEntityTypeContainer(EntityType entityType)
