@@ -8,19 +8,24 @@ import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.api.events.DiscordGuildMessagePostProcessEvent;
 import github.scarsz.discordsrv.api.events.DiscordReadyEvent;
 import github.scarsz.discordsrv.api.events.GameChatMessagePreProcessEvent;
+import github.scarsz.discordsrv.api.Subscribe;
 
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 
 /**
  * An event listener that hooks into the DiscordSRV plugin to send staff
  * chats to a discord server channel. Requires the server have DiscordSRV
  * installed and the config file to be setup with the Discord channel ID.
  */
-public class DiscordSRVListener implements Listener
+public class DiscordSRVListener
 {
-    @EventHandler
+    /**
+     * Handles game chat messages and redirects them to the appropriate Discord channel
+     * based on the player's chat mode.
+     *
+     * @param event The game chat message pre-process event.
+     */
+    @Subscribe
     public void onGameChatMessage(GameChatMessagePreProcessEvent event)
     {
         ChatMode cm = FactionsChat.qmPlayers.containsKey(event.getPlayer().getUniqueId()) 
@@ -43,7 +48,14 @@ public class DiscordSRVListener implements Listener
         event.setCancelled(true);
     }
 
-    @EventHandler
+    // TODO: Look into deprecation of getProcessedMessage() in DiscordSRV
+    /**
+     * Handles messages sent in the Discord staff channel and broadcasts them
+     * to the server's staff chat.
+     *
+     * @param event The Discord message post-process event.
+     */
+    @Subscribe
     public void onMessageReceive(DiscordGuildMessagePostProcessEvent event)
     {
         String channelId = event.getChannel().getId();
@@ -59,10 +71,15 @@ public class DiscordSRVListener implements Listener
         Bukkit.broadcast(ChatPrefixes.STAFF + event.getProcessedMessage(), "factions.chat.staff");
     }
 
-    @EventHandler
+    /**
+     * Handles the DiscordSRV plugin being ready and registers the staff channel ID.
+     *
+     * @param event The Discord ready event.
+     */
+    @Subscribe
     public void onDiscordReady(DiscordReadyEvent event)
     {
-        String staffChannelId = FactionsChat.instance.getConfig().getString("DiscordStaffChannel", "000000000000000000");
+        String staffChannelId = FactionsChat.instance.getConfig().getString("DiscordSRV.StaffChannel", "000000000000000000");
         DiscordSRV.getPlugin().getChannels().put("staff", staffChannelId);
         FactionsChat.instance.getLogger().info("Registered channel ID " + DiscordSRV.getPlugin().getChannels().get("staff") + " for staff chat");
     }

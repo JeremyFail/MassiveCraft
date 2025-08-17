@@ -76,7 +76,7 @@
         <massiveDynmapVersion>3.7-beta8</massiveDynmapVersion>
         
         <!-- https://nexus.scarsz.me/content/groups/public/com/discordsrv/discordsrv/ -->
-        <massiveDiscordSrvVersion>1.20.0</massiveDiscordSrvVersion>
+        <massiveDiscordSrvVersion>1.30.0</massiveDiscordSrvVersion>
         
         <!-- https://ci.ender.zone/plugin/repository/everything/net/ess3/EssentialsX/ -->
         <massiveEssentialsVersion>2.16.1</massiveEssentialsVersion>

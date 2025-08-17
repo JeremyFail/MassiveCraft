@@ -313,12 +313,13 @@ public class FactionsChat extends JavaPlugin
                 return;
             }
 
+            // TODO: Implement better version handling
             // Compare the current config with the default config and update if necessary
             YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(getResource("config.yml")));
             YamlConfiguration serverConfig = YamlConfiguration.loadConfiguration(configFile);
 
             String defaultVersion = defaultConfig.getString("version", "1");
-            String serverVersion = serverConfig.getString("version", "1");
+            String serverVersion = serverConfig.getString("version", "2");
             if (!defaultVersion.equals(serverVersion))
             {
                 boolean changed = mergeConfigSections(defaultConfig, serverConfig, "");
@@ -415,8 +416,8 @@ public class FactionsChat extends JavaPlugin
         discordSrvPlugin = (DiscordSRV) pm.getPlugin("DiscordSRV");
         if (discordSrvPlugin != null) 
         {
-            logger.info("DiscordSRV detected.");
             DiscordSRV.api.subscribe(new DiscordSRVListener());
+            logger.info("DiscordSRV detected - integration enabled.");
         }
 
         essentialsPlugin = (Essentials) pm.getPlugin("Essentials");
