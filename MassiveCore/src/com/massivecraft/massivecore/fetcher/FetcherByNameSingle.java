@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -133,7 +134,8 @@ public class FetcherByNameSingle implements Callable<Map<String, IdAndName>>
 	
 	private static HttpURLConnection createConnection() throws Exception
 	{
-		URL url = new URL(PROFILE_URL);
+		URI uri = new URI(PROFILE_URL);
+		URL url = uri.toURL();
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
 		connection.setRequestProperty("Content-Type", "application/json");

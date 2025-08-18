@@ -105,7 +105,7 @@ public abstract class TypeAbstract<T> implements Type<T>
 	@Override public <I extends Type<?>> I getInnerType(int index) { return (I) this.getInnerTypes().get(index); }
 	@Override public <I extends Type<?>> I getInnerType() { return this.getInnerType(0); }
 	
-	@SuppressWarnings({ "unchecked"})
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Override public void setInnerTypes(Collection<Type<?>> innerTypes) { this.innerTypes = new MassiveList(innerTypes); }
 	@Override public void setInnerTypes(Type<?>... innerTypes) { this.setInnerTypes(Arrays.asList(innerTypes)); }
 	

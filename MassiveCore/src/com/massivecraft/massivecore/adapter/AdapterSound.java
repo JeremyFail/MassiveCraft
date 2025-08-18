@@ -12,6 +12,7 @@ import org.bukkit.Sound;
 
 import java.lang.reflect.Type;
 
+// TODO: Need to update to support the new Sound API
 public class AdapterSound implements JsonDeserializer<Sound>, JsonSerializer<Sound>
 {
 	// -------------------------------------------- //

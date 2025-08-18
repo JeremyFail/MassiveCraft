@@ -892,6 +892,7 @@ public class InventoryUtil
 		return !isNothing(itemStack);
 	}
 	
+	// TODO: Does this method work? Do we need it?
 	public static void repair(ItemStack itemStack)
 	{
 		// Check Null

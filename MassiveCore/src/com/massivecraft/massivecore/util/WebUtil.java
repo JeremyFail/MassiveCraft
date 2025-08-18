@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -40,9 +41,10 @@ public class WebUtil
 	{
 		try
 		{
-			touch(new URL(url), synchronous);
+			URI uri = URI.create(url);
+			touch(uri.toURL(), synchronous);
 		}
-		catch (MalformedURLException e)
+		catch (IllegalArgumentException | MalformedURLException e)
 		{
 			e.printStackTrace();
 		}
@@ -117,6 +119,15 @@ public class WebUtil
 			try { br.close(); } catch (Exception ignored) {}
 			// However documentation suggested we must disconnect the HttpURLConnection manually.
 			try { uc.disconnect(); } catch (Exception ignored) {}
+		}
+	}
+	
+	// Overloaded method to support URI
+	public static List<String> getLines(java.net.URI uri) throws IOException {
+		try {
+			return getLines(uri.toURL());
+		} catch (IllegalArgumentException | java.net.MalformedURLException e) {
+			throw new IOException("Invalid URI: " + uri, e);
 		}
 	}
 	

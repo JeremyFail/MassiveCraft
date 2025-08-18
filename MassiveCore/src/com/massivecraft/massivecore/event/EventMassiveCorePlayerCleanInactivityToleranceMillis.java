@@ -39,11 +39,13 @@ public class EventMassiveCorePlayerCleanInactivityToleranceMillis extends EventM
 	// CONSTRUCT
 	// -------------------------------------------- //
 	
+	@SuppressWarnings("rawtypes")
 	public EventMassiveCorePlayerCleanInactivityToleranceMillis(long lastActivityMillis, SenderEntity entity)
 	{
 		this(lastActivityMillis, System.currentTimeMillis(), entity);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public EventMassiveCorePlayerCleanInactivityToleranceMillis(long lastActivityMillis, long now, SenderEntity entity)
 	{
 		this.lastActivityMillis = lastActivityMillis;

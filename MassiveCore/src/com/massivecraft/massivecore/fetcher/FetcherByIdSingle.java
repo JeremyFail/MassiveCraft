@@ -6,6 +6,7 @@ import org.json.simple.parser.JSONParser;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
@@ -94,7 +95,8 @@ public class FetcherByIdSingle implements Callable<Map<UUID, IdAndName>>
 	
 	private static HttpURLConnection createConnection(UUID id) throws Exception
 	{
-		URL url = new URL(PROFILE_URL + id.toString().replace("-", ""));
+		URI uri = new URI(PROFILE_URL + id.toString().replace("-", ""));
+		URL url = uri.toURL();
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setConnectTimeout(15000);
 		connection.setReadTimeout(15000);

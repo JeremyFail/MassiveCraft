@@ -180,7 +180,6 @@ public abstract class TypeContainer<C, E> extends TypeAbstract<C>
 	// READ
 	// -------------------------------------------- //
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public C read(String arg, CommandSender sender) throws MassiveException
 	{

@@ -61,6 +61,7 @@ public abstract class MassiveCommandSetSharding<T extends Serializable> extends 
 	// OVERRIDE
 	// -------------------------------------------- //
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void perform() throws MassiveException
 	{

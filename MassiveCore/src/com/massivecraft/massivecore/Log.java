@@ -57,6 +57,7 @@ public class Log
 		return this;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <T> T get(String key)
 	{
 		return (T) this.getFields().get(key);

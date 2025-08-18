@@ -3,6 +3,7 @@ package com.massivecraft.massivecore.predicate;
 import com.massivecraft.massivecore.store.SenderEntity;
 import com.massivecraft.massivecore.util.IdUtil;
 
+@SuppressWarnings("rawtypes")
 public class PredicateSenderEntityOnlineTo implements Predicate<SenderEntity>
 {
 	// -------------------------------------------- //

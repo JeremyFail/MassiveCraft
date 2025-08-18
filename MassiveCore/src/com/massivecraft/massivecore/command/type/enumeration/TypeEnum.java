@@ -2,12 +2,6 @@ package com.massivecraft.massivecore.command.type.enumeration;
 
 import com.massivecraft.massivecore.command.type.TypeAbstractChoice;
 import com.massivecraft.massivecore.util.Txt;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList; 
-import java.util.List;
-import org.bukkit.util.OldEnum;
 
 public class TypeEnum<T extends Enum<T>> extends TypeAbstractChoice<T>
 {

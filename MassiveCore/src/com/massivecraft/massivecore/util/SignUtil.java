@@ -90,6 +90,7 @@ public class SignUtil
 		return getSpecialTitle(line, strict);
 	}
 	
+	// TODO: Update for multiple-sided signs
 	public static String getSpecialTitle(Sign sign, boolean strict)
 	{
 		if (sign == null) throw new NullPointerException("sign");

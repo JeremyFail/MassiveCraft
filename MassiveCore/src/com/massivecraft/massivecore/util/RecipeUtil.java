@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
+// TODO: Look into deprecation of PotionMeta and PotionData - do we even need this utility anymore?
 // NOTE: This utility targets 1.9 and will crash on older servers.
 public class RecipeUtil
 {
@@ -69,7 +70,6 @@ public class RecipeUtil
 	// SHAPELESS
 	// -------------------------------------------- //
 	
-	@SuppressWarnings("deprecation")
 	public static ShapelessRecipe createShapeless(ItemStack result, Object... objects)
 	{
 		ShapelessRecipe recipe = MixinRecipe.get().createShapeless(result);

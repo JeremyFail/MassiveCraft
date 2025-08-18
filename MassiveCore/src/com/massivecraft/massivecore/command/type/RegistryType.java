@@ -16,7 +16,6 @@ import com.massivecraft.massivecore.command.type.container.TypeMap;
 import com.massivecraft.massivecore.command.type.container.TypeSet;
 import com.massivecraft.massivecore.command.type.enumeration.TypeBiome;
 import com.massivecraft.massivecore.command.type.enumeration.TypeChatColor;
-import com.massivecraft.massivecore.command.type.enumeration.TypeDamageModifier;
 import com.massivecraft.massivecore.command.type.enumeration.TypeDifficulty;
 import com.massivecraft.massivecore.command.type.enumeration.TypeDyeColor;
 import com.massivecraft.massivecore.command.type.enumeration.TypeEntityType;
@@ -26,7 +25,6 @@ import com.massivecraft.massivecore.command.type.enumeration.TypeFireworkEffectT
 import com.massivecraft.massivecore.command.type.enumeration.TypeGameMode;
 import com.massivecraft.massivecore.command.type.enumeration.TypeHorseColor;
 import com.massivecraft.massivecore.command.type.enumeration.TypeHorseStyle;
-import com.massivecraft.massivecore.command.type.enumeration.TypeHorseVariant;
 import com.massivecraft.massivecore.command.type.enumeration.TypeLlamaColor;
 import com.massivecraft.massivecore.command.type.enumeration.TypeMaterial;
 import com.massivecraft.massivecore.command.type.enumeration.TypeParrotVariant;
@@ -92,6 +90,7 @@ public class RegistryType
 	// GET TYPE
 	// -------------------------------------------- //
 	
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public static Type<?> getType(Field field, java.lang.reflect.Type fieldType, boolean strictThrow)
 	{
 		if (field != null)
@@ -305,12 +304,10 @@ public class RegistryType
 		register(TypeGameMode.get());
 		register(TypeHorseColor.get());
 		register(TypeHorseStyle.get());
-		register(TypeHorseVariant.get());
 		register(TypeMaterial.get());
 		register(TypeParticle.get());
 		register(TypeSpawnReason.get());
 		register(TypeRabbitType.get());
-		register(TypeDamageModifier.get());
 		register(TypeLlamaColor.get());
 		register(TypeParrotVariant.get());
 		register(TypeSound.get());

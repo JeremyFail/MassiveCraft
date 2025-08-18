@@ -252,7 +252,7 @@ public class ReflectionUtil
 	{
 		try
 		{
-			Method get = getMethod(clazz, "get");
+			getMethod(clazz, "get");
 			return true;
 		}
 		catch (Exception ex)
@@ -614,6 +614,7 @@ public class ReflectionUtil
 		return classifiedA.isAssignableFrom(classifiedB);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	private static Class<?> classify(Type type)
 	{
 		// Use loop structure rather than recursion to avoid stack size issues

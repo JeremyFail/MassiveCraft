@@ -947,6 +947,7 @@ public class MassiveCommand implements Active, PluginIdentifiableCommand
 	}
 	public void setSetupPermBaseClassName(String setupPermBaseClassName) { this.setupPermBaseClassName = setupPermBaseClassName; }
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public <T extends Enum<T>> Class<T> getSetupPermClass()
 	{
 		// Use field if present
@@ -1069,6 +1070,7 @@ public class MassiveCommand implements Active, PluginIdentifiableCommand
 		return PermissionUtil.createPermissionId(this.getRoot().getPlugin(), permName);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected static <T extends Enum<T>> T getPerm(String permName, boolean lenient, Class<?> permClazz)
 	{
 		Class<T> permClass = (Class<T>) permClazz;

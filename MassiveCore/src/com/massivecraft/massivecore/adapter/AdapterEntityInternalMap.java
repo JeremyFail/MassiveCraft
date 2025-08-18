@@ -45,6 +45,7 @@ public class AdapterEntityInternalMap implements JsonDeserializer<EntityInternal
 		return ret;
 	}
 	
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Override
 	public EntityInternalMap<?> deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException
 	{
@@ -73,5 +74,4 @@ public class AdapterEntityInternalMap implements JsonDeserializer<EntityInternal
 		// Return ret
 		return ret;
 	}
-	
 }

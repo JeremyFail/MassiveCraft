@@ -61,6 +61,7 @@ public abstract class SenderEntity<E extends SenderEntity<E>> extends Entity<E> 
 	// OVERRIDES
 	// -------------------------------------------- //
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public SenderColl<E> getColl()
 	{

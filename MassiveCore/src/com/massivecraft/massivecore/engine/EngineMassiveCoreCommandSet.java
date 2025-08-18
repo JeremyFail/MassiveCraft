@@ -42,7 +42,7 @@ public class EngineMassiveCoreCommandSet extends Engine
 		}
 	}
 	
-	
+	@SuppressWarnings("unchecked")
 	public <T extends Serializable> void setValue(EventMassiveCoreCommandSet<T> event) throws MassiveException
 	{
 		String senderId = event.getSenderId();

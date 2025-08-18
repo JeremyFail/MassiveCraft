@@ -15,6 +15,7 @@ public class PredicateIsClassSingleton implements Predicate<Class<?>>
 	// OVERRIDE
 	// -------------------------------------------- //
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean apply(Class clazz)
 	{

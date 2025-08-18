@@ -19,7 +19,7 @@ public class FieldAccessorInternalEntityMap extends FieldAccessorSimple
 	// CORE
 	// -------------------------------------------- //
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void set(Object entity, Object val)
 	{
 		EntityInternalMap entityMap = (EntityInternalMap) this.get(entity);

@@ -73,7 +73,7 @@ public final class AdapterModdedEnumType<T extends Enum<T>> extends TypeAdapter<
 
 	public static <TT> TypeAdapterFactory newEnumTypeHierarchyFactory() {
 		return new TypeAdapterFactory() {
-			@SuppressWarnings({"unchecked"})
+			@SuppressWarnings({"unchecked", "rawtypes"})
 			public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
 				Class<? super T> rawType = typeToken.getRawType();
 				if (!Enum.class.isAssignableFrom(rawType) || rawType == Enum.class) {

@@ -1,5 +1,10 @@
 package com.massivecraft.massivecore.command.type;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.potion.PotionEffectType;
 
 public class TypePotionEffectType extends TypeAbstractChoice<PotionEffectType>
@@ -13,7 +18,10 @@ public class TypePotionEffectType extends TypeAbstractChoice<PotionEffectType>
 	public TypePotionEffectType()
 	{
 		super(PotionEffectType.class);
-		this.setAll(PotionEffectType.values());
+
+		List<PotionEffectType> potionEffects = new ArrayList<>();
+		Registry.EFFECT.iterator().forEachRemaining(potionEffects::add);
+		this.setAll(potionEffects);
 	}
 	
 	// -------------------------------------------- //
@@ -23,7 +31,8 @@ public class TypePotionEffectType extends TypeAbstractChoice<PotionEffectType>
 	@Override
 	public String getNameInner(PotionEffectType value)
 	{
-		return value.getName();
+		NamespacedKey key = value.getKeyOrNull();
+		return key != null ? key.getKey() : null;
 	}
 
 	@SuppressWarnings("deprecation")

@@ -9,6 +9,7 @@ import org.bukkit.Sound;
 import java.util.Map;
 import java.util.Set;
 
+// TODO: Need to update to support the new Sound API
 public class TypeSound extends TypeOldEnum<Sound>
 {
 	// -------------------------------------------- //

@@ -32,6 +32,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+// TODO: Look into PlayerChatTabCompleteEvent deprecation
 public class EngineMassiveCoreMain extends Engine
 {
 	// -------------------------------------------- //

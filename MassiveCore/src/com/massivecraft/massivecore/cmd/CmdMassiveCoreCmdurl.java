@@ -10,8 +10,7 @@ import com.massivecraft.massivecore.util.WebUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
 
 public class CmdMassiveCoreCmdurl extends MassiveCoreCommand
@@ -45,25 +44,25 @@ public class CmdMassiveCoreCmdurl extends MassiveCoreCommand
 	{
 		// Args
 		String urlString = this.readArg();
-		
-		final URL url;
+
+		final URI uri;
 		try
 		{
-			url = new URL(urlString);
+			uri = URI.create(urlString);
 		}
-		catch (MalformedURLException e)
+		catch (IllegalArgumentException e)
 		{
-			msg("<b>Malformed URL: %s", e.getMessage());
+			msg("<b>Malformed URI: %s", e.getMessage());
 			return;
 		}
-		
+
 		// Apply 
 		final Player commander = me;
 		msg("<i>Loading <aqua>%s <i>...", urlString);
 		async(() -> {
 			try
 			{
-				final List<String> lines = WebUtil.getLines(url);
+				final List<String> lines = WebUtil.getLines(uri); // Updated to use URI
 				sync(() -> {
 					MixinMessage.get().msgOne(commander, "<i>... <h>%d <i>lines loaded. Now executing ...", lines.size());
 					for (int i = 0; i <= lines.size() - 1; i++)
