@@ -287,6 +287,22 @@ public class MConf extends Entity<MConf>
 	public String territoryInfoChat = "<i> ~ {relcolor}{name} <i>{desc}";
 
 	public boolean territoryAccessShowMessage = true;
+
+	// -------------------------------------------- //
+	// SEE CHUNK PARTICLE
+	// -------------------------------------------- //
+
+	// The particle effect used when seeing a chunk.
+	// This should correspond to a valid Particle enum value.
+	// For visual reference --> https://minecraft.wiki/w/Particles_(Java_Edition)
+	// Actual enum values   --> https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+	public String seeChunkParticle = "HAPPY_VILLAGER";
+
+	// The speed of the spawned particles.
+	public float seeChunkParticleSpeed = 0.0f;
+
+	// The number of particles to spawn when seeing a chunk.
+	public int seeChunkParticleAmount = 10;
 	
 	// -------------------------------------------- //
 	// ASSORTED

@@ -1,5 +1,6 @@
 package com.massivecraft.factions.engine;
 
+import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.event.EventMassiveCorePlayerLeave;
@@ -81,10 +82,22 @@ public class EngineSeeChunk extends Engine
 		final float offsetX = 0.0f;
 		final float offsetY = 2;
 		final float offsetZ = 0.0f;
-		final float speed = 0;
-		final int amount = 30;
 		
-		// For each player
+		Particle particle;
+		try 
+		{
+			particle = Particle.valueOf(MConf.get().seeChunkParticle);
+		}
+		catch (IllegalArgumentException | NullPointerException e)
+		{
+			// If the particle is not valid, default to HAPPY_VILLAGER
+			particle = Particle.HAPPY_VILLAGER;
+		}
+
+		float particleSpeed = MConf.get().seeChunkParticleSpeed;
+		int particleAmount = MConf.get().seeChunkParticleAmount;
+		
+		// Display particles to all players who have seeChunk enabled
 		for (Player player : Bukkit.getOnlinePlayers())
 		{
 			// Hide for dead players since the death screen looks better without.
@@ -96,10 +109,10 @@ public class EngineSeeChunk extends Engine
 			
 			// Calculate locations and play the effect there.
 			List<Location> locations = getLocations(player, steps, step);
+
 			for (Location location : locations)
 			{
-				location.getWorld().spawnParticle(Particle.EXPLOSION, location, amount, offsetX, offsetY, offsetZ, speed);
-				//ParticleEffect.EXPLOSION_NORMAL.display(location, offsetX, offsetY, offsetZ, speed, amount, player);
+				location.getWorld().spawnParticle(particle, location, particleAmount, offsetX, offsetY, offsetZ, particleSpeed);
 			}
 		}
 	}
