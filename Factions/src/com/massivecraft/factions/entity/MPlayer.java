@@ -29,7 +29,6 @@ import org.bukkit.entity.Player;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -834,7 +833,6 @@ public class MPlayer extends SenderEntity<MPlayer> implements FactionsParticipat
 		// NoChange
 		// We clean the chunks further by removing what does not change.
 		// This is also very suggested cleaning of EventFactionsChunksChange input.
-		Iterator<PS> iter = chunks.iterator();
 		chunks.removeIf(chunk -> BoardColl.get().getFactionAt(chunk) == newFaction);
 		if (chunks.isEmpty())
 		{

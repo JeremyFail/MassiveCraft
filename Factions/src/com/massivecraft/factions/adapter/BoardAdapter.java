@@ -23,7 +23,6 @@ public class BoardAdapter implements JsonDeserializer<Board>, JsonSerializer<Boa
 	// OVERRIDE
 	// -------------------------------------------- //
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public Board deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
 	{
