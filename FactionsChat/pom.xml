@@ -16,7 +16,7 @@
 
     <!-- Info -->
     <name>${project.artifactId}</name>
-    <description>${massiveColorInfo}${project.name} allows players to chat in different channels, including their global chat, their faction, allies, and more. ${massiveDescriptionSuffix}</description>
+    <description>${massiveColorInfo}${project.name} allows players to chat in different channels, including global chat, their faction, allies, and more. ${massiveDescriptionSuffix}</description>
     <url>${massiveBaseUrl}/factionschat</url>
     
     <!-- Dependencies -->

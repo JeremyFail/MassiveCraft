@@ -16,7 +16,7 @@
 
     <!-- Info -->
     <name>${project.artifactId}</name>
-    <description>${massiveColorInfo}${project.name} allows the players to team up and claim land as their own and start wars with other factions. This way we hope to inspire politics, intrigue, and team spirit. ${massiveDescriptionSuffix}</description>
+    <description>${massiveColorInfo}${project.name} allows players to team up, claim land as their own, and start wars with other factions. This introduces and inspires politics, intrigue, and team spirit to any Spigot or Paper server. ${massiveDescriptionSuffix}</description>
     <url>${massiveBaseUrl}/factions</url>
 
     <!-- Dependencies -->
