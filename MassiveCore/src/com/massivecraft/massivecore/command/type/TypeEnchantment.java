@@ -71,7 +71,7 @@ public class TypeEnchantment extends TypeAbstractChoice<Enchantment>
 	
 	public static String enchantmentToKey(Enchantment enchantment)
 	{
-		NamespacedKey key = enchantment.getKeyOrNull();
+		NamespacedKey key = enchantment.getKey();
 		return key != null ? key.getKey() : null;
 	}
 	
@@ -104,7 +104,7 @@ public class TypeEnchantment extends TypeAbstractChoice<Enchantment>
 	@Override
 	public String getNameInner(Enchantment enchantment)
 	{
-		NamespacedKey key = enchantment.getKeyOrNull();
+		NamespacedKey key = enchantment.getKey();
 		if (key == null) return "";
 		String rawname = key.getKey();
 		List<String> rawnames = ID_TO_RAWNAMES.get(enchantmentToKey(enchantment));
@@ -123,7 +123,7 @@ public class TypeEnchantment extends TypeAbstractChoice<Enchantment>
 		List<String> rawnames = ID_TO_RAWNAMES.get(enchantmentToKey(enchantment));
 		if (rawnames != null) raws.addAll(rawnames);
 
-		NamespacedKey key = enchantment.getKeyOrNull();
+		NamespacedKey key = enchantment.getKey();
 		if (key != null)
 		{
 			raws.add(key.getKey());

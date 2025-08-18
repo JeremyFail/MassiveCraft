@@ -31,7 +31,7 @@ public class TypePotionEffectType extends TypeAbstractChoice<PotionEffectType>
 	@Override
 	public String getNameInner(PotionEffectType value)
 	{
-		NamespacedKey key = value.getKeyOrNull();
+		NamespacedKey key = value.getKey();
 		return key != null ? key.getKey() : null;
 	}
 
