@@ -109,7 +109,6 @@ permissions:
   factions.relation.set: {description: set relation wish to another faction, default: false}
   factions.relation.wishes: {description: list the relation wishes, default: false}
   factions.seechunk: {description: see the chunk you stand in, default: false}
-  factions.seechunkold: {description: see the chunk you stand in, default: false}
   factions.setpower: {description: set power, default: false}
   factions.status: {description: show status, default: false}
   factions.tax: {description: manage taxes, default: false}
@@ -254,7 +253,6 @@ permissions:
       factions.relation.set: true
       factions.relation.wishes: true
       factions.seechunk: true
-      factions.seechunkold: true
       factions.sethome: true
       factions.setpower: true
       factions.status: true
@@ -421,7 +419,6 @@ permissions:
       factions.relation.set: true
       factions.relation.wishes: true
       factions.seechunk: true
-      factions.seechunkold: true
       factions.sethome: true
       factions.status: true
       factions.tax: true

@@ -45,7 +45,6 @@ public enum Perm implements Identified
 
 	// These are just here to tell the system that it is seechunk rather than see.chunk
 	SEECHUNK,
-	SEECHUNKOLD,
 	
 	// END OF LIST
 	;

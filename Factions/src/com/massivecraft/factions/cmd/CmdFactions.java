@@ -44,7 +44,6 @@ public class CmdFactions extends FactionsCommand
 	public CmdFactionsMoney cmdFactionsMoney = new CmdFactionsMoney();
 	public CmdFactionsTop cmdFactionsTop = new CmdFactionsTop();
 	public CmdFactionsSeeChunk cmdFactionsSeeChunk = new CmdFactionsSeeChunk();
-	public CmdFactionsSeeChunkOld cmdFactionsSeeChunkOld = new CmdFactionsSeeChunkOld();
 	public CmdFactionsTerritorytitles cmdFactionsTerritorytitles = new CmdFactionsTerritorytitles();
 	public CmdFactionsClaim cmdFactionsClaim = new CmdFactionsClaim();
 	public CmdFactionsUnclaim cmdFactionsUnclaim = new CmdFactionsUnclaim();
