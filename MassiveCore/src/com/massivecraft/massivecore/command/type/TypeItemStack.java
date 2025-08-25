@@ -78,7 +78,7 @@ public class TypeItemStack extends TypeAbstract<ItemStack>
 		if ( ! (sender instanceof Player)) throw new MassiveException().addMsg("<b>You must be a player to hold an item in your hand.");
 		Player player = (Player)sender;
 		
-		ItemStack ret = InventoryUtil.getWeapon(player);
+		ItemStack ret = InventoryUtil.getMainHand(player);
 		if (InventoryUtil.isNothing(ret)) throw new MassiveException().addMsg("<b>You must hold an item in your hand.");
 		
 		Material material = ret.getType();

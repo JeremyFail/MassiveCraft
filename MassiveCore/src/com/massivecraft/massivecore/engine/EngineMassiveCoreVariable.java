@@ -59,7 +59,7 @@ public class EngineMassiveCoreVariable extends Engine
 	{
 		if ( ! (sender instanceof HumanEntity)) return null;
 		HumanEntity human = (HumanEntity)sender;
-		ItemStack item = InventoryUtil.getWeapon(human);
+		ItemStack item = InventoryUtil.getMainHand(human);
 		return getBookText(item);
 	}
 	

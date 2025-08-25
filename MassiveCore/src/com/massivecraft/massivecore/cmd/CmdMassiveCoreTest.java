@@ -48,16 +48,16 @@ public class CmdMassiveCoreTest extends MassiveCoreCommand
 			InventoryUtil.setChestplate(me, new ItemStack(Material.DIAMOND_CHESTPLATE));
 			InventoryUtil.setLeggings(me, new ItemStack(Material.DIAMOND_LEGGINGS));
 			InventoryUtil.setBoots(me, new ItemStack(Material.DIAMOND_BOOTS));
-			InventoryUtil.setWeapon(me, new ItemStack(Material.DIAMOND_SWORD));
-			InventoryUtil.setShield(me, new ItemStack(Material.DIRT));
+			InventoryUtil.setMainHand(me, new ItemStack(Material.DIAMOND_SWORD));
+			InventoryUtil.setOffHand(me, new ItemStack(Material.DIRT));
 		}
 		
 		inform("helmet", InventoryUtil.getHelmet(me));
 		inform("chestplate", InventoryUtil.getChestplate(me));
 		inform("leggings", InventoryUtil.getLeggings(me));
 		inform("boots", InventoryUtil.getBoots(me));
-		inform("weapon", InventoryUtil.getWeapon(me));
-		inform("shield", InventoryUtil.getShield(me));
+		inform("weapon", InventoryUtil.getMainHand(me));
+		inform("shield", InventoryUtil.getOffHand(me));
 		
 		inform("all", InventoryUtil.getContentsAll(me.getInventory()));
 		inform("storage", InventoryUtil.getContentsStorage(me.getInventory()));
