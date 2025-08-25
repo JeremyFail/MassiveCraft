@@ -5,6 +5,7 @@ import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.entity.UGateColl;
 import com.massivecraft.massivecore.MassiveException;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommand;
 import com.massivecraft.massivecore.command.Parameter;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
@@ -40,7 +41,7 @@ public class CmdCgWorldList extends MassiveCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesCgWorldList;
+		return new MassiveList<>(MConf.get().getAliasesCgWorldList());
 	}
 	
 	@Override

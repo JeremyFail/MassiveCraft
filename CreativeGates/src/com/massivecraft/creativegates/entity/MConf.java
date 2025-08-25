@@ -9,8 +9,8 @@ import org.bukkit.Material;
 import org.bukkit.permissions.PermissionDefault;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @EditorName("config")
 public class MConf extends Entity<MConf>
@@ -43,13 +43,30 @@ public class MConf extends Entity<MConf>
 	}
 
 	// Aliases
-	public List<String> aliasesCg = MUtil.list("cg", "creativegates", "creativegate");
-	public List<String> aliasesCgWorld = MUtil.list("world");
-	public List<String> aliasesCgWorldList = MUtil.list("list");
-	public List<String> aliasesCgWorldDelete = MUtil.list("delete");
-	public List<String> aliasesCgConfig = MUtil.list("config");
-	public List<String> aliasesCgVersion = MUtil.list("v", "version");
+	private Set<String> aliasesCg = MUtil.set("cg", "creativegates", "creativegate");
+	public Set<String> getAliasesCg() { return this.aliasesCg; }
+	public void setAliasesCg(Set<String> aliasesCg) { this.aliasesCg = aliasesCg; }
 	
+	private Set<String> aliasesCgWorld = MUtil.set("world");
+	public Set<String> getAliasesCgWorld() { return this.aliasesCgWorld; }
+	public void setAliasesCgWorld(Set<String> aliasesCgWorld) { this.aliasesCgWorld = aliasesCgWorld; }
+
+	private Set<String> aliasesCgWorldList = MUtil.set("list");
+	public Set<String> getAliasesCgWorldList() { return this.aliasesCgWorldList; }
+	public void setAliasesCgWorldList(Set<String> aliasesCgWorldList) { this.aliasesCgWorldList = aliasesCgWorldList; }
+	
+	private Set<String> aliasesCgWorldDelete = MUtil.set("delete");
+	public Set<String> getAliasesCgWorldDelete() { return this.aliasesCgWorldDelete; }
+	public void setAliasesCgWorldDelete(Set<String> aliasesCgWorldDelete) { this.aliasesCgWorldDelete = aliasesCgWorldDelete; }
+	
+	private Set<String> aliasesCgConfig = MUtil.set("config");
+	public Set<String> getAliasesCgConfig() { return this.aliasesCgConfig; }
+	public void setAliasesCgConfig(Set<String> aliasesCgConfig) { this.aliasesCgConfig = aliasesCgConfig; }
+
+	private Set<String> aliasesCgVersion = MUtil.set("v", "version");
+	public Set<String> getAliasesCgVersion() { return this.aliasesCgVersion; }
+	public void setAliasesCgVersion(Set<String> aliasesCgVersion) { this.aliasesCgVersion = aliasesCgVersion; }
+
 	public boolean teleportationSoundActive = true;
 	public boolean teleportationMessageActive = true;
 	

@@ -5,6 +5,7 @@ import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.entity.UGateColl;
 import com.massivecraft.massivecore.MassiveException;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommand;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import com.massivecraft.massivecore.command.type.primitive.TypeString;
@@ -33,7 +34,7 @@ public class CmdCgWorldDelete extends MassiveCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesCgWorldDelete;
+		return new MassiveList<>(MConf.get().getAliasesCgWorldDelete());
 	}
 	
 	@Override

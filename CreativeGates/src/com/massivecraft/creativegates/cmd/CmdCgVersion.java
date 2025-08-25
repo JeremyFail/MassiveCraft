@@ -3,6 +3,7 @@ package com.massivecraft.creativegates.cmd;
 import com.massivecraft.creativegates.CreativeGates;
 import com.massivecraft.creativegates.Perm;
 import com.massivecraft.creativegates.entity.MConf;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommandVersion;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 
@@ -29,7 +30,7 @@ public class CmdCgVersion extends MassiveCommandVersion
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesCgVersion;
+		return new MassiveList<>(MConf.get().getAliasesCgVersion());
 	}
 	
 }
