@@ -16,6 +16,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -227,7 +228,12 @@ public class InventoryUtil
 	// WEAPON
 	
 	// NOTE: We make sure to convert AIR into null due to a Bukkit API inconsistency.
-	@SuppressWarnings("deprecation")
+	/**
+	 * DEPRECATED: Use getMainHand() instead
+	 * @param inventory
+	 * @return
+	 */
+	@Deprecated
 	public static ItemStack getWeapon(Inventory inventory)
 	{
 		PlayerInventory playerInventory = asPlayerInventory(inventory);
@@ -237,14 +243,26 @@ public class InventoryUtil
 		return ret;
 
 	}
-	@SuppressWarnings("deprecation")
+	
+	/**
+	 * DEPRECATED: Use setMainHand() instead
+	 * @param inventory
+	 * @param weapon
+	 */
+	@Deprecated
 	public static void setWeapon(Inventory inventory, ItemStack weapon)
 	{
 		PlayerInventory playerInventory = asPlayerInventory(inventory);
 		if (playerInventory == null) return;
 		playerInventory.setItemInHand(weapon);
 	}
-	@SuppressWarnings("deprecation")
+	
+	/**
+	 * DEPRECATED: Use getMainHand() instead
+	 * @param human
+	 * @return
+	 */
+	@Deprecated
 	public static ItemStack getWeapon(HumanEntity human)
 	{
 		if (human == null) return null;
@@ -252,7 +270,13 @@ public class InventoryUtil
 		ret = clean(ret);
 		return ret;
 	}
-	@SuppressWarnings("deprecation")
+	
+	/**
+	 * DEPRECATED: Use setMainHand() instead
+	 * @param human
+	 * @param weapon
+	 */
+	@Deprecated
 	public static void setWeapon(HumanEntity human, ItemStack weapon)
 	{
 		if (human == null) return;
@@ -261,6 +285,13 @@ public class InventoryUtil
 	
 	// SHIELD
 	
+	/**
+	 * DEPRECATED: Use getOffHand() instead
+	 * 
+	 * @param inventory
+	 * @return
+	 */
+	@Deprecated
 	public static ItemStack getShield(Inventory inventory)
 	{
 		PlayerInventory playerInventory = asPlayerInventory(inventory);
@@ -273,6 +304,14 @@ public class InventoryUtil
 		ret = clean(ret);
 		return ret;
 	}
+
+	/**
+	 * DEPRECATED: Use setOffHand() instead
+	 * 
+	 * @param inventory
+	 * @param shield
+	 */
+	@Deprecated
 	public static void setShield(Inventory inventory, ItemStack shield)
 	{
 		PlayerInventory playerInventory = asPlayerInventory(inventory);
@@ -283,16 +322,160 @@ public class InventoryUtil
 		
 		inventory.setItem(INDEX_PLAYER_SHIELD, shield);
 	}
+
+	/**
+	 * DEPRECATED: Use getOffHand() instead
+	 * 
+	 * @param human
+	 * @return
+	 */
+	@Deprecated
 	public static ItemStack getShield(HumanEntity human)
 	{
 		if (human == null) return null;
 		return getShield(human.getInventory());
 	}
+
+	/**
+	 * DEPRECATED: Use setOffHand() instead
+	 * 
+	 * @param human
+	 * @param shield
+	 */
+	@Deprecated
 	public static void setShield(HumanEntity human, ItemStack shield)
 	{
 		if (human == null) return;
 		setShield(human.getInventory(), shield);
 	}
+
+	// MAIN HAND
+	
+	// NOTE: We make sure to convert AIR into null due to a Bukkit API inconsistency.
+	public static ItemStack getMainHand(Inventory inventory)
+	{
+		PlayerInventory playerInventory = asPlayerInventory(inventory);
+		if (playerInventory == null) return null;
+		ItemStack ret = playerInventory.getItemInMainHand();
+		ret = clean(ret);
+		return ret;
+	}
+	
+	public static void setMainHand(Inventory inventory, ItemStack weapon)
+	{
+		PlayerInventory playerInventory = asPlayerInventory(inventory);
+		if (playerInventory == null) return;
+		playerInventory.setItemInMainHand(weapon);
+	}
+	
+	public static ItemStack getMainHand(HumanEntity human)
+	{
+		if (human == null) return null;
+		return getMainHand(human.getInventory());
+	}
+	
+	public static void setMainHand(HumanEntity human, ItemStack weapon)
+	{
+		if (human == null) return;
+		setMainHand(human.getInventory(), weapon);
+	}
+	
+	// OFF HAND
+	
+	// NOTE: We make sure to convert AIR into null due to a Bukkit API inconsistency.
+	
+	public static ItemStack getOffHand(Inventory inventory)
+	{
+		PlayerInventory playerInventory = asPlayerInventory(inventory);
+		if (playerInventory == null) return null;
+		ItemStack ret = playerInventory.getItemInOffHand();
+		ret = clean(ret);
+		return ret;
+		
+	}
+	
+	public static void setOffHand(Inventory inventory, ItemStack weapon)
+	{
+		PlayerInventory playerInventory = asPlayerInventory(inventory);
+		if (playerInventory == null) return;
+		playerInventory.setItemInOffHand(weapon);
+	}
+	
+	public static ItemStack getOffHand(HumanEntity human)
+	{
+		if (human == null) return null;
+		return getOffHand(human.getInventory());
+	}
+	
+	public static void setOffHand(HumanEntity human, ItemStack weapon)
+	{
+		if (human == null) return;
+		setOffHand(human.getInventory(), weapon);
+	}
+	
+	// EQUIPMENT SLOTS
+	
+	public static ItemStack getSlot(Inventory inventory, EquipmentSlot slot)
+	{
+		if (slot == null) return null;
+		switch (slot)
+		{
+			case HEAD:
+				return getHelmet(inventory);
+			case CHEST:
+				return getChestplate(inventory);
+			case LEGS:
+				return getLeggings(inventory);
+			case FEET:
+				return getBoots(inventory);
+			case HAND:
+				return getMainHand(inventory);
+			case OFF_HAND:
+				return getOffHand(inventory);
+			default:
+				throw new RuntimeException("Unsupported EquipmentSlot: " + slot);
+		}
+	}
+	
+	public static void setSlot(Inventory inventory, ItemStack item, EquipmentSlot slot)
+	{
+		switch (slot)
+		{
+			case HEAD:
+				setHelmet(inventory, item);
+				return;
+			case CHEST:
+				setChestplate(inventory, item);
+				return;
+			case LEGS:
+				setLeggings(inventory, item);
+				return;
+			case FEET:
+				setBoots(inventory, item);
+				return;
+			case HAND:
+				setMainHand(inventory, item);
+				return;
+			case OFF_HAND:
+				setOffHand(inventory, item);
+				return;
+			default:
+				throw new RuntimeException("Unsupported EquipmentSlot: " + slot);
+		}
+	}
+	
+	public static ItemStack getSlot(HumanEntity human, EquipmentSlot slot)
+	{
+		if (human == null) return null;
+		return getSlot(human.getInventory(), slot);
+	}
+
+	public static void setSlot(HumanEntity human, ItemStack item, EquipmentSlot slot)
+	{
+		if (human == null) return;
+		setSlot(human.getInventory(), item, slot);
+	}
+
 	
 	// -------------------------------------------- //
 	// CONTENTS SECTIONS
