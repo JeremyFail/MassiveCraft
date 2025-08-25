@@ -41,7 +41,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.HashSet;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -571,38 +570,15 @@ public class EngineMain extends Engine
 		
 	}
 	
-	// Note we cannot use event.getHand() because it is too new
 	private static void decreaseOne(PlayerInteractEvent event)
 	{
 		ItemStack currentItem = event.getItem();
 		Player player = event.getPlayer();
 		
+		assert currentItem != null;
 		ItemStack newItem = new ItemStack(currentItem);
 		newItem.setAmount(newItem.getAmount() - 1);
-		
-		boolean weapon = InventoryUtil.equals(currentItem, InventoryUtil.getWeapon(player));
-		boolean shield = InventoryUtil.equals(currentItem, InventoryUtil.getShield(player));
-		
-		if (weapon) InventoryUtil.setWeapon(player, newItem);
-		else if (shield) InventoryUtil.setShield(player, newItem);
-		else
-		{
-			// This is not to be epected, but it is an attempt future-proofing, in case the API changes.
-			boolean succes = false;
-			for (ListIterator<ItemStack> it = player.getInventory().iterator(); it.hasNext();)
-			{
-				ItemStack itemStack = it.next();
-				
-				// If the item stack is equal to the old item stack, then they are probably the same.
-				if (!InventoryUtil.equals(currentItem, itemStack)) continue;
-				
-				// So just set
-				it.set(newItem);
-				succes = true;
-				break;
-			}
-			if (!succes) throw new RuntimeException();
-		}
+		InventoryUtil.setSlot(player, newItem, event.getHand());
 	}
 	
 }
