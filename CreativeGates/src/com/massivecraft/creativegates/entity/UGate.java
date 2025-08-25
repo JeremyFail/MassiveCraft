@@ -1,8 +1,10 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.CreativeGates;
+import com.massivecraft.creativegates.GateOrientation;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.mixin.MixinTeleport;
+import com.massivecraft.massivecore.mixin.MixinVisibility;
 import com.massivecraft.massivecore.mixin.TeleporterException;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.store.Entity;
@@ -13,12 +15,11 @@ import com.massivecraft.massivecore.util.SmokeUtil;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Axis;
 import org.bukkit.Effect;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -60,6 +61,7 @@ public class UGate extends Entity<UGate>
 		this.enterEnabled = that.enterEnabled;
 		this.exitEnabled = that.exitEnabled;
 		this.exit = that.exit;
+		this.orientation = that.orientation;
 		this.setCoordsNoChanged(that.coords);
 		
 		return this;
@@ -167,6 +169,14 @@ public class UGate extends Entity<UGate>
 	{
 		this.changed(this.coords, coords);
 		this.setCoordsNoChanged(coords);
+	}
+
+	private GateOrientation orientation = GateOrientation.NS;
+	public GateOrientation getOrientation() { return this.orientation; }
+	public void setOrientation(GateOrientation orientation)
+	{
+		this.changed(this.orientation, orientation);
+		this.orientation = orientation;
 	}
 	
 	// -------------------------------------------- //
@@ -321,24 +331,7 @@ public class UGate extends Entity<UGate>
 	{
 		List<Block> blocks = this.getBlocks();
 		if (blocks == null) return;
-		boolean facingNorthSouth = true;
-		
-		// Orientation check
-		if (material == Material.NETHER_PORTAL)
-		{
-			Block origin = blocks.get(0);
-			Block blockSouth = origin.getRelative(BlockFace.SOUTH);
-			Block blockNorth = origin.getRelative(BlockFace.NORTH);
-
-			if (blocks.contains(blockNorth) || blocks.contains(blockSouth))
-			{
-				facingNorthSouth = false;
-			}
-			else
-			{
-				facingNorthSouth = true;
-			}
-		}
+		Axis axis = orientation == GateOrientation.NS ? Axis.X : Axis.Z;
 		
 		for (Block block : blocks)
 		{
@@ -351,9 +344,8 @@ public class UGate extends Entity<UGate>
 			// Apply orientation
 			if (material != Material.NETHER_PORTAL) continue;
 
-			BlockData data = block.getBlockData();
-			Orientable orientable = (Orientable) data;
-			orientable.setAxis(facingNorthSouth ? Axis.X : Axis.Z);
+			Orientable orientable = (Orientable) block.getBlockData();
+			orientable.setAxis(axis);
 			block.setBlockData(orientable);
 		}
 	}
@@ -383,9 +375,18 @@ public class UGate extends Entity<UGate>
 	
 	public void fxKitUse(Player player)
 	{
-		//this.fxEnder();
+		// If teleportation sound is active in the config
 		if (!MConf.get().teleportationSoundActive) return;
+		
+		// If the player is not in spectator
+		if (player.getGameMode() == GameMode.SPECTATOR) return;
+		
+		// If the player is not vanished
+		if (!MixinVisibility.get().isVisible(player)) return;
+		
+		// Do sound
 		this.fxShootSound();
+
 	}
 	
 	public void fxKitDestroy(Player player)
