@@ -226,6 +226,8 @@ public class InventoryUtil
 	}
 	
 	// WEAPON
+
+	// TODO: Remove deprecated methods in 3.5.0
 	
 	// NOTE: We make sure to convert AIR into null due to a Bukkit API inconsistency.
 	/**
