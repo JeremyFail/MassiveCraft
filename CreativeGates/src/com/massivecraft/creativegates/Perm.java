@@ -11,6 +11,7 @@ public enum Perm implements Identified
 	// -------------------------------------------- //
 	
 	CREATE,
+	CREATE_BYPASSDISABLED,
 	USE,
 	CG,
 	CG_WORLD,

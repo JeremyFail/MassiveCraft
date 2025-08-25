@@ -1,6 +1,7 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.Perm;
+import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.command.editor.annotation.EditorName;
 import com.massivecraft.massivecore.store.Entity;
 import com.massivecraft.massivecore.util.MUtil;
@@ -168,4 +169,14 @@ public class MConf extends Entity<MConf>
 		this.materialMode = materialMode;
 	}
 
+	// Prevent gate creation in these worlds
+	// Can be bypassed with the bypass permission
+	// This still allows gate usage in these world if gates exist there
+	private Set<String> gateCreationDisabledWorlds = new MassiveSet<>();
+	public Set<String> getGateCreationDisabledWorlds() { return new MassiveSet<>(this.gateCreationDisabledWorlds); }
+	public void setGateCreationDisabledWorlds(Set<String> gateCreationDisabledWorlds)
+	{
+		this.changed(this.gateCreationDisabledWorlds, gateCreationDisabledWorlds);
+		this.gateCreationDisabledWorlds = new MassiveSet<>(gateCreationDisabledWorlds);
+	}
 }

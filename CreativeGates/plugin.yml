@@ -11,6 +11,7 @@ permissions:
 # THE REAL NODES
 # -------------------------------------------- #
   creativegates.create: {description: create a gate, default: false}
+  creativegates.create.bypassdisabled: {description: bypass disabled worlds for gate creation, default: false}
   creativegates.use: {description: use a gate, default: false}
   creativegates.cg: {description: use creativegates base command, default: false}
   creativegates.cg.world: {description: world gate management, default: false}

@@ -364,6 +364,15 @@ public class EngineMain extends Engine
 			
 			// ... check permission node ...
 			if ( ! Perm.CREATE.has(player, MConf.get().verboseCreatePermission)) return;
+
+			// ... check if creation is disabled in this world ...
+			if (MConf.get().getGateCreationDisabledWorlds().contains(player.getWorld().getName()) 
+					&& !Perm.CREATE_BYPASSDISABLED.has(player))
+			{
+				message = Txt.parse("<b>You cannot create gates in this world.");
+				MixinMessage.get().messageOne(player, message);
+				return;
+			}
 			
 			// ... check if the place is occupied ...
 			if (currentGate != null)
