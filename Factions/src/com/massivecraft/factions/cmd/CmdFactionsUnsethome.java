@@ -25,6 +25,9 @@ public class CmdFactionsUnsethome extends FactionsCommandWarp
 
 		// Aliases
 		this.addAliases("delhome");
+
+		// Description
+		this.setDesc("alias to remove the faction home warp");
 	}
 	
 	// -------------------------------------------- //

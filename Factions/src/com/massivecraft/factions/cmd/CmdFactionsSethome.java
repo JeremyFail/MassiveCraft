@@ -22,6 +22,9 @@ public class CmdFactionsSethome extends FactionsCommandWarp
 
 		// Parameters
 		this.addParameter(TypeFaction.get(), "faction", "you");
+
+		// Description
+		this.setDesc("alias to set the faction home warp");
 	}
 	
 	// -------------------------------------------- //
