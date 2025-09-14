@@ -203,6 +203,9 @@ public class EnumerationUtil
         "JUNGLE_DOOR",          // Minecraft 1.8
         "JUNGLE_FENCE_GATE",    // Minecraft 1.8
         "JUNGLE_TRAPDOOR",      // Minecraft 1.8
+        "MANGROVE_DOOR",        // Minecraft 1.19
+        "MANGROVE_FENCE_GATE",  // Minecraft 1.19
+        "MANGROVE_TRAPDOOR",    // Minecraft 1.19
         "OAK_DOOR",             // Minecraft 1.8
         "OAK_FENCE_GATE",       // Minecraft 1.8
         "OAK_TRAPDOOR",         // Minecraft 1.8
