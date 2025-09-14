@@ -432,6 +432,7 @@ public class EngineMain extends Engine
 			newGate.setNetworkId(newNetworkId);
 			newGate.setExit(exit);
 			newGate.setCoords(coords);
+			newGate.setOrientation(gateOrientation);
 			
 			// ... set the air blocks to portal material ...
 			newGate.fill();

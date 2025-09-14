@@ -331,13 +331,13 @@ public class UGate extends Entity<UGate>
 	{
 		List<Block> blocks = this.getBlocks();
 		if (blocks == null) return;
-		Axis axis = orientation == GateOrientation.NS ? Axis.X : Axis.Z;
+		Axis axis = orientation == GateOrientation.NS ? Axis.Z : Axis.X;
 		
 		for (Block block : blocks)
 		{
 			Material blockMaterial = block.getType();
 			
-			if (blockMaterial != Material.NETHER_PORTAL && blockMaterial != Material.WATER && ! CreativeGates.isVoid(blockMaterial)) continue;
+			if (blockMaterial != Material.NETHER_PORTAL && blockMaterial != Material.WATER && !CreativeGates.isVoid(blockMaterial)) continue;
 			
 			block.setType(material);
 			
