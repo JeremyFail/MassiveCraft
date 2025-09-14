@@ -8,9 +8,12 @@ import java.util.Set;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factions.entity.MFlag;
 import com.massivecraft.factions.entity.MPlayer;
+import com.massivecraft.factions.entity.Warp;
 import com.massivecraft.factions.util.LazyLocation;
+import com.massivecraft.massivecore.ps.PS;
 
 /**
  * This class attempts to provide minimal compatibility with Factions V1/FactionsUUID
@@ -217,27 +220,44 @@ public class LegacyFaction implements Faction
     @Override
     public void setHome(Location home)
     {
-        // TODO: Look at how to implement with warps
+        // TODO: not sure if this works, need to test
+        PS ps = PS.valueOf(home);
+		Warp warp = new Warp(MConf.get().warpsHomeName, ps);
+        realFaction.getWarps().attach(warp);
     }
 
     @Override
     public void delHome()
     {
-        // TODO: Look at how to implement with warps
-        
+        // TODO: not sure if this works, need to test
+        Warp warp = realFaction.getWarp(MConf.get().warpsHomeName);
+        if (warp != null)
+        {
+            warp.detach();
+        }
     }
 
     @Override
     public boolean hasHome()
     {
-        // TODO: Look at how to implement with warps
+        // TODO: not sure if this works, need to test
+        Warp warp = realFaction.getWarp(MConf.get().warpsHomeName);
+        if (warp != null)
+        {
+            return true;
+        }
         return false;
     }
 
     @Override
     public Location getHome()
     {
-        // TODO: Look at how to implement with warps
+        // TODO: not sure if this works, need to test
+        Warp warp = realFaction.getWarp(MConf.get().warpsHomeName);
+        if (warp != null)
+        {
+            return warp.getLocation().asBukkitLocation();
+        }
         return null;
     }
 
