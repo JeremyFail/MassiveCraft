@@ -51,7 +51,7 @@ public class EngineMain extends Engine
 	// INSTANCE & CONSTRUCT
 	// -------------------------------------------- //
 	
-	private static EngineMain i = new EngineMain();
+	private static final EngineMain i = new EngineMain();
 	public static EngineMain get() { return i; }
 	
 	// -------------------------------------------- //
@@ -60,7 +60,7 @@ public class EngineMain extends Engine
 	
 	public static boolean isGateNearby(Block block)
 	{
-		if ( ! MConf.get().isEnabled()) return false;
+		if (!MConf.get().isEnabled()) return false;
 		
 		final int radius = 3;
 		for (int dx = -radius; dx <= radius; dx++)
@@ -98,11 +98,11 @@ public class EngineMain extends Engine
 	
 	public static boolean isPortalBlockStable(Block block)
 	{
-		if (CreativeGates.isVoid(block.getRelative(+0, +1, +0)) == true) return false;
-		if (CreativeGates.isVoid(block.getRelative(+0, -1, +0)) == true) return false;
+		if (CreativeGates.isVoid(block.getRelative(+0, +1, +0))) return false;
+		if (CreativeGates.isVoid(block.getRelative(+0, -1, +0))) return false;
 		
-		if (CreativeGates.isVoid(block.getRelative(+1, +0, +0)) == false && CreativeGates.isVoid(block.getRelative(-1, +0, +0)) == false) return true;
-		if (CreativeGates.isVoid(block.getRelative(+0, +0, +1)) == false && CreativeGates.isVoid(block.getRelative(+0, +0, -1)) == false) return true;
+		if (!CreativeGates.isVoid(block.getRelative(+1, +0, +0)) && !CreativeGates.isVoid(block.getRelative(-1, +0, +0))) return true;
+		if (!CreativeGates.isVoid(block.getRelative(+0, +0, +1)) && !CreativeGates.isVoid(block.getRelative(+0, +0, -1))) return true;
 		
 		return false;
 	}
@@ -112,7 +112,7 @@ public class EngineMain extends Engine
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(BlockFromToEvent event)
 	{
-		if ( ! MConf.get().isUsingWater()) return;
+		if (!MConf.get().isUsingWater()) return;
 		if (UGate.get(event.getBlock()) == null && UGate.get(event.getToBlock()) == null) return;
 		event.setCancelled(true);
 	}
@@ -170,9 +170,9 @@ public class EngineMain extends Engine
 	// -------------------------------------------- //
 	
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void noZombiePigmanPortalSpawn(CreatureSpawnEvent event)
+	public void noZombifiedPiglinPortalSpawn(CreatureSpawnEvent event)
 	{
-		// If a zombie pigman is spawning ...
+		// If a zombified piglin is spawning ...
 		if (event.getEntityType() != EntityType.ZOMBIFIED_PIGLIN) return;
 		
 		// ... because of a nether portal ...
@@ -208,7 +208,7 @@ public class EngineMain extends Engine
 		if (ugate == null) return;
 		
 		// ... and if the gate is intact ...
-		if ( ! ugate.isIntact())
+		if (!ugate.isIntact())
 		{
 			// We try to detect that a gate was destroyed once it happens by listening to a few events.
 			// However there will always be cases we miss and by checking at use we catch those as well.
@@ -218,13 +218,13 @@ public class EngineMain extends Engine
 		}
 		
 		// ... and gates are enabled here ...
-		if ( ! MConf.get().isEnabled()) return;
+		if (!MConf.get().isEnabled()) return;
 		
 		// ... and we have permission to use gates ...
-		if ( ! Perm.USE.has(player, MConf.get().verboseUsePermission)) return;
+		if (!Perm.USE.has(player, MConf.get().verboseUsePermission)) return;
 		
 		// ... and the gate has enter enabled ...
-		if ( ! ugate.isEnterEnabled())
+		if (!ugate.isEnterEnabled())
 		{
 			String message = Txt.parse("<i>This gate has enter disabled.");
 			MixinMessage.get().messageOne(player, message);
@@ -330,8 +330,8 @@ public class EngineMain extends Engine
 		if (clickedBlock == null) return;
 		
 		// ... and gates are enabled here ...
-		if ( ! MConf.get().isEnabled()) return;
-		
+		if (!MConf.get().isEnabled()) return;
+
 		// ... and the item in hand ...
 		final ItemStack currentItem = event.getItem();
 		if (currentItem == null) return;
@@ -364,15 +364,6 @@ public class EngineMain extends Engine
 			
 			// ... check permission node ...
 			if ( ! Perm.CREATE.has(player, MConf.get().verboseCreatePermission)) return;
-
-			// ... check if creation is disabled in this world ...
-			if (MConf.get().getGateCreationDisabledWorlds().contains(player.getWorld().getName()) 
-					&& !Perm.CREATE_BYPASSDISABLED.has(player))
-			{
-				message = Txt.parse("<b>You cannot create gates in this world.");
-				MixinMessage.get().messageOne(player, message);
-				return;
-			}
 			
 			// ... check if the place is occupied ...
 			if (currentGate != null)
@@ -383,7 +374,7 @@ public class EngineMain extends Engine
 			}
 			
 			// ... check if the item is named ...
-			ItemMeta currentItemMeta = currentItem.getItemMeta();
+			ItemMeta currentItemMeta = InventoryUtil.createMeta(currentItem);
 			if ( ! currentItemMeta.hasDisplayName())
 			{
 				message = Txt.parse("<b>You must name the %s before creating a gate with it.", Txt.getMaterialName(material));
@@ -394,7 +385,8 @@ public class EngineMain extends Engine
 			
 			// ... perform the flood fill ...
 			Block startBlock = clickedBlock.getRelative(event.getBlockFace());
-			Entry<GateOrientation, Set<Block>> gateFloodInfo = FloodUtil.getGateFloodInfo(startBlock);
+			float absYaw = Math.abs(Location.normalizeYaw(player.getLocation().getYaw()));
+			Entry<GateOrientation, Set<Block>> gateFloodInfo = FloodUtil.getGateFloodInfo(startBlock, absYaw);
 			if (gateFloodInfo == null)
 			{
 				message = Txt.parse("<b>There is no frame for the gate, or it's too big.", Txt.getMaterialName(material));
@@ -465,11 +457,13 @@ public class EngineMain extends Engine
 				
 				// (add one unnamed)
 				ItemStack newItemUnnamed = new ItemStack(currentItem);
-				ItemMeta newItemUnnamedMeta = newItemUnnamed.getItemMeta();
+				ItemMeta newItemUnnamedMeta = InventoryUtil.createMeta(newItemUnnamed);
 				newItemUnnamedMeta.setDisplayName(null);
 				newItemUnnamed.setItemMeta(newItemUnnamedMeta);
 				newItemUnnamed.setAmount(1);
-				player.getInventory().addItem(newItemUnnamed);
+				if (player.getInventory().addItem(newItemUnnamed).size() > 0) {
+					player.getWorld().dropItemNaturally(player.getLocation(), newItemUnnamed);
+				}
 				
 				// Update soon
 				InventoryUtil.updateSoon(player);
@@ -506,7 +500,7 @@ public class EngineMain extends Engine
 			}
 			
 			// ... and we are not using water ...
-			if ( ! MConf.get().isUsingWater())
+			if (!MConf.get().isUsingWater())
 			{
 				// ... update the portal orientation
 				currentGate.fill();
@@ -531,7 +525,7 @@ public class EngineMain extends Engine
 					return;
 				}
 			}
-			
+
 			if (material == MConf.get().getMaterialInspect())
 			{
 				// ... we are trying to inspect ...
@@ -555,13 +549,12 @@ public class EngineMain extends Engine
 					currentGate.setRestricted(secret);
 					
 					message = (secret ? Txt.parse("<h>Only you <i>can read the gate inscriptions now.") : Txt.parse("<h>Anyone <i>can read the gate inscriptions now."));
-					MixinMessage.get().messageOne(player, message);
 				}
 				else
 				{
 					message = Txt.parse("<i>It seems <h>only the gate creator <i>can change inscription readability.", Txt.getMaterialName(material), Txt.getMaterialName(clickedBlock.getType()));
-					MixinMessage.get().messageOne(player, message);
 				}
+				MixinMessage.get().messageOne(player, message);
 			}
 			else if (material == MConf.get().getMaterialMode())
 			{

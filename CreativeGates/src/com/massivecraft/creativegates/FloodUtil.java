@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class FloodUtil
 {
-	public static Entry<GateOrientation, Set<Block>> getGateFloodInfo(Block startBlock)
+	public static Entry<GateOrientation, Set<Block>> getGateFloodInfo(Block startBlock, float absYaw)
 	{
 		MConf mconf = MConf.get();
 		
@@ -19,20 +19,20 @@ public class FloodUtil
 		GateOrientation gateOrientaion = null;
 		Set<Block> blocksNS = getFloodBlocks(startBlock, new HashSet<>(), GateOrientation.NS.expandFaces, mconf.getMaxarea());
 		Set<Block> blocksWE = getFloodBlocks(startBlock, new HashSet<>(), GateOrientation.WE.expandFaces, mconf.getMaxarea());
-		
-		// Figure out dir and content... or throw no frame fail. 
+
+		// Figure out dir and content... or throw no frame fail.
 		Set<Block> blocks;
 		if (blocksNS != null && blocksWE != null)
 		{
-			if (blocksNS.size() > blocksWE.size())
-			{
-				blocks = blocksWE;
-				gateOrientaion = GateOrientation.WE;
-			}
-			else
+			if (absYaw <= 135 && absYaw > 45)
 			{
 				blocks = blocksNS;
 				gateOrientaion = GateOrientation.NS;
+			}
+			else
+			{
+				blocks = blocksWE;
+				gateOrientaion = GateOrientation.WE;
 			}
 		}
 		else if (blocksNS != null)
@@ -63,7 +63,7 @@ public class FloodUtil
 			return null;
 		}
 		
-		if  (foundBlocks.size() > maxarea)
+		if (foundBlocks.size() > maxarea)
 		{
 			return null;
 		}
@@ -91,7 +91,6 @@ public class FloodUtil
 	
 	public static Set<Block> expandedByOne(Set<Block> blocks, Set<BlockFace> expandFaces)
 	{
-
 		Set<Block> ret = new HashSet<>(blocks);
 		
 		for (Block block : blocks)
