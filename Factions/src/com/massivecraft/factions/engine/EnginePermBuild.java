@@ -321,23 +321,89 @@ public class EnginePermBuild extends Engine
 		Location blockLocation = block.getLocation();
 		for (Entity entity : block.getWorld().getNearbyEntities(blockLocation, 1, 1, 1))
 		{
-			// If the entity is not a player, skip it
-			if (entity == null || MUtil.isntPlayer(entity)) continue;
+			if (entity == null) continue;
 
-			Player player = (Player) entity;
-			UUID uuid = player.getUniqueId();
-			Location last = lastMessagedLoc.get(uuid);
-			boolean verboose = (last == null || !last.equals(blockLocation));
+			Player player = null;
 
-			Boolean prevent = useRedstoneBlock(player, block, blockMaterial, verboose);
-
-			if (Boolean.TRUE.equals(prevent))
+			// If the entity is a tamed animal, check its owner
+			// This prevents players from using pressure plates via a tamed pet walking on it
+			if (entity instanceof Tameable)
 			{
-				event.setNewCurrent(0);
-				if (verboose)
+				Tameable tameable = (Tameable) entity;
+				if (tameable.isTamed() && tameable.getOwner() instanceof Player)
 				{
-					lastMessagedLoc.put(uuid, blockLocation);
+					player = (Player) tameable.getOwner();
 				}
+			}
+
+			// If the entity has passengers, check if any are players
+			// This prevents players from using pressure plates via horses, pigs, etc.
+			List<Entity> passengers = entity.getPassengers();
+			if (player == null && !passengers.isEmpty())
+			{
+				for (Entity passenger : passengers)
+				{
+					if (MUtil.isPlayer(passenger))
+					{
+						player = (Player) passenger;
+						break;
+					}
+				}
+			}
+
+			// If the entity is on a leash, check to see if the leash holder is a player
+			// This prevents players from using pressure plates via leashed mobs
+			if (player == null && entity instanceof LivingEntity)
+			{
+				LivingEntity leashedEntity = (LivingEntity) entity;
+				if (leashedEntity.isLeashed() && leashedEntity.getLeashHolder() instanceof Player)
+				{
+					player = (Player) leashedEntity.getLeashHolder();
+				}
+			}
+
+			// If the entity is a projectile, check its shooter
+			// This prevents players from using pressure plates via arrows, fireballs, etc.
+			if (player == null && entity instanceof Projectile)
+			{
+				Projectile projectile = (Projectile) entity;
+				ProjectileSource shooter = projectile.getShooter();
+				if (shooter instanceof Player)
+				{
+					player = (Player) shooter;
+				}
+			}
+			
+			// Check if the entity is a player
+			if (player == null && MUtil.isPlayer(entity))
+			{
+				player = (Player) entity;
+			}
+
+			// If we have a player, validate if the pressure plate can be used
+			if (player != null)
+			{
+				UUID uuid = player.getUniqueId();
+				Location last = lastMessagedLoc.get(uuid);
+				boolean verboose = (last == null || !last.equals(blockLocation));
+
+				Boolean prevent = useRedstoneBlock(player, block, blockMaterial, verboose);
+
+				// If we are preventing activation, set the current to 0 (unpowered)
+				if (Boolean.TRUE.equals(prevent))
+				{
+					event.setNewCurrent(0);
+					if (verboose)
+					{
+						lastMessagedLoc.put(uuid, blockLocation);
+					}
+				}
+			}
+			else
+			{
+				// The entity is not a player or controlled by a player
+				// Allow the pressure plate to be activated
+				return;
 			}
 		}
 	}
@@ -587,7 +653,7 @@ public class EnginePermBuild extends Engine
 			}
 		}
 	}
-	
+
 	// -------------------------------------------- //
 	// BUILD > PISTON
 	// -------------------------------------------- //
