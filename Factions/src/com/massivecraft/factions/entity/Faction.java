@@ -1376,7 +1376,7 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 		boolean offlineexplosions = this.getFlag(MFlag.getFlagOfflineExplosions());
 
 		if (explosions && offlineexplosions) return true;
-		if ( ! explosions && ! offlineexplosions) return false;
+		if (!explosions && !offlineexplosions) return false;
 
 		boolean online = this.isFactionConsideredOnline();
 		

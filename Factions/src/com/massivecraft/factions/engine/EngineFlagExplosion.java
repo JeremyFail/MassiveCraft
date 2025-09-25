@@ -61,10 +61,10 @@ public class EngineFlagExplosion extends Engine
 	public void blockExplosion(EntityDamageEvent event)
 	{
 		// If an explosion damages ...
-		if ( ! DAMAGE_CAUSE_EXPLOSIONS.contains(event.getCause())) return;
+		if (!DAMAGE_CAUSE_EXPLOSIONS.contains(event.getCause())) return;
 
 		// ... an entity that is modified on damage ...
-		if ( ! EnumerationUtil.isEntityTypeEditOnDamage(event.getEntityType())) return;
+		if (!EnumerationUtil.isEntityTypeEditOnDamage(event.getEntityType())) return;
 
 		// ... and the faction has explosions disabled ...
 		if (BoardColl.get().getFactionAt(PS.valueOf(event.getEntity())).isExplosionsAllowed()) return;

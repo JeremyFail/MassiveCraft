@@ -602,6 +602,9 @@ public class MConf extends Entity<MConf>
 	// Interacting with these materials placed in the terrain results in pressure plate activation.
 	public BackstringSet<Material> materialsPressurePlate = new BackstringSet<>(Material.class);
 
+	// These materials can be broken by a wind charge.
+	public BackstringSet<Material> materialsWindChargeBreakable = new BackstringSet<>(Material.class);
+
 	// Interacting with these materials placed in the terrain results in placing a vehicle.
 	public BackstringSet<Material> materialsVehicle = new BackstringSet<>(Material.class);
 

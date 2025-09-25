@@ -17,6 +17,7 @@ public enum ProtectCase
 	USE_ITEM,
 	USE_ENTITY,
 	USE_REDSTONE_BLOCK,
+	USE_WIND_CHARGE,
 	LEASH_MOB,
 	
 	// END OF LIST
@@ -55,11 +56,22 @@ public enum ProtectCase
 				if (EnumerationUtil.isMaterialButton(material)) return MPerm.getPermButton();
 				if (material == Material.LEVER) return MPerm.getPermLever();
 				return null;
-			
+
 			case USE_REDSTONE_BLOCK:
 				if (!(object instanceof Material)) return null;
 				Material steppedMaterial = (Material) object;
 				if (EnumerationUtil.isMaterialPressurePlate(steppedMaterial)) return MPerm.getPermPressurePlate();
+				return null;
+
+			// Wind charge can activate various blocks and break some blocks (decorated pots, candles)
+			// We need to check what type of block it is to determine the correct permission
+			case USE_WIND_CHARGE:
+				if (!(object instanceof Material)) return null;
+				Material windChargedMaterial = (Material) object;
+				if (EnumerationUtil.isMaterialDoor(windChargedMaterial)) return MPerm.getPermDoor();
+				if (EnumerationUtil.isMaterialButton(windChargedMaterial)) return MPerm.getPermButton();
+				if (windChargedMaterial == Material.LEVER) return MPerm.getPermLever();
+				if (EnumerationUtil.isMaterialWindChargeBreakable(windChargedMaterial)) return MPerm.getPermBuild();
 				return null;
 
 			case LEASH_MOB:

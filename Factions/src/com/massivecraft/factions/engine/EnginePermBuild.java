@@ -13,6 +13,8 @@ import com.massivecraft.factions.util.EnumerationUtil;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.util.MUtil;
+
+import org.bukkit.ExplosionResult;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -24,6 +26,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Tameable;
+import org.bukkit.entity.WindCharge;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -40,6 +44,7 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerLeashEntityEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
@@ -171,6 +176,11 @@ public class EnginePermBuild extends Engine
 	public static Boolean useRedstoneBlock(Player player, Block block, Material material, boolean verboose)
 	{
 		return protect(ProtectCase.USE_REDSTONE_BLOCK, verboose, player, PS.valueOf(block), material, null);
+	}
+
+	public static Boolean useWindCharge(Player player, Block block, boolean verboose)
+	{
+		return protect(ProtectCase.USE_WIND_CHARGE, verboose, player, PS.valueOf(block), block.getType(), null);
 	}
 
 	public static Boolean useLeash(Player player, Block block, Material material, Cancellable cancellable)
@@ -539,6 +549,43 @@ public class EnginePermBuild extends Engine
 		
 		// ...check if they have container permissions.
 		if (Boolean.TRUE.equals(!MPerm.getPermContainer().has(mPlayer, PS.valueOf(block), true))) event.setCancelled(true);
+	}
+
+	// -------------------------------------------- //
+	// BUILD > EXPLOSION
+	// -------------------------------------------- //
+
+	@EventHandler
+    public void onWindChargeExplosion(EntityExplodeEvent event)
+	{
+		Entity entity = event.getEntity();
+		if (entity == null) return;
+		
+		// Check if the explosion is caused by a Wind Charge or Breeze Wind Charge
+		if (event.getExplosionResult() == ExplosionResult.TRIGGER_BLOCK && entity != null &&
+        		(entity.getType() == EntityType.WIND_CHARGE || entity.getType() == EntityType.BREEZE_WIND_CHARGE))
+		{
+			WindCharge windCharge = (WindCharge) entity;
+			if (windCharge.getShooter() instanceof Player)
+			{
+				Player player = (Player) windCharge.getShooter();
+				List<Block> originalBlockList = event.blockList();
+				List<Block> blockList = List.copyOf(originalBlockList);
+				
+				// Iterate through the blocks and remove those that the player cannot use
+				boolean verboose = true;
+				for (int i = 0; i < blockList.size(); i++) 
+				{
+					Block block = blockList.get(i);
+					if (Boolean.TRUE.equals(useWindCharge(player, block, verboose))) 
+					{
+						// Only allow verboose message on the first blocked block
+						verboose = false;
+						originalBlockList.remove(block);
+					}
+				}
+			}
+		}
 	}
 	
 	// -------------------------------------------- //

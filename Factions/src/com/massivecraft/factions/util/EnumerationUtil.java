@@ -342,6 +342,60 @@ public class EnumerationUtil
     }
 
     // -------------------------------------------- //
+    // MATERIAL WIND CHARGE BREAKABLE
+    // -------------------------------------------- //
+
+    // These materials can be broken by a wind charge
+    public static final BackstringSet<Material> MATERIALS_WIND_CHARGE_BREAKABLE = new BackstringSet<>(Material.class,
+        "BELL",                     // Minecraft 1.14
+        "CHORUS_FLOWER",            // Minecraft 1.9
+        "DECORATED_POT",            // Minecraft 1.20
+
+        // Candles
+        "CANDLE",                   // Minecraft 1.17
+        "BLACK_CANDLE",             // Minecraft 1.17
+        "BLUE_CANDLE",              // Minecraft 1.17
+        "BROWN_CANDLE",             // Minecraft 1.17
+        "CYAN_CANDLE",              // Minecraft 1.17
+        "GRAY_CANDLE",              // Minecraft 1.17
+        "GREEN_CANDLE",             // Minecraft 1.17
+        "LIGHT_BLUE_CANDLE",        // Minecraft 1.17
+        "LIGHT_GRAY_CANDLE",        // Minecraft 1.17
+        "LIME_CANDLE",              // Minecraft 1.17
+        "MAGENTA_CANDLE",           // Minecraft 1.17
+        "ORANGE_CANDLE",            // Minecraft 1.17
+        "PINK_CANDLE",              // Minecraft 1.17
+        "PURPLE_CANDLE",            // Minecraft 1.17
+        "RED_CANDLE",               // Minecraft 1.17
+        "WHITE_CANDLE",             // Minecraft 1.17
+        "YELLOW_CANDLE",            // Minecraft 1.17
+
+        // Candle Cakes
+        "CANDLE_CAKE",              // Minecraft 1.17
+        "BLACK_CANDLE_CAKE",        // Minecraft 1.17
+        "BLUE_CANDLE_CAKE",         // Minecraft 1.17
+        "BROWN_CANDLE_CAKE",        // Minecraft 1.17
+        "CYAN_CANDLE_CAKE",         // Minecraft 1.17
+        "GRAY_CANDLE_CAKE",         // Minecraft 1.17
+        "GREEN_CANDLE_CAKE",        // Minecraft 1.17
+        "LIGHT_BLUE_CANDLE_CAKE",   // Minecraft 1.17
+        "LIGHT_GRAY_CANDLE_CAKE",   // Minecraft 1.17
+        "LIME_CANDLE_CAKE",         // Minecraft 1.17
+        "MAGENTA_CANDLE_CAKE",      // Minecraft 1.17
+        "ORANGE_CANDLE_CAKE",       // Minecraft 1.17
+        "PINK_CANDLE_CAKE",         // Minecraft 1.17
+        "PURPLE_CANDLE_CAKE",       // Minecraft 1.17
+        "RED_CANDLE_CAKE",          // Minecraft 1.17
+        "WHITE_CANDLE_CAKE",        // Minecraft 1.17
+        "YELLOW_CANDLE_CAKE"        // Minecraft 1.17
+    );
+
+    public static boolean isMaterialWindChargeBreakable(Material material)
+    {
+        return MATERIALS_WIND_CHARGE_BREAKABLE.contains(material) || MConf.get().materialsWindChargeBreakable.contains(material);
+    }
+
+    // -------------------------------------------- //
     // MATERIAL VEHICLE
     // -------------------------------------------- //
     public static final BackstringSet<Material> MATERIALS_VEHICLE = new BackstringSet<>(Material.class,
