@@ -14,6 +14,7 @@ import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.util.MUtil;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ExplosionResult;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,6 +24,7 @@ import org.bukkit.block.Container;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -373,6 +375,16 @@ public class EnginePermBuild extends Engine
 					player = (Player) shooter;
 				}
 			}
+
+			// If the entity is a dropped item, check if it was thrown by a player
+			if (player == null && entity instanceof Item)
+			{
+				Item item = (Item) entity;
+				if (item.getThrower() != null)
+				{
+					player = (Player) Bukkit.getPlayer(item.getThrower());
+				}
+			}
 			
 			// Check if the entity is a player
 			if (player == null && MUtil.isPlayer(entity))
@@ -397,14 +409,13 @@ public class EnginePermBuild extends Engine
 					{
 						lastMessagedLoc.put(uuid, blockLocation);
 					}
+					return;
 				}
 			}
-			else
-			{
-				// The entity is not a player or controlled by a player
-				// Allow the pressure plate to be activated
-				return;
-			}
+
+			// The entity is not a player or controlled by a player
+			// Allow the pressure plate to be activated
+			return;
 		}
 	}
 
