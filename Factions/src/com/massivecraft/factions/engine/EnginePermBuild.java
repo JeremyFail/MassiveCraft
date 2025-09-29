@@ -76,9 +76,15 @@ public class EnginePermBuild extends Engine
 	private static EnginePermBuild i = new EnginePermBuild();
 	public static EnginePermBuild get() { return i; }
 
-	// Map to track last location messaged per player - only used by some events
-	// This is used to prevent spam messages from certain events
-	private static final Map<UUID, Location> lastMessagedLoc = new HashMap<>();
+	// Map to track locations messaged per player - only used by some events
+	// This is used to prevent spam messages from certain events.
+	// The key is a combination of player UUID and block coordinates.
+	private static final Map<String, Long> lastMessagedAtLocation = new HashMap<>();
+
+	private String getPlayerLocationKey(UUID playerId, Location location)
+	{
+		return playerId.toString() + ":" + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ();
+	}
 
 	// -------------------------------------------- //
 	// LOGIC > PROTECT
@@ -396,18 +402,21 @@ public class EnginePermBuild extends Engine
 			if (player != null)
 			{
 				UUID uuid = player.getUniqueId();
-				Location last = lastMessagedLoc.get(uuid);
-				boolean verboose = (last == null || !last.equals(blockLocation));
+				String playerLocationKey = getPlayerLocationKey(uuid, blockLocation);
+				Long lastMessageTime = lastMessagedAtLocation.get(playerLocationKey);
+				
+				// Only show message if we haven't messaged the player about this specific location recently
+				boolean verboose = (lastMessageTime == null || 
+						System.currentTimeMillis() - lastMessageTime > 10000); // 10 second cooldown
 
 				Boolean prevent = useRedstoneBlock(player, block, blockMaterial, verboose);
-
-				// If we are preventing activation, set the current to 0 (unpowered)
-				if (Boolean.TRUE.equals(prevent))
+				
+				if (Boolean.TRUE.equals(prevent)) 
 				{
 					event.setNewCurrent(0);
 					if (verboose)
 					{
-						lastMessagedLoc.put(uuid, blockLocation);
+						lastMessagedAtLocation.put(playerLocationKey, System.currentTimeMillis());
 					}
 					return;
 				}
