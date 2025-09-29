@@ -59,8 +59,9 @@ public enum ProtectCase
 
 			case USE_REDSTONE_BLOCK:
 				if (!(object instanceof Material)) return null;
-				Material steppedMaterial = (Material) object;
-				if (EnumerationUtil.isMaterialPressurePlate(steppedMaterial)) return MPerm.getPermPressurePlate();
+				Material redstoneMaterial = (Material) object;
+				if (EnumerationUtil.isMaterialPressurePlate(redstoneMaterial)) return MPerm.getPermPressurePlate();
+				if (EnumerationUtil.isMaterialButton(redstoneMaterial)) return MPerm.getPermButton();
 				return null;
 
 			// Wind charge can activate various blocks and break some blocks (decorated pots, candles)

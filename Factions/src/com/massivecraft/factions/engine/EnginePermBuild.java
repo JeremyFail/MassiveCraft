@@ -322,8 +322,8 @@ public class EnginePermBuild extends Engine
 		Block block = event.getBlock();
 		Material blockMaterial = block.getType();
 
-		// Only care about pressure plates (for now)
-		if (!EnumerationUtil.isMaterialPressurePlate(blockMaterial)) return;
+		// Only care about pressure plates and buttons (for now)
+		if (!EnumerationUtil.isMaterialPressurePlate(blockMaterial) && !EnumerationUtil.isMaterialButton(blockMaterial)) return;
 
 		// Only check entities within a small radius (should cover standing on the plate)
 		Location blockLocation = block.getLocation();
@@ -332,6 +332,18 @@ public class EnginePermBuild extends Engine
 			if (entity == null) continue;
 
 			Player player = null;
+
+			// If the entity is a projectile, check its shooter
+			// This prevents players from using pressure plates/buttons via arrows, fireballs, etc.
+			if (player == null && entity instanceof Projectile)
+			{
+				Projectile projectile = (Projectile) entity;
+				ProjectileSource shooter = projectile.getShooter();
+				if (shooter instanceof Player)
+				{
+					player = (Player) shooter;
+				}
+			}
 
 			// If the entity is a tamed animal, check its owner
 			// This prevents players from using pressure plates via a tamed pet walking on it
@@ -370,18 +382,6 @@ public class EnginePermBuild extends Engine
 				}
 			}
 
-			// If the entity is a projectile, check its shooter
-			// This prevents players from using pressure plates via arrows, fireballs, etc.
-			if (player == null && entity instanceof Projectile)
-			{
-				Projectile projectile = (Projectile) entity;
-				ProjectileSource shooter = projectile.getShooter();
-				if (shooter instanceof Player)
-				{
-					player = (Player) shooter;
-				}
-			}
-
 			// If the entity is a dropped item, check if it was thrown by a player
 			if (player == null && entity instanceof Item)
 			{
@@ -398,7 +398,7 @@ public class EnginePermBuild extends Engine
 				player = (Player) entity;
 			}
 
-			// If we have a player, validate if the pressure plate can be used
+			// If we have a player, validate if the pressure plate/button can be used
 			if (player != null)
 			{
 				UUID uuid = player.getUniqueId();
