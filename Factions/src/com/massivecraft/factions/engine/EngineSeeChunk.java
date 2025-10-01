@@ -105,14 +105,14 @@ public class EngineSeeChunk extends Engine
 			
 			// The player must obviously have the feature activated.
 			MPlayer mplayer = MPlayer.get(player);
-			if ( ! mplayer.isSeeingChunk()) continue;
+			if (!mplayer.isSeeingChunk()) continue;
 			
 			// Calculate locations and play the effect there.
 			List<Location> locations = getLocations(player, steps, step);
 
 			for (Location location : locations)
 			{
-				location.getWorld().spawnParticle(particle, location, particleAmount, offsetX, offsetY, offsetZ, particleSpeed);
+				player.spawnParticle(particle, location, particleAmount, offsetX, offsetY, offsetZ, particleSpeed);
 			}
 		}
 	}
