@@ -152,10 +152,10 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
                 case "title":
                     return !isNull ? MPlayer.get(player).getTitle() : "";
 
-                case "player_role":
                 case "player_rank":
-                case "role":
+                case "player_role":
                 case "rank":
+                case "role":
                     if (isNull) return "";
                     mPlayer = MPlayer.get(player);
                     if (!mPlayer.hasFaction())
@@ -165,16 +165,16 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
                     return mPlayer.getRank().getName();
                 
                 // Return a player rank even if the player is not in a faction
-                case "player_roleforce":
                 case "player_rankforce":
-                case "roleforce":
+                case "player_roleforce":
                 case "rankforce":
+                case "roleforce":
                     return !isNull ? MPlayer.get(player).getRank().getName() : "";
 
-                case "player_roleprefix":
                 case "player_rankprefix":
-                case "roleprefix":
+                case "player_roleprefix":
                 case "rankprefix":
+                case "roleprefix":
                     if (isNull) return "";
                     mPlayer = MPlayer.get(player);
                     if (!mPlayer.hasFaction())
@@ -184,10 +184,10 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
                     return mPlayer.getRank().getPrefix();
                 
                 // Return a player rank prefix even if the player is not in a faction
-                case "player_roleprefixforce":
                 case "player_rankprefixforce":
-                case "roleprefixforce":
+                case "player_roleprefixforce":
                 case "rankprefixforce":
+                case "roleprefixforce":
                     return !isNull ? MPlayer.get(player).getRank().getPrefix() : "";
 
                 default:

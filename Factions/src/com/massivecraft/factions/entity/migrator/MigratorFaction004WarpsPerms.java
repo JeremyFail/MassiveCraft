@@ -34,7 +34,7 @@ public class MigratorFaction004WarpsPerms extends MigratorRoot
 		if (home != null) permsO.add("warp", home);
 
 		JsonElement sethome = permsO.remove("sethome");
-		if (home != null) permsO.add("setwarp", home);
+		if (sethome != null) permsO.add("setwarp", sethome);
 	}
 
 }
