@@ -182,42 +182,60 @@ public class EnumerationUtil
     
     // Interacting with these materials placed in the terrain results in door toggling.
     public static final BackstringSet<Material> MATERIALS_DOOR = new BackstringSet<>(Material.class, 
-        "ACACIA_DOOR",          // Minecraft 1.8
-        "ACACIA_FENCE_GATE",    // Minecraft 1.8
-        "ACACIA_TRAPDOOR",      // Minecraft 1.8
-        "BAMBOO_DOOR",          // Minecraft 1.20
-        "BAMBOO_FENCE_GATE",    // Minecraft 1.20
-        "BAMBOO_TRAPDOOR",      // Minecraft 1.20
-        "BIRCH_DOOR",           // Minecraft 1.8
-        "BIRCH_FENCE_GATE",     // Minecraft 1.8
-        "BIRCH_TRAPDOOR",       // Minecraft 1.8
-        "CHERRY_DOOR",          // Minecraft 1.20
-        "CHERRY_FENCE_GATE",    // Minecraft 1.20
-        "CHERRY_TRAPDOOR",      // Minecraft 1.20
-        "CRIMSON_DOOR",         // Minecraft 1.16
-        "CRIMSON_FENCE_GATE",   // Minecraft 1.16
-        "CRIMSON_TRAPDOOR",     // Minecraft 1.16
-        "DARK_OAK_DOOR",        // Minecraft 1.8
-        "DARK_OAK_FENCE_GATE",  // Minecraft 1.8
-        "DARK_OAK_TRAPDOOR",    // Minecraft 1.8
-        "JUNGLE_DOOR",          // Minecraft 1.8
-        "JUNGLE_FENCE_GATE",    // Minecraft 1.8
-        "JUNGLE_TRAPDOOR",      // Minecraft 1.8
-        "MANGROVE_DOOR",        // Minecraft 1.19
-        "MANGROVE_FENCE_GATE",  // Minecraft 1.19
-        "MANGROVE_TRAPDOOR",    // Minecraft 1.19
-        "OAK_DOOR",             // Minecraft 1.8
-        "OAK_FENCE_GATE",       // Minecraft 1.8
-        "OAK_TRAPDOOR",         // Minecraft 1.8
-        "PALE_OAK_DOOR",        // Minecraft 1.21.4
-        "PALE_OAK_FENCE_GATE",  // Minecraft 1.21.4
-        "PALE_OAK_TRAPDOOR",    // Minecraft 1.21.4
-        "SPRUCE_DOOR",          // Minecraft 1.8
-        "SPRUCE_FENCE_GATE",    // Minecraft 1.8
-        "SPRUCE_TRAPDOOR",      // Minecraft 1.8
-        "WARPED_DOOR",          // Minecraft 1.16
-        "WARPED_FENCE_GATE",    // Minecraft 1.16
-        "WARPED_TRAPDOOR"       // Minecraft 1.16
+        "ACACIA_DOOR",                     // Minecraft 1.8
+        "ACACIA_FENCE_GATE",               // Minecraft 1.8
+        "ACACIA_TRAPDOOR",                 // Minecraft 1.8
+        "BAMBOO_DOOR",                     // Minecraft 1.20
+        "BAMBOO_FENCE_GATE",               // Minecraft 1.20
+        "BAMBOO_TRAPDOOR",                 // Minecraft 1.20
+        "BIRCH_DOOR",                      // Minecraft 1.8
+        "BIRCH_FENCE_GATE",                // Minecraft 1.8
+        "BIRCH_TRAPDOOR",                  // Minecraft 1.8
+        "CHERRY_DOOR",                     // Minecraft 1.20
+        "CHERRY_FENCE_GATE",               // Minecraft 1.20
+        "CHERRY_TRAPDOOR",                 // Minecraft 1.20
+        "CRIMSON_DOOR",                    // Minecraft 1.16
+        "CRIMSON_FENCE_GATE",              // Minecraft 1.16
+        "CRIMSON_TRAPDOOR",                // Minecraft 1.16
+        "DARK_OAK_DOOR",                   // Minecraft 1.8
+        "DARK_OAK_FENCE_GATE",             // Minecraft 1.8
+        "DARK_OAK_TRAPDOOR",               // Minecraft 1.8
+        "JUNGLE_DOOR",                     // Minecraft 1.8
+        "JUNGLE_FENCE_GATE",               // Minecraft 1.8
+        "JUNGLE_TRAPDOOR",                 // Minecraft 1.8
+        "MANGROVE_DOOR",                   // Minecraft 1.19
+        "MANGROVE_FENCE_GATE",             // Minecraft 1.19
+        "MANGROVE_TRAPDOOR",               // Minecraft 1.19
+        "OAK_DOOR",                        // Minecraft 1.8
+        "OAK_FENCE_GATE",                  // Minecraft 1.8
+        "OAK_TRAPDOOR",                    // Minecraft 1.8
+        "PALE_OAK_DOOR",                   // Minecraft 1.21.4
+        "PALE_OAK_FENCE_GATE",             // Minecraft 1.21.4
+        "PALE_OAK_TRAPDOOR",               // Minecraft 1.21.4
+        "SPRUCE_DOOR",                     // Minecraft 1.8
+        "SPRUCE_FENCE_GATE",               // Minecraft 1.8
+        "SPRUCE_TRAPDOOR",                 // Minecraft 1.8
+        "WARPED_DOOR",                     // Minecraft 1.16
+        "WARPED_FENCE_GATE",               // Minecraft 1.16
+        "WARPED_TRAPDOOR",                 // Minecraft 1.16
+
+        // Copper Door Variants
+        "COPPER_DOOR",                     // Minecraft 1.21.9
+        "EXPOSED_COPPER_DOOR",             // Minecraft 1.21.9
+        "OXIDIZED_COPPER_DOOR",            // Minecraft 1.21.9
+        "WEATHERED_COPPER_DOOR",           // Minecraft 1.21.9
+        "WAXED_COPPER_DOOR",               // Minecraft 1.21.9
+        "WAXED_EXPOSED_COPPER_DOOR",       // Minecraft 1.21.9
+        "WAXED_OXIDIZED_COPPER_DOOR",      // Minecraft 1.21.9
+        "WAXED_WEATHERED_COPPER_DOOR",     // Minecraft 1.21.9
+        "COPPER_TRAPDOOR",                 // Minecraft 1.21.9
+        "EXPOSED_COPPER_TRAPDOOR",         // Minecraft 1.21.9
+        "OXIDIZED_COPPER_TRAPDOOR",        // Minecraft 1.21.9
+        "WEATHERED_COPPER_TRAPDOOR",       // Minecraft 1.21.9
+        "WAXED_COPPER_TRAPDOOR",           // Minecraft 1.21.9
+        "WAXED_EXPOSED_COPPER_TRAPDOOR",   // Minecraft 1.21.9
+        "WAXED_OXIDIZED_COPPER_TRAPDOOR",  // Minecraft 1.21.9
+        "WAXED_WEATHERED_COPPER_TRAPDOOR"  // Minecraft 1.21.9
     );
     
     public static boolean isMaterialDoor(Material material)
@@ -230,54 +248,81 @@ public class EnumerationUtil
     // -------------------------------------------- //
     
     public static final BackstringSet<Material> MATERIALS_CONTAINER = new BackstringSet<>(Material.class, 
-        "ANVIL",                    // Minecraft 1.4.2
-        "CHIPPED_ANVIL",            // Minecraft 1.4.2
-        "DAMAGED_ANVIL",            // Minecraft 1.4.2
+        // Anvils
+        "ANVIL",                        // Minecraft 1.4.2
+        "CHIPPED_ANVIL",                // Minecraft 1.4.2
+        "DAMAGED_ANVIL",                // Minecraft 1.4.2
         
-        "BARREL",                   // Minecraft 1.14
-        "BEACON",                   // Minecraft 1.4.2
-        "BLAST_FURNACE",            // Minecraft 1.14
-        "BREWING_STAND",            // Minecraft 1.0
-        "CAMPFIRE",                 // Minecraft 1.14
-        "CARTOGRAPHY_TABLE",        // Minecraft 1.14
-        "CAULDRON",                 // Minecraft 1.0
-        "CHEST",                    // Minecraft 1.0
-        "COMPOSTER",                // Minecraft 1.14
-        "DISPENSER",                // Minecraft 1.0
-        "DROPPER",                  // Minecraft 1.5
-        "ENCHANTING_TABLE",         // Minecraft 1.0
-        "ENDER_CHEST",              // Minecraft 1.3.1
-        "FLETCHING_TABLE",          // Minecraft 1.14
-        "FURNACE",                  // Minecraft 1.0
-        "GRINDSTONE",               // Minecraft 1.14
-        "HOPPER",                   // Minecraft 1.5
-        "JUKEBOX",                  // Minecraft 1.0
-        "LECTERN",                  // Minecraft 1.14
-        "LOOM",                     // Minecraft 1.14
-        "RESPAWN_ANCHOR",           // Minecraft 1.16
-        "SMITHING_TABLE",           // Minecraft 1.14
-        "SMOKER",                   // Minecraft 1.14
-        "TRAPPED_CHEST",            // Minecraft 1.5
+        // General Containers
+        "BARREL",                       // Minecraft 1.14
+        "BEACON",                       // Minecraft 1.4.2
+        "BLAST_FURNACE",                // Minecraft 1.14
+        "BREWING_STAND",                // Minecraft 1.0
+        "CAMPFIRE",                     // Minecraft 1.14
+        "CARTOGRAPHY_TABLE",            // Minecraft 1.14
+        "CAULDRON",                     // Minecraft 1.0
+        "CHEST",                        // Minecraft 1.0
+        "COMPOSTER",                    // Minecraft 1.14
+        "CRAFTING_TABLE",               // Minecraft 1.0
+        "DISPENSER",                    // Minecraft 1.0
+        "DROPPER",                      // Minecraft 1.5
+        "ENCHANTING_TABLE",             // Minecraft 1.0
+        "ENDER_CHEST",                  // Minecraft 1.3.1
+        "FLETCHING_TABLE",              // Minecraft 1.14
+        "FURNACE",                      // Minecraft 1.0
+        "GRINDSTONE",                   // Minecraft 1.14
+        "HOPPER",                       // Minecraft 1.5
+        "JUKEBOX",                      // Minecraft 1.0
+        "LECTERN",                      // Minecraft 1.14
+        "LOOM",                         // Minecraft 1.14
+        "RESPAWN_ANCHOR",               // Minecraft 1.16
+        "SMITHING_TABLE",               // Minecraft 1.14
+        "SMOKER",                       // Minecraft 1.14
+        "TRAPPED_CHEST",                // Minecraft 1.5
+
+        // Copper Chest Variants
+        "COPPER_CHEST",                 // Minecraft 1.21.9
+        "EXPOSED_COPPER_CHEST",         // Minecraft 1.21.9
+        "OXIDIZED_COPPER_CHEST",        // Minecraft 1.21.9
+        "WEATHERED_COPPER_CHEST",       // Minecraft 1.21.9
+        "WAXED_COPPER_CHEST",           // Minecraft 1.21.9
+        "WAXED_EXPOSED_COPPER_CHEST",   // Minecraft 1.21.9
+        "WAXED_OXIDIZED_COPPER_CHEST",  // Minecraft 1.21.9
+        "WAXED_WEATHERED_COPPER_CHEST", // Minecraft 1.21.9
         
         // Shulker Boxes
-        "SHULKER_BOX",              // Minecraft 1.11
-        "BLACK_SHULKER_BOX",        // Minecraft 1.11
-        "BLUE_SHULKER_BOX",         // Minecraft 1.11
-        "BROWN_SHULKER_BOX",        // Minecraft 1.11
-        "CYAN_SHULKER_BOX",         // Minecraft 1.11
-        "GRAY_SHULKER_BOX",         // Minecraft 1.11
-        "GREEN_SHULKER_BOX",        // Minecraft 1.11
-        "LIGHT_BLUE_SHULKER_BOX",   // Minecraft 1.11
-        "LIGHT_GRAY_SHULKER_BOX",   // Minecraft 1.11 (renamed SILVER_SHULKER_BOX)
-        "LIME_SHULKER_BOX",         // Minecraft 1.11
-        "MAGENTA_SHULKER_BOX",      // Minecraft 1.11
-        "ORANGE_SHULKER_BOX",       // Minecraft 1.11
-        "PINK_SHULKER_BOX",         // Minecraft 1.11
-        "PURPLE_SHULKER_BOX",       // Minecraft 1.11
-        "RED_SHULKER_BOX",          // Minecraft 1.11
-        "SILVER_SHULKER_BOX",       // Minecraft 1.11
-        "WHITE_SHULKER_BOX",        // Minecraft 1.11
-        "YELLOW_SHULKER_BOX"        // Minecraft 1.11
+        "SHULKER_BOX",                  // Minecraft 1.11
+        "BLACK_SHULKER_BOX",            // Minecraft 1.11
+        "BLUE_SHULKER_BOX",             // Minecraft 1.11
+        "BROWN_SHULKER_BOX",            // Minecraft 1.11
+        "CYAN_SHULKER_BOX",             // Minecraft 1.11
+        "GRAY_SHULKER_BOX",             // Minecraft 1.11
+        "GREEN_SHULKER_BOX",            // Minecraft 1.11
+        "LIGHT_BLUE_SHULKER_BOX",       // Minecraft 1.11
+        "LIGHT_GRAY_SHULKER_BOX",       // Minecraft 1.11 (renamed SILVER_SHULKER_BOX)
+        "LIME_SHULKER_BOX",             // Minecraft 1.11
+        "MAGENTA_SHULKER_BOX",          // Minecraft 1.11
+        "ORANGE_SHULKER_BOX",           // Minecraft 1.11
+        "PINK_SHULKER_BOX",             // Minecraft 1.11
+        "PURPLE_SHULKER_BOX",           // Minecraft 1.11
+        "RED_SHULKER_BOX",              // Minecraft 1.11
+        "SILVER_SHULKER_BOX",           // Minecraft 1.11
+        "WHITE_SHULKER_BOX",            // Minecraft 1.11
+        "YELLOW_SHULKER_BOX",           // Minecraft 1.11
+
+        // Shelves
+        "ACACIA_SHELF",                 // Minecraft 1.21.9
+        "BAMBOO_SHELF",                 // Minecraft 1.21.9
+        "BIRCH_SHELF",                  // Minecraft 1.21.9
+        "CHERRY_SHELF",                 // Minecraft 1.21.9
+        "CRIMSON_SHELF",                // Minecraft 1.21.9
+        "DARK_OAK_SHELF",               // Minecraft 1.21.9
+        "JUNGLE_SHELF",                 // Minecraft 1.21.9
+        "MANGROVE_SHELF",               // Minecraft 1.21.9
+        "OAK_SHELF",                    // Minecraft 1.21.9
+        "PALE_OAK_SHELF",               // Minecraft 1.21.9
+        "SPRUCE_SHELF",                 // Minecraft 1.21.9
+        "WARPED_SHELF"                  // Minecraft 1.21.9
     );
     
     public static boolean isMaterialContainer(Material material)
@@ -461,8 +506,31 @@ public class EnumerationUtil
     }
 
     public static final BackstringSet<Material> MATERIALS_NARROW_BLOCKS_PANES = new BackstringSet<>(Material.class,
+        // Bars (iron, copper)
+    "IRON_BARS",                     // Minecraft 1.0
+        "COPPER_BARS",                   // Minecraft 1.21.9
+        "EXPOSED_COPPER_BARS",           // Minecraft 1.21.9
+        "OXIDIZED_COPPER_BARS",          // Minecraft 1.21.9
+        "WEATHERED_COPPER_BARS",         // Minecraft 1.21.9
+        "WAXED_COPPER_BARS",             // Minecraft 1.21.9
+        "WAXED_EXPOSED_COPPER_BARS",     // Minecraft 1.21.9
+        "WAXED_OXIDIZED_COPPER_BARS",    // Minecraft 1.21.9
+        "WAXED_WEATHERED_COPPER_BARS",   // Minecraft 1.21.9
+        
+        // Chains
+        "CHAIN",                         // Minecraft 1.16
+        "IRON_CHAIN",                    // Minecraft 1.21.9 (renamed from CHAIN)
+        "COPPER_CHAIN",                  // Minecraft 1.21.9
+        "EXPOSED_COPPER_CHAIN",          // Minecraft 1.21.9
+        "OXIDIZED_COPPER_CHAIN",         // Minecraft 1.21.9
+        "WEATHERED_COPPER_CHAIN",        // Minecraft 1.21.9
+        "WAXED_COPPER_CHAIN",            // Minecraft 1.21.9
+        "WAXED_EXPOSED_COPPER_CHAIN",    // Minecraft 1.21.9
+        "WAXED_OXIDIZED_COPPER_CHAIN",   // Minecraft 1.21.9
+        "WAXED_WEATHERED_COPPER_CHAIN",  // Minecraft 1.21.9
+
+        // Glass Panes
         "GLASS_PANE",                    // Minecraft 1.0
-        "IRON_BARS",                     // Minecraft 1.0
         "BLACK_STAINED_GLASS_PANE",      // Minecraft 1.7.2
         "BLUE_STAINED_GLASS_PANE",       // Minecraft 1.7.2
         "BROWN_STAINED_GLASS_PANE",      // Minecraft 1.7.2
@@ -478,7 +546,18 @@ public class EnumerationUtil
         "PURPLE_STAINED_GLASS_PANE",     // Minecraft 1.7.2
         "RED_STAINED_GLASS_PANE",        // Minecraft 1.7.2
         "WHITE_STAINED_GLASS_PANE",      // Minecraft 1.7.2
-        "YELLOW_STAINED_GLASS_PANE"      // Minecraft 1.7.2
+        "YELLOW_STAINED_GLASS_PANE",     // Minecraft 1.7.2
+
+        // Misc Narrow Blocks
+        "END_ROD",                       // Minecraft 1.9
+        "LIGHTNING_ROD",                 // Minecraft 1.17
+        "EXPOSED_LIGHTNING_ROD",         // Minecraft 1.21.9
+        "OXIDIZED_LIGHTNING_ROD",        // Minecraft 1.21.9
+        "WEATHERED_LIGHTNING_ROD",       // Minecraft 1.21.9
+        "WAXED_LIGHTNING_ROD",           // Minecraft 1.21.9
+        "WAXED_EXPOSED_LIGHTNING_ROD",   // Minecraft 1.21.9
+        "WAXED_OXIDIZED_LIGHTNING_ROD",  // Minecraft 1.21.9
+        "WAXED_WEATHERED_LIGHTNING_ROD"  // Minecraft 1.21.9
     );
 
     public static boolean isMaterialNarrowBlockPane(Material material)
