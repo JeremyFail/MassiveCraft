@@ -50,6 +50,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerLeashEntityEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -472,16 +473,33 @@ public class EnginePermBuild extends Engine
 		{
 			useLeashEntity(player, entity, event);
 		}
+		else if (entity.getType() == EntityType.ARMOR_STAND)
+		{
+			// Armor stands are handled in onPlayerArmorStandInteract
+			return;
+		}
 		else
 		{
 			useEntity(player, entity, true, event);
 		}
 	}
 
-	// This is a special Spigot event that fires for Minecraft 1.8 armor stands.
-	// It also fires for other entity types but for those the event is buggy.
-	// It seems we can only cancel interaction with armor stands from here.
-	// Thus we only handle armor stands from here and handle everything else in EngineMain.
+	// This event handles adding or removing items from armor stands
+	// It does not handle other interactions with armor stands, that is handled in handleArmorStand
+	@EventHandler(priority = EventPriority.NORMAL)
+    public void onPlayerArmorStandInteract(PlayerArmorStandManipulateEvent event) {
+        Player player = event.getPlayer();
+        Entity entity = event.getRightClicked();
+
+		// The verbose flag is false as the message will be sent by the handleArmorStand method
+		// but that method doesn't actually stop the armor stand interaction in cases where
+		// the player is adding or removing an item.
+        useEntity(player, entity, false, event);
+    }
+
+	// This is a special event that fires for armor stands and some other entities.
+	// It does not actually handle armor stand manipulation, that is handled in onPlayerArmorStandInteract.
+	// This is primarily fired when interacting with armor stands using items that cannot be placed on them.
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void handleArmorStand(PlayerInteractAtEntityEvent event)
 	{
@@ -498,7 +516,7 @@ public class EnginePermBuild extends Engine
 		if (entity.getType() != EntityType.ARMOR_STAND) return;
 
 		// If we can't use, block it
-		EnginePermBuild.useEntity(player, entity, verboose, event);
+		useEntity(player, entity, verboose, event);
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
