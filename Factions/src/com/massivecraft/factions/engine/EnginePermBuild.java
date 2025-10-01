@@ -665,9 +665,10 @@ public class EnginePermBuild extends Engine
 		Entity entity = event.getEntity();
 		if (entity == null) return;
 		
-		// Check if the explosion is caused by a Wind Charge or Breeze Wind Charge
-		if (event.getExplosionResult() == ExplosionResult.TRIGGER_BLOCK && entity != null &&
-        		(entity.getType() == EntityType.WIND_CHARGE || entity.getType() == EntityType.BREEZE_WIND_CHARGE))
+		// Check if the explosion is caused by a Wind Charge
+		if (event.getExplosionResult() == ExplosionResult.TRIGGER_BLOCK && 
+				entity != null &&
+        		(entity.getType() == EntityType.WIND_CHARGE))
 		{
 			WindCharge windCharge = (WindCharge) entity;
 			if (windCharge.getShooter() instanceof Player)
