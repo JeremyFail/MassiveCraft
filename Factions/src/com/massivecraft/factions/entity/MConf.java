@@ -328,6 +328,14 @@ public class MConf extends Entity<MConf>
 	// Players inside their own faction territory can then hurt facitonless players.
 	// This way you may "evict" factionless trolls messing around in your home base.
 	public boolean enablePVPAgainstFactionlessInAttackersLand = false;
+
+	// Set this option to true to allow players to hurt neutral players while they are in the neutral 
+	// player's territory. By default this is disabled to encourage friendly interactions with neutral 
+	// players. Neutral players are treated more like allies by default.
+	// If you enable this, then neutral players can be hurt by other players while they are in their
+	// own territory, just like enemies. In other words, neutrals are then treated more like enemies 
+	// instead of like allies.
+	public boolean enablePVPAgainstNeutralInTheirTerritory = false;
 	
 	// Inside your own faction territory you take less damage.
 	// 0.1 means that you take 10% less damage at home.
