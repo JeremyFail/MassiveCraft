@@ -1,0 +1,76 @@
+##############################################
+#                                            #
+#         FactionsChat by Ymerejliaf         #
+#        ----------------------------        #
+#           Main Configuration File          #
+#                                            #
+##############################################
+version: 2
+
+
+
+#----------------- Chat Settings -----------------#
+# Chat-related settings not specific to any channel
+# https://github.com/JeremyFail/MassiveCraft/wiki/FactionsChat#configuration
+ChatSettings:
+  # The chat format for all messages. Supports PlaceholderAPI placeholders if PAPI is installed.
+  # Supports color codes (ampersand or section sign, including hex codes).
+  # Also supports modifiers such as |rp (right padding) or |lp (left padding), which 
+  # conditionally add right/left padding (a space) if the placeholder is not empty.
+  #
+  # See the wiki for a list of built-in/supported tags, list of modifiers, and for more details:
+  # https://github.com/JeremyFail/MassiveCraft/wiki/FactionsChat#placeholders
+  ChatFormat: '%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%'
+  # If true, allows color codes/formatting in chat messages (if players also have permission to use them)
+  AllowColorCodes: true
+  # If true, allows clickable links in chat messages (if players also have permission to send them)
+  AllowClickableLinks: true
+  # If true, will underline clickable links in chat messages
+  AllowClickableLinksUnderline: true
+  # Determines the range (in blocks) for local chat visibility
+  LocalChatRange: 1000
+
+
+
+#---------------- Prefix Settings ----------------#
+# Chat prefixes for each channel - controls what is displayed in the %factions_chat_prefix% placeholder.
+# <fcolor> is a placeholder for the faction colors set in the factions config files
+# Supports color/format codes or hex codes using the section sign (§) or ampersand (&). See the wiki for details.
+# NOTE: This prefix will not actually be used in the message text unless the %factions_chat_prefix% placeholder is used.
+ChatPrefixes:
+  Ally: '§e[<fcolor>ALLY§e]§r'
+  Truce: '§e[<fcolor>TRUCE§e]§r'
+  Faction: '§e[<fcolor>FACTION§e]§r'
+  Enemy: '§e[<fcolor>ENEMY§e]§r'
+  Neutral: '§e[<fcolor>NEUTRAL§e]§r'
+  Local: '§e[§rLOCAL§e]§r'
+  Global: '§e[§6GLOBAL§e]§r'
+  Staff: '§e[§4STAFF§e]§r'
+  World: '§e[§3WORLD§e]§r'
+
+
+
+#-------------- Text Color Settings --------------#
+# Text colors for each channel - controls what color is returned from the %factions_chat_color% placeholder.
+# <fcolor> is a placeholder for the faction colors set in the factions config files
+# Supports legacy color/format codes using the section sign (§)
+# NOTE: These colors will not actually be used in the message text unless the %factions_chat_color% placeholder is used.
+TextColors:
+  Ally: '<fcolor>'
+  Truce: '<fcolor>'
+  Faction: '<fcolor>'
+  Enemy: '<fcolor>'
+  Neutral: '<fcolor>'
+  Local: '§r'
+  Global: '§6'
+  Staff: '§4'
+  World: '§3'
+
+
+
+#--------------- Discord Settings ----------------#
+# Settings for the DiscordSRV integration (requires DiscordSRV to be installed).
+# The channel ID for the channel in your discord guild to link staff chat to
+# Right click the text channel, select "copy ID" and replace the current value with copied ID
+DiscordSRV:
+  StaffChannel: '000000000000000000'

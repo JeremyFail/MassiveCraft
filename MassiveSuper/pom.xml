@@ -1,0 +1,776 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Basics -->
+    <groupId>com.massivecraft.massivesuper</groupId>
+    <artifactId>MassiveSuper</artifactId>
+    <!-- Change this release version when making updates to the code - update in all pom files -->
+    <version>3.4.0-alpha-9</version>
+    <packaging>pom</packaging>
+
+    <!-- Info -->
+    <name>${project.artifactId}</name>
+
+    <!-- Properties -->
+    <properties>
+        <!-- Our source code and resources are in UTF-8 :O Such modern times 8D -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Let's not repeat ourselves. -->
+        <massiveColorSign>§</massiveColorSign>
+        <massiveColorInfo>${massiveColorSign}e</massiveColorInfo>
+        <massiveColorBold>${massiveColorSign}a</massiveColorBold>
+        <massiveColorLink>${massiveColorSign}b</massiveColorLink>
+        <massiveBaseUrl>https://jeremyfail.dev/projects/plugins</massiveBaseUrl>
+        <massiveDescriptionSuffix></massiveDescriptionSuffix>
+
+        <!-- Core Versions -->
+        <massiveJavaVersion>1.8</massiveJavaVersion>
+        <!-- Maven - As of writing the version bundled with latest IntelliJ. -->
+        <massiveMavenVersion>3.6.0</massiveMavenVersion>
+
+        <!-- Maven Plugin Properties -->
+        <massiveMavenEnforcerPluginVersion>3.0.0-M2</massiveMavenEnforcerPluginVersion>
+        <massiveMavenCompilerPluginVersion>3.8.0</massiveMavenCompilerPluginVersion>
+        <massiveMavenJarPluginVersion>3.1.1</massiveMavenJarPluginVersion>
+        <massiveMavenShadePluginVersion>3.2.1</massiveMavenShadePluginVersion>
+        <massiveMavenProGuardPluginVersion>2.0.14</massiveMavenProGuardPluginVersion>
+        <massiveMavenProGuardVersion>5.3.3</massiveMavenProGuardVersion>
+
+        <!-- ~~~~~~~~~~~~~~~~~ -->
+        <!-- External Versions -->
+        <!-- ~~~~~~~~~~~~~~~~~ -->
+        <massiveGuavaVersion>23.5-jre</massiveGuavaVersion>
+        <massiveGsonVersion>2.8.2</massiveGsonVersion>
+        <massiveJsonVersion>20250107</massiveJsonVersion>
+        <massiveMongoDBVersion>2.12.3</massiveMongoDBVersion>
+
+        <massiveJavassistVersion>3.21.0-GA</massiveJavassistVersion>
+        <massiveHttpclientVersion>4.5.3</massiveHttpclientVersion>
+
+        <!-- https://hub.spigotmc.org/nexus/content/groups/public/org/spigotmc/spigot-api/ -->
+        <massiveSpigotVersion>1.21.4-R0.1-SNAPSHOT</massiveSpigotVersion>
+        <massivePaperVersion>1.21.4-R0.1-SNAPSHOT</massivePaperVersion>
+
+        <!-- http://nexus.hc.to/content/repositories/pub_releases/net/milkbowl/vault/Vault/ -->
+        <massiveVaultVersion>1.5.6</massiveVaultVersion>
+
+        <!-- https://github.com/lucko/commodore -->
+        <massiveCommodoreVersion>1.2</massiveCommodoreVersion>
+
+        <!-- http://maven.sk89q.com/repo/com/sk89q/worldedit/worldedit-bukkit/ -->
+        <!-- The artifact in their repository was not properly shaded -->
+        <!-- The solution for now is to download and install manually -->
+        <massiveWorldEditVersion>7.3.10</massiveWorldEditVersion>
+
+        <!-- http://maven.sk89q.com/repo/com/sk89q/worldguard/worldguard-legacy/ -->
+        <massiveWorldGuardVersion>7.0.13</massiveWorldGuardVersion>
+
+        <!-- http://repo.dmulloy2.net/content/repositories/public/com/comphenix/protocol/ProtocolLib/ -->
+        <massiveProtocolLibVersion>4.3.0</massiveProtocolLibVersion>
+
+        <!-- http://repo.howaner.de/com/vexsoftware/votifier/ -->
+        <massiveVotifierVersion>1.9</massiveVotifierVersion>
+
+        <!-- http://repo.mikeprimm.com/us/dynmap/dynmap/ -->
+        <massiveDynmapVersion>3.7-beta8</massiveDynmapVersion>
+        
+        <!-- https://nexus.scarsz.me/content/groups/public/com/discordsrv/discordsrv/ -->
+        <massiveDiscordSrvVersion>1.30.0</massiveDiscordSrvVersion>
+        
+        <!-- https://ci.ender.zone/plugin/repository/everything/net/ess3/EssentialsX/ -->
+        <massiveEssentialsVersion>2.16.1</massiveEssentialsVersion>
+
+        <!-- ~~~~~~~~~~~~~~~ -->
+        <!-- Custom Versions -->
+        <!-- ~~~~~~~~~~~~~~~ -->
+
+        <!-- https://www.spigotmc.org/resources/mcmmo.2445/ -->
+        <massiveMcmmoVersion>1.5.10</massiveMcmmoVersion>
+
+        <!-- https://www.spigotmc.org/resources/wgregionevents-continued.15946/ -->
+        <massiveWGRegionEventsVersion>2.1.0</massiveWGRegionEventsVersion>
+
+        <!-- https://www.spigotmc.org/resources/lwc-unofficial-entity-locking.2162/ -->
+        <massiveLwcVersion>2.1.5</massiveLwcVersion>
+
+        <!-- https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI -->
+        <massivePlaceholderAPIVersion>2.11.6</massivePlaceholderAPIVersion>
+    </properties>
+
+    <!-- Repositories -->
+    <repositories>
+        <!-- Spigot API -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
+        </repository>
+        <!-- Paper API -->
+        <repository>
+            <id>destroystokyo-repo</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <!-- Vault-->
+        <repository>
+            <id>vault-repo</id>
+            <url>https://nexus.hc.to/content/repositories/pub_releases</url>
+        </repository>
+        <!-- WorldEdit and WorldGuard -->
+        <repository>
+            <id>sk89q-repo</id>
+            <url>https://maven.enginehub.org/repo/</url>
+        </repository>
+        <!-- ProtocolLib -->
+        <repository>
+            <id>dmulloy2-repo</id>
+            <url>https://repo.dmulloy2.net/nexus/repository/public/</url>
+        </repository>
+        <!-- Votifier -->
+        <repository>
+            <id>howaner-repo</id>
+            <url>http://repo.howaner.de/</url>
+        </repository>
+        <!-- DiscordSRV -->
+        <repository>
+            <id>Scarsz-Nexus</id>
+            <url>https://nexus.scarsz.me/content/groups/public/</url>
+        </repository>
+        <!-- Essentials -->
+        <repository>
+            <id>ess-repo</id>
+            <url>https://ci.ender.zone/plugin/repository/everything/</url>
+        </repository>
+        <!-- Commodore/Brigadier
+        <repository>
+          <id>luck-repo</id>
+          <url>https://repo.lucko.me/</url>
+        </repository>-->
+        <!-- PlaceholderAPI -->
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/releases/</url>
+        </repository>
+    </repositories>
+
+    <!-- Build -->
+    <build>
+        <!-- Basics -->
+        <defaultGoal>clean install</defaultGoal>
+        <finalName>${project.artifactId}</finalName>
+        <sourceDirectory>${project.basedir}/src</sourceDirectory>
+
+        <!-- Plugins -->
+        <plugins>
+            <!-- Enforcer -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+            <!-- Compiler -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+
+        <!-- Plugin Management -->
+        <pluginManagement>
+            <!-- Plugins -->
+            <plugins>
+                <!-- Enforcer -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${massiveMavenEnforcerPluginVersion}</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-versions</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireMavenVersion>
+                                        <version>${massiveMavenVersion}</version>
+                                    </requireMavenVersion>
+                                    <requireJavaVersion>
+                                        <version>${massiveJavaVersion}</version>
+                                    </requireJavaVersion>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- Compiler -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${massiveMavenCompilerPluginVersion}</version>
+                    <configuration>
+                        <source>${massiveJavaVersion}</source>
+                        <target>${massiveJavaVersion}</target>
+                    </configuration>
+                </plugin>
+                <!-- Jar -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${massiveMavenJarPluginVersion}</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>*.java</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+                <!-- Shade -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${massiveMavenShadePluginVersion}</version>
+                    <configuration>
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>*.java</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                    </configuration>
+                </plugin>
+                <!-- ProGuard -->
+                <plugin>
+                    <groupId>com.github.wvengen</groupId>
+                    <artifactId>proguard-maven-plugin</artifactId>
+                    <version>${massiveMavenProGuardPluginVersion}</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>proguard</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <proguardVersion>${massiveMavenProGuardVersion}</proguardVersion>
+                        <proguardInclude>${basedir}/proguard.conf</proguardInclude>
+                        <dependencies>
+                            <dependency>
+                                <groupId>net.sf.proguard</groupId>
+                                <artifactId>proguard-base</artifactId>
+                                <version>${massiveMavenProGuardVersion}</version>
+                                <scope>runtime</scope>
+                            </dependency>
+                        </dependencies>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <!-- DependencyManagement -->
+    <!-- Declare those repetitive versions and scopes once and for all. -->
+    <!-- We put this at the end of the file since it's so long. -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- External - Properly published Maven projects. Not made by MassiveCraft. -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${massiveGuavaVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${massiveGsonVersion}</version>
+            </dependency>
+			<dependency>
+			    <groupId>com.googlecode.json-simple</groupId>
+			    <artifactId>json-simple</artifactId>
+			    <version>1.1.1</version>
+			</dependency>
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongo-java-driver</artifactId>
+                <version>${massiveMongoDBVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${massiveJavassistVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${massiveHttpclientVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc</groupId>
+                <artifactId>spigot-api</artifactId>
+                <version>${massiveSpigotVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.papermc.paper</groupId>
+                <artifactId>paper-api</artifactId>
+                <version>${massivePaperVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.destroystokyo.paper</groupId>
+                <artifactId>paper-api</artifactId>
+                <version>${massivePaperVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.milkbowl.vault</groupId>
+                <artifactId>Vault</artifactId>
+                <version>${massiveVaultVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+	            <groupId>com.discordsrv</groupId>
+	            <artifactId>discordsrv</artifactId>
+	            <version>${massiveDiscordSrvVersion}</version>
+	            <scope>provided</scope>
+	            <exclusions>
+			        <exclusion>
+			          <artifactId>JDA</artifactId>
+			          <groupId>net.dv8tion</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>nv-websocket-client</artifactId>
+			          <groupId>com.neovisionaries</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>trove4j</artifactId>
+			          <groupId>net.sf.trove4j</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>configuralize</artifactId>
+			          <groupId>github.scarsz</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>slf4j-jdk14</artifactId>
+			          <groupId>org.slf4j</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>commons-io</artifactId>
+			          <groupId>commons-io</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>commons-collections</artifactId>
+			          <groupId>commons-collections</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>commons-lang3</artifactId>
+			          <groupId>org.apache.commons</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>commons-codec</artifactId>
+			          <groupId>commons-codec</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>emoji-java</artifactId>
+			          <groupId>com.vdurmont</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>java-semver</artifactId>
+			          <groupId>com.github.zafarkhaja</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>http-request</artifactId>
+			          <groupId>com.github.kevinsawicki</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>minidns-hla</artifactId>
+			          <groupId>org.minidns</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>reflections</artifactId>
+			          <groupId>org.reflections</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>spring-expression</artifactId>
+			          <groupId>org.springframework</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>MCDiscordReserializer</artifactId>
+			          <groupId>dev.vankka</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>text-api</artifactId>
+			          <groupId>net.kyori</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>text-serializer-legacy</artifactId>
+			          <groupId>net.kyori</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>text-adapter-bukkit</artifactId>
+			          <groupId>net.kyori</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>UltimateFancy</artifactId>
+			          <groupId>br.net.fabiozumbi12.UltimateChat</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>json-simple</artifactId>
+			          <groupId>com.googlecode.json-simple</groupId>
+			        </exclusion>
+	      		</exclusions>
+	        </dependency>
+	        <dependency>
+	            <groupId>net.ess3</groupId>
+	            <artifactId>EssentialsX</artifactId>
+	            <version>${massiveEssentialsVersion}</version>
+	            <scope>provided</scope>
+	            <exclusions>
+			        <exclusion>
+			          <artifactId>paperlib</artifactId>
+			          <groupId>io.papermc</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>NMSProvider</artifactId>
+			          <groupId>net.ess3</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>UpdatedMetaProvider</artifactId>
+			          <groupId>net.ess3</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>1_8_R1Provider</artifactId>
+			          <groupId>net.ess3</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>1_8_R2Provider</artifactId>
+			          <groupId>net.ess3</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>LegacyProvider</artifactId>
+			          <groupId>net.ess3</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>ReflectionProvider</artifactId>
+			          <groupId>net.ess3</groupId>
+			        </exclusion>
+			        <exclusion>
+			          <artifactId>FlattenedProvider</artifactId>
+			          <groupId>net.ess3</groupId>
+			        </exclusion>
+		      	</exclusions>
+	        </dependency>
+            <!--<dependency>
+              <groupId>me.lucko</groupId>
+              <artifactId>commodore</artifactId>
+              <version>${massiveCommodoreVersion}</version>
+              <scope>provided</scope>
+            </dependency>-->
+
+            <!--
+                Page: https://dev.bukkit.org/projects/worldedit/files
+                Intall: mvn install:install-file -DgroupId=com.sk89q.worldedit -DartifactId=worldedit-bukkit -Dversion=7.0.1 -Dpackaging=jar -Dfile=worldedit-bukkit-7.0.1.jar
+                Test: mvn dependency:get -Dartifact=com.sk89q.worldedit:worldedit-bukkit:7.0.1
+            -->
+            <dependency>
+                <groupId>com.sk89q.worldedit</groupId>
+                <artifactId>worldedit-core</artifactId>
+                <version>${massiveWorldEditVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sk89q.worldedit</groupId>
+                <artifactId>worldedit-bukkit</artifactId>
+                <version>${massiveWorldEditVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <!--
+                Page: https://dev.bukkit.org/projects/worldguard/files
+                Intall: mvn install:install-file -DgroupId=com.sk89q.worldguard -DartifactId=worldguard-core -Dversion=7.0.2 -Dpackaging=jar -Dfile=worldguard-bukkit-7.0.2.jar
+                Test: mvn dependency:get -Dartifact=com.sk89q.worldguard:worldguard-core:7.0.2
+            -->
+            <dependency>
+                <groupId>com.sk89q.worldguard</groupId>
+                <artifactId>worldguard-core</artifactId>
+                <version>${massiveWorldGuardVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.sk89q.worldguard</groupId>
+                <artifactId>worldguard-bukkit</artifactId>
+                <version>${massiveWorldGuardVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.comphenix.protocol</groupId>
+                <artifactId>ProtocolLib-API</artifactId>
+                <version>${massiveProtocolLibVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.vexsoftware</groupId>
+                <artifactId>votifier</artifactId>
+                <version>${massiveVotifierVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+              <groupId>me.clip</groupId>
+              <artifactId>placeholderapi</artifactId>
+              <version>${massivePlaceholderAPIVersion}</version>
+              <scope>provided</scope>
+            </dependency>
+
+            <!-- Custom - Custom artifacts. Manually installed by command. -->
+            <!--
+                Not everyone has a Maven repo.
+                In fact some developers don't use Maven at all.
+                Such dependencies must be manually downloaded and installed by command.
+                Depending on what project you are compiling you may need to run some of the commands below.
+                Factions will for example require manual HeroChat installation.
+                You won't need most of these dependencies installed.
+                Most are used in closed source MassiveCraft plugins.
+            -->
+
+            <!--
+                Page: https://www.spigotmc.org/resources/dynmap.274/
+                Intall: mvn install:install-file -DgroupId=us.dynmap -DartifactId=dynmap -Dversion=3.1-beta5 -Dpackaging=jar -Dfile=Dynmap-3.1-beta5-spigot.jar
+                Test: mvn dependency:get -Dartifact=us.dynmap:dynmap:3.1-beta5
+            -->
+            <dependency>
+              <groupId>us.dynmap</groupId>
+              <artifactId>dynmap</artifactId>
+              <version>${massiveDynmapVersion}</version>
+              <scope>provided</scope>
+            </dependency>
+
+            <!--
+                Page: https://www.spigotmc.org/resources/lwc-unofficial-entity-locking.2162/history
+                File: https://www.spigotmc.org/resources/lwc-unofficial-entity-locking.2162/download?version=131362
+                Intall: mvn install:install-file -DgroupId=com.griefcraft -DartifactId=lwc -Dversion=2.1.1 -Dpackaging=jar -Dfile=EntityLWC.jar
+                Test: mvn dependency:get -Dartifact=com.griefcraft:lwc:2.1.1
+            -->
+            <dependency>
+                <groupId>com.griefcraft</groupId>
+                <artifactId>lwc</artifactId>
+                <version>${massiveLwcVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- NMS - Full Spigot servers including NMS that may not be distributed. -->
+            <!-- This section is relevant to supporting multiple minecraft versions for plugins using NMS. -->
+            <!-- Note that we use different artifact ids to allow using all at once. -->
+            <!-- http://stackoverflow.com/questions/24962607/multiple-versions-of-the-same-dependency-in-maven -->
+            <!--
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=114R5-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-114R5-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=114R4-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-114R4-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=114R3-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-114R3-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=114R2-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-114R2-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=114R1-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-114R1-fake.jar
+
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=113R5-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-113R5-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=113R4-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-113R4-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=113R3-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-113R3-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=113R2-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-113R2-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=113R1-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-113R1-fake.jar
+
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=112R5-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-112R5-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=112R4-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-112R4-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=112R3-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-112R3-fake.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=112R2-fake -Dversion=fake -Dpackaging=jar -Dfile=spigot-112R2-fake.jar
+
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=112R1 -Dversion=1.12-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-112R1.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=111R1 -Dversion=1.11.2-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-111R1.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=110R1 -Dversion=1.10.0-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-110R1.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=19R2 -Dversion=1.9.4-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-19R2.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=19R1 -Dversion=1.9.0-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-19R1.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=18R3 -Dversion=1.8.8-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-18R3.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=18R2 -Dversion=1.8.3-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-18R2.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=18R1 -Dversion=1.8.1-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-18R1.jar
+                mvn install:install-file -DgroupId=org.spigotmc.spigot -DartifactId=17R4 -Dversion=1.7.10-R0.1-SNAPSHOT -Dpackaging=jar -Dfile=spigot-17R4.jar
+            -->
+
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>114R5-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>114R4-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>114R3-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>114R2-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>114R1-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>113R5-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>113R4-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>113R3-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>113R2-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>113R1-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>112R5-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>112R4-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>112R3-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>112R2-fake</artifactId>
+                <version>fake</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>112R1</artifactId>
+                <version>1.12-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>111R1</artifactId>
+                <version>1.11.2-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>110R1</artifactId>
+                <version>1.10.0-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>19R2</artifactId>
+                <version>1.9.4-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>19R1</artifactId>
+                <version>1.9.0-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>18R3</artifactId>
+                <version>1.8.8-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>18R2</artifactId>
+                <version>1.8.3-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>18R1</artifactId>
+                <version>1.8.1-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.spigotmc.spigot</groupId>
+                <artifactId>17R4</artifactId>
+                <version>1.7.10-R0.1-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- Internal - Stuff made by MassiveCraft. -->
+            <dependency>
+                <groupId>com.massivecraft.creativegates</groupId>
+                <artifactId>CreativeGates</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.factions</groupId>
+                <artifactId>Factions</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.massivecore</groupId>
+                <artifactId>MassiveCore</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.massivesuper</groupId>
+                <artifactId>MassiveSuper</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.massivebasic</groupId>
+                <artifactId>MassiveBasic</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.massiveperms</groupId>
+                <artifactId>MassivePerms</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

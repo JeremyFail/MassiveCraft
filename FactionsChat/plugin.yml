@@ -1,0 +1,72 @@
+main: ${project.groupId}.${project.name}
+name: ${project.name}
+version: ${project.version}
+website: ${project.url}
+description: ${project.description}
+authors: [eirikh1996, Ymerejliaf]
+api-version: 1.21
+depend: [MassiveCore, Factions]
+softdepend: [DiscordSRV, Essentials, PlaceholderAPI]
+
+permissions:
+  # -------------------------------------------- #
+  # THE REAL NODES
+  # -------------------------------------------- #
+  factions.chat.ally:
+    description: Access ally chat channel
+    default: op
+  factions.chat.truce:
+    description: Access truce chat channel
+    default: op
+  factions.chat.faction:
+    description: Access faction chat channel
+    default: op
+  factions.chat.local:
+    description: Access local chat channel
+    default: op
+  factions.chat.global:
+    description: Access global chat channel
+    default: op
+  factions.chat.enemy:
+    description: Access enemy chat channel
+    default: op
+  factions.chat.neutral:
+    description: Access neutral chat channel
+    default: op
+  factions.chat.world:
+    description: Access world chat channel
+    default: op
+  factions.chat.color:
+    description: Use color codes in chat messages
+    default: op
+  factions.chat.format:
+    description: Use formatting codes in chat messages
+    default: op
+  factions.chat.magic:
+    description: Use magic codes in chat messages
+    default: op
+  factions.chat.rgb:
+    description: Use RGB (hex) color codes in chat messages
+    default: op
+  factions.chat.url:
+    description: Send clickable URLs in chat messages
+    default: op
+  factions.chat.reload:
+    description: Reload the plugin configuration file
+    default: op
+  factions.chat.staff:
+    description: Access staff chat channel
+    default: op
+# -------------------------------------------- #
+# STAR NOTATION
+# -------------------------------------------- #
+  factions.chat.*:
+    children:
+      factions.chat.ally: true
+      factions.chat.truce: true
+      factions.chat.faction: true
+      factions.chat.local: true
+      factions.chat.global: true
+      factions.chat.enemy: true
+      factions.chat.neutral: true
+      factions.chat.world: true
