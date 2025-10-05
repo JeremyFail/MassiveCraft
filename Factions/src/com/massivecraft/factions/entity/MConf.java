@@ -331,7 +331,7 @@ public class MConf extends Entity<MConf>
 
 	// Set this option to false to prevent players from hurting neutral players while they are in the neutral
 	// player's territory. By default this is enabled to treat neutral players more like enemies (i.e. assume they
-	// are hostile rather than friendly). If disabled, neutral players will not be able to hurt while they are 
+	// are hostile rather than friendly). If disabled, neutral players will not be able to be hurt while they are 
 	// in their own territory, treating neutral players more like allies.
 	public boolean enablePVPAgainstNeutralInTheirTerritory = true;
 	
