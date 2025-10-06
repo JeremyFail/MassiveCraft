@@ -803,7 +803,7 @@ public class MConf extends Entity<MConf>
 	// Specify Faction either by name or UUID.
 	@EditorVisible(false)
 	public Map<String, DynmapStyle> dynmapFactionStyles = MUtil.map(
-		"SafeZone", new DynmapStyle().withLineColor("#FF00FF").withFillColor("#FF00FF").withBoost(false),
+		"SafeZone", new DynmapStyle().withLineColor("#FFAA00").withFillColor("#FFAA00").withBoost(false),
 		"WarZone", new DynmapStyle().withLineColor("#FF0000").withFillColor("#FF0000").withBoost(false)
 	);
 }
