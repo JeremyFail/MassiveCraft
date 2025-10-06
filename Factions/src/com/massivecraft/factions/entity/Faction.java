@@ -33,10 +33,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -188,13 +190,13 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	}
 	
     /**
-     * Checks if the current faction is a normal faction (not Wilderness/none).
+     * Checks if the current faction is a normal faction (not Wilderness/none, WarZone, or SafeZone).
      * 
-     * @return True if the current Faction is NOT Wilderness (none). False otherwise.
+     * @return True if the current Faction is NOT Wilderness (none), WarZone, or SafeZone. False otherwise.
      */
 	public boolean isNormal()
 	{
-		return ! this.isNone();
+		return !this.isNone() && !this.isWarZone() && !this.isSafeZone();
 	}
 
     /**
@@ -453,6 +455,18 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	public long getAge(long now)
 	{
 		return now - this.getCreatedAtMillis();
+	}
+
+	public Date getCreatedDate()
+	{
+		return new Date(this.getCreatedAtMillis());
+	}
+
+	public String getCreatedDateString()
+	{
+		Date date = new Date(this.getCreatedAtMillis());
+		SimpleDateFormat sdf = new SimpleDateFormat(MConf.get().foundedDateFormat);
+		return sdf.format(date);
 	}
 	
 	// -------------------------------------------- //
@@ -1200,6 +1214,30 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	{
 		return BoardColl.get().getClaimedWorlds(this);
 	}
+
+	// -------------------------------------------- //
+	// RELATIONSHIPS
+	// -------------------------------------------- //
+	public List<Faction> getRelatedFactions(Rel rel)
+	{
+		List<Faction> relatedFactions = new MassiveList<>();
+		for (Faction fac : FactionColl.get().getAll())
+		{
+			if (fac == this) continue;
+			Rel theirRelToUs = fac.getRelationTo(this);
+			if (theirRelToUs == rel)
+			{
+				// This faction has the relation to us that we are looking for
+				relatedFactions.add(fac);
+			}
+			else
+			{
+				// This faction does not have the relation to us that we are looking for
+				continue;
+			}
+		}
+		return relatedFactions;
+	}
 	
 	// -------------------------------------------- //
 	// FOREIGN KEY: MPLAYER
@@ -1290,7 +1328,7 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	// used when current leader is about to be removed from the faction; promotes new leader, or disbands faction if no other members left
 	public void promoteNewLeader()
 	{
-		if ( ! this.isNormal()) return;
+		if (!this.isNormal()) return;
 		if (this.getFlag(MFlag.getFlagPermanent()) && MConf.get().permanentFactionsDisableLeaderPromotion) return;
 
 		MPlayer oldLeader = this.getLeader();

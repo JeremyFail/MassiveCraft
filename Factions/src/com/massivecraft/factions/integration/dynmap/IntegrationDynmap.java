@@ -1,6 +1,5 @@
 package com.massivecraft.factions.integration.dynmap;
 
-import com.massivecraft.factions.integration.worldguard.EngineWorldGuard;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.Integration;
 

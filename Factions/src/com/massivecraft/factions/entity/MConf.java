@@ -325,7 +325,7 @@ public class MConf extends Entity<MConf>
 	public boolean enablePVPBetweenFactionlessPlayers = true;
 	
 	// Set this option to true to create an exception to the rule above.
-	// Players inside their own faction territory can then hurt facitonless players.
+	// Players inside their own faction territory can then hurt factionless players.
 	// This way you may "evict" factionless trolls messing around in your home base.
 	public boolean enablePVPAgainstFactionlessInAttackersLand = false;
 
@@ -347,6 +347,11 @@ public class MConf extends Entity<MConf>
 
 	// Will flying be disabled on pvp
 	public boolean flyDisableOnPvp = false;
+
+	// The date format used when displaying the founded date of a faction
+	// Follows Java's SimpleDateFormat patterns
+	// For reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/SimpleDateFormat.html
+	public String foundedDateFormat = "yyyy-MM-dd";
 
 	// -------------------------------------------- //
 	// DENY COMMANDS
