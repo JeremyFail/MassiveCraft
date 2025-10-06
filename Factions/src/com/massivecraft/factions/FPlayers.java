@@ -1,5 +1,9 @@
 package com.massivecraft.factions;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -36,19 +40,36 @@ public class FPlayers
     // METHODS
     // -------------------------------------------- //
 
-    // TODO: Add more methods from legacy factions
+    public Collection<FPlayer> getOnlinePlayers()
+    {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage(true);
+        
+        Collection<FPlayer> onlinePlayers = new ArrayList<>();
+        for (Player player : Bukkit.getServer().getOnlinePlayers())
+        {
+            onlinePlayers.add(getByPlayer(player));
+        }
+        return onlinePlayers;
+    }
+
+    public Collection<FPlayer> getAllFPlayers()
+    {
+        return getOnlinePlayers();
+    }
+
     public FPlayer getByPlayer(Player player)
     {
         // Check and warn about legacy API usage
-        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        LegacyApiWarningManager.checkAndWarnLegacyUsage(true);
         
         return new LegacyFPlayer(player);
     }
-    
+
     public FPlayer getByOfflinePlayer(OfflinePlayer player)
     {
         // Check and warn about legacy API usage
-        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        LegacyApiWarningManager.checkAndWarnLegacyUsage(true);
         
         return new LegacyFPlayer(player);
     }

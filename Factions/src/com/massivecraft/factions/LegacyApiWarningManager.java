@@ -37,12 +37,17 @@ public class LegacyApiWarningManager
     // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
+
+    public static void checkAndWarnLegacyUsage()
+    {
+        checkAndWarnLegacyUsage(false);
+    }
     
     /**
      * Checks the current call stack and warns about legacy API usage if this is the first time
      * the calling plugin has used the legacy API.
      */
-    public static void checkAndWarnLegacyUsage()
+    public static void checkAndWarnLegacyUsage(boolean isFactionsUUID)
     {
         try
         {
@@ -70,7 +75,7 @@ public class LegacyApiWarningManager
             warnedPlugins.add(pluginName);
             
             // Log the warning
-            logLegacyApiWarning(callingPlugin);
+            logLegacyApiWarning(callingPlugin, isFactionsUUID);
         }
         catch (Exception e)
         {
@@ -133,10 +138,17 @@ public class LegacyApiWarningManager
     /**
      * Logs a warning message about legacy API usage.
      */
-    private static void logLegacyApiWarning(Plugin plugin)
+    private static void logLegacyApiWarning(Plugin plugin, boolean isFactionsUUID)
     {
         logger.warning("######################################################################");
-        logger.warning("Legacy Factions Compatibility Layer in use by the plugin:");
+        if (isFactionsUUID)
+        {
+            logger.warning("WARNING: FactionsUUID Compatibility Layer in use by the plugin:");
+        } 
+        else 
+        {
+            logger.warning("WARNING: Legacy Factions Compatibility Layer in use by the plugin:");
+        }
 
         // Build plugin info string
         String pluginInfo = "'" + plugin.getName() + "'";

@@ -18,15 +18,17 @@ import org.bukkit.entity.Player;
 public interface FPlayer
 {
        
-    public Faction getFaction();
+    Faction getFaction();
+
+    String getFactionId();
 
     boolean hasFaction();
 
     void setFaction(Faction faction);
     
-    public boolean shouldTakeFallDamage();
+    boolean shouldTakeFallDamage();
     
-//    public void setTakeFallDamage(boolean fallDamage);
+    // void setTakeFallDamage(boolean fallDamage);
 
     double getPowerBoost();
 
@@ -165,5 +167,9 @@ public interface FPlayer
     boolean canFlyAtLocation();
 
     boolean canFlyAtLocation(FLocation location);
+
+    boolean isSeeingChunk();
+
+    void setSeeingChunk(boolean seeingChunk);
     
 }
