@@ -52,8 +52,6 @@ public class EngineCanCombatHappen extends Engine
 		{
 			damager.remove();
 		}
-
-
 	}
 
 	// mainly for flaming arrows; don't want allies or people in safe zones to be ignited even after damage event is cancelled
