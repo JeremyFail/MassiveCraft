@@ -18,6 +18,8 @@ import org.bukkit.entity.Player;
 @Deprecated
 public interface FPlayer
 {
+    // TODO: Remove methods that were removed from the legacy API
+
     UUID uniqueId();
 
     String name();

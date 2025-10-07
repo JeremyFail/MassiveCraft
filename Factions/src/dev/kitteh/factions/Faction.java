@@ -21,7 +21,8 @@ import dev.kitteh.factions.util.LazyLocation;
 @Deprecated
 public interface Faction
 {
-    
+    // TODO: Remove methods that were removed from the legacy API
+
     Map<String, LazyLocation> getWarps();
 
     Map<String, LazyLocation> warps();

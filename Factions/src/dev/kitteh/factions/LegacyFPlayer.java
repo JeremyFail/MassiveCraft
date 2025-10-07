@@ -28,6 +28,7 @@ import com.massivecraft.massivecore.ps.PS;
 @Deprecated
 public class LegacyFPlayer implements FPlayer
 {
+    // TODO: Remove methods that were removed from the legacy API
     // TODO: Do we need to do logging or anything that commands do in these methods?
     private MPlayer realPlayer;
     

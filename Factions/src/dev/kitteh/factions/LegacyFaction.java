@@ -30,7 +30,7 @@ import dev.kitteh.factions.util.LazyLocation;
 @Deprecated
 public class LegacyFaction implements Faction
 {
-    
+    // TODO: Remove methods that were removed from the legacy API
     // TODO: Do we need to do logging or anything that commands do in these methods?
     
     private com.massivecraft.factions.entity.Faction realFaction;

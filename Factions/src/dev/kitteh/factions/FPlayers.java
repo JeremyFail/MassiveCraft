@@ -21,6 +21,8 @@ import com.massivecraft.factions.LegacyApiWarningManager;
 @Deprecated
 public class FPlayers
 {
+    // TODO: Remove methods that were removed from the legacy API
+
     // -------------------------------------------- //
     // INSTANCE & CONSTRUCT
     // -------------------------------------------- //

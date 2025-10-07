@@ -28,6 +28,8 @@ import dev.kitteh.factions.util.LazyLocation;
 public class FLocation
 {
     
+    // TODO: Remove methods that were removed from the legacy API
+
     private Location location;
 
     //----------------------------------------------//

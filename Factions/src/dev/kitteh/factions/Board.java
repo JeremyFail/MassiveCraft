@@ -21,6 +21,8 @@ import com.massivecraft.massivecore.ps.PS;
 @Deprecated
 public class Board
 {
+
+    // TODO: Remove methods that were removed from the legacy API
     
     // -------------------------------------------- //
     // INSTANCE & CONSTRUCT
