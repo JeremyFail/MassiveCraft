@@ -323,7 +323,7 @@ public class Factions extends MassivePlugin
 	 * @return The faction with the specified tag (name), or null if not found.
 	 * @deprecated Use {@link FactionColl#getByName(String)} instead.
 	 */
-	public com.massivecraft.factions.Faction getFactionByTag(String tag)
+	public com.massivecraft.factions.Faction getByTag(String tag)
     {
         // Check and warn about legacy API usage
         LegacyApiWarningManager.checkAndWarnLegacyUsage();

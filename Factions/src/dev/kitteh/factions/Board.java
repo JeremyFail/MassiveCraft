@@ -39,6 +39,10 @@ public class Board
         }
         return instance;
     }
+    public static Board board()
+    {
+        return getInstance();
+    }
     // Private constructor to prevent instantiation
     private Board() {}
     

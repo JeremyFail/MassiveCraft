@@ -87,6 +87,14 @@ public class FPlayers
         return online();
     }
 
+    public FPlayer get(OfflinePlayer player)
+    {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage(true);
+        
+        return new LegacyFPlayer(player);
+    }
+
     public FPlayer get(UUID uuid)
     {
         // Check and warn about legacy API usage

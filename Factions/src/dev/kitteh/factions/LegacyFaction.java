@@ -271,6 +271,13 @@ public class LegacyFaction implements Faction
     }
 
     @Override
+    public int id()
+    {
+        // Factions3 does not have numeric IDs, so we return a hash code as a substitute
+        return this.realFaction.getId().hashCode();
+    }
+
+    @Override
     public String getTag()
     {
         return realFaction.getName();
@@ -459,7 +466,7 @@ public class LegacyFaction implements Faction
     @Override
     public boolean isNormal()
     {
-        return !(realFaction.isNone() || realFaction.isSafeZone() || realFaction.isWarZone());
+        return realFaction.isNormal();
     }
 
     @Override

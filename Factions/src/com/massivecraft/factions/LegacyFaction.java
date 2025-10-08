@@ -324,7 +324,7 @@ public class LegacyFaction implements Faction
     @Override
     public boolean isNormal()
     {
-        return !(realFaction.isNone() || realFaction.isSafeZone() || realFaction.isWarZone());
+        return realFaction.isNormal();
     }
 
     @Override

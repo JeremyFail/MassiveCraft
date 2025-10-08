@@ -88,6 +88,8 @@ public interface Faction
 
     void permanent(boolean isPermanent);
 
+    int id();
+
     String getTag();
 
     String tag();
