@@ -245,6 +245,12 @@ public class FactionsChat extends JavaPlugin
      */
     public void loadChatModesFromFile()
     {
+        // Ensure the plugin data folder exists
+        if (!getDataFolder().exists()) 
+        {
+            getDataFolder().mkdirs();
+        }
+        
         File chatmodesFile = new File(getDataFolder(), "chatmodes.yml");
         if (!chatmodesFile.exists()) 
         {
@@ -278,9 +284,27 @@ public class FactionsChat extends JavaPlugin
      */
     public void saveChatModesFile()
     {
+        // Ensure the plugin data folder exists
+        if (!getDataFolder().exists()) 
+        {
+            getDataFolder().mkdirs();
+        }
+        
         File chatmodesFile = new File(getDataFolder(), "chatmodes.yml");
+        if (!chatmodesFile.exists()) 
+        {
+            // If the file doesn't exist, create it with an empty configuration
+            try 
+            {
+                chatmodesFile.createNewFile();
+            } 
+            catch (IOException e) 
+            {
+                e.printStackTrace();
+            }
+        }
+        
         YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(chatmodesFile);
-
         for (Map.Entry<UUID, ChatMode> entry : chatModes.entrySet())
         {
             yamlConfig.set(entry.getKey().toString(), entry.getValue().name());
