@@ -126,6 +126,12 @@ public class EnumerationUtil
         "WARPED_WALL_HANGING_SIGN"      // Minecraft 1.20
     );
     
+    /**
+     * Checks if the given material is editable on interact.
+     * 
+     * @param material The material to check.
+     * @return True if the material is editable on interact; false otherwise.
+     */
     public static boolean isMaterialEditOnInteract(Material material)
     {
         return MATERIALS_EDIT_ON_INTERACT.contains(material) || MConf.get().materialsEditOnInteract.contains(material);
@@ -170,7 +176,13 @@ public class EnumerationUtil
         "SIGN",                 // Minecraft 1.0
         "SIGN_POST"             // Minecraft 1.0
     );
-    
+
+    /**
+     * Checks if the given material is an edit tool.
+     * 
+     * @param material The material to check.
+     * @return True if the material is an edit tool; false otherwise.
+     */
     public static boolean isMaterialEditTool(Material material)
     {
         return MATERIALS_EDIT_TOOL.contains(material) || MConf.get().materialsEditTools.contains(material);
@@ -183,41 +195,19 @@ public class EnumerationUtil
     // Interacting with these materials placed in the terrain results in door toggling.
     public static final BackstringSet<Material> MATERIALS_DOOR = new BackstringSet<>(Material.class, 
         "ACACIA_DOOR",                     // Minecraft 1.8
-        "ACACIA_FENCE_GATE",               // Minecraft 1.8
-        "ACACIA_TRAPDOOR",                 // Minecraft 1.8
         "BAMBOO_DOOR",                     // Minecraft 1.20
-        "BAMBOO_FENCE_GATE",               // Minecraft 1.20
-        "BAMBOO_TRAPDOOR",                 // Minecraft 1.20
         "BIRCH_DOOR",                      // Minecraft 1.8
-        "BIRCH_FENCE_GATE",                // Minecraft 1.8
-        "BIRCH_TRAPDOOR",                  // Minecraft 1.8
         "CHERRY_DOOR",                     // Minecraft 1.20
-        "CHERRY_FENCE_GATE",               // Minecraft 1.20
-        "CHERRY_TRAPDOOR",                 // Minecraft 1.20
         "CRIMSON_DOOR",                    // Minecraft 1.16
-        "CRIMSON_FENCE_GATE",              // Minecraft 1.16
-        "CRIMSON_TRAPDOOR",                // Minecraft 1.16
         "DARK_OAK_DOOR",                   // Minecraft 1.8
-        "DARK_OAK_FENCE_GATE",             // Minecraft 1.8
-        "DARK_OAK_TRAPDOOR",               // Minecraft 1.8
         "JUNGLE_DOOR",                     // Minecraft 1.8
-        "JUNGLE_FENCE_GATE",               // Minecraft 1.8
-        "JUNGLE_TRAPDOOR",                 // Minecraft 1.8
         "MANGROVE_DOOR",                   // Minecraft 1.19
-        "MANGROVE_FENCE_GATE",             // Minecraft 1.19
-        "MANGROVE_TRAPDOOR",               // Minecraft 1.19
         "OAK_DOOR",                        // Minecraft 1.8
-        "OAK_FENCE_GATE",                  // Minecraft 1.8
-        "OAK_TRAPDOOR",                    // Minecraft 1.8
         "PALE_OAK_DOOR",                   // Minecraft 1.21.4
-        "PALE_OAK_FENCE_GATE",             // Minecraft 1.21.4
-        "PALE_OAK_TRAPDOOR",               // Minecraft 1.21.4
         "SPRUCE_DOOR",                     // Minecraft 1.8
-        "SPRUCE_FENCE_GATE",               // Minecraft 1.8
-        "SPRUCE_TRAPDOOR",                 // Minecraft 1.8
         "WARPED_DOOR",                     // Minecraft 1.16
-        "WARPED_FENCE_GATE",               // Minecraft 1.16
-        "WARPED_TRAPDOOR",                 // Minecraft 1.16
+
+        "IRON_DOOR",                       // Minecraft 1.0
 
         // Copper Door Variants
         "COPPER_DOOR",                     // Minecraft 1.21.9
@@ -227,7 +217,54 @@ public class EnumerationUtil
         "WAXED_COPPER_DOOR",               // Minecraft 1.21.9
         "WAXED_EXPOSED_COPPER_DOOR",       // Minecraft 1.21.9
         "WAXED_OXIDIZED_COPPER_DOOR",      // Minecraft 1.21.9
-        "WAXED_WEATHERED_COPPER_DOOR",     // Minecraft 1.21.9
+        "WAXED_WEATHERED_COPPER_DOOR"     // Minecraft 1.21.9
+    );
+    
+    /**
+     * Checks if the given material is a door.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a door; false otherwise.
+     */
+    public static boolean isMaterialDoor(Material material)
+    {
+        return MATERIALS_DOOR.contains(material) || MConf.get().materialsDoor.contains(material);
+    }
+
+    /**
+	 * Checks if the given material is a door, trapdoor, or fence gate.
+	 * 
+	 * @param material The material to check.
+	 * @return True if the material is a door, trapdoor, or fence gate; false otherwise.
+	 */
+	public static boolean isMaterialDoorOrRelated(Material material)
+	{
+		return isMaterialDoor(material) 
+			|| isMaterialTrapdoor(material) 
+			|| isMaterialFenceGate(material);
+	}
+
+    // -------------------------------------------- //
+    // MATERIAL TRAPDOOR
+    // -------------------------------------------- //
+
+    public static final BackstringSet<Material> MATERIALS_TRAPDOOR = new BackstringSet<>(Material.class,
+        "ACACIA_TRAPDOOR",                 // Minecraft 1.8
+        "BAMBOO_TRAPDOOR",                 // Minecraft 1.20
+        "BIRCH_TRAPDOOR",                  // Minecraft 1.8
+        "CHERRY_TRAPDOOR",                 // Minecraft 1.20
+        "CRIMSON_TRAPDOOR",                // Minecraft 1.16
+        "DARK_OAK_TRAPDOOR",               // Minecraft 1.8
+        "JUNGLE_TRAPDOOR",                 // Minecraft 1.8
+        "MANGROVE_TRAPDOOR",               // Minecraft 1.19
+        "OAK_TRAPDOOR",                    // Minecraft 1.8
+        "PALE_OAK_TRAPDOOR",               // Minecraft 1.21.4
+        "SPRUCE_TRAPDOOR",                 // Minecraft 1.8
+        "WARPED_TRAPDOOR",                 // Minecraft 1.16
+
+        "IRON_TRAPDOOR",                   // Minecraft 1.8
+
+        // Copper Trapdoor Variants
         "COPPER_TRAPDOOR",                 // Minecraft 1.21.9
         "EXPOSED_COPPER_TRAPDOOR",         // Minecraft 1.21.9
         "OXIDIZED_COPPER_TRAPDOOR",        // Minecraft 1.21.9
@@ -237,10 +274,46 @@ public class EnumerationUtil
         "WAXED_OXIDIZED_COPPER_TRAPDOOR",  // Minecraft 1.21.9
         "WAXED_WEATHERED_COPPER_TRAPDOOR"  // Minecraft 1.21.9
     );
-    
-    public static boolean isMaterialDoor(Material material)
+
+    /**
+     * Checks if the given material is a trapdoor.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a trapdoor; false otherwise.
+     */
+    public static boolean isMaterialTrapdoor(Material material)
     {
-        return MATERIALS_DOOR.contains(material) || MConf.get().materialsDoor.contains(material);
+        return MATERIALS_TRAPDOOR.contains(material) || MConf.get().materialsTrapdoor.contains(material);
+    }
+
+    // -------------------------------------------- //
+    // MATERIAL FENCE GATE
+    // -------------------------------------------- //
+
+    public static final BackstringSet<Material> MATERIALS_FENCE_GATE = new BackstringSet<>(Material.class,
+        "ACACIA_FENCE_GATE",               // Minecraft 1.8
+        "BAMBOO_FENCE_GATE",               // Minecraft 1.20
+        "BIRCH_FENCE_GATE",                // Minecraft 1.8
+        "CHERRY_FENCE_GATE",               // Minecraft 1.20
+        "CRIMSON_FENCE_GATE",              // Minecraft 1.16
+        "DARK_OAK_FENCE_GATE",             // Minecraft 1.8
+        "JUNGLE_FENCE_GATE",               // Minecraft 1.8
+        "MANGROVE_FENCE_GATE",             // Minecraft 1.19
+        "OAK_FENCE_GATE",                  // Minecraft 1.8
+        "PALE_OAK_FENCE_GATE",             // Minecraft 1.21.4
+        "SPRUCE_FENCE_GATE",               // Minecraft 1.8
+        "WARPED_FENCE_GATE"                // Minecraft 1.16
+    );
+
+    /**
+     * Checks if the given material is a fence gate.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a fence gate; false otherwise.
+     */
+    public static boolean isMaterialFenceGate(Material material)
+    {
+        return MATERIALS_FENCE_GATE.contains(material) || MConf.get().materialsFenceGate.contains(material);
     }
     
     // -------------------------------------------- //
@@ -325,6 +398,12 @@ public class EnumerationUtil
         "WARPED_SHELF"                  // Minecraft 1.21.9
     );
     
+    /**
+     * Checks if the given material is a container.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a container; false otherwise.
+     */
     public static boolean isMaterialContainer(Material material)
     {
         return MATERIALS_CONTAINER.contains(material) || MConf.get().materialsContainer.contains(material);
@@ -353,6 +432,12 @@ public class EnumerationUtil
         "WARPED_BUTTON"               // Minecraft 1.16
     );
 
+    /**
+     * Checks if the given material is a button.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a button; false otherwise.
+     */
     public static boolean isMaterialButton(Material material)
     {
         return MATERIALS_BUTTON.contains(material) || MConf.get().materialsButton.contains(material);
@@ -381,6 +466,12 @@ public class EnumerationUtil
         "WARPED_PRESSURE_PLATE"               // Minecraft 1.16
     );
 
+    /**
+     * Checks if the given material is a pressure plate.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a pressure plate; false otherwise.
+     */
     public static boolean isMaterialPressurePlate(Material material)
     {
         return MATERIALS_PRESSURE_PLATES.contains(material) || MConf.get().materialsPressurePlate.contains(material);
@@ -435,6 +526,12 @@ public class EnumerationUtil
         "YELLOW_CANDLE_CAKE"        // Minecraft 1.17
     );
 
+    /**
+     * Checks if the given material can be broken by a wind charge.
+     * 
+     * @param material The material to check.
+     * @return True if the material can be broken by a wind charge; false otherwise.
+     */
     public static boolean isMaterialWindChargeBreakable(Material material)
     {
         return MATERIALS_WIND_CHARGE_BREAKABLE.contains(material) || MConf.get().materialsWindChargeBreakable.contains(material);
@@ -476,6 +573,12 @@ public class EnumerationUtil
         "TNT_MINECART"            // Minecraft 1.5
     );
 
+    /**
+     * Checks if the given material is a vehicle.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a vehicle; false otherwise.
+     */
     public static boolean isMaterialVehicle(Material material)
     {
         return MATERIALS_VEHICLE.contains(material) || MConf.get().materialsVehicle.contains(material);
@@ -500,6 +603,12 @@ public class EnumerationUtil
         "WARPED_FENCE"               // Minecraft 1.16
     );
 
+    /**
+     * Checks if the given material is a fence (for narrow block checking).
+     * 
+     * @param material The material to check.
+     * @return True if the material is a narrow block fence; false otherwise.
+     */
     public static boolean isMaterialNarrowBlockFence(Material material)
     {
         return MATERIALS_NARROW_BLOCKS_FENCES.contains(material) || MConf.get().materialsNarrowBlocksFences.contains(material);
@@ -560,6 +669,12 @@ public class EnumerationUtil
         "WAXED_WEATHERED_LIGHTNING_ROD"  // Minecraft 1.21.9
     );
 
+    /**
+     * Checks if the given material is a narrow block pane (similar in size/profile to a glass pane).
+     * 
+     * @param material The material to check.
+     * @return True if the material is a narrow block pane; false otherwise.
+     */
     public static boolean isMaterialNarrowBlockPane(Material material)
     {
         return MATERIALS_NARROW_BLOCKS_PANES.contains(material) || MConf.get().materialsNarrowBlocksPanes.contains(material);
@@ -577,7 +692,13 @@ public class EnumerationUtil
         "LEASH_KNOT",           // Minecraft 1.6.1
         "PAINTING"              // Minecraft 1.0
     );
-    
+
+    /**
+     * Checks if the given entity type is editable on interact.
+     * 
+     * @param entityType The entity type to check.
+     * @return True if the entity type is editable on interact; false otherwise.
+     */
     public static boolean isEntityTypeEditOnInteract(EntityType entityType)
     {
         return ENTITY_TYPES_EDIT_ON_INTERACT.contains(entityType)
@@ -599,6 +720,12 @@ public class EnumerationUtil
         "TURTLE_EGG"            // Minecraft 1.13
     );
     
+    /**
+     * Checks if the given entity type is editable on damage.
+     * 
+     * @param entityType The entity type to check.
+     * @return True if the entity type is editable on damage; false otherwise.
+     */
     public static boolean isEntityTypeEditOnDamage(EntityType entityType)
     {
         return ENTITY_TYPES_EDIT_ON_DAMAGE.contains(entityType) || MConf.get().entityTypesEditOnDamage.contains(entityType);
@@ -623,6 +750,12 @@ public class EnumerationUtil
         "HOPPER_MINECART"       // Minecraft 1.5
     );
     
+    /**
+     * Checks if the given entity type is a container.
+     * 
+     * @param entityType The entity type to check.
+     * @return True if the entity type is a container; false otherwise.
+     */
     public static boolean isEntityTypeContainer(EntityType entityType)
     {
         return ENTITY_TYPES_CONTAINER.contains(entityType) || MConf.get().entityTypesContainer.contains(entityType);
@@ -655,6 +788,12 @@ public class EnumerationUtil
         "SPRUCE_CHEST_BOAT"         // Minecraft 1.19
     );
 
+    /**
+     * Checks if the given entity type is a boat.
+     * 
+     * @param entityType The entity type to check.
+     * @return True if the entity type is a boat; false otherwise.
+     */
     public static boolean isEntityBoat(EntityType entityType)
 	{
 		return ENTITY_TYPES_BOAT.contains(entityType) || MConf.get().entityTypesBoats.contains(entityType);
@@ -722,6 +861,12 @@ public class EnumerationUtil
         "ZOMBIE_HORSE"      // Minecraft 1.6.1
     );
     
+    /**
+     * Checks if the given entity type is a monster.
+     * 
+     * @param entityType The entity type to check.
+     * @return True if the entity type is a monster; false otherwise.
+     */
     public static boolean isEntityTypeMonster(EntityType entityType)
     {
         return ENTITY_TYPES_MONSTER.contains(entityType) || MConf.get().entityTypesMonsters.contains(entityType);
@@ -782,6 +927,12 @@ public class EnumerationUtil
         "ZOMBIE_HORSE"      // Minecraft 1.6.1
     );
     
+    /**
+     * Checks if the given entity type is an animal.
+     * 
+     * @param entityType The entity type to check.
+     * @return True if the entity type is an animal; false otherwise.
+     */
     public static boolean isEntityTypeAnimal(EntityType entityType)
     {
         return ENTITY_TYPES_ANIMAL.contains(entityType) || MConf.get().entityTypesAnimals.contains(entityType);
