@@ -4,4 +4,4 @@
 
 <b>Please read the guide contained in the parent project directory if you want to compile the source of this plugin.</b>
 
-<b>For details on how to configure and use the plugin, please visit the [Factions Wiki](https://github.com/JeremyFail/MassiveCraft/wiki/Factions)</b>
+<b>For details on how to configure and use the plugin, please visit the [Factions Wiki](https://factions.wiki/Factions)</b>

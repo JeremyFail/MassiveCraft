@@ -4,4 +4,4 @@
 
 <b>Please read the guide contained in the parent project directory if you want to compile the source of this plugin.</b>
 
-<b>For details on how to configure and use the plugin, please visit the [CreativeGates Wiki](https://github.com/JeremyFail/MassiveCraft/wiki/CreativeGates)</b>
+<b>For details on how to configure and use the plugin, please visit the [CreativeGates Wiki](https://factions.wiki/CreativeGates)</b>

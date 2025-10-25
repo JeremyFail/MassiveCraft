@@ -36,7 +36,7 @@ This compatibility layer provides:
 ## For Plugin Developers
 
 ### If you're developing a NEW plugin:
-**Use the modern API**: You can read the developer documentation [in the Wiki](https://github.com/JeremyFail/MassiveCraft/wiki/%E2%80%90-Factions-Development-Guide-%E2%80%90).
+**Use the modern API**: You can read the developer documentation [in the Wiki](https://factions.wiki/Factions/developer-guide/).
 
 ### If you're maintaining an EXISTING plugin:
 1. **Preferred**: Update your plugin to use the modern API.

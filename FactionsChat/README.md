@@ -29,7 +29,7 @@ FactionsChat is a Minecraft Spigot/Paper server plugin that integrates with Mass
 
 ## Usage and Configuration
 
-Please read the [Wiki](https://github.com/JeremyFail/MassiveCraft/wiki/FactionsChat) for details about supported commands, permissions, configuration instructions, FAQs, and troubleshooting steps.
+Please read the [Wiki](https://factions.wiki/FactionsChat) for details about supported commands, permissions, configuration instructions, FAQs, and troubleshooting steps.
 
 ## Requirements
 
