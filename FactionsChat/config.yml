@@ -11,16 +11,19 @@ version: 2
 
 #----------------- Chat Settings -----------------#
 # Chat-related settings not specific to any channel
-# https://github.com/JeremyFail/MassiveCraft/wiki/FactionsChat#configuration
+# https://factions.wiki/FactionsChat/admin-guide/configuration/
 ChatSettings:
   # The chat format for all messages. Supports PlaceholderAPI placeholders if PAPI is installed.
   # Supports color codes (ampersand or section sign, including hex codes).
   # Also supports modifiers such as |rp (right padding) or |lp (left padding), which 
   # conditionally add right/left padding (a space) if the placeholder is not empty.
+  # See the wiki for more details on the PAPI integration:
+  # https://factions.wiki/FactionsChat/admin-guide/integrations/placeholderapi/
   #
-  # See the wiki for a list of built-in/supported tags, list of modifiers, and for more details:
-  # https://github.com/JeremyFail/MassiveCraft/wiki/FactionsChat#placeholders
-  ChatFormat: '%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%'
+  # If you do not have PAPI installed, we support a limited set of built-in placeholders, as well as
+  # the same modifiers mentioned above. See the wiki for more details:
+  # https://factions.wiki/FactionsChat/admin-guide/integrations/placeholderapi/#built-in-placeholders
+  ChatFormat: '%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%&r> %factions_chat_color%%MESSAGE%'
   # If true, allows color codes/formatting in chat messages (if players also have permission to use them)
   AllowColorCodes: true
   # If true, allows clickable links in chat messages (if players also have permission to send them)
