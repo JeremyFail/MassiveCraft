@@ -2,9 +2,8 @@ package com.massivecraft.factionschat.integrations;
 
 import com.massivecraft.factions.integration.placeholderapi.PlaceholderFactions;
 import com.massivecraft.factionschat.ChatMode;
-import com.massivecraft.factionschat.ChatPrefixes;
 import com.massivecraft.factionschat.FactionsChat;
-import com.massivecraft.factionschat.TextColors;
+import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.massivecore.util.PlaceholderProcessor;
 
 import org.bukkit.entity.Player;
@@ -43,11 +42,11 @@ public class PlaceholderFactionsChat extends PlaceholderFactions
             {
                 // The prefix for the chat mode the player is currently using
                 case "chat_prefix":
-                    return !isNull ? ChatPrefixes.getPrefix(ChatMode.getChatModeForPlayer(player)) : "";
+                    return !isNull ? Settings.ChatPrefixes.getPrefix(ChatMode.getChatModeForPlayer(player)) : "";
 
                 // The color for the chat mode the player is currently using
                 case "chat_color":
-                    return !isNull ? TextColors.getColor(ChatMode.getChatModeForPlayer(player)) : "";
+                    return !isNull ? Settings.TextColors.getColor(ChatMode.getChatModeForPlayer(player)) : "";
                 
                 default:
                     return null; // Unknown placeholder
