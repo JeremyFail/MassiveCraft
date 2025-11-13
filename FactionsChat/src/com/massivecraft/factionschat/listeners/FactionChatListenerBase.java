@@ -4,6 +4,7 @@ import com.massivecraft.factions.Rel;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
+import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.util.InternalPlaceholders;
 
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -18,7 +19,7 @@ import java.util.regex.Pattern;
  * Base class for FactionsChat listeners that provides common functionality
  * for chat processing, color handling, and placeholder management.
  */
-public abstract class BaseFactionChatListener
+public abstract class FactionChatListenerBase
 {
     /**
      * Regex pattern for message parsing of RGB Codes. 
@@ -246,9 +247,9 @@ public abstract class BaseFactionChatListener
      */
     protected ChatPermissions getPlayerChatPermissions(Player sender)
     {
-        boolean settingAllowColorCodes = FactionsChat.instance.getAllowColorCodes();
-        boolean settingAllowUrl = FactionsChat.instance.getAllowUrl();
-        boolean settingUnderlineUrl = FactionsChat.instance.getAllowUrlUnderline();
+        boolean settingAllowColorCodes = Settings.allowColorCodes;
+        boolean settingAllowUrl = Settings.allowUrl;
+        boolean settingUnderlineUrl = Settings.allowUrlUnderline;
         
         ChatPermissions perms = new ChatPermissions(
             settingAllowColorCodes && sender.hasPermission("factions.chat.color"),
@@ -275,6 +276,12 @@ public abstract class BaseFactionChatListener
         if (recipient.equals(sender))
         {
             return false; // Always include the sender
+        }
+        
+        // Check if the recipient is ignoring the sender
+        if (FactionsChat.instance.getIgnoreManager().isIgnoring(recipient.getUniqueId(), sender.getUniqueId()))
+        {
+            return true;
         }
         
         MPlayer mSender = MPlayer.get(sender);
@@ -322,7 +329,7 @@ public abstract class BaseFactionChatListener
                         || (mSender.getRelationTo(mRecipient) != Rel.NEUTRAL && mSender.getRelationTo(mRecipient) != Rel.FACTION);
             case LOCAL:
                 return !recipient.hasPermission("factions.chat.local")
-                        || sender.getLocation().toVector().subtract(recipient.getLocation().toVector()).length() > FactionsChat.instance.getLocalChatRange();
+                        || sender.getLocation().toVector().subtract(recipient.getLocation().toVector()).length() > Settings.localChatRange;
             case STAFF:
                 return !recipient.hasPermission("factions.chat.staff");
             case WORLD:

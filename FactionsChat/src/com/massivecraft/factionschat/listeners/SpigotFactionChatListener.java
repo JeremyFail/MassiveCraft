@@ -2,6 +2,7 @@ package com.massivecraft.factionschat.listeners;
 
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
+import com.massivecraft.factionschat.config.Settings;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -23,7 +24,7 @@ import java.util.regex.Pattern;
  *
  * This listener is only registered if the server is running Spigot (not Paper).
  */
-public class SpigotFactionChatListener extends BaseFactionChatListener implements Listener
+public class SpigotFactionChatListener extends FactionChatListenerBase implements Listener
 {
     /**
      * Handles the AsyncPlayerChatEvent.
@@ -71,7 +72,7 @@ public class SpigotFactionChatListener extends BaseFactionChatListener implement
         ChatPermissions permissions = getPlayerChatPermissions(sender);
         
         // Apply non-relational placeholders to the format
-        String format = applyNonRelationalPlaceholders(sender, FactionsChat.instance.getChatFormat(), chatMode);
+        String format = applyNonRelationalPlaceholders(sender, Settings.chatFormat, chatMode);
         
         // Extract base color from format
         BaseColorResult baseColorResult = extractBaseColorFromFormat(format);
