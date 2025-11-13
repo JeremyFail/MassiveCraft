@@ -57,6 +57,12 @@ permissions:
   factions.chat.staff:
     description: Access staff chat channel
     default: op
+  factions.chat.ignore:
+    description: Use ignore commands to manage personal ignore list
+    default: op
+  factions.chat.ignore.admin:
+    description: Manage other players' ignore lists
+    default: op
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
@@ -70,3 +76,4 @@ permissions:
       factions.chat.enemy: true
       factions.chat.neutral: true
       factions.chat.world: true
+      factions.chat.ignore: true
