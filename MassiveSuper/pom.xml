@@ -21,7 +21,7 @@
         <massiveColorInfo>${massiveColorSign}e</massiveColorInfo>
         <massiveColorBold>${massiveColorSign}a</massiveColorBold>
         <massiveColorLink>${massiveColorSign}b</massiveColorLink>
-        <massiveBaseUrl>https://jeremyfail.dev/projects/plugins</massiveBaseUrl>
+        <massiveBaseUrl>https://factions.wiki</massiveBaseUrl>
         <massiveDescriptionSuffix></massiveDescriptionSuffix>
 
         <!-- Core Versions -->
