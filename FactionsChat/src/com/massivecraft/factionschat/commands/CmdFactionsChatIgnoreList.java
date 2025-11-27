@@ -134,7 +134,7 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             // Validate admin permission
             if (!msender.getPlayer().hasPermission("factions.chat.ignore.admin"))
             {
-                msender.message(ChatColor.RED + "You don't have permission to view other players' ignore lists.");
+                msender.message(ChatColor.RED + "You don't have permission to view the ignore list of other players.");
                 return;
             }
 

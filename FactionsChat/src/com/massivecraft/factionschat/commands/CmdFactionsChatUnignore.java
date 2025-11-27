@@ -62,7 +62,7 @@ public class CmdFactionsChatUnignore extends FactionsCommand
             // Admin command: /f c unignore {playerToManage} {playerToUnignore}
             if (!msender.getPlayer().hasPermission("factions.chat.ignore.admin"))
             {
-                msender.message(ChatColor.RED + "You don't have permission to manage other players' ignore lists.");
+                msender.message(ChatColor.RED + "You don't have permission to manage the ignore list of other players.");
                 return;
             }
             
