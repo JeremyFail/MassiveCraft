@@ -11,6 +11,7 @@ import com.massivecraft.factionschat.listeners.ConnectionListener;
 import com.massivecraft.factionschat.listeners.DiscordSRVListener;
 import com.massivecraft.factionschat.listeners.PaperFactionChatListener;
 import com.massivecraft.factionschat.listeners.SpigotFactionChatListener;
+import com.massivecraft.factionschat.util.DisabledChatManager;
 import com.massivecraft.factionschat.util.IgnoreManager;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.factions.cmd.CmdFactions;
@@ -64,12 +65,18 @@ public class FactionsChat extends JavaPlugin
     
     // Ignore system
     private IgnoreManager ignoreManager;
+    
+    // Disabled chat system
+    private DisabledChatManager disabledChatManager;
 
     @Override
     public void onEnable() 
     {
         // Initialize ignore manager
         ignoreManager = new IgnoreManager(this);
+        
+        // Initialize disabled chat manager
+        disabledChatManager = new DisabledChatManager(this);
         
         // Load any current chat modes from the chatmodes.yml file
         loadChatModesFromFile();
@@ -126,6 +133,13 @@ public class FactionsChat extends JavaPlugin
         {
             ignoreManager.saveAllIgnoreData();
             ignoreManager.shutdown();
+        }
+        
+        // Save all disabled chat data and shutdown disabled chat manager
+        if (disabledChatManager != null)
+        {
+            disabledChatManager.saveAllDisabledChatData();
+            disabledChatManager.shutdown();
         }
     }
 
@@ -200,6 +214,16 @@ public class FactionsChat extends JavaPlugin
     public IgnoreManager getIgnoreManager()
     {
         return this.ignoreManager;
+    }
+    
+    /**
+     * Retrieves the disabled chat manager instance.
+     * 
+     * @return The DisabledChatManager instance.
+     */
+    public DisabledChatManager getDisabledChatManager()
+    {
+        return this.disabledChatManager;
     }
     
     // - - - - - PUBLIC METHODS - - - - -

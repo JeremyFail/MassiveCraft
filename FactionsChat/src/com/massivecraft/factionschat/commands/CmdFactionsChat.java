@@ -25,6 +25,7 @@ public class CmdFactionsChat extends FactionsCommand
     private final CmdFactionsChatIgnore ignoreCommand = new CmdFactionsChatIgnore();
     private final CmdFactionsChatUnignore unignoreCommand = new CmdFactionsChatUnignore();
     private final CmdFactionsChatIgnoreList ignoreListCommand = new CmdFactionsChatIgnoreList();
+    private final CmdFactionsChatToggle toggleCommand = new CmdFactionsChatToggle();
     private final CmdFactionsChatReload reloadCommand = new CmdFactionsChatReload();
     
     public CmdFactionsChat()
@@ -111,6 +112,7 @@ public class CmdFactionsChat extends FactionsCommand
                (ignoreCommand.getAliases().contains(lower)) ||
                (unignoreCommand.getAliases().contains(lower)) ||
                (ignoreListCommand.getAliases().contains(lower)) ||
+               (toggleCommand.getAliases().contains(lower)) ||
                (reloadCommand.getAliases().contains(lower));
     }
     
@@ -180,6 +182,11 @@ public class CmdFactionsChat extends FactionsCommand
                 // Create pager and pass to ignorelist command
                 Pager<java.util.UUID> pager = createPagerForChild("ignorelist", "Ignore List", pageNum);
                 ignoreListCommand.performWithPager(pager);
+            }
+            else if (toggleCommand.getAliases().contains(lower))
+            {
+                setupChildCommand(toggleCommand);
+                toggleCommand.perform();
             }
             else if (reloadCommand.getAliases().contains(lower))
             {
@@ -286,6 +293,14 @@ public class CmdFactionsChat extends FactionsCommand
                     if (alias.startsWith(input)) completions.add(alias);
                 }
             }
+            
+            if (sender.hasPermission("factions.chat.toggle") || sender.hasPermission("factions.chat.toggle.admin"))
+            {
+                for (String alias : toggleCommand.getAliases())
+                {
+                    if (alias.startsWith(input)) completions.add(alias);
+                }
+            }
 
             if (sender.hasPermission("factions.chat.reload"))
             {
@@ -330,6 +345,14 @@ public class CmdFactionsChat extends FactionsCommand
                 else if (ignoreListCommand.getAliases().contains(subcommand))
                 {
                     return ignoreListCommand.getTabCompletions(childArgs, sender);
+                }
+            }
+            
+            if (sender.hasPermission("factions.chat.toggle") || sender.hasPermission("factions.chat.toggle.admin"))
+            {
+                if (toggleCommand.getAliases().contains(subcommand))
+                {
+                    return toggleCommand.getTabCompletions(childArgs, sender);
                 }
             }
             

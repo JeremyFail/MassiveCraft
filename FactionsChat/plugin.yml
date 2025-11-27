@@ -66,6 +66,12 @@ permissions:
   factions.chat.ignore.bypass:
     description: Bypass being ignored by other players
     default: false
+  factions.chat.toggle:
+    description: Toggle (disable/enable) specific chat modes
+    default: op
+  factions.chat.toggle.admin:
+    description: Toggle chat modes for other players
+    default: op
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
@@ -80,3 +86,4 @@ permissions:
       factions.chat.neutral: true
       factions.chat.world: true
       factions.chat.ignore: true
+      factions.chat.toggle: true

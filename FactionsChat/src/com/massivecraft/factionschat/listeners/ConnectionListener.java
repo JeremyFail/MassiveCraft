@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- * Handles player join/quit events for ignore data management.
+ * Handles player join/quit events for ignore data and disabled chat data management.
  */
 public class ConnectionListener implements Listener
 {
@@ -17,6 +17,9 @@ public class ConnectionListener implements Listener
     {
         // Load ignore data for the joining player
         FactionsChat.instance.getIgnoreManager().loadPlayerIgnores(event.getPlayer().getUniqueId());
+        
+        // Load disabled chat data for the joining player
+        FactionsChat.instance.getDisabledChatManager().loadPlayerDisabledChats(event.getPlayer().getUniqueId());
     }
     
     @EventHandler
@@ -24,5 +27,8 @@ public class ConnectionListener implements Listener
     {
         // Save and unload ignore data for the leaving player
         FactionsChat.instance.getIgnoreManager().saveAndUnloadPlayerIgnores(event.getPlayer().getUniqueId());
+        
+        // Save and unload disabled chat data for the leaving player
+        FactionsChat.instance.getDisabledChatManager().saveAndUnloadPlayerDisabledChats(event.getPlayer().getUniqueId());
     }
 }
