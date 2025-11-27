@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
  */
 public class CmdFactionsChatReload extends FactionsCommand
 {
+    
     public CmdFactionsChatReload()
     {
         setDesc("Reload the FactionsChat configuration");
@@ -31,4 +32,5 @@ public class CmdFactionsChatReload extends FactionsCommand
         FactionsChat.instance.reloadConfig();
         msender.message(ChatColor.GREEN + "FactionsChat configuration reloaded successfully.");
     }
+    
 }

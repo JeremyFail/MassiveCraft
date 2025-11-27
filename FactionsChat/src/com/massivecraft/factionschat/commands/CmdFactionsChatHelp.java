@@ -2,10 +2,15 @@ package com.massivecraft.factionschat.commands;
 
 import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.ChatMode;
+import com.massivecraft.massivecore.command.Parameter;
+import com.massivecraft.massivecore.pager.Pager;
+import com.massivecraft.massivecore.pager.Stringifier;
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,8 +19,10 @@ import java.util.List;
  */
 public class CmdFactionsChatHelp extends FactionsCommand
 {
+
     public CmdFactionsChatHelp()
     {
+        addParameter(Parameter.getPage());
         setDesc("Display help for chat commands and modes");
         addAliases("help", "h", "?");
     }
@@ -23,62 +30,140 @@ public class CmdFactionsChatHelp extends FactionsCommand
     @Override
     public void perform()
     {
-        msender.message(ChatColor.GOLD + "___________.[ " + ChatColor.DARK_GREEN + "Help for command \"chat\"" + ChatColor.GOLD + " ].___________");
+        // Default implementation - create a basic pager
+        // This is used when called directly (not through parent)
+        int pageNum = 1;
+        String pageArg = arg();
+        
+        if (pageArg != null)
+        {
+            try
+            {
+                pageNum = Integer.parseInt(pageArg);
+            }
+            catch (NumberFormatException e)
+            {
+                msender.message(ChatColor.RED + "\"" + ChatColor.LIGHT_PURPLE + pageArg + ChatColor.RED + "\" is not a number.");
+                return;
+            }
+        }
+        
+        // Create basic pager without navigation
+        final Pager<String> pager = new Pager<String>();
+        pager.setTitle("Help for command \"chat\"");  
+        pager.setNumber(pageNum);
+        pager.setMsonifier((Stringifier<String>) (line, index) -> line);
+        pager.setSender(sender);
+        pager.setCommand(null);
+        
+        performWithPager(pager);
+    }
+    
+    /**
+     * Perform help display with provided pager (called from parent command)
+     */
+    public void performWithPager(Pager<String> pager)
+    {
+        // Build help content as list of strings
+        List<String> helpLines = buildHelpContent();
+        
+        // Configure the pager with our content
+        pager.setMsonifier((Stringifier<String>) (line, index) -> line);
+        pager.setItems(helpLines);
+        pager.message();
+    }
+    
+    /**
+     * Build the help content as a list of strings for paging
+     */
+    private List<String> buildHelpContent()
+    {
+        List<String> lines = new ArrayList<>();
+        Player player = msender.getPlayer();
         
         // Chat Modes Section
-        msender.message(ChatColor.YELLOW + "Chat Modes:");
-        msender.message(ChatColor.GRAY + "Use " + ChatColor.AQUA + "/f c <mode>" + ChatColor.GRAY 
-            + " to switch modes or " + ChatColor.AQUA + "/f c <mode> <message>" + ChatColor.GRAY 
+        lines.add(ChatColor.YELLOW + "Chat Modes:");
+        lines.add(ChatColor.GRAY + "Use " + ChatColor.DARK_AQUA + "/f c <mode>" + ChatColor.GRAY 
+            + " to switch modes or " + ChatColor.DARK_AQUA + "/f c <mode> <message>" + ChatColor.GRAY 
             + " for quick messages.");
         
-        // Display available chat modes using the helper method
-        List<ChatMode> availableModes = ChatMode.getAvailableChatModes(msender.getPlayer());
+        // Display available chat modes
+        List<ChatMode> availableModes = ChatMode.getAvailableChatModes(player);
         for (ChatMode mode : availableModes)
         {
             String modeName = mode.name().toLowerCase();
             String alias = mode.getAlias();
             String description = mode.getDescription();
-            msender.message(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + modeName + ChatColor.GRAY + 
+            lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + modeName + ChatColor.GRAY + 
                 " (or " + ChatColor.LIGHT_PURPLE + alias + ChatColor.GRAY + ")" + ChatColor.WHITE + " - " + ChatColor.AQUA + description);
         }
         
-        msender.message("");
-        
-        // Subcommands Section
-        Player player = msender.getPlayer();
+        // Add subcommands if player has any permissions
         if (player.hasPermission("factions.chat.ignore") 
                 || player.hasPermission("factions.chat.ignore.admin") 
                 || player.hasPermission("factions.chat.reload"))
         {
-            msender.message(ChatColor.YELLOW + "Subcommands:");
-            msender.message(ChatColor.GRAY + "Use " + ChatColor.LIGHT_PURPLE + "/f c <subcommand>" 
+            lines.add(""); // Empty line
+            lines.add(ChatColor.YELLOW + "Subcommands:");
+            lines.add(ChatColor.GRAY + "Use " + ChatColor.DARK_AQUA + "/f c <subcommand>" 
                     + ChatColor.GRAY + " to run other chat commands.");
+            
             if (player.hasPermission("factions.chat.ignore.admin"))
             {
-                msender.message(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignore [playerToUpdate] <player>"
+                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignore [playerToUpdate] <player>"
                         + ChatColor.WHITE + " - " + ChatColor.AQUA + "Add players to the ignore list of yourself or another player");
-                msender.message(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "unignore [playerToUpdate] <player>"
+                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "unignore [playerToUpdate] <player>"
                         + ChatColor.WHITE + " - " + ChatColor.AQUA + "Remove players from the ignore list of yourself or another player");
-                msender.message(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignorelist [player]"
+                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignorelist [player]"
                         + ChatColor.WHITE + " - " + ChatColor.AQUA + "View the ignored list of yourself or another player");
             }
             else if (player.hasPermission("factions.chat.ignore"))
             {
-                msender.message(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignore <player>"
+                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignore <player>"
                         + ChatColor.WHITE + " - " + ChatColor.AQUA + "Add a player to your ignore list");
-                msender.message(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "unignore <player>"
+                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "unignore <player>"
                         + ChatColor.WHITE + " - " + ChatColor.AQUA + "Remove a player from your ignore list");
-                msender.message(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignorelist"
+                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignorelist"
                         + ChatColor.WHITE + " - " + ChatColor.AQUA + "View your ignore list");
             }
 
             if (player.hasPermission("factions.chat.reload"))
             {
-                msender.message(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "reload"
+                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "reload"
                         + ChatColor.WHITE + " - " + ChatColor.AQUA + "Reload FactionsChat configuration");
             }
         }
+        
+        return lines;
     }
     
+    /**
+     * Tab completion for help command
+     */
+    @Override
+    public List<String> getTabCompletions(List<String> args, CommandSender sender)
+    {
+        List<String> completions = new ArrayList<>();
+        
+        if (args.size() == 1)
+        {
+            String input = args.get(0).toLowerCase();
+            
+            // Show page numbers
+            if (input.isEmpty() || input.matches("^\\d.*"))
+            {
+                for (int i = 1; i <= 2; i++)
+                {
+                    String pageNum = String.valueOf(i);
+                    if (pageNum.startsWith(input))
+                    {
+                        completions.add(pageNum);
+                    }
+                }
+            }
+        }
+        
+        return completions;
+    }
 
 }

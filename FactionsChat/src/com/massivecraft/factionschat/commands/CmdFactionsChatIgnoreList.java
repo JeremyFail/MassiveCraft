@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +44,65 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             return;
         }
         
-        // Parse arguments
+        // Parse arguments to get page number
         String firstArg = arg();
         String secondArg = arg();
         
         int pageNum = 1;
         String pageToParse = null;
+
+        // Assume running as admin command if both args are present
+        if (firstArg != null && secondArg != null)
+        {
+            pageToParse = secondArg;
+        }
+        else if (firstArg != null)
+        {
+            // Could be either other player name or page number
+            try
+            {
+                pageNum = Integer.parseInt(firstArg);
+            }
+            catch (NumberFormatException e)
+            {
+                // It's a player name, not a page number
+            }
+        }
+
+        // Parse page number if provided - defaults to 1 if not provided
+        if (pageToParse != null)
+        {
+            try
+            {
+                pageNum = Integer.parseInt(pageToParse);
+            }
+            catch (NumberFormatException e)
+            {
+                msender.message(ChatColor.RED + "\"" + ChatColor.LIGHT_PURPLE + pageToParse + ChatColor.RED + "\" is not a number.");
+                return;
+            }
+        }
+        
+        // Create basic pager without navigation (for direct usage)
+        final Pager<UUID> pager = new Pager<UUID>();
+        pager.setTitle("Ignore List");  
+        pager.setNumber(pageNum);
+        pager.setSender(sender);
+        pager.setCommand(null); // Disable navigation for direct usage
+        
+        performWithPager(pager);
+    }
+    
+    /**
+     * Perform ignorelist display with provided pager (called from parent command)
+     */
+    public void performWithPager(Pager<UUID> pager)
+    {
+        // Use the existing logic but with the provided pager
+        // Extract the argument parsing from the original perform method
+        String firstArg = arg();
+        String secondArg = arg();
+        
         String otherPlayerName = null;
         String targetPlayerName = null;
         UUID targetPlayerUuid = null;
@@ -58,7 +112,6 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
         if (firstArg != null && secondArg != null)
         {
             otherPlayerName = firstArg;
-            pageToParse = secondArg;
             isAdminCommand = true;
         }
         else if (firstArg != null)
@@ -66,7 +119,8 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             // Could be either other player name or page number
             try
             {
-                pageNum = Integer.parseInt(firstArg);
+                Integer.parseInt(firstArg); // Just test if it's a number
+                // If we get here, it's a page number, no player specified
             }
             catch (NumberFormatException e)
             {
@@ -92,6 +146,7 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
                 return;
             }
 
+            isAdminCommand = true;
             targetPlayerUuid = targetPlayer.getUniqueId();
             targetPlayerName = targetPlayer.getName();
         }
@@ -101,29 +156,16 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             targetPlayerUuid = msender.getPlayer().getUniqueId();
             targetPlayerName = msender.getPlayer().getName();
         }
-
-        // Parse page number if provided - defaults to 1 (above) if not provided
-        try
-        {
-            if (pageToParse != null)
-            {
-                pageNum = Integer.parseInt(pageToParse);
-            }
-        }
-        catch (NumberFormatException e)
-        {
-            msender.message(ChatColor.RED + "\"" + ChatColor.LIGHT_PURPLE + pageToParse + ChatColor.RED + "\" is not a number.");
-            return;
-        }
         
         final CommandSender sender = this.sender;
         final UUID finalTargetUuid = targetPlayerUuid;
         final String finalTargetName = targetPlayerName;
         final boolean finalIsAdminCommand = isAdminCommand;
         
-        // Create pager
+        // Update pager title based on whether it's an admin command
         String title = finalIsAdminCommand ? finalTargetName + "'s Ignore List" : "Your Ignore List";
-        final Pager<UUID> pager = new Pager<>(this, title, pageNum, (Stringifier<UUID>) (ignoredUuid, index) -> {
+        pager.setTitle(title);
+        pager.setMsonifier((Stringifier<UUID>) (ignoredUuid, index) -> {
             OfflinePlayer ignoredPlayer = Bukkit.getOfflinePlayer(ignoredUuid);
             String playerName = ignoredPlayer.getName();
             if (playerName == null)
@@ -162,5 +204,34 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             // Schedule back to main thread to send pager message
             Bukkit.getScheduler().runTask(FactionsChat.instance, pager::message);
         });
+    }
+    
+    /**
+     * Tab completion for ignorelist command
+     */
+    @Override
+    public List<String> getTabCompletions(List<String> args, CommandSender sender)
+    {
+        List<String> completions = new ArrayList<>();
+        
+        if (args.size() == 1)
+        {
+            String input = args.get(0).toLowerCase();
+            
+            // Only tab complete for admins - show player names
+            if (sender.hasPermission("factions.chat.ignore.admin"))
+            {
+                // Add online player names
+                for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+                {
+                    if (onlinePlayer.getName().toLowerCase().startsWith(input))
+                    {
+                        completions.add(onlinePlayer.getName());
+                    }
+                }
+            }
+        }
+        
+        return completions;
     }
 }

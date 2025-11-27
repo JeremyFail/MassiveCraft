@@ -278,8 +278,9 @@ public abstract class FactionChatListenerBase
             return false; // Always include the sender
         }
         
-        // Check if the recipient is ignoring the sender
-        if (FactionsChat.instance.getIgnoreManager().isIgnoring(recipient.getUniqueId(), sender.getUniqueId()))
+        // Check if the recipient is ignoring the sender and the sender is not bypassing ignores
+        if (FactionsChat.instance.getIgnoreManager().isIgnoring(recipient.getUniqueId(), sender.getUniqueId()) 
+                && !sender.hasPermission("factions.chat.ignore.bypass"))
         {
             return true;
         }

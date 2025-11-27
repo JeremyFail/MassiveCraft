@@ -5,6 +5,7 @@ import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.TypeChatMode;
 import com.massivecraft.massivecore.command.type.primitive.TypeString;
+import com.massivecraft.massivecore.pager.Pager;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -106,11 +107,11 @@ public class CmdFactionsChat extends FactionsCommand
         if (arg == null) return false;
         
         String lower = arg.toLowerCase();
-        return (lower.equals("help") || lower.equals("h") || lower.equals("?")) ||
-               (lower.equals("ignore")) ||
-               (lower.equals("unignore")) ||
-               (lower.equals("ignorelist")) ||
-               (lower.equals("reload"));
+        return (helpCommand.getAliases().contains(lower)) ||
+               (ignoreCommand.getAliases().contains(lower)) ||
+               (unignoreCommand.getAliases().contains(lower)) ||
+               (ignoreListCommand.getAliases().contains(lower)) ||
+               (reloadCommand.getAliases().contains(lower));
     }
     
     /**
@@ -123,11 +124,29 @@ public class CmdFactionsChat extends FactionsCommand
         
         try
         {
-            
             if (helpCommand.getAliases().contains(lower))
             {
                 setupChildCommand(helpCommand);
-                helpCommand.perform();
+                
+                // Extract page number for pager (default to 1) - last argument if present
+                int pageNum = 1;
+                String pageArg = helpCommand.getArgs().size() > 0 ? helpCommand.getArgs().get(helpCommand.getArgs().size() - 1) : null;
+                if (pageArg != null)
+                {
+                    try
+                    {
+                        pageNum = Integer.parseInt(pageArg);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        msender.message(ChatColor.RED + "\"" + ChatColor.LIGHT_PURPLE + pageArg + ChatColor.RED + "\" is not a number.");
+                        return;
+                    }
+                }
+                
+                // Create pager and pass to help command
+                Pager<String> pager = createPagerForChild("help", "Help for command \"chat\"", pageNum);
+                helpCommand.performWithPager(pager);
             }
             else if (ignoreCommand.getAliases().contains(lower))
             {
@@ -142,7 +161,25 @@ public class CmdFactionsChat extends FactionsCommand
             else if (ignoreListCommand.getAliases().contains(lower))
             {
                 setupChildCommand(ignoreListCommand);
-                ignoreListCommand.perform();
+                
+                // Extract page number for pager (default to 1) - last argument if present
+                int pageNum = 1;
+                String pageArg = ignoreListCommand.getArgs().size() > 0 ? ignoreListCommand.getArgs().get(ignoreListCommand.getArgs().size() - 1) : null;
+                if (pageArg != null)
+                {
+                    try
+                    {
+                        pageNum = Integer.parseInt(pageArg);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        // Ignore - could be a player name instead
+                    }
+                }
+                
+                // Create pager and pass to ignorelist command
+                Pager<java.util.UUID> pager = createPagerForChild("ignorelist", "Ignore List", pageNum);
+                ignoreListCommand.performWithPager(pager);
             }
             else if (reloadCommand.getAliases().contains(lower))
             {
@@ -170,15 +207,15 @@ public class CmdFactionsChat extends FactionsCommand
         // Create a new mutable list to avoid unmodifiable list issues
         List<String> allArgs = this.getArgs();
         List<String> childArgs = new ArrayList<>();
-        
-        // TODO: DEBUG - Check args being passed to child command
-        System.out.println("Setting up child command: " + childCommand.getClass().getSimpleName());
-        System.out.println("All args: " + allArgs);
 
-        // Copy all args except the first one (subcommand name)
-        for (int i = 1; i < allArgs.size(); i++)
+        // Split args for child command and add to list
+        if (allArgs.size() >= 2 && allArgs.get(1) != null)
         {
-            childArgs.add(allArgs.get(i));
+            String[] splitArgs = allArgs.get(1).split("\\s+");
+            for (String arg : splitArgs)
+            {
+                childArgs.add(arg);
+            }
         }
         
         // Set up child command context
@@ -188,6 +225,27 @@ public class CmdFactionsChat extends FactionsCommand
         childCommand.me = this.me;
         childCommand.senderIsConsole = this.senderIsConsole;
         childCommand.nextArg = 0;
+    }
+    
+    /**
+     * Create a pager with correct command reference for child commands.
+     * This is used to ensure that navigation buttons work correctly in child command pagers.
+     * 
+     * @param subcommand The subcommand name (e.g., "help", "ignorelist")
+     * @param title The title for the pager
+     * @param pageNum The page number to display (and to create navigation buttons)
+     */
+    private <T> Pager<T> createPagerForChild(String subcommand, String title, int pageNum)
+    {
+        Pager<T> pager = new Pager<>(this, title, pageNum);
+        
+        // Set args so navigation works with full command path
+        List<String> pagerArgs = new ArrayList<>();
+        pagerArgs.add(subcommand); // The child subcommand (help, ignorelist, etc)
+        pagerArgs.add(String.valueOf(pageNum)); // Current page number
+        pager.setArgs(pagerArgs);
+        
+        return pager;
     }
     
     @Override
@@ -245,9 +303,20 @@ public class CmdFactionsChat extends FactionsCommand
         {
             String subcommand = args.get(0).toLowerCase();
             
-            // Create a modified args list for the child command
-            List<String> childArgs = new ArrayList<>(args.subList(1, args.size()));
+            // Create a modified args list for the child command using same logic as setupChildCommand
+            List<String> childArgs = new ArrayList<>();
+            for (int i = 1; i < args.size(); i++)
+            {
+                childArgs.add(args.get(i));
+            }
             
+            // Help command is always available
+            if (helpCommand.getAliases().contains(subcommand))
+            {
+                return helpCommand.getTabCompletions(childArgs, sender);
+            }
+            
+            // Ignore-related commands require permission
             if (sender.hasPermission("factions.chat.ignore") || sender.hasPermission("factions.chat.ignore.admin"))
             {
                 if (ignoreCommand.getAliases().contains(subcommand))
@@ -261,6 +330,15 @@ public class CmdFactionsChat extends FactionsCommand
                 else if (ignoreListCommand.getAliases().contains(subcommand))
                 {
                     return ignoreListCommand.getTabCompletions(childArgs, sender);
+                }
+            }
+            
+            // Reload command requires permission
+            if (sender.hasPermission("factions.chat.reload"))
+            {
+                if (reloadCommand.getAliases().contains(subcommand))
+                {
+                    return reloadCommand.getTabCompletions(childArgs, sender);
                 }
             }
         }

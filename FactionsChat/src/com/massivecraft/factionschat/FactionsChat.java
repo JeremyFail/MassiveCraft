@@ -121,10 +121,11 @@ public class FactionsChat extends JavaPlugin
         // Save chat modes to file on disable
         saveChatModesFile();
         
-        // Save all ignore data on disable
+        // Save all ignore data and shutdown ignore manager
         if (ignoreManager != null)
         {
             ignoreManager.saveAllIgnoreData();
+            ignoreManager.shutdown();
         }
     }
 

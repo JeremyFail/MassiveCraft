@@ -63,6 +63,9 @@ permissions:
   factions.chat.ignore.admin:
     description: Manage other players' ignore lists
     default: op
+  factions.chat.ignore.bypass:
+    description: Bypass being ignored by other players
+    default: false
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #

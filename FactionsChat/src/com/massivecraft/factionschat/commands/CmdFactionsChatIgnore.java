@@ -4,9 +4,14 @@ import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.massivecore.command.type.primitive.TypeString;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -35,8 +40,6 @@ public class CmdFactionsChatIgnore extends FactionsCommand
             return;
         }
         
-        // TODO: Second arg not working as intended - first arg has both in it. Need to debug.
-        System.out.println(args);
         // Parse arguments
         String firstArg = arg();
         String secondArg = arg();
@@ -62,7 +65,6 @@ public class CmdFactionsChatIgnore extends FactionsCommand
                 return;
             }
             
-            isAdminCommand = true;
             OfflinePlayer managedPlayer = FactionsChat.instance.getIgnoreManager().getPlayerByNameOrUuid(firstArg);
             if (managedPlayer == null || (!managedPlayer.hasPlayedBefore() && !managedPlayer.isOnline()))
             {
@@ -70,6 +72,7 @@ public class CmdFactionsChatIgnore extends FactionsCommand
                 return;
             }
             
+            isAdminCommand = true;
             ignoringPlayerUuid = managedPlayer.getUniqueId();
             targetPlayerName = secondArg;
         }
@@ -101,6 +104,20 @@ public class CmdFactionsChatIgnore extends FactionsCommand
             }
             return;
         }
+
+        // Can't ignore players with bypass permission
+        if (targetPlayer.isOnline() && targetPlayer.getPlayer().hasPermission("factions.chat.ignore.bypass"))
+        {
+            if (isAdminCommand)
+            {
+                msender.message(ChatColor.RED + "You cannot add " + targetPlayer.getName() + " to the ignore list because they have ignore bypass permission.");
+            }
+            else
+            {
+                msender.message(ChatColor.RED + "You cannot ignore " + targetPlayer.getName() + ".");
+            }
+            return;
+        }
         
         // Check if already ignoring
         if (FactionsChat.instance.getIgnoreManager().isIgnoring(ignoringPlayerUuid, targetPlayer.getUniqueId()))
@@ -127,5 +144,45 @@ public class CmdFactionsChatIgnore extends FactionsCommand
         {
             msender.message(ChatColor.GREEN + "You are now ignoring " + targetPlayer.getName() + ".");
         }
+    }
+    
+    /**
+     * Tab completion for ignore command
+     */
+    @Override
+    public List<String> getTabCompletions(List<String> args, CommandSender sender)
+    {
+        List<String> completions = new ArrayList<>();
+        
+        if (args.size() == 1)
+        {
+            // First argument: player to ignore (or player to manage for admins)
+            String input = args.get(0).toLowerCase();
+            
+            // Get online players
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            {
+                if (onlinePlayer.getName().toLowerCase().startsWith(input))
+                {
+                    completions.add(onlinePlayer.getName());
+                }
+            }
+        }
+        else if (args.size() == 2 && sender.hasPermission("factions.chat.ignore.admin"))
+        {
+            // Second argument for admins: target player to ignore
+            String input = args.get(1).toLowerCase();
+            
+            // Get online players
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            {
+                if (onlinePlayer.getName().toLowerCase().startsWith(input))
+                {
+                    completions.add(onlinePlayer.getName());
+                }
+            }
+        }
+        
+        return completions;
     }
 }
