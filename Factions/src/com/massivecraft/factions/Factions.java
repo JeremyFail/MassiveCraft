@@ -70,6 +70,8 @@ import com.massivecraft.massivecore.store.migrator.MigratorUtil;
 import com.massivecraft.massivecore.util.MUtil;
 import org.bukkit.ChatColor;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class Factions extends MassivePlugin
@@ -255,5 +257,137 @@ public class Factions extends MassivePlugin
 		.registerTypeAdapter(Board.MAP_TYPE, BoardMapAdapter.get())
 		;
 	}
+
+	// #region LEGACY API
+	// -------------------------------------------- //
+	// LEGACY API METHODS
+	// -------------------------------------------- //
+	// These methods are here to provide some level of compatibility with legacy plugins.
+	// They should NOT be used for new implementations.
+	
+	/**
+	 * <p><strong>LEGACY API METHOD - DO NOT USE FOR NEW IMPLEMENTATIONS!</strong></p>
+	 * Returns the singleton instance of Factions.
+	 * 
+	 * @return The singleton instance of Factions.
+	 * @deprecated Use {@link #get()} instead.
+	 */
+	@Deprecated
+	public static Factions getInstance()
+	{
+		// Check and warn about legacy API usage
+		LegacyApiWarningManager.checkAndWarnLegacyUsage();
+		return get();
+	}
+
+	/**
+	 * <p><strong>LEGACY API METHOD - DO NOT USE FOR NEW IMPLEMENTATIONS!</strong></p>
+	 * Get a collection of all factions.
+	 * 
+	 * @return Collection of all factions.
+	 * @deprecated Use {@link FactionColl#getAll()} instead.
+	 */
+	@Deprecated
+	public Collection<com.massivecraft.factions.Faction> getAllFactions()
+	{
+		// Check and warn about legacy API usage
+		LegacyApiWarningManager.checkAndWarnLegacyUsage();
+
+		List<com.massivecraft.factions.Faction> legacyFactions = new ArrayList<>();
+		for (com.massivecraft.factions.entity.Faction faction : FactionColl.get().getAll())
+		{
+			legacyFactions.add(new LegacyFaction(faction));
+		}
+		return legacyFactions;
+	}
+
+	/**
+	 * <p><strong>LEGACY API METHOD - DO NOT USE FOR NEW IMPLEMENTATIONS!</strong></p>
+	 * Get a faction by its ID.
+	 * 
+	 * @return The faction with the specified ID, or null if not found.
+	 * @deprecated Use {@link FactionColl#get(String)} instead.
+	 */
+	public com.massivecraft.factions.Faction getFactionById(String id)
+    {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+
+        return new LegacyFaction(FactionColl.get().get(id));
+    }
+
+	/**
+	 * <p><strong>LEGACY API METHOD - DO NOT USE FOR NEW IMPLEMENTATIONS!</strong></p>
+	 * Get a faction by its tag (name).
+	 * 
+	 * @return The faction with the specified tag (name), or null if not found.
+	 * @deprecated Use {@link FactionColl#getByName(String)} instead.
+	 */
+	public com.massivecraft.factions.Faction getByTag(String tag)
+    {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+
+        return new LegacyFaction(FactionColl.get().getByName(tag));
+    }
+
+	// TODO: Implement?
+	// public Faction getBestTagMatch(String start);
+
+    // public boolean isTagTaken(String str);
+
+    // public boolean isValidFactionId(String id);
+
+    // public Faction createFaction();
+
+    // public void removeFaction(String id);
+
+    // public Set<String> getFactionTags();
+
+	/**
+	 * <p><strong>LEGACY API METHOD - DO NOT USE FOR NEW IMPLEMENTATIONS!</strong></p>
+	 * Get the wilderness faction.
+	 * 
+	 * @return The wilderness faction.
+	 * @deprecated Use {@link FactionColl#getNone()} instead.
+	 */
+	public com.massivecraft.factions.Faction getWilderness()
+    {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+
+        return new LegacyFaction(FactionColl.get().getNone());
+    }
+
+	/**
+	 * <p><strong>LEGACY API METHOD - DO NOT USE FOR NEW IMPLEMENTATIONS!</strong></p>
+	 * Get the SafeZone faction.
+	 * 
+	 * @return The SafeZone faction.
+	 * @deprecated Use {@link FactionColl#getSafezone()} instead.
+	 */
+    public com.massivecraft.factions.Faction getSafeZone()
+    {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+        
+        return new LegacyFaction(FactionColl.get().getSafezone());
+    }
+
+	/**
+	 * <p><strong>LEGACY API METHOD - DO NOT USE FOR NEW IMPLEMENTATIONS!</strong></p>
+	 * Get the WarZone faction.
+	 * 
+	 * @return The WarZone faction.
+	 * @deprecated Use {@link FactionColl#getWarzone()} instead.
+	 */
+    public com.massivecraft.factions.Faction getWarZone()
+    {
+        // Check and warn about legacy API usage
+        LegacyApiWarningManager.checkAndWarnLegacyUsage();
+
+        return new LegacyFaction(FactionColl.get().getWarzone());
+    }
+	// #endregion LEGACY API
 	
 }

@@ -3,7 +3,7 @@ name: ${project.name}
 version: ${project.version}
 website: ${project.url}
 description: ${project.description}
-authors: [Madus, Cayorion, Ulumulu1510, Ymerejliaf]
+authors: [Ymerejliaf, Madus, Cayorion, Ulumulu1510]
 load: startup
 api-version: 1.21
 softdepend: [Vault]

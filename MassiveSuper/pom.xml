@@ -5,7 +5,7 @@
     <groupId>com.massivecraft.massivesuper</groupId>
     <artifactId>MassiveSuper</artifactId>
     <!-- Change this release version when making updates to the code - update in all pom files -->
-    <version>3.4.0-alpha-9</version>
+    <version>3.4.0-alpha-10</version>
     <packaging>pom</packaging>
 
     <!-- Info -->
@@ -21,7 +21,7 @@
         <massiveColorInfo>${massiveColorSign}e</massiveColorInfo>
         <massiveColorBold>${massiveColorSign}a</massiveColorBold>
         <massiveColorLink>${massiveColorSign}b</massiveColorLink>
-        <massiveBaseUrl>https://jeremyfail.dev/projects/plugins</massiveBaseUrl>
+        <massiveBaseUrl>https://factions.wiki</massiveBaseUrl>
         <massiveDescriptionSuffix></massiveDescriptionSuffix>
 
         <!-- Core Versions -->

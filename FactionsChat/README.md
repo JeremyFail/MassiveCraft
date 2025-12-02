@@ -1,4 +1,4 @@
-# FactionsChat
+![FactionsChat Logo](https://factions.wiki/FactionsChat/img/hero.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
@@ -29,7 +29,7 @@ FactionsChat is a Minecraft Spigot/Paper server plugin that integrates with Mass
 
 ## Usage and Configuration
 
-Please read the [Wiki](https://github.com/JeremyFail/MassiveCraft/wiki/FactionsChat) for details about supported commands, permissions, configuration instructions, FAQs, and troubleshooting steps.
+Please read the [Wiki](https://factions.wiki/FactionsChat) for details about supported commands, permissions, configuration instructions, FAQs, and troubleshooting steps.
 
 ## Requirements
 

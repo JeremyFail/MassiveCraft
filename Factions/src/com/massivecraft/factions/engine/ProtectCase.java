@@ -52,7 +52,7 @@ public enum ProtectCase
 				Material material = (Material) object;
 				if (EnumerationUtil.isMaterialEditOnInteract(material)) return MPerm.getPermBuild();
 				if (EnumerationUtil.isMaterialContainer(material)) return MPerm.getPermContainer();
-				if (EnumerationUtil.isMaterialDoor(material)) return MPerm.getPermDoor();
+				if (EnumerationUtil.isMaterialDoorOrRelated(material)) return MPerm.getPermDoor();
 				if (EnumerationUtil.isMaterialButton(material)) return MPerm.getPermButton();
 				if (material == Material.LEVER) return MPerm.getPermLever();
 				return null;
@@ -69,7 +69,7 @@ public enum ProtectCase
 			case USE_WIND_CHARGE:
 				if (!(object instanceof Material)) return null;
 				Material windChargedMaterial = (Material) object;
-				if (EnumerationUtil.isMaterialDoor(windChargedMaterial)) return MPerm.getPermDoor();
+				if (EnumerationUtil.isMaterialDoorOrRelated(windChargedMaterial)) return MPerm.getPermDoor();
 				if (EnumerationUtil.isMaterialButton(windChargedMaterial)) return MPerm.getPermButton();
 				if (windChargedMaterial == Material.LEVER) return MPerm.getPermLever();
 				if (EnumerationUtil.isMaterialWindChargeBreakable(windChargedMaterial)) return MPerm.getPermBuild();

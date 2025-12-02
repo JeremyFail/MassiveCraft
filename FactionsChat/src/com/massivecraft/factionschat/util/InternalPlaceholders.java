@@ -3,8 +3,7 @@ package com.massivecraft.factionschat.util;
 import com.massivecraft.factions.Rel;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factionschat.ChatMode;
-import com.massivecraft.factionschat.ChatPrefixes;
-import com.massivecraft.factionschat.TextColors;
+import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.massivecore.util.PlaceholderProcessor;
 
 import org.bukkit.entity.Player;
@@ -23,7 +22,7 @@ public class InternalPlaceholders
     {
         MPlayer mPlayer = MPlayer.get(player);
         boolean isInFaction = mPlayer.hasFaction();
-        String prefix = ChatPrefixes.getPrefix(chatMode);
+        String prefix = Settings.ChatPrefixes.getPrefix(chatMode);
         String factionName = mPlayer.getFactionName();
         String factionNameForce = mPlayer.getFaction().getName();
         String playerRank = isInFaction ? mPlayer.getRank().getName() : "";
@@ -31,7 +30,7 @@ public class InternalPlaceholders
         String playerRankForce = mPlayer.getRank().getName();
         String playerRankPrefixForce = mPlayer.getRank().getPrefix();
         String playerTitle = mPlayer.getTitle();
-        String chatColor = TextColors.getColor(chatMode);
+        String chatColor = Settings.TextColors.getColor(chatMode);
         
         // Use PlaceholderProcessor to handle modifiers
         return PlaceholderProcessor.processPlaceholders(format, placeholder -> {

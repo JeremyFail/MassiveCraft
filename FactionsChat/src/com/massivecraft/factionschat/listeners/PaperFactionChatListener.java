@@ -2,6 +2,7 @@ package com.massivecraft.factionschat.listeners;
 
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
+import com.massivecraft.factionschat.config.Settings;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
  *
  * This listener is only registered if the server is running Paper.
  */
-public class PaperFactionChatListener extends BaseFactionChatListener implements Listener
+public class PaperFactionChatListener extends FactionChatListenerBase implements Listener
 {    
     private final LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
 
@@ -55,7 +56,7 @@ public class PaperFactionChatListener extends BaseFactionChatListener implements
         final ChatMode chatMode = ChatMode.getChatModeForPlayer(sender);
 
         // Apply general placeholders to the chat format (this is the same for all recipients)
-        String preParsedFormat = applyNonRelationalPlaceholders(sender, FactionsChat.instance.getChatFormat(), chatMode);
+        String preParsedFormat = applyNonRelationalPlaceholders(sender, Settings.chatFormat, chatMode);
         
         TextColor baseColor = getBaseColorFromFormat(preParsedFormat);
         

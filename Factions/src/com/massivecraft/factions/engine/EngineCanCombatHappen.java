@@ -52,8 +52,6 @@ public class EngineCanCombatHappen extends Engine
 		{
 			damager.remove();
 		}
-
-
 	}
 
 	// mainly for flaming arrows; don't want allies or people in safe zones to be ignited even after damage event is cancelled
@@ -242,10 +240,10 @@ public class EngineCanCombatHappen extends Engine
 			return ret;
 		}
 
-		// You can not hurt neutrals in their own territory.
+		// You cannot hurt neutrals in their own territory unless allowed in the config
 		boolean ownTerritory = mdefender.isInOwnTerritory();
 		
-		if (mdefender.hasFaction() && ownTerritory && relation == Rel.NEUTRAL)
+		if (mdefender.hasFaction() && ownTerritory && relation == Rel.NEUTRAL && !MConf.get().enablePVPAgainstNeutralInTheirTerritory)
 		{
 			ret = falseUnlessDisallowedPvpEventCancelled(attacker, defender, DisallowCause.OWN_TERRITORY, event);
 			if (!ret && notify)

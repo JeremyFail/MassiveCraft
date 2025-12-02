@@ -1,5 +1,6 @@
 package com.massivecraft.factions;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class LegacyFaction implements Faction
         this.realFaction = realFaction;
     }
     
+    @Override
     public String getId()
     {
         return this.realFaction.getId();
@@ -47,43 +49,67 @@ public class LegacyFaction implements Faction
     @Override
     public Map<String, LazyLocation> getWarps()
     {
-        // TODO: convert realFaction.getWarps() into correct format
-        return null;
+        Map<String, LazyLocation> warps = new HashMap<>();
+        for (Warp warp : realFaction.getWarps().getAll())
+        {
+            warps.put(warp.getName(), new LazyLocation(warp.getLocation().asBukkitLocation()));
+        }
+        return warps;
     }
 
     @Override
     public LazyLocation getWarp(String name)
     {
-        // TODO: need to look at how we can get a single warp
+        Warp warp = realFaction.getWarp(name);
+        if (warp != null)
+        {
+            return new LazyLocation(warp.getLocation().asBukkitLocation());
+        }
         return null;
     }
 
     @Override
     public void setWarp(String name, LazyLocation loc)
     {
-        // TODO: Look at how to implement
+        PS ps = PS.valueOf(loc.getLocation());
+        Warp warp = realFaction.getWarp(name);
+        if (warp != null)
+        {
+            warp.setLocation(ps);
+        }
+        else
+        {
+            warp = new Warp(name, ps);
+            realFaction.getWarps().attach(warp);
+        }
     }
 
     @Override
     public boolean isWarp(String name)
     {
-        // TODO: Look at how to implement
-        return false;
+        return realFaction.getWarp(name) != null;
     }
 
 
     @Override
     public boolean removeWarp(String name)
     {
-        // TODO: Look at how to implement
+        Warp warp = realFaction.getWarp(name);
+        if (warp != null)
+        {
+            warp.detach();
+            return true;
+        }
         return false;
     }
 
     @Override
     public void clearWarps()
     {
-        // TODO: Look at how to implement
-        
+        for (Warp warp : realFaction.getWarps().getAll())
+        {
+            warp.detach();
+        }
     }
 
     @Override
@@ -264,21 +290,23 @@ public class LegacyFaction implements Faction
     @Override
     public long getFoundedDate()
     {
-        // TODO: verify this value is the same...
         return realFaction.getCreatedAtMillis();
     }
 
     @Override
     public void setFoundedDate(long newDate)
     {
-        // TODO: Can we implement?
+        realFaction.setCreatedAtMillis(newDate);
     }
 
     @Override
     public void confirmValidHome()
     {
-        // TODO: Look at how to implement with warps
-        
+        Warp warp = realFaction.getWarp(MConf.get().warpsHomeName);
+        if (warp != null)
+        {
+            warp.verifyIsValid();
+        }
     }
 
     @Override
@@ -296,7 +324,7 @@ public class LegacyFaction implements Faction
     @Override
     public boolean isNormal()
     {
-        return !(realFaction.isNone() || realFaction.isSafeZone() || realFaction.isWarZone());
+        return realFaction.isNormal();
     }
 
     @Override

@@ -37,12 +37,12 @@ public class CmdFactionsRelationSet extends FactionsCommand
 		Rel newRelation = this.readArg();
 		
 		// MPerm
-		if ( ! MPerm.getPermRel().has(msender, msenderFaction, true)) return;
+		if (!MPerm.getPermRel().has(msender, msenderFaction, true)) return;
 		
 		// Verify
 		if (otherFaction == msenderFaction)
 		{
-			throw new MassiveException().setMsg("<b>Nope! You can't declare a relation to yourself :)");
+			throw new MassiveException().setMsg("<b>You can't declare a relation to your own faction.");
 		}
 		if (msenderFaction.getRelationWish(otherFaction) == newRelation)
 		{
@@ -57,6 +57,15 @@ public class CmdFactionsRelationSet extends FactionsCommand
 
 		// try to set the new relation
 		msenderFaction.setRelationWish(otherFaction, newRelation);
+		
+		// Special handling for ENEMY relation: when one faction sets ENEMY,
+		// the other faction's relation wish should also be set to ENEMY to prevent
+		// asymmetric relation states where one faction can easily switch back
+		if (newRelation == Rel.ENEMY) 
+		{
+			otherFaction.setRelationWish(msenderFaction, Rel.ENEMY);
+		}
+		
 		Rel currentRelation = msenderFaction.getRelationTo(otherFaction, true);
 
 		// if the relation change was successful

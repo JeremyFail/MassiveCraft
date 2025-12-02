@@ -46,9 +46,16 @@ public class LegacyFPlayer implements FPlayer
         this.realPlayer = player;
     }
     
+    @Override
     public Faction getFaction()
     {
         return new LegacyFaction(realPlayer.getFaction());
+    }
+
+    @Override
+    public String getFactionId()
+    {
+        return realPlayer.getFaction().getId();
     }
 
     @Override
@@ -495,8 +502,20 @@ public class LegacyFPlayer implements FPlayer
             return true;
         }
         
-        // TODO: FactionsUUID allows enabling fly permission at player/rank level - we should implement that
+        // TODO: FactionsUUID allows enabling fly permission at player/rank level - we do as well, but how do we check that here?
         return realFactionAtLoc.getFlag(MFlag.ID_FLY) && realFactionAtLoc == realPlayer.getFaction();
+    }
+
+    @Override
+    public boolean isSeeingChunk()
+    {
+        return realPlayer.isSeeingChunk();
+    }
+    
+    @Override
+    public void setSeeingChunk(boolean seeingChunk)
+    {
+        realPlayer.setSeeingChunk(seeingChunk);
     }
     
 }

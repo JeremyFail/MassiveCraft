@@ -3,6 +3,7 @@ package com.massivecraft.factionschat;
 import com.massivecraft.massivecore.command.type.TypeAbstract;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,15 +29,13 @@ public class TypeChatMode extends TypeAbstract<ChatMode>
     public Collection<String> getTabList(CommandSender sender, String input) 
     {
         Collection<String> args = new ArrayList<>();
+        if (sender == null || !(sender instanceof Player)) return args;
+        Player player = (Player) sender;
         
-        for (ChatMode chatMode : ChatMode.values())
+        for (ChatMode chatMode : ChatMode.getAvailableChatModes(player))
         {
             String arg = chatMode.name().toLowerCase();
-            if (input != null && !arg.startsWith(input)) 
-            {
-                continue;
-            }
-            if (sender == null || !sender.hasPermission("factions.chat." + chatMode.name().toLowerCase()))
+            if (input == null || !arg.startsWith(input)) 
             {
                 continue;
             }
@@ -46,12 +45,6 @@ public class TypeChatMode extends TypeAbstract<ChatMode>
         // Add the public chat mode option
         args.add("public");
         args.add("p");
-
-        // Add the reload command if the sender has permission
-        if (sender.hasPermission("factions.chat.reload")) 
-        {
-            args.add("reload");
-        }
 
         return args;
     }

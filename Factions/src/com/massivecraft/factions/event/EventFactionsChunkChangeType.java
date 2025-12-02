@@ -57,7 +57,7 @@ public enum EventFactionsChunkChangeType implements Colorized
 	{
 		if (newFaction == oldFaction) return NONE;
 		if (oldFaction.isNone()) return BUY;
-		if (newFaction.isNormal()) return CONQUER;
+		if (newFaction.isNormal() || newFaction.isWarZone() || newFaction.isSafeZone()) return CONQUER;
 		if (oldFaction == self) return SELL;
 		return PILLAGE;
 	}

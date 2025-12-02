@@ -29,6 +29,8 @@ public class EngineFlagSpawn extends Engine
 	// CONSTANTS
 	// -------------------------------------------- //
 
+	// Spawn reasons that are considered "natural" and thus subject to 
+	// flag checks (i.e. should be blocked if the flag is set to do so)
 	public static final Set<SpawnReason> NATURAL_SPAWN_REASONS = new BackstringSet<>(SpawnReason.class,
 		"NATURAL",
 		"JOCKEY",

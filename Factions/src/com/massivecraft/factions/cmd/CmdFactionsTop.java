@@ -15,7 +15,6 @@ import com.massivecraft.massivecore.util.TimeDiffUtil;
 import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,7 +42,6 @@ public class CmdFactionsTop extends FactionsCommand
 		// Args
 		TopCategory category = this.readArg();
 		int page = this.readArg();
-		final CommandSender sender = this.sender;
 		final MPlayer msender = this.msender;
 
 		if (category == TopCategory.MONEY && !Econ.isEnabled())

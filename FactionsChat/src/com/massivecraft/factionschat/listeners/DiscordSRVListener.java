@@ -1,7 +1,7 @@
 package com.massivecraft.factionschat.listeners;
 
 import com.massivecraft.factionschat.ChatMode;
-import com.massivecraft.factionschat.ChatPrefixes;
+import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.FactionsChat;
 
 import github.scarsz.discordsrv.DiscordSRV;
@@ -68,7 +68,7 @@ public class DiscordSRVListener
         event.setCancelled(true);
 
         // Broadcast message in staff channel
-        Bukkit.broadcast(ChatPrefixes.STAFF + event.getProcessedMessage(), "factions.chat.staff");
+        Bukkit.broadcast(Settings.ChatPrefixes.STAFF + event.getProcessedMessage(), "factions.chat.staff");
     }
 
     /**

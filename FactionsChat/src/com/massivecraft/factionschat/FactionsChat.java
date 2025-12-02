@@ -5,14 +5,17 @@ import github.scarsz.discordsrv.DiscordSRV;
 
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factionschat.commands.CmdFactionsChat;
+import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.integrations.PlaceholderFactionsChat;
+import com.massivecraft.factionschat.listeners.ConnectionListener;
 import com.massivecraft.factionschat.listeners.DiscordSRVListener;
 import com.massivecraft.factionschat.listeners.PaperFactionChatListener;
 import com.massivecraft.factionschat.listeners.SpigotFactionChatListener;
+import com.massivecraft.factionschat.util.DisabledChatManager;
+import com.massivecraft.factionschat.util.IgnoreManager;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.factions.cmd.CmdFactions;
 
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -50,18 +53,6 @@ public class FactionsChat extends JavaPlugin
      */
     private final Map<UUID, ChatMode> chatModes = new HashMap<>();
 
-    /**
-     * The default chat format used by FactionsChat.
-     */
-    private static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%> %factions_chat_color%%MESSAGE%";
-    
-    // Chat config settings
-    // TODO: should these be stored in a static config class?
-    private String chatFormat = DEFAULT_CHAT_FORMAT;
-    private boolean allowColorCodes = true;
-    private boolean allowUrl = true;
-    private boolean allowUrlUnderline = true;
-    private int localChatRange = 1000;
     
     // Plugin instances for optional integrations
     private DiscordSRV discordSrvPlugin;
@@ -71,23 +62,36 @@ public class FactionsChat extends JavaPlugin
     // private UpdateManager updateManager;
     
     private boolean papiEnabled = false;
+    
+    // Ignore system
+    private IgnoreManager ignoreManager;
+    
+    // Disabled chat system
+    private DisabledChatManager disabledChatManager;
 
     @Override
     public void onEnable() 
     {
+        // Initialize ignore manager
+        ignoreManager = new IgnoreManager(this);
+        
+        // Initialize disabled chat manager
+        disabledChatManager = new DisabledChatManager(this);
+        
         // Load any current chat modes from the chatmodes.yml file
         loadChatModesFromFile();
         
         // Save and update the main config file
         saveDefaultConfig();
-        // TODO: Check config version and update if necessary
+        
+        // Check config version and update if necessary
         updateConfig();
 
         // Register commands
         CmdFactions.get().addChild(new CmdFactionsChat());
 
-        // Initilize chat config
-        initializeChat();
+        // Initilize config
+        Settings.load(getConfig());
 
         // Check for required dependency plugins and optional integrations
         PluginManager pm = getServer().getPluginManager();
@@ -103,6 +107,9 @@ public class FactionsChat extends JavaPlugin
         {
             pm.registerEvents(new SpigotFactionChatListener(), this);
         }
+        
+        // Register player connection listener for ignore data management
+        pm.registerEvents(new ConnectionListener(), this);
 
         // updateManager = new UpdateManager();
         // getServer().getPluginManager().registerEvents(updateManager, this);
@@ -120,6 +127,20 @@ public class FactionsChat extends JavaPlugin
     {
         // Save chat modes to file on disable
         saveChatModesFile();
+        
+        // Save all ignore data and shutdown ignore manager
+        if (ignoreManager != null)
+        {
+            ignoreManager.saveAllIgnoreData();
+            ignoreManager.shutdown();
+        }
+        
+        // Save all disabled chat data and shutdown disabled chat manager
+        if (disabledChatManager != null)
+        {
+            disabledChatManager.saveAllDisabledChatData();
+            disabledChatManager.shutdown();
+        }
     }
 
     @Override
@@ -129,7 +150,7 @@ public class FactionsChat extends JavaPlugin
         super.reloadConfig();
         
         // Reinitilize chat config
-        initializeChat();
+        Settings.load(getConfig());
         saveChatModesFile(); // Save chat modes after reloading config
     }
     
@@ -143,57 +164,6 @@ public class FactionsChat extends JavaPlugin
     public Map<UUID, ChatMode> getPlayerChatModes()
     {
         return this.chatModes;
-    }
-
-    /**
-     * Retrieves the chat format string used for formatting chat messages.
-     * 
-     * @return The chat format string.
-     */
-    public String getChatFormat() 
-    {
-        return this.chatFormat;
-    }
-
-    /**
-     * Retrieves the config setting for whether color/format codes are allowed in chat messages.
-     * 
-     * @return True if color/format codes are allowed, false otherwise.
-     */
-    public boolean getAllowColorCodes() 
-    {
-        return this.allowColorCodes;
-    }
-
-    /**
-     * Retrieves the config setting for whether clickable URLs are allowed in chat messages.
-     * 
-     * @return True if clickable URLs are allowed, false otherwise.
-     */
-    public boolean getAllowUrl() 
-    {
-        return this.allowUrl;
-    }
-
-    /**
-     * Retrieves the config setting for whether URLs in chat messages should be underlined.
-     * 
-     * @return True if URLs should be underlined, false otherwise.
-     */
-    public boolean getAllowUrlUnderline() 
-    {
-        return this.allowUrlUnderline;
-    }
-
-    /**
-     * Retrieves the local chat range, which is the distance in blocks
-     * within which players can hear each other in local chat.
-     *
-     * @return The local chat range in blocks.
-     */
-    public int getLocalChatRange() 
-    {
-        return this.localChatRange;
     }
 
     /**
@@ -231,12 +201,36 @@ public class FactionsChat extends JavaPlugin
      * 
      * @return True if PlaceholderAPI is enabled, false otherwise.
      */
-    public boolean isPapiEnabled() {
+    public boolean isPapiEnabled()
+    {
         return this.papiEnabled;
+    }
+    
+    /**
+     * Retrieves the ignore manager instance.
+     * 
+     * @return The IgnoreManager instance.
+     */
+    public IgnoreManager getIgnoreManager()
+    {
+        return this.ignoreManager;
+    }
+    
+    /**
+     * Retrieves the disabled chat manager instance.
+     * 
+     * @return The DisabledChatManager instance.
+     */
+    public DisabledChatManager getDisabledChatManager()
+    {
+        return this.disabledChatManager;
     }
     
     // - - - - - PUBLIC METHODS - - - - -
     
+    // TODO: this needs to be reworked - we should only be keeping chat modes in memory when players are online
+    //       so we need to load/save on player join/quit instead of loading all at once - only save the single
+    //       player's chat mode on quit instead of the whole file. Save the whole file on disable?
     /**
      * Loads the <code>chatmodes.yml</code> file, which contains a list of players and what
      * chat mode they're currently using. This stores the chat modes in the
@@ -245,6 +239,12 @@ public class FactionsChat extends JavaPlugin
      */
     public void loadChatModesFromFile()
     {
+        // Ensure the plugin data folder exists
+        if (!getDataFolder().exists()) 
+        {
+            getDataFolder().mkdirs();
+        }
+        
         File chatmodesFile = new File(getDataFolder(), "chatmodes.yml");
         if (!chatmodesFile.exists()) 
         {
@@ -278,9 +278,27 @@ public class FactionsChat extends JavaPlugin
      */
     public void saveChatModesFile()
     {
+        // Ensure the plugin data folder exists
+        if (!getDataFolder().exists()) 
+        {
+            getDataFolder().mkdirs();
+        }
+        
         File chatmodesFile = new File(getDataFolder(), "chatmodes.yml");
+        if (!chatmodesFile.exists()) 
+        {
+            // If the file doesn't exist, create it with an empty configuration
+            try 
+            {
+                chatmodesFile.createNewFile();
+            } 
+            catch (IOException e) 
+            {
+                e.printStackTrace();
+            }
+        }
+        
         YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(chatmodesFile);
-
         for (Map.Entry<UUID, ChatMode> entry : chatModes.entrySet())
         {
             yamlConfig.set(entry.getKey().toString(), entry.getValue().name());
@@ -305,30 +323,73 @@ public class FactionsChat extends JavaPlugin
     {
         try
         {
-            File configFile = new File(getDataFolder(), "config.yml");
+            File configFile = new File(getDataFolder(), Settings.CONFIG_FILE_NAME);
             if (!configFile.exists())
             {
                 saveDefaultConfig();
-                getLogger().info("Generated config.yml with default settings.");
+                getLogger().info("Generated " + Settings.CONFIG_FILE_NAME + " with default settings.");
                 return;
             }
 
-            // TODO: Implement better version handling
+            // TODO: This works fine, but could be improved to better handle any structural migrations
             // Compare the current config with the default config and update if necessary
-            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(getResource("config.yml")));
-            YamlConfiguration serverConfig = YamlConfiguration.loadConfiguration(configFile);
+            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(getResource(Settings.CONFIG_FILE_NAME)));
+            YamlConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
 
-            String defaultVersion = defaultConfig.getString("version", "1");
-            String serverVersion = serverConfig.getString("version", "2");
-            if (!defaultVersion.equals(serverVersion))
+            // Get versions to check if an update is needed
+            int defaultVersion = defaultConfig.getInt("version");
+            // If no version, we have an invalid config, set to 1 to force update
+            int currentVersion = currentConfig.getInt("version", 1); 
+
+            // If default version could not be determined, log error and exit
+            if (defaultVersion <= 0)
             {
-                boolean changed = mergeConfigSections(defaultConfig, serverConfig, "");
-                serverConfig.set("version", defaultVersion); // Always update version
-                if (changed)
+                getLogger().severe("Default config could not be loaded during config update. Please restart your server. "
+                    + "If the issue persists, please log an issue on Github.");
+                return;
+            }
+
+            // If versions differ, update config
+            if (defaultVersion != currentVersion)
+            {
+                // If a backup file already exists, delete it
+                File backupFile = new File(getDataFolder(), Settings.BACKUP_CONFIG_FILE_NAME);
+                if (backupFile.exists())
                 {
-                    serverConfig.save(configFile);
-                    getLogger().info("Upgraded config.yml to version " + defaultVersion + ". New settings have been added where missing. Please review your config.");
+                    boolean deleted = backupFile.delete();
+                    if (!deleted)
+                    {
+                        getLogger().severe("Could not delete old " + Settings.BACKUP_CONFIG_FILE_NAME + " during config update. "
+                            + "Update aborted to prevent data loss. Please check file permissions and restart your server. If the issue persists, "
+                            + "please log an issue on Github.");
+                        return;
+                    }
                 }
+
+                // Create new backup of current config
+                try 
+                {
+                    currentConfig.save(backupFile);
+                } 
+                catch (IllegalArgumentException | IOException e) 
+                {
+                    getLogger().severe("Could not create backup of " + Settings.BACKUP_CONFIG_FILE_NAME + " during config update. "
+                        + "Update aborted to prevent data loss. Please check file permissions and restart your server. If the issue persists, "
+                        + "please log an issue on Github with the following error:");
+                    e.printStackTrace();
+                    return;
+                }
+
+                // Now perform update - merge user values into default config
+                mergeUserValuesIntoDefault(defaultConfig, currentConfig, "");
+                defaultConfig.set("version", defaultVersion); // Always update version as last step
+                
+                // Save the merged config (updated config with previous values where possible)
+                defaultConfig.save(configFile);
+
+                getLogger().info("Upgraded " + Settings.CONFIG_FILE_NAME + " to version " + defaultVersion + ". The config has been regenerated with " +
+                    "new comments and structure while preserving your original settings. Please review your config to ensure everything still looks correct. " +
+                    "For safety, a backup named " + Settings.BACKUP_CONFIG_FILE_NAME + " has been created which you can reference if needed.");
             }
         }
         catch (IOException e)
@@ -338,52 +399,35 @@ public class FactionsChat extends JavaPlugin
     }
 
     /**
-     * Recursively merges missing keys from source into target, preserving nested structure.
-     * Returns true if any changes were made.
+     * Recursively merges user values from userConfig into defaultConfig, preserving comments and structure.
+     * This approach uses the default config as the base (preserving comments) and overwrites values
+     * with user customizations where they exist.
+     * 
+     * @param defaultConfig The default configuration (target - will be modified).
+     * @param userConfig The user's current configuration (source of custom values).
+     * @param path The current path being processed.
      */
-    private boolean mergeConfigSections(YamlConfiguration source, YamlConfiguration target, String path)
+    private void mergeUserValuesIntoDefault(YamlConfiguration defaultConfig, YamlConfiguration userConfig, String path)
     {
-        boolean changed = false;
-        for (String key : source.getConfigurationSection(path.isEmpty() ? "" : path).getKeys(false))
+        for (String key : defaultConfig.getConfigurationSection(path.isEmpty() ? "" : path).getKeys(false))
         {
             String fullKey = path.isEmpty() ? key : path + "." + key;
-            if (source.isConfigurationSection(fullKey))
+
+            // Recursively process subsections
+            if (defaultConfig.isConfigurationSection(fullKey))
             {
-                if (!target.isConfigurationSection(fullKey))
-                {
-                    target.createSection(fullKey);
-                    changed = true;
-                }
-                if (mergeConfigSections(source, target, fullKey))
-                {
-                    changed = true;
-                }
+                mergeUserValuesIntoDefault(defaultConfig, userConfig, fullKey);
             }
             else
             {
-                if (!target.contains(fullKey))
+                // If user config has this key, use the user's value
+                // Otherwise, keep the default value (already in defaultConfig)
+                if (userConfig.contains(fullKey))
                 {
-                    target.set(fullKey, source.get(fullKey));
-                    changed = true;
+                    defaultConfig.set(fullKey, userConfig.get(fullKey));
                 }
             }
         }
-        return changed;
-    }
-
-    /**
-     * Initializes the chat prefixes and text colors from the config.
-     */
-    private void initializeChat()
-    {
-        FileConfiguration config = getConfig();
-        chatFormat = config.getString("ChatSettings.ChatFormat", DEFAULT_CHAT_FORMAT);
-        allowColorCodes = config.getBoolean("ChatSettings.AllowColorCodes", true);
-        allowUrl = config.getBoolean("ChatSettings.AllowClickableLinks", true);
-        allowUrlUnderline = config.getBoolean("ChatSettings.AllowClickableLinksUnderline", true);
-        localChatRange = config.getInt("ChatSettings.LocalChatRange", 1000);
-        ChatPrefixes.initialize(config.getConfigurationSection("ChatPrefixes"));
-        TextColors.initialize(config.getConfigurationSection("TextColors"));
     }
     
     /**

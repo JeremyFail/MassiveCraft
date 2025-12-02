@@ -325,9 +325,15 @@ public class MConf extends Entity<MConf>
 	public boolean enablePVPBetweenFactionlessPlayers = true;
 	
 	// Set this option to true to create an exception to the rule above.
-	// Players inside their own faction territory can then hurt facitonless players.
+	// Players inside their own faction territory can then hurt factionless players.
 	// This way you may "evict" factionless trolls messing around in your home base.
 	public boolean enablePVPAgainstFactionlessInAttackersLand = false;
+
+	// Set this option to false to prevent players from hurting neutral players while they are in the neutral
+	// player's territory. By default this is enabled to treat neutral players more like enemies (i.e. assume they
+	// are hostile rather than friendly). If disabled, neutral players will not be able to be hurt while they are 
+	// in their own territory, treating neutral players more like allies.
+	public boolean enablePVPAgainstNeutralInTheirTerritory = true;
 	
 	// Inside your own faction territory you take less damage.
 	// 0.1 means that you take 10% less damage at home.
@@ -341,6 +347,11 @@ public class MConf extends Entity<MConf>
 
 	// Will flying be disabled on pvp
 	public boolean flyDisableOnPvp = false;
+
+	// The date format used when displaying the founded date of a faction
+	// Follows Java's SimpleDateFormat patterns
+	// For reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/SimpleDateFormat.html
+	public String foundedDateFormat = "yyyy-MM-dd";
 
 	// -------------------------------------------- //
 	// DENY COMMANDS
@@ -594,6 +605,12 @@ public class MConf extends Entity<MConf>
 	
 	// Interacting with these materials placed in the terrain results in door toggling.
 	public BackstringSet<Material> materialsDoor = new BackstringSet<>(Material.class);
+
+	// Interacting with these materials placed in the terrain results in trap door toggling.
+	public BackstringSet<Material> materialsTrapdoor = new BackstringSet<>(Material.class);
+
+	// Interacting with these materials placed in the terrain results in fence gate toggling.
+	public BackstringSet<Material> materialsFenceGate = new BackstringSet<>(Material.class);
 	
 	// Interacting with these materials placed in the terrain results in opening a container.
 	public BackstringSet<Material> materialsContainer = new BackstringSet<>(Material.class);
@@ -792,7 +809,7 @@ public class MConf extends Entity<MConf>
 	// Specify Faction either by name or UUID.
 	@EditorVisible(false)
 	public Map<String, DynmapStyle> dynmapFactionStyles = MUtil.map(
-		"SafeZone", new DynmapStyle().withLineColor("#FF00FF").withFillColor("#FF00FF").withBoost(false),
+		"SafeZone", new DynmapStyle().withLineColor("#FFAA00").withFillColor("#FFAA00").withBoost(false),
 		"WarZone", new DynmapStyle().withLineColor("#FF0000").withFillColor("#FF0000").withBoost(false)
 	);
 }
