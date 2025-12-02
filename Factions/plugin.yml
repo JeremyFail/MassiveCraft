@@ -3,7 +3,7 @@ name: ${project.name}
 version: ${project.version}
 website: ${project.url}
 description: ${project.description}
-authors: [Madus, Cayorion, Ulumulu1510, MarkehMe, Brettflan, Ymerejliaf]
+authors: [Ymerejliaf, Madus, Cayorion, Ulumulu1510, MarkehMe, Brettflan]
 depend: [MassiveCore]
 softdepend: [Dynamp, Essentials, LWC, PlaceholderAPI, Vault, WorldEdit, WorldGuard]
 api-version: 1.21
