@@ -1,4 +1,4 @@
-![MassiveCore Logo](https://jeremyfail.dev/projects/plugins/img/MassiveCore3.png)
+![MassiveCore Logo](https://factions.wiki/MassiveCore/img/hero.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
