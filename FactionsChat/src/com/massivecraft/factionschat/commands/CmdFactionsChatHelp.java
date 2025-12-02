@@ -113,11 +113,11 @@ public class CmdFactionsChatHelp extends FactionsCommand
             if (player.hasPermission("factions.chat.ignore.admin"))
             {
                 lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignore [playerToUpdate] <player>"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Add players to the ignore list of yourself or another player");
+                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Add players to the ignore list for yourself or another player");
                 lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "unignore [playerToUpdate] <player>"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Remove players from the ignore list of yourself or another player");
+                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Remove players from the ignore list for yourself or another player");
                 lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignorelist [player]"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "View the ignored list of yourself or another player");
+                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "View the ignore list for yourself or another player");
             }
             else if (player.hasPermission("factions.chat.ignore"))
             {
