@@ -1,0 +1,125 @@
+main: ${project.groupId}.${project.name}
+name: ${project.name}
+version: ${project.version}
+website: ${project.url}
+description: ${project.description}
+authors: [Ymerejliaf, Cayorion]
+depend: [MassiveCore]
+api-version: 1.21
+permissions:
+# -------------------------------------------- #
+# THE REAL NODES
+# -------------------------------------------- #
+  massivebooks.book: {description: access the book base-command, default: false}
+  massivebooks.unlock: {description: unlock a book, default: false}
+  massivebooks.unlock.other: {description: unlock a book by another author, default: false}
+  massivebooks.lock: {description: lock a book, default: false}
+  massivebooks.lock.other: {description: lock a book by another author, default: false}
+  massivebooks.clear: {description: clear a book, default: false}
+  massivebooks.clear.other: {description: clear a book by another author, default: false}
+  massivebooks.title: {description: change title for a book, default: false}
+  massivebooks.title.other: {description: change title for a book by another author, default: false}
+  massivebooks.title.color: {description: use colors in book titles, default: false}
+  massivebooks.author: {description: change author for a book, default: false}
+  massivebooks.author.other: {description: change author for a book by another author, default: false}
+  massivebooks.copy: {description: copy a book, default: false}
+  massivebooks.copy.other: {description: copy a book by another author, default: false}
+  massivebooks.copy.copyrighted: {description: copy a copyrighted book by another author, default: false}
+  massivebooks.list: {description: list saved books, default: false}
+  massivebooks.load: {description: load a saved book, default: false}
+  massivebooks.give: {description: give saved book(s), default: false}
+  massivebooks.save: {description: save a book, default: false}
+  massivebooks.delete: {description: delete a saved book, default: false}
+  massivebooks.autoupdate: {description: alter your autoupdate state, default: false}
+  massivebooks.powertool: {description: set powertool state for a book, default: false}
+  massivebooks.powertool.other: {description: set powertool state for a book by another author, default: false}
+  massivebooks.copyrighted: {description: set copyrighted state for a book, default: false}
+  massivebooks.copyrighted.other: {description: set copyrighted state for a book by another author, default: false}
+  massivebooks.version: {description: see plugin version, default: false}
+  massivebooks.config: {description: edit plugin config, default: false}
+# -------------------------------------------- #
+# START NOTATION
+# -------------------------------------------- #
+  massivebooks.*:
+    default: false
+    children:
+      massivebooks.book: true
+      massivebooks.unlock: true
+      massivebooks.unlock.other: true
+      massivebooks.lock: true
+      massivebooks.lock.other: true
+      massivebooks.clear: true
+      massivebooks.clear.other: true
+      massivebooks.title: true
+      massivebooks.title.other: true
+      massivebooks.title.color: true
+      massivebooks.author: true
+      massivebooks.author.other: true
+      massivebooks.copy: true
+      massivebooks.copy.other: true
+      massivebooks.copy.copyrighted: true
+      massivebooks.list: true
+      massivebooks.load: true
+      massivebooks.give: true
+      massivebooks.save: true
+      massivebooks.delete: true
+      massivebooks.autoupdate: true
+      massivebooks.powertool: true
+      massivebooks.powertool.other: true
+      massivebooks.copyrighted: true
+      massivebooks.copyrighted.other: true
+      massivebooks.version: true
+      massivebooks.config: true
+# -------------------------------------------- #
+# KITS
+# -------------------------------------------- #
+  massivebooks.kit.op:
+    default: op
+    children:
+      massivebooks.*: true
+  massivebooks.kit.rank3:
+    default: false
+    children:
+      massivebooks.kit.rank2: true
+      massivebooks.config: true
+  massivebooks.kit.rank2:
+    default: false
+    children:
+      massivebooks.kit.rank1: true
+  massivebooks.kit.rank1:
+    default: false
+    children:
+      massivebooks.kit.rank0: true
+      massivebooks.unlock.other: true
+      massivebooks.lock.other: true
+      massivebooks.title.other: true
+      massivebooks.title.color: true
+      massivebooks.author: true
+      massivebooks.author.other: true
+      massivebooks.copy.copyrighted: true
+      massivebooks.give: true
+      massivebooks.save: true
+      massivebooks.delete: true
+      massivebooks.autoupdate: true
+      massivebooks.powertool: true
+      massivebooks.powertool.other: true
+      massivebooks.copyrighted.other: true
+  massivebooks.kit.rank0:
+    default: false
+    children:
+      massivebooks.book: true
+      massivebooks.unlock: true
+      massivebooks.lock: true
+      massivebooks.clear: true
+      massivebooks.clear.other: true
+      massivebooks.title: true
+      massivebooks.copy: true
+      massivebooks.copy.other: true
+      massivebooks.list: true
+      massivebooks.load: true
+      massivebooks.copyrighted: true
+      massivebooks.version: true
+  massivebooks.kit.default:
+    default: true
+    children:
+      massivebooks.kit.rank0: true
