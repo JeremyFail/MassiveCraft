@@ -12,6 +12,8 @@
     	<module>CreativeGates</module>
     	<module>FactionsChat</module>
         <module>Factions</module>
+        <module>MassiveBooks</module>
+        <module>MassiveHat</module>
         <module>MassiveCore</module>
         <module>MassiveSuper</module>
     </modules>
