@@ -29,6 +29,8 @@ To compile the project, open the MassiveCraft directory where your code was clon
 It may take a few minutes to build. Once complete (and if successful), the JAR files will be located at:
 ```
 ../MassiveCore/target/MassiveCore.jar
+../MassiveBooks/target/MassiveBooks.jar
+../MassiveHat/target/MassiveHat.jar
 ../CreativeGates/target/CreativeGates.jar
 ../Factions/target/Factions.jar
 ../FactionsChat/target/FactionsChat.jar
