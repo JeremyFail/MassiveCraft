@@ -5,7 +5,7 @@
     <groupId>com.massivecraft.massivesuper</groupId>
     <artifactId>MassiveSuper</artifactId>
     <!-- Change this release version when making updates to the code - update in all pom files -->
-    <version>3.4.0-alpha-10</version>
+    <version>3.4.0-alpha-11</version>
     <packaging>pom</packaging>
 
     <!-- Info -->
@@ -737,6 +737,18 @@
             <dependency>
                 <groupId>com.massivecraft.creativegates</groupId>
                 <artifactId>CreativeGates</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.massivebooks</groupId>
+                <artifactId>MassiveBooks</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.massivehat</groupId>
+                <artifactId>MassiveHat</artifactId>
                 <version>${project.version}</version>
                 <scope>provided</scope>
             </dependency>
