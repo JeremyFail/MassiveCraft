@@ -1,4 +1,4 @@
-![Factions Logo](https://jeremyfail.dev/projects/plugins/factions/img/hero.png)
+![Factions Logo](https://factions.wiki/Factions/img/hero.png)
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL_v3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/lgpl-3.0)
 
