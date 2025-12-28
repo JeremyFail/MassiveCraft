@@ -10,6 +10,7 @@ import com.massivecraft.massivecore.adapter.AdapterBackstringSet;
 import com.massivecraft.massivecore.adapter.AdapterEntityInternalMap;
 import com.massivecraft.massivecore.adapter.AdapterEntry;
 //import com.massivecraft.massivecore.adapter.AdapterJsonElement;
+import com.massivecraft.massivecore.adapter.AdapterItemStack;
 import com.massivecraft.massivecore.adapter.AdapterMassiveList;
 import com.massivecraft.massivecore.adapter.AdapterMassiveMap;
 import com.massivecraft.massivecore.adapter.AdapterMassiveSet;
@@ -187,6 +188,9 @@ public class MassiveCore extends MassivePlugin
 		ret.registerTypeAdapter(PS.class, PSAdapter.get());
 		ret.registerTypeAdapter(Sound.class, AdapterSound.get());
 		ret.registerTypeAdapter(UUID.class, AdapterUUID.get());
+		
+		// Bukkit
+		ret.registerTypeAdapter(org.bukkit.inventory.ItemStack.class, AdapterItemStack.get());
 
 		// Mson
 		ret.registerTypeAdapter(Mson.class, AdapterMson.get());

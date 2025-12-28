@@ -110,6 +110,7 @@ public class BookUtil
 		
 		if (item == null) return false;
 		String title = getTitle(item);
+		if (title == null) return false;
 		
 		MBook mbook = MBook.get(title);
 		if (mbook == null) return false;

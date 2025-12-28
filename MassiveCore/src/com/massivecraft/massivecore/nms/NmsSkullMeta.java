@@ -1,12 +1,16 @@
 package com.massivecraft.massivecore.nms;
 
 import com.massivecraft.massivecore.Couple;
+import com.massivecraft.massivecore.item.ContainerGameProfileProperty;
 import com.massivecraft.massivecore.mixin.Mixin;
 import com.massivecraft.massivecore.util.IdData;
 import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.MUtil;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 public class NmsSkullMeta extends Mixin
@@ -16,8 +20,7 @@ public class NmsSkullMeta extends Mixin
 	// -------------------------------------------- //
 	
 	private static NmsSkullMeta d = new NmsSkullMeta().setAlternatives(
-		NmsSkullMeta18R1P.class,
-		NmsSkullMeta17R4.class,
+		NmsSkullMeta120R2P.class,
 		NmsSkullMetaFallback.class
 	);
 	
@@ -25,6 +28,7 @@ public class NmsSkullMeta extends Mixin
 	// INSTANCE & CONSTRUCT
 	// -------------------------------------------- //
 	
+	@SuppressWarnings("FieldMayBeFinal")
 	private static NmsSkullMeta i = d;
 	public static NmsSkullMeta get() { return i; }
 	
@@ -34,10 +38,7 @@ public class NmsSkullMeta extends Mixin
 	
 	public String getName(SkullMeta meta)
 	{
-		// throw notImplemented();
-		return meta.getOwner();
-		// NOTE: This one is actually this simple.
-		// Bukkit does all the work for us.
+		return meta.getOwningPlayer().getName();
 	}
 	
 	public UUID getId(SkullMeta meta)
@@ -84,6 +85,56 @@ public class NmsSkullMeta extends Mixin
 		
 		// Return Ret
 		return new Couple<>(retName, retId);
+	}
+	
+	public <T> T createGameProfile(UUID id, String name)
+	{
+		return null;
+	}
+	
+	public <T> T getGameProfile(SkullMeta meta)
+	{
+		return null;
+	}
+	
+	public <T> void setGameProfile(SkullMeta meta, T gameProfile)
+	{
+		// No-op here
+	}
+	
+	public <T> T getPropertyMap(Object profile)
+	{
+		return null;
+	}
+	
+	public Collection<Map.Entry<String, ContainerGameProfileProperty>> getGameProfileProperties(Object propertyMap)
+	{
+		return Collections.emptyList();
+	}
+	
+	public void setGameProfileProperties(Object propertyMap, Collection<Map.Entry<String, ContainerGameProfileProperty>> properties)
+	{
+		// No-op here
+	}
+	
+	public void setPropertyMap(Object profile, Object propertyMap)
+	{
+		// No-op hee
+	}
+	
+	public Object createPropertyMap()
+	{
+		return null;
+	}
+	
+	public UUID getGameProfileId(Object gameprofile)
+	{
+		throw notImplemented();
+	}
+	
+	public String getGameProfileName(Object gameProfile)
+	{
+		throw notImplemented();
 	}
 	
 }

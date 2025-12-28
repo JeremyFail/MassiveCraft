@@ -71,38 +71,6 @@ public abstract class NmsSkullMetaAbstract extends NmsSkullMeta
 	}
 	
 	// -------------------------------------------- //
-	// GAMEPROFILE
-	// -------------------------------------------- //
-	
-	protected <T> T createGameProfile(UUID id, String name) {
-		return ReflectionUtil.invokeConstructor(this.constructorGameProfile, id, name);
-	}
-	
-	protected <T> T getGameProfile(SkullMeta meta)
-	{
-		return ReflectionUtil.getField(this.fieldCraftMetaSkullProfile, meta);
-	}
-	
-	protected void setGameProfile(SkullMeta meta, Object gameProfile)
-	{
-		ReflectionUtil.setField(this.fieldCraftMetaSkullProfile, meta, gameProfile);
-	}
-	
-	// -------------------------------------------- //
-	// GAMEPROFILE > GET
-	// -------------------------------------------- //
-	
-	protected String getGameProfileName(Object gameProfile)
-	{
-		return ReflectionUtil.getField(this.fieldGameProfileName, gameProfile);
-	}
-	
-	protected UUID getGameProfileId(Object gameProfile)
-	{
-		return ReflectionUtil.getField(this.fieldGameProfileId, gameProfile);
-	}
-	
-	// -------------------------------------------- //
 	// GAMEPROFILE > SET
 	// -------------------------------------------- //
 	

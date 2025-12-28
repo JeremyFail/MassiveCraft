@@ -57,4 +57,20 @@ public class TypeObject<T> extends TypeAbstract<T>
 		return Collections.emptySet();
 	}
 
+	// -------------------------------------------- //
+	// TYPE OBJECT: OBJECT
+	// -------------------------------------------- //
+	
+	public static class TypeObjectRaw extends TypeObject<Object>
+	{
+		// -------------------------------------------- //
+		// INSTANCE & CONSTRUCT
+		// -------------------------------------------- //
+	
+		private static final TypeObject<Object> i = new TypeObjectRaw();
+		public static TypeObject<Object> get() { return i; }
+		
+		public TypeObjectRaw() { super(Object.class); }
+	}
+
 }
