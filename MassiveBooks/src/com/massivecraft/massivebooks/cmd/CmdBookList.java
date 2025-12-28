@@ -6,6 +6,7 @@ import com.massivecraft.massivebooks.entity.MBook;
 import com.massivecraft.massivebooks.entity.MBookColl;
 import com.massivecraft.massivebooks.entity.MConf;
 import com.massivecraft.massivecore.MassiveException;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.Parameter;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import com.massivecraft.massivecore.pager.Pager;
@@ -36,7 +37,7 @@ public class CmdBookList extends MassiveBooksCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesBookList;
+		return new MassiveList<>(MConf.get().getAliasesBookList());
 	}
 	
 	@Override

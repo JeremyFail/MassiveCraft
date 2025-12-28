@@ -7,6 +7,7 @@ import com.massivecraft.massivebooks.cmd.type.TypeMBook;
 import com.massivecraft.massivebooks.entity.MBook;
 import com.massivecraft.massivebooks.entity.MConf;
 import com.massivecraft.massivecore.MassiveException;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import com.massivecraft.massivecore.command.requirement.RequirementIsPlayer;
 import com.massivecraft.massivecore.util.InventoryUtil;
@@ -37,7 +38,7 @@ public class CmdBookLoad extends MassiveBooksCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesBookLoad;
+		return new MassiveList<>(MConf.get().getAliasesBookLoad());
 	}
 	
 	@Override

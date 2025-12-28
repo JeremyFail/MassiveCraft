@@ -12,6 +12,7 @@ import org.bukkit.permissions.PermissionDefault;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 @SuppressWarnings("CanBeFinal")
@@ -30,23 +31,73 @@ public class MConf extends Entity<MConf>
 	// -------------------------------------------- //
 	
 	// Command Aliases
-	public List<String> aliasesBook = MUtil.list("book", "books");
-	public List<String> aliasesBookUnlock = MUtil.list("unlock");
-	public List<String> aliasesBookLock = MUtil.list("lock");
-	public List<String> aliasesBookClear = MUtil.list("clear");
-	public List<String> aliasesBookTitle = MUtil.list("title");
-	public List<String> aliasesBookAuthor = MUtil.list("author");
-	public List<String> aliasesBookCopy = MUtil.list("copy");
-	public List<String> aliasesBookList = MUtil.list("list");
-	public List<String> aliasesBookLoad = MUtil.list("load");
-	public List<String> aliasesBookGive = MUtil.list("give");
-	public List<String> aliasesBookSave = MUtil.list("save");
-	public List<String> aliasesBookDelete = MUtil.list("delete");
-	public List<String> aliasesBookAutoupdate = MUtil.list("autoupdate");
-	public List<String> aliasesBookPowertool = MUtil.list("pt", "powertool");
-	public List<String> aliasesBookCopyrighted = MUtil.list("cr", "copyrighted");
-	public List<String> aliasesBookConfig = MUtil.list("config");
-	public List<String> aliasesBookVersion = MUtil.list("v", "version");
+	private Set<String> aliasesBook = MUtil.set("book", "books");
+	public Set<String> getAliasesBook() { return this.aliasesBook; }
+	public void setAliasesBook(Set<String> aliasesBook) { this.aliasesBook = aliasesBook; }
+
+	private Set<String> aliasesBookUnlock = MUtil.set("unlock");
+	public Set<String> getAliasesBookUnlock() { return this.aliasesBookUnlock; }
+	public void setAliasesBookUnlock(Set<String> aliasesBookUnlock) { this.aliasesBookUnlock = aliasesBookUnlock; }
+
+	private Set<String> aliasesBookLock = MUtil.set("lock");
+	public Set<String> getAliasesBookLock() { return this.aliasesBookLock; }
+	public void setAliasesBookLock(Set<String> aliasesBookLock) { this.aliasesBookLock = aliasesBookLock; }
+
+	private Set<String> aliasesBookClear = MUtil.set("clear");
+	public Set<String> getAliasesBookClear() { return this.aliasesBookClear; }
+	public void setAliasesBookClear(Set<String> aliasesBookClear) { this.aliasesBookClear = aliasesBookClear; }
+
+	private Set<String> aliasesBookTitle = MUtil.set("title");
+	public Set<String> getAliasesBookTitle() { return this.aliasesBookTitle; }
+	public void setAliasesBookTitle(Set<String> aliasesBookTitle) { this.aliasesBookTitle = aliasesBookTitle; }
+
+	private Set<String> aliasesBookAuthor = MUtil.set("author");
+	public Set<String> getAliasesBookAuthor() { return this.aliasesBookAuthor; }
+	public void setAliasesBookAuthor(Set<String> aliasesBookAuthor) { this.aliasesBookAuthor = aliasesBookAuthor; }
+
+	private Set<String> aliasesBookCopy = MUtil.set("copy");
+	public Set<String> getAliasesBookCopy() { return this.aliasesBookCopy; }
+	public void setAliasesBookCopy(Set<String> aliasesBookCopy) { this.aliasesBookCopy = aliasesBookCopy; }
+
+	private Set<String> aliasesBookList = MUtil.set("list");
+	public Set<String> getAliasesBookList() { return this.aliasesBookList; }
+	public void setAliasesBookList(Set<String> aliasesBookList) { this.aliasesBookList = aliasesBookList; }
+
+	private Set<String> aliasesBookLoad = MUtil.set("load");
+	public Set<String> getAliasesBookLoad() { return this.aliasesBookLoad; }
+	public void setAliasesBookLoad(Set<String> aliasesBookLoad) { this.aliasesBookLoad = aliasesBookLoad; }
+
+	private Set<String> aliasesBookGive = MUtil.set("give");
+	public Set<String> getAliasesBookGive() { return this.aliasesBookGive; }
+	public void setAliasesBookGive(Set<String> aliasesBookGive) { this.aliasesBookGive = aliasesBookGive; }
+
+	private Set<String> aliasesBookSave = MUtil.set("save");
+	public Set<String> getAliasesBookSave() { return this.aliasesBookSave; }
+	public void setAliasesBookSave(Set<String> aliasesBookSave) { this.aliasesBookSave = aliasesBookSave; }
+
+	private Set<String> aliasesBookDelete = MUtil.set("delete");
+	public Set<String> getAliasesBookDelete() { return this.aliasesBookDelete; }
+	public void setAliasesBookDelete(Set<String> aliasesBookDelete) { this.aliasesBookDelete = aliasesBookDelete; }
+
+	private Set<String> aliasesBookAutoupdate = MUtil.set("autoupdate");
+	public Set<String> getAliasesBookAutoupdate() { return this.aliasesBookAutoupdate; }
+	public void setAliasesBookAutoupdate(Set<String> aliasesBookAutoupdate) { this.aliasesBookAutoupdate = aliasesBookAutoupdate; }
+
+	private Set<String> aliasesBookPowertool = MUtil.set("pt", "powertool");
+	public Set<String> getAliasesBookPowertool() { return this.aliasesBookPowertool; }
+	public void setAliasesBookPowertool(Set<String> aliasesBookPowertool) { this.aliasesBookPowertool = aliasesBookPowertool; }
+
+	private Set<String> aliasesBookCopyrighted = MUtil.set("cr", "copyrighted");
+	public Set<String> getAliasesBookCopyrighted() { return this.aliasesBookCopyrighted; }
+	public void setAliasesBookCopyrighted(Set<String> aliasesBookCopyrighted) { this.aliasesBookCopyrighted = aliasesBookCopyrighted; }
+
+	private Set<String> aliasesBookConfig = MUtil.set("config");
+	public Set<String> getAliasesBookConfig() { return this.aliasesBookConfig; }
+	public void setAliasesBookConfig(Set<String> aliasesBookConfig) { this.aliasesBookConfig = aliasesBookConfig; }
+
+	private Set<String> aliasesBookVersion = MUtil.set("v", "version");
+	public Set<String> getAliasesBookVersion() { return this.aliasesBookVersion; }
+	public void setAliasesBookVersion(Set<String> aliasesBookVersion) { this.aliasesBookVersion = aliasesBookVersion; }
 	
 	// New Player Commands
 	public boolean usingNewPlayerCommands = true;

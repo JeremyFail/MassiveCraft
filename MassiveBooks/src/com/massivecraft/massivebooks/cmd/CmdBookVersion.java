@@ -3,6 +3,7 @@ package com.massivecraft.massivebooks.cmd;
 import com.massivecraft.massivebooks.MassiveBooks;
 import com.massivecraft.massivebooks.Perm;
 import com.massivecraft.massivebooks.entity.MConf;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommandVersion;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 
@@ -29,7 +30,7 @@ public class CmdBookVersion extends MassiveCommandVersion
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesBookVersion;
+		return new MassiveList<>(MConf.get().getAliasesBookVersion());
 	}
 
 }

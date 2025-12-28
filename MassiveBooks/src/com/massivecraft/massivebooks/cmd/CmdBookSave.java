@@ -8,6 +8,7 @@ import com.massivecraft.massivebooks.entity.MBook;
 import com.massivecraft.massivebooks.entity.MBookColl;
 import com.massivecraft.massivebooks.entity.MConf;
 import com.massivecraft.massivecore.MassiveException;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import com.massivecraft.massivecore.command.requirement.RequirementIsPlayer;
 import org.bukkit.inventory.ItemStack;
@@ -34,7 +35,7 @@ public class CmdBookSave extends MassiveBooksCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesBookSave;
+		return new MassiveList<>(MConf.get().getAliasesBookSave());
 	}
 	
 	@Override

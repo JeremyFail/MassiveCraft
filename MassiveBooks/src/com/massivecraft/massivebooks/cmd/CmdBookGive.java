@@ -46,7 +46,7 @@ public class CmdBookGive extends MassiveBooksCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesBookGive;
+		return new MassiveList<>(MConf.get().getAliasesBookGive());
 	}
 	
 	@Override

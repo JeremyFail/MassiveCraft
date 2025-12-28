@@ -6,6 +6,7 @@ import com.massivecraft.massivebooks.cmd.type.TypeMBook;
 import com.massivecraft.massivebooks.entity.MBook;
 import com.massivecraft.massivebooks.entity.MConf;
 import com.massivecraft.massivecore.MassiveException;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import org.bukkit.inventory.ItemStack;
 
@@ -33,7 +34,7 @@ public class CmdBookDelete extends MassiveBooksCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesBookDelete;
+		return new MassiveList<>(MConf.get().getAliasesBookDelete());
 	}
 	
 	@Override

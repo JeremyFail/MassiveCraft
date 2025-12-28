@@ -2,6 +2,7 @@ package com.massivecraft.massivebooks.cmd;
 
 import com.massivecraft.massivebooks.Perm;
 import com.massivecraft.massivebooks.entity.MConf;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.editor.CommandEditSingleton;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 
@@ -28,7 +29,7 @@ public class CmdBookConfig extends CommandEditSingleton<MConf>
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesBookConfig;
+		return new MassiveList<>(MConf.get().getAliasesBookConfig());
 	}
 	
 }

@@ -2,6 +2,7 @@ package com.massivecraft.massivebooks.cmd;
 
 import com.massivecraft.massivebooks.Perm;
 import com.massivecraft.massivebooks.entity.MConf;
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 
 import java.util.List;
@@ -71,7 +72,7 @@ public class CmdBook extends MassiveBooksCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesBook;
+		return new MassiveList<>(MConf.get().getAliasesBook());
 	}
 
 }
