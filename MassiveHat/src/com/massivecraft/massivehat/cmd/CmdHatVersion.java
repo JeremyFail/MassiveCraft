@@ -1,5 +1,6 @@
 package com.massivecraft.massivehat.cmd;
 
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommandVersion;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import com.massivecraft.massivehat.MassiveHat;
@@ -29,7 +30,7 @@ public class CmdHatVersion extends MassiveCommandVersion
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesHatVersion;
+		return new MassiveList<>(MConf.get().getAliasesHatVersion());
 	}
 	
 }

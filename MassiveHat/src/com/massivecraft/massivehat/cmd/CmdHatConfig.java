@@ -1,5 +1,6 @@
 package com.massivecraft.massivehat.cmd;
 
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.editor.CommandEditSingleton;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import com.massivecraft.massivehat.Perm;
@@ -28,7 +29,7 @@ public class CmdHatConfig extends CommandEditSingleton<MConf>
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesHatConfig;
+		return new MassiveList<>(MConf.get().getAliasesHatConfig());
 	}
 	
 }

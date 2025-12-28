@@ -5,7 +5,7 @@ import com.massivecraft.massivecore.command.editor.annotation.EditorName;
 import com.massivecraft.massivecore.store.Entity;
 import com.massivecraft.massivecore.util.MUtil;
 
-import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("CanBeFinal")
 @EditorName("config")
@@ -23,11 +23,25 @@ public class MConf extends Entity<MConf>
 	// -------------------------------------------- //
 	
 	// Aliases
-	public List<String> aliasesHat = MUtil.list("massivehat");
-	public List<String> aliasesHatUseInner = MUtil.list("use", "wear", "apply");
-	public List<String> aliasesHatUseOuter = MUtil.list("usehat", "hat", "blockhat", "mhat");
-	public List<String> aliasesHatConfig = MUtil.list("config");
-	public List<String> aliasesHatVersion = MUtil.list("v", "version");
+	private Set<String> aliasesHat = MUtil.set("massivehat");
+	public Set<String> getAliasesHat() { return this.aliasesHat; }
+	public void setAliasesHat(Set<String> aliasesHat) { this.aliasesHat = aliasesHat; }
+
+	private Set<String> aliasesHatUseInner = MUtil.set("use", "wear", "apply");
+	public Set<String> getAliasesHatUseInner() { return this.aliasesHatUseInner; }
+	public void setAliasesHatUseInner(Set<String> aliasesHatUseInner) { this.aliasesHatUseInner = aliasesHatUseInner; }
+
+	private Set<String> aliasesHatUseOuter = MUtil.set("usehat", "hat", "blockhat", "mhat");
+	public Set<String> getAliasesHatUseOuter() { return this.aliasesHatUseOuter; }
+	public void setAliasesHatUseOuter(Set<String> aliasesHatUseOuter) { this.aliasesHatUseOuter = aliasesHatUseOuter; }
+	
+	private Set<String> aliasesHatConfig = MUtil.set("config");
+	public Set<String> getAliasesHatConfig() { return this.aliasesHatConfig; }
+	public void setAliasesHatConfig(Set<String> aliasesHatConfig) { this.aliasesHatConfig = aliasesHatConfig; }
+
+	private Set<String> aliasesHatVersion = MUtil.set("v", "version");
+	public Set<String> getAliasesHatVersion() { return this.aliasesHatVersion; }
+	public void setAliasesHatVersion(Set<String> aliasesHatVersion) { this.aliasesHatVersion = aliasesHatVersion; }
 	
 	// This specifies which non block items may be treated as a hat.
 	// Defaults to banners only.

@@ -1,5 +1,6 @@
 package com.massivecraft.massivehat.cmd;
 
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommand;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import com.massivecraft.massivecore.command.requirement.RequirementIsPlayer;
@@ -19,7 +20,7 @@ public class CmdHatUse extends MassiveCommand
 	// INSTANCE
 	// -------------------------------------------- //
 	
-	private static final CmdHatUse i = new CmdHatUse() { @Override public List<String> getAliases() { return MConf.get().aliasesHatUseOuter; }};
+	private static final CmdHatUse i = new CmdHatUse() { @Override public List<String> getAliases() { return new MassiveList<>(MConf.get().getAliasesHatUseOuter()); }};
 	public static CmdHatUse get() { return i; }
 	
 	// -------------------------------------------- //
@@ -66,7 +67,7 @@ public class CmdHatUse extends MassiveCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesHatUseInner;
+		return new MassiveList<>(MConf.get().getAliasesHatUseInner());
 	}
 	
 }

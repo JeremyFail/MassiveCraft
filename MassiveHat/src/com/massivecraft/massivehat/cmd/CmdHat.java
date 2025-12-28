@@ -1,5 +1,6 @@
 package com.massivecraft.massivehat.cmd;
 
+import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommand;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
 import com.massivecraft.massivehat.Perm;
@@ -46,7 +47,7 @@ public class CmdHat extends MassiveCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return MConf.get().aliasesHat;
+		return new MassiveList<>(MConf.get().getAliasesHat());
 	}
 	
 }
