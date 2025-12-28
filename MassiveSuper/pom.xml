@@ -41,7 +41,7 @@
         <!-- External Versions -->
         <!-- ~~~~~~~~~~~~~~~~~ -->
         <massiveGuavaVersion>23.5-jre</massiveGuavaVersion>
-        <massiveGsonVersion>2.8.2</massiveGsonVersion>
+        <massiveGsonVersion>2.13.2</massiveGsonVersion>
         <massiveJsonVersion>20250107</massiveJsonVersion>
         <massiveMongoDBVersion>2.12.3</massiveMongoDBVersion>
 

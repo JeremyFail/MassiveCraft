@@ -820,6 +820,7 @@ public class EnumerationUtil
         "HOGLIN",           // Minecraft 1.16
         "HUSK",             // Minecraft 1.10
         "MAGMA_CUBE",       // Minecraft 1.0
+        "PARCHED",          // Minecraft 1.21.11
         "PHANTOM",          // Minecraft 1.13
         "PIGLIN_BRUTE",     // Minecraft 1.16
         "PILLAGER",         // Minecraft 1.14
@@ -852,13 +853,15 @@ public class EnumerationUtil
         "POLAR_BEAR",       // Minecraft 1.10
         "SPIDER",           // Minecraft 1.0
 
-        // - - - Passive Mobs - - -
+        // - - - Hostile-Adjacent Mobs - - -
+        "CAMEL_HUSK",       // Minecraft 1.21.11
         "SKELETON_HORSE",   // Minecraft 1.6.1
+        "ZOMBIE_HORSE",     // Minecraft 1.21.11
+        "ZOMBIE_NAUTILUS",  // Minecraft 1.21.11
 
         // - - - Unused Mobs - - -
         "GIANT",            // Minecraft 1.0
-        "ILLUSIONER",       // Minecraft 1.12
-        "ZOMBIE_HORSE"      // Minecraft 1.6.1
+        "ILLUSIONER"        // Minecraft 1.12
     );
     
     /**
@@ -904,7 +907,6 @@ public class EnumerationUtil
         "RABBIT",           // Minecraft 1.8
         "SALMON",           // Minecraft 1.13
         "SHEEP",            // Minecraft 1.0
-        "SKELETON_HORSE",   // Minecraft 1.6.1
         "SNIFFER",          // Minecraft 1.20
         "SQUID",            // Minecraft 1.0
         "STRIDER",          // Minecraft 1.16
@@ -919,12 +921,16 @@ public class EnumerationUtil
         "GOAT",             // Minecraft 1.17
         "LLAMA",            // Minecraft 1.14
         "LLAMA_SPIT",       // Minecraft 1.14
+        "NAUTILUS",         // Minecraft 1.21.11
         "PANDA",            // Minecraft 1.14
         "POLAR_BEAR",       // Minecraft 1.10
         "WOLF",             // Minecraft 1.0
 
-        // - - - Unused Mobs - - -
-        "ZOMBIE_HORSE"      // Minecraft 1.6.1
+        // - - - Hostile-Adjacent Mobs - - -
+        "CAMEL_HUSK",       // Minecraft 1.21.11
+        "SKELETON_HORSE",   // Minecraft 1.6.1
+        "ZOMBIE_HORSE",     // Minecraft 1.21.11
+        "ZOMBIE_NAUTILUS"   // Minecraft 1.21.11
     );
     
     /**

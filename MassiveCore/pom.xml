@@ -31,6 +31,11 @@
 		    <artifactId>json-simple</artifactId>
 		    <version>1.1.1</version>
 		</dependency>
+        <!-- Gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
         <!-- Vault -->
         <dependency>
             <groupId>net.milkbowl.vault</groupId>
@@ -67,6 +72,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.massivecraft.massivecore:MassiveCoreXlib</include>
+                                    <include>com.google.code.gson:gson</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
