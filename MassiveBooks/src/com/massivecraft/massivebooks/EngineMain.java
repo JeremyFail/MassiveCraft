@@ -214,7 +214,7 @@ public class EngineMain extends Engine
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void autoupdateJoinWarnOrToggle(PlayerJoinEvent event)
 	{
-		if ( ! MixinActual.get().isActualJoin(event)) return;
+		if (!MixinActual.get().isActualJoin(event)) return;
 		
 		final Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;

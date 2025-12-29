@@ -77,7 +77,16 @@ public class BookUtil
 	{
 		if (inventory == null) return;
 		boolean update = false;
-		for (ItemStack item : inventory.getContents()) if (updateBook(item)) update = true;
+		ItemStack[] contents = inventory.getContents();
+		for (int i = 0; i < contents.length; i++)
+		{
+			ItemStack item = contents[i];
+			if (updateBook(item))
+			{
+				inventory.setItem(i, item);
+				update = true;
+			}
+		}
 		if (update) sendInventoryContentToViewersSoon(inventory);
 	}
 	
@@ -352,7 +361,7 @@ public class BookUtil
 		{
 			InventoryUtil.setLore(item, lore);
 		}
-		updateBook(item);
+		updateDisplayName(item);
 	}
 	
 	// -------------------------------------------- //

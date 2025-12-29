@@ -1,5 +1,7 @@
 package com.massivecraft.massivecore.item;
 
+import org.bukkit.Material;
+
 public class WriterItemStackMeta extends WriterAbstractItemStackMetaMorph<Object, Object>
 {
 	// -------------------------------------------- //
@@ -10,6 +12,10 @@ public class WriterItemStackMeta extends WriterAbstractItemStackMetaMorph<Object
 	public static WriterItemStackMeta get() { return i; }
 	public WriterItemStackMeta()
 	{
+		// Set a material that supports ItemMeta for setup validation
+		// WRITTEN_BOOK is used since it has rich metadata
+		this.setMaterial(Material.WRITTEN_BOOK);
+		
 		this.addWriterClasses(
 			// UNSPECIFIC
 			WriterItemStackMetaName.class,

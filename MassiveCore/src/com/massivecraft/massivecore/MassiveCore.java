@@ -61,6 +61,7 @@ import com.massivecraft.massivecore.entity.MassiveCoreMConfColl;
 import com.massivecraft.massivecore.entity.MultiverseColl;
 import com.massivecraft.massivecore.entity.migrator.MigratorMassiveCoreMConf001CleanInactivity;
 import com.massivecraft.massivecore.integration.vault.IntegrationVault;
+import com.massivecraft.massivecore.item.WriterItemStack;
 import com.massivecraft.massivecore.mixin.MixinActionbar;
 import com.massivecraft.massivecore.mixin.MixinActual;
 import com.massivecraft.massivecore.mixin.MixinCommand;
@@ -112,6 +113,7 @@ import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -188,13 +190,15 @@ public class MassiveCore extends MassivePlugin
 		ret.registerTypeAdapter(PS.class, PSAdapter.get());
 		ret.registerTypeAdapter(Sound.class, AdapterSound.get());
 		ret.registerTypeAdapter(UUID.class, AdapterUUID.get());
-		
-		// Bukkit
-		ret.registerTypeAdapter(org.bukkit.inventory.ItemStack.class, AdapterItemStack.get());
 
 		// Mson
 		ret.registerTypeAdapter(Mson.class, AdapterMson.get());
 		ret.registerTypeAdapter(MsonEvent.class, AdapterMsonEvent.get());
+
+		// ItemStack
+		ret.registerTypeAdapter(ItemStack.class, AdapterItemStack.get());
+		// Class<?> classCraftItemStack = NmsItemStackCreate.get().getClassCraftItemStackCatch();
+		// if (classCraftItemStack != null) ret.registerTypeAdapter(classCraftItemStack, AdapterItemStack.get());
 		
 		// Storage
 		ret.registerTypeAdapter(EntityInternalMap.class, AdapterEntityInternalMap.get());
@@ -265,6 +269,9 @@ public class MassiveCore extends MassivePlugin
 		// These must be activated after nms
 		this.activate(
 			
+			// Writer
+			WriterItemStack.class,
+
 			// Util
 			PlayerUtil.class,
 			BoardUtil.class

@@ -1,5 +1,6 @@
 package com.massivecraft.massivecore.item;
 
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -16,6 +17,9 @@ public class WriterItemStackMetaLore extends WriterAbstractItemStackMetaField<It
 	public WriterItemStackMetaLore()
 	{
 		super(ItemMeta.class);
+		// Use a generic material that has ItemMeta for setup validation
+		// STONE works because it has simple ItemMeta, not a specialized subclass
+		this.setMaterial(Material.STONE);
 	}
 	
 	// -------------------------------------------- //
