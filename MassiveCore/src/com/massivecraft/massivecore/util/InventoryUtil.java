@@ -1060,6 +1060,19 @@ public class InventoryUtil
 		return true;
 	}
 	
+	public static int countEmptySlots(Inventory inv)
+	{
+		if (inv == null) return 0;
+		
+		int count = 0;
+		for (ItemStack itemStack : inv.getStorageContents())
+		{
+			if (isNothing(itemStack)) count++;
+		}
+		
+		return count;
+	}
+	
 	// -------------------------------------------- //
 	// TYPE CHECKING
 	// -------------------------------------------- //

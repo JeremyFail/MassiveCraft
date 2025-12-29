@@ -50,9 +50,44 @@ public class CmdBookUnlock extends MassiveBooksCommand
 		
 		if (!BookUtil.isAuthorEquals(item, sender) && !Perm.UNLOCK_OTHER.has(sender, true)) return;
 		
+		// Check if we have a stack - book and quills don't stack
+		int amount = item.getAmount();
+		if (amount > 1)
+		{
+			// Check if there's enough inventory space to unstack
+			int emptySlots = InventoryUtil.countEmptySlots(me.getInventory());
+			int slotsNeeded = amount - 1; // -1 because one will stay in the current slot
+			
+			if (emptySlots < slotsNeeded)
+			{
+				msg("<b>You need <h>%d<b> empty inventory slots to unlock a stack of <h>%d<b> books.", slotsNeeded, amount);
+				return;
+			}
+		}
+		
 		ItemStack before = item.clone();
-		BookUtil.unlock(item);
-		InventoryUtil.setMainHand(me, item);
+		
+		// If it's a stack, we need to split them
+		if (amount > 1)
+		{
+			// Remove the stack from hand
+			InventoryUtil.setMainHand(me, null);
+			
+			// Unlock each book and add individually
+			for (int i = 0; i < amount; i++)
+			{
+				ItemStack single = item.clone();
+				single.setAmount(1);
+				BookUtil.unlock(single);
+				me.getInventory().addItem(single);
+			}
+		}
+		else
+		{
+			// Single book - unlock in place
+			BookUtil.unlock(item);
+			InventoryUtil.setMainHand(me, item);
+		}
 		
 		message(Lang.getAlterUnlock(before));
 	}
