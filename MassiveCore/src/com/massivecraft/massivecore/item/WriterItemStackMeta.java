@@ -25,7 +25,7 @@ public class WriterItemStackMeta extends WriterAbstractItemStackMetaMorph<Object
 			// WriterItemStackMetaRepaircost.class,
 			
 			// PERSISTENT DATA
-			WriterItemStackMetaPersistentData.class,
+			// WriterItemStackMetaPersistentData.class,
 			
 			// BOOK
 			WriterItemStackMetaTitle.class,
@@ -50,7 +50,7 @@ public class WriterItemStackMeta extends WriterAbstractItemStackMetaMorph<Object
 			// WriterItemStackMetaPotionEffects.class,
 			
 			// SKULL
-			WriterItemStackMetaSkullProperties.class,
+			// WriterItemStackMetaSkullProperties.class,
 			
 			// FIREWORK EFFECT
 			// WriterItemStackMetaFireworkEffect.class,

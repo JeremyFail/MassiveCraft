@@ -12,7 +12,6 @@ import com.massivecraft.massivecore.engine.EngineMassiveCoreMain;
 import com.massivecraft.massivecore.engine.EngineMassiveCoreWorldNameSet;
 import com.massivecraft.massivecore.integration.liability.IntegrationLiabilityAreaEffectCloud;
 import com.massivecraft.massivecore.mixin.MixinMessage;
-import com.massivecraft.massivecore.nms.NmsEntityGet;
 import com.massivecraft.massivecore.predicate.PredicateElementGarbage;
 import com.massivecraft.massivecore.predicate.PredicateElementSignificant;
 import com.massivecraft.massivecore.util.extractor.Extractor;
@@ -147,14 +146,22 @@ public class MUtil
 	// GET ENTITY
 	// -------------------------------------------- //
 	
+	// TODO: Remove
+	/**
+	 * @deprecated NmsEntity is no longer implemented.
+	 * 
+	 * @param world
+	 * @param uuid
+	 * @return
+	 */
 	public static Entity getEntity(World world, UUID uuid)
 	{
-		return NmsEntityGet.get().getEntity(world, uuid);
+		throw new UnsupportedOperationException("NmsEntity is no longer implemented.");
 	}
 	
 	public static Entity getEntity(UUID uuid)
 	{
-		return NmsEntityGet.get().getEntity(uuid);
+		throw new UnsupportedOperationException("NmsEntity is no longer implemented.");
 	}
 	
 	// -------------------------------------------- //

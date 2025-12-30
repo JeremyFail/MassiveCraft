@@ -6,7 +6,6 @@ import com.massivecraft.massivecore.MassiveCore;
 import com.massivecraft.massivecore.MassiveException;
 import com.massivecraft.massivecore.event.EventMassiveCorePermissionDeniedFormat;
 import com.massivecraft.massivecore.mixin.MixinMessage;
-import com.massivecraft.massivecore.nms.NmsPermissions;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permissible;
@@ -429,9 +428,16 @@ public class PermissionUtil
 	// PERMISSIBLE > BASE
 	// -------------------------------------------- //
 	
+	// TODO: Remove
+	/**
+	 * @deprecated NMS Permissions no longer implemented.
+	 * 
+	 * @param permissible the permissible
+	 * @return
+	 */
 	public static PermissibleBase getPermissibleBase(Permissible permissible)
 	{
-		return NmsPermissions.get().getBase(permissible);
+		throw new UnsupportedOperationException("NMS Permissions no longer implemented.");
 	}
 	
 	// -------------------------------------------- //
@@ -483,19 +489,33 @@ public class PermissionUtil
 	// -------------------------------------------- //
 	// BASE > ATTACHMENT
 	// -------------------------------------------- //
-	
+
+	// TODO: Remove
+	/**
+	 * @deprecated NMS Permissions no longer implemented.
+	 * 
+	 * @param base
+	 * @return
+	 */
 	public static List<PermissionAttachment> getBaseAttachments(PermissibleBase base)
 	{
-		return NmsPermissions.get().getAttachments(base);
+		throw new UnsupportedOperationException("NMS Permissions no longer implemented.");
 	}
 	
 	// -------------------------------------------- //
 	// ATTACHMENT > PERMISSIONS
 	// -------------------------------------------- //
 	
+	// TODO: Remove
+	/**
+	 * @deprecated NMS Permissions no longer implemented.
+	 * 
+	 * @param attachment
+	 * @return
+	 */
 	public static Map<String, Boolean> getAttachmentPermissions(PermissionAttachment attachment)
 	{
-		return NmsPermissions.get().getAttachmentPermissions(attachment);
+		throw new UnsupportedOperationException("NMS Permissions no longer implemented.");
 	}	
 	
 	public static boolean setAttachmentPermissions(PermissionAttachment attachment, Map<String, Boolean> permissions)
