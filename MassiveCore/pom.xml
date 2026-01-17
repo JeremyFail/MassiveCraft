@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.massivecraft.massivesuper</groupId>
         <artifactId>MassiveSuper</artifactId>
-        <version>3.4.0-alpha-10</version>
+        <version>3.4.0-alpha-11</version>
         <relativePath>../MassiveSuper</relativePath>
     </parent>
 
@@ -31,6 +31,11 @@
 		    <artifactId>json-simple</artifactId>
 		    <version>1.1.1</version>
 		</dependency>
+        <!-- Gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
         <!-- Vault -->
         <dependency>
             <groupId>net.milkbowl.vault</groupId>
@@ -67,6 +72,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.massivecraft.massivecore:MassiveCoreXlib</include>
+                                    <include>com.google.code.gson:gson</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

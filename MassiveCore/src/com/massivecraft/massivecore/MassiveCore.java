@@ -10,6 +10,7 @@ import com.massivecraft.massivecore.adapter.AdapterBackstringSet;
 import com.massivecraft.massivecore.adapter.AdapterEntityInternalMap;
 import com.massivecraft.massivecore.adapter.AdapterEntry;
 //import com.massivecraft.massivecore.adapter.AdapterJsonElement;
+import com.massivecraft.massivecore.adapter.AdapterItemStack;
 import com.massivecraft.massivecore.adapter.AdapterMassiveList;
 import com.massivecraft.massivecore.adapter.AdapterMassiveMap;
 import com.massivecraft.massivecore.adapter.AdapterMassiveSet;
@@ -60,6 +61,7 @@ import com.massivecraft.massivecore.entity.MassiveCoreMConfColl;
 import com.massivecraft.massivecore.entity.MultiverseColl;
 import com.massivecraft.massivecore.entity.migrator.MigratorMassiveCoreMConf001CleanInactivity;
 import com.massivecraft.massivecore.integration.vault.IntegrationVault;
+import com.massivecraft.massivecore.item.WriterItemStack;
 import com.massivecraft.massivecore.mixin.MixinActionbar;
 import com.massivecraft.massivecore.mixin.MixinActual;
 import com.massivecraft.massivecore.mixin.MixinCommand;
@@ -71,7 +73,6 @@ import com.massivecraft.massivecore.mixin.MixinLog;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.mixin.MixinModification;
 import com.massivecraft.massivecore.mixin.MixinPlayed;
-import com.massivecraft.massivecore.mixin.MixinRecipe;
 import com.massivecraft.massivecore.mixin.MixinSenderPs;
 import com.massivecraft.massivecore.mixin.MixinTeleport;
 import com.massivecraft.massivecore.mixin.MixinTitle;
@@ -80,20 +81,13 @@ import com.massivecraft.massivecore.mixin.MixinWorld;
 import com.massivecraft.massivecore.mson.Mson;
 import com.massivecraft.massivecore.mson.MsonEvent;
 import com.massivecraft.massivecore.nms.NmsBasics;
-import com.massivecraft.massivecore.nms.NmsBoard;
 import com.massivecraft.massivecore.nms.NmsChat;
-import com.massivecraft.massivecore.nms.NmsEntityDamageEvent;
-import com.massivecraft.massivecore.nms.NmsEntityGet;
 import com.massivecraft.massivecore.nms.NmsItemStackTooltip;
-import com.massivecraft.massivecore.nms.NmsPermissions;
-import com.massivecraft.massivecore.nms.NmsRecipe;
-import com.massivecraft.massivecore.nms.NmsSkullMeta;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.ps.PSAdapter;
 import com.massivecraft.massivecore.store.EntityInternalMap;
 import com.massivecraft.massivecore.store.ModificationPollerLocal;
 import com.massivecraft.massivecore.store.ModificationPollerRemote;
-import com.massivecraft.massivecore.util.BoardUtil;
 import com.massivecraft.massivecore.util.ContainerUtil;
 import com.massivecraft.massivecore.util.EventUtil;
 import com.massivecraft.massivecore.util.IdUtil;
@@ -102,7 +96,6 @@ import com.massivecraft.massivecore.util.InventoryUtil;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.PeriodUtil;
 import com.massivecraft.massivecore.util.PlayerUtil;
-import com.massivecraft.massivecore.util.RecipeUtil;
 import com.massivecraft.massivecore.util.ReflectionUtil;
 import com.massivecraft.massivecore.util.SignUtil;
 import com.massivecraft.massivecore.util.SmokeUtil;
@@ -111,6 +104,7 @@ import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -191,6 +185,11 @@ public class MassiveCore extends MassivePlugin
 		// Mson
 		ret.registerTypeAdapter(Mson.class, AdapterMson.get());
 		ret.registerTypeAdapter(MsonEvent.class, AdapterMsonEvent.get());
+
+		// ItemStack
+		ret.registerTypeAdapter(ItemStack.class, AdapterItemStack.get());
+		// Class<?> classCraftItemStack = NmsItemStackCreate.get().getClassCraftItemStackCatch();
+		// if (classCraftItemStack != null) ret.registerTypeAdapter(classCraftItemStack, AdapterItemStack.get());
 		
 		// Storage
 		ret.registerTypeAdapter(EntityInternalMap.class, AdapterEntityInternalMap.get());
@@ -225,7 +224,6 @@ public class MassiveCore extends MassivePlugin
 			IntervalUtil.class,
 			InventoryUtil.class,
 			PeriodUtil.class,
-			RecipeUtil.class,
 			SignUtil.class,
 			SmokeUtil.class,
 			TimeUnit.class,
@@ -261,9 +259,11 @@ public class MassiveCore extends MassivePlugin
 		// These must be activated after nms
 		this.activate(
 			
+			// Writer
+			WriterItemStack.class,
+
 			// Util
-			PlayerUtil.class,
-			BoardUtil.class
+			PlayerUtil.class
 		);
 
 		// Start the examine threads
@@ -299,14 +299,8 @@ public class MassiveCore extends MassivePlugin
 	{
 		return MUtil.list(
 			NmsBasics.class,
-			NmsBoard.class,
 			NmsChat.class,
-			NmsEntityDamageEvent.class,
-			NmsEntityGet.class,
-			NmsItemStackTooltip.class,
-			NmsPermissions.class,
-			NmsSkullMeta.class,
-			NmsRecipe.class
+			NmsItemStackTooltip.class
 		);
 	}
 
@@ -370,7 +364,6 @@ public class MassiveCore extends MassivePlugin
 			MixinMessage.class,
 			MixinModification.class,
 			MixinPlayed.class,
-			MixinRecipe.class,
 			MixinSenderPs.class,
 			MixinTeleport.class,
 			MixinTitle.class,

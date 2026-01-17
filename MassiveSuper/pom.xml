@@ -5,7 +5,7 @@
     <groupId>com.massivecraft.massivesuper</groupId>
     <artifactId>MassiveSuper</artifactId>
     <!-- Change this release version when making updates to the code - update in all pom files -->
-    <version>3.4.0-alpha-10</version>
+    <version>3.4.0-alpha-11</version>
     <packaging>pom</packaging>
 
     <!-- Info -->
@@ -41,7 +41,7 @@
         <!-- External Versions -->
         <!-- ~~~~~~~~~~~~~~~~~ -->
         <massiveGuavaVersion>23.5-jre</massiveGuavaVersion>
-        <massiveGsonVersion>2.8.2</massiveGsonVersion>
+        <massiveGsonVersion>2.13.2</massiveGsonVersion>
         <massiveJsonVersion>20250107</massiveJsonVersion>
         <massiveMongoDBVersion>2.12.3</massiveMongoDBVersion>
 
@@ -737,6 +737,18 @@
             <dependency>
                 <groupId>com.massivecraft.creativegates</groupId>
                 <artifactId>CreativeGates</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.massivebooks</groupId>
+                <artifactId>MassiveBooks</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.massivecraft.massivehat</groupId>
+                <artifactId>MassiveHat</artifactId>
                 <version>${project.version}</version>
                 <scope>provided</scope>
             </dependency>

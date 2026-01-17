@@ -1,0 +1,27 @@
+main: ${project.groupId}.${project.name}
+name: ${project.name}
+version: ${project.version}
+website: ${project.url}
+description: ${project.description}
+authors: [Ymerejliaf, Cayorion]
+depend: [MassiveCore]
+api-version: 1.21
+# -------------------------------------------- #
+# THE REAL NODES
+# -------------------------------------------- #
+permissions:
+  massivehat.basecommand: {description: use the base command of MassiveHat, default: false}
+  massivehat.use:         {description: wear any block as a hat, default: false}
+  massivehat.config:      {description: edit the MassiveHat config, default: false}
+  massivehat.version:     {description: display plugin version, default: false}
+
+# -------------------------------------------- #
+# STAR NOTATION
+# -------------------------------------------- #
+  massivehat.*:
+    default: op
+    children:
+      massivehat.basecommand: true
+      massivehat.use: true
+      massivehat.config: true
+      massivehat.version: true

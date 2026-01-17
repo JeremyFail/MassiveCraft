@@ -1060,6 +1060,19 @@ public class InventoryUtil
 		return true;
 	}
 	
+	public static int countEmptySlots(Inventory inv)
+	{
+		if (inv == null) return 0;
+		
+		int count = 0;
+		for (ItemStack itemStack : inv.getStorageContents())
+		{
+			if (isNothing(itemStack)) count++;
+		}
+		
+		return count;
+	}
+	
 	// -------------------------------------------- //
 	// TYPE CHECKING
 	// -------------------------------------------- //
@@ -1077,7 +1090,7 @@ public class InventoryUtil
 		return !isNothing(itemStack);
 	}
 	
-	// TODO: Does this method work? Do we need it?
+	// TODO: Does this method work? Do we need it? It is no longer used directly...
 	public static void repair(ItemStack itemStack)
 	{
 		// Check Null
