@@ -3,7 +3,11 @@ package com.massivecraft.massivebooks;
 import com.massivecraft.massivebooks.cmd.CmdBook;
 import com.massivecraft.massivebooks.entity.MBookColl;
 import com.massivecraft.massivebooks.entity.MConfColl;
+import com.massivecraft.massivebooks.entity.migrator.MigratorMBook001IntIdToString;
 import com.massivecraft.massivecore.MassivePlugin;
+import com.massivecraft.massivecore.util.MUtil;
+
+import java.util.List;
 
 public class MassiveBooks extends MassivePlugin 
 {
@@ -20,18 +24,41 @@ public class MassiveBooks extends MassivePlugin
 	// -------------------------------------------- //
 	
 	@Override
+	public List<Class<?>> getClassesActiveMigrators()
+	{
+		return MUtil.list(
+			MigratorMBook001IntIdToString.class
+		);
+	}
+	
+	@Override
 	public void onEnableInner()
 	{
 		// Activate
-		this.activate(
-			// Coll
+		this.activateAuto();
+	}
+	
+	@Override
+	public List<Class<?>> getClassesActiveColls()
+	{
+		return MUtil.list(
 			MConfColl.class,
-			MBookColl.class,
-		
-			// Command
-			CmdBook.class,
-		
-			// Engine
+			MBookColl.class
+		);
+	}
+	
+	@Override
+	public List<Class<?>> getClassesActiveCommands()
+	{
+		return MUtil.list(
+			CmdBook.class
+		);
+	}
+	
+	@Override
+	public List<Class<?>> getClassesActiveEngines()
+	{
+		return MUtil.list(
 			EngineMain.class,
 			EnginePowertool.class
 		);
