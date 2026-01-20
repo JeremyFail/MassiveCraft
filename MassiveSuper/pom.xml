@@ -73,7 +73,7 @@
         <massiveVotifierVersion>1.9</massiveVotifierVersion>
 
         <!-- http://repo.mikeprimm.com/us/dynmap/dynmap/ -->
-        <massiveDynmapVersion>3.7-beta8</massiveDynmapVersion>
+        <massiveDynmapVersion>3.8</massiveDynmapVersion>
         
         <!-- https://nexus.scarsz.me/content/groups/public/com/discordsrv/discordsrv/ -->
         <massiveDiscordSrvVersion>1.30.0</massiveDiscordSrvVersion>

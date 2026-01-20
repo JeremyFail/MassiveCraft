@@ -6,6 +6,22 @@ import org.dynmap.markers.AreaMarker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
+/**
+ * Represents the configuration and styling data for a Dynmap area marker.
+ * 
+ * <p>
+ * Area markers are polygons displayed on the Dynmap web interface showing faction territory boundaries.
+ * This class stores all the properties needed to create or update an area marker, including:
+ * <ul>
+ * <li>Visual styling (line color, fill color, opacity, weight)</li>
+ * <li>Geographic data (world, corner coordinates)</li>
+ * <li>Display text (label, description popup)</li>
+ * <li>Rendering hints (boost flag for prioritization)</li>
+ * </ul>
+ * </p>
+ * 
+ * Instances are immutable - use the withXXX() methods to create modified copies.
+ */
 public class AreaMarkerValues
 {
 	// -------------------------------------------- //
@@ -70,6 +86,20 @@ public class AreaMarkerValues
 		this(label, world, corners, description, style.getLineColor(), style.getLineOpacity(), style.getLineWeight(), style.getFillColor(), style.getFillOpacity(), style.getBoost());
 	}
 
+	/**
+	 * Creates an area marker value object with all properties.
+	 * 
+	 * @param label Display name shown on the map
+	 * @param world World name where this area exists
+	 * @param corners Array of corner coordinates forming the polygon
+	 * @param description HTML description shown in popup when clicked
+	 * @param lineColor RGB color value for the outline (e.g., 0xFF0000 for red)
+	 * @param lineOpacity Outline opacity from 0.0 (transparent) to 1.0 (opaque)
+	 * @param lineWeight Outline thickness in pixels
+	 * @param fillColor RGB color value for the interior fill
+	 * @param fillOpacity Fill opacity from 0.0 (transparent) to 1.0 (opaque)
+	 * @param boost Whether to prioritize rendering this marker over others
+	 */
 	public AreaMarkerValues(String label, String world, PS[] corners, String description, int lineColor, double lineOpacity, int lineWeight, int fillColor, double fillOpacity, boolean boost)
 	{
 		this.label = label;
@@ -90,6 +120,10 @@ public class AreaMarkerValues
 		for (int i = 0; i < sz; i++)
 		{
 			PS ps = corners[i];
+			if (ps == null)
+			{
+				throw new IllegalArgumentException("Null PS corner at index " + i);
+			}
 			x[i] = ps.getLocationX(true);
 			z[i] = ps.getLocationZ(true);
 		}
@@ -99,10 +133,24 @@ public class AreaMarkerValues
 	// MASTER
 	// -------------------------------------------- //
 
+	/**
+	 * Ensures a Dynmap area marker exists and is updated with current values.
+	 * 
+	 * <p>
+	 * If the marker doesn't exist, it will be created. If it does exist, its properties
+	 * will be updated to match this object's values.
+	 * </p>
+	 * 
+	 * @param areaMarker Existing marker, or null if it should be created
+	 * @param markerApi Dynmap API for creating markers
+	 * @param markerset The marker set this marker belongs to
+	 * @param markerId Unique identifier for this marker
+	 * @return The created or updated area marker, or null on failure
+	 */
 	public AreaMarker ensureExistsAndUpdated(AreaMarker areaMarker, MarkerAPI markerApi, MarkerSet markerset, String markerId)
 	{
-		// NOTE: I remove from the map created just in the beginning of this method.
-		// NOTE: That way what is left at the end will be outdated markers to remove.
+		// NOTE: We remove from the map created in the beginning of this method.
+		//       What's left at the end will be outdated markers to remove.
 		if (areaMarker == null)
 		{
 			areaMarker = create(markerApi, markerset, markerId);

@@ -167,6 +167,12 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 
 	private Map<String, Set<String>> perms = this.createNewPermMap();
 
+	// Factions can optionally set a custom color. This is used by 
+	// integrations such as Dynmap.
+	// Null means the faction uses the default color.
+	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
+	private String color = null;
+	
 	// What is the base tax on members of the faction?
 	// Specific taxes on ranks or players.
 	public static transient String IDENTIFIER_TAX_BASE = "base";
@@ -554,6 +560,58 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 		if (!MConf.get().useNewMoneySystem) throw new UnsupportedOperationException("this server does not use the new econ system");
 		
 		this.money = this.convertSet(money, this.money, 0D);
+	}
+	
+	// -------------------------------------------- //
+	// FIELD: color
+	// -------------------------------------------- //
+	
+	// RAW
+	
+	/**
+	 * Checks if this faction has a custom color set.
+	 * 
+	 * @return True if a custom color is set, false if using default.
+	 */
+	public boolean hasColor()
+	{
+		return this.color != null;
+	}
+	
+	/**
+	 * Gets the custom color for this faction.
+	 * If no custom color is set, returns the default faction color from MConf.
+	 * 
+	 * @return The hex color string (e.g., "#00FF00"), never null.
+	 */
+	public String getColor()
+	{
+		if (this.color != null) return this.color;
+		return MConf.get().defaultFactionColor;
+	}
+	
+	/**
+	 * Sets the custom color for this faction.
+	 * 
+	 * @param color The hex color string (e.g., "#00FF00"), or null to use the default color.
+	 */
+	public void setColor(String color)
+	{
+		// Clean Null
+		if (color != null)
+		{
+			color = color.trim();
+			if (color.isEmpty()) color = null;
+		}
+		
+		// Detect Nochange
+		if (MUtil.equals(this.color, color)) return;
+		
+		// Apply
+		this.color = color;
+		
+		// Mark as changed
+		this.changed();
 	}
 	
 	// -------------------------------------------- //

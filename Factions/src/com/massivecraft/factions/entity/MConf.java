@@ -445,11 +445,11 @@ public class MConf extends Entity<MConf>
 	);
 	
 	// -------------------------------------------- //
-	// COLORS
+	// RELATION COLORS
 	// -------------------------------------------- //
 	
 	// Here you can alter the colors tied to certain faction relations and settings.
-	// You probably don't want to edit these to much.
+	// You probably don't want to edit these too much.
 	// Doing so might confuse players that are used to Factions.
 	public ChatColor colorMember = ChatColor.GREEN;
 	public ChatColor colorAlly = ChatColor.DARK_PURPLE;
@@ -462,6 +462,15 @@ public class MConf extends Entity<MConf>
 	
 	// This one is for example applied to WarZone since that faction has the friendly fire flag set to true.
 	public ChatColor colorFriendlyFire = ChatColor.DARK_RED;
+	
+	// -------------------------------------------- //
+	// COLORS
+	// -------------------------------------------- //
+	
+	// Default faction color used when no custom color is set via /f color.
+	// This is a generic setting used by various integrations (Dynmap, etc.).
+	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
+	public String defaultFactionColor = "#00FF00";
 
 	// -------------------------------------------- //
 	// EXPLOITS
@@ -736,6 +745,10 @@ public class MConf extends Entity<MConf>
 	// If you set this to false the player executing the command will pay instead.
 	public boolean bankFactionPaysCosts = true;
 
+	// This setting stores money values on the Faction instead of using an external economy plugin.
+	// This should only be enabled if your economy plugin does not support accounts for non-players.
+	// Once enabled, run the /f moneyconvert command to migrate existing faction balances to the internal system.
+	// WARNING: Once you have converted to the new money system there is no going back!
 	public boolean useNewMoneySystem = false;
 
 	// -------------------------------------------- //
@@ -748,33 +761,84 @@ public class MConf extends Entity<MConf>
 	// Should the dynmap updates be logged to console output?
 	public boolean dynmapLogTimeSpent = false;
 
-	// Name of the Factions layer
+	// ========== TERRITORY LAYER ==========
+	
+	// Name of the Factions territory layer
 	public String dynmapLayerName = "Factions";
 
-	// Should the layer be visible per default
+	// Should the territory layer be visible per default
 	public boolean dynmapLayerHiddenByDefault = false;
 
 	// Ordering priority in layer menu (low goes before high - default is 0)
 	public int dynmapLayerPriority = 2;
 
-	// (optional) set minimum zoom level before layer is visible (0 = defalt, always visible)
+	// (optional) set minimum zoom level before layer is visible (0 = default, always visible)
 	public int dynmapLayerMinimumZoom = 0;
+	
+	// ========== HOME WARP LAYER ==========
+	
+	// Whether to show the home warp layer at all (can be toggled without restart)
+	public boolean dynmapShowHomeWarp = false;
+	
+	// Name of the home warp layer
+	public String dynmapLayerNameHome = "Faction Homes";
+	
+	// Should the home warp layer be hidden by default when enabled
+	public boolean dynmapLayerHiddenByDefaultHome = true;
+	
+	// Ordering priority for home warp layer
+	public int dynmapLayerPriorityHome = 3;
+	
+	// Minimum zoom level for home warp layer
+	public int dynmapLayerMinimumZoomHome = 0;
+	
+	// Icon to use for the home warp marker on Dynmap
+	// See Dynmap's web/markers/ folder for available icons
+	public String dynmapWarpHomeIcon = "redflag";
+	
+	// ========== OTHER WARPS LAYER ==========
+	
+	// Whether to show the other warps layer at all (can be toggled without restart)
+	public boolean dynmapShowOtherWarps = false;
+	
+	// Name of the other warps layer
+	public String dynmapLayerNameWarps = "Faction Warps";
+	
+	// Should the other warps layer be hidden by default when enabled
+	public boolean dynmapLayerHiddenByDefaultWarps = true;
+	
+	// Ordering priority for other warps layer
+	public int dynmapLayerPriorityWarps = 4;
+	
+	// Minimum zoom level for other warps layer
+	public int dynmapLayerMinimumZoomWarps = 0;
+	
+	// Icon to use for other (non-home) warp markers on Dynmap
+	// See Dynmap's web/markers/ folder for available icons
+	public String dynmapWarpOtherIcon = "greenflag";
 
 	// Format for popup - substitute values for macros
 	//public String dynmapInfowindowFormat = "<div class=\"infowindow\"><span style=\"font-size:120%;\">%regionname%</span><br />Flags<br /><span style=\"font-weight:bold;\">%flags%</span></div>";
 	public String dynmapFactionDescription =
 		"<div class=\"infowindow\">\n" +
+		"<div>" +
 		"<span style=\"font-weight: bold; font-size: 150%;\">%name%</span></br>\n" +
+		"</div>" +
+		"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
 		"<span style=\"font-style: italic; font-size: 110%;\">%description%</span></br>\n" +
-		"</br>\n" +
+		"</div>" +
+		"<div>" +
 		"<span style=\"font-weight: bold;\">Leader:</span> %players.leader%</br>\n" +
 		"<span style=\"font-weight: bold;\">Members:</span> %players%</br>\n" +
-		"</br>\n" +
+		"</div>" +
+		"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
 		"<span style=\"font-weight: bold;\">Age:</span> %age%</br>\n" +
 		"<span style=\"font-weight: bold;\">Bank:</span> %money%</br>\n" +
-		"</br>\n" +
+		"</div>" +
+		"<div>" +
 		"<span style=\"font-weight: bold;\">Flags:</span></br>\n" +
 		"%flags.table3%\n" +
+		"</div>" +
 		"</div>";
 
 	// Enable the %money% macro. Only do this if you know your economy manager is thread safe.
@@ -796,10 +860,10 @@ public class MConf extends Entity<MConf>
 
 	@EditorVisible(false)
 	public DynmapStyle dynmapDefaultStyle = new DynmapStyle(
-		IntegrationDynmap.DYNMAP_STYLE_LINE_COLOR,
+		null, // lineColor - will be resolved through getDynmapColorForStyle()
 		IntegrationDynmap.DYNMAP_STYLE_LINE_OPACITY,
 		IntegrationDynmap.DYNMAP_STYLE_LINE_WEIGHT,
-		IntegrationDynmap.DYNMAP_STYLE_FILL_COLOR,
+		null, // fillColor - will be resolved through getDynmapColorForStyle()
 		IntegrationDynmap.DYNMAP_STYLE_FILL_OPACITY,
 		IntegrationDynmap.DYNMAP_STYLE_HOME_MARKER,
 		IntegrationDynmap.DYNMAP_STYLE_BOOST
@@ -812,4 +876,45 @@ public class MConf extends Entity<MConf>
 		"SafeZone", new DynmapStyle().withLineColor("#FFAA00").withFillColor("#FFAA00").withBoost(false),
 		"WarZone", new DynmapStyle().withLineColor("#FF0000").withFillColor("#FF0000").withBoost(false)
 	);
+	
+	// Whether to use faction colors set via /f color command on Dynmap.
+	// If false, factions will use the Dynmap default color or admin overrides only.
+	// Admin overrides (dynmapFactionStyles) always take priority regardless of this setting.
+	public boolean dynmapUseFactionColors = true;
+	
+	// Optional Dynmap-specific default faction color override.
+	// If null or empty, Dynmap will use defaultFactionColor instead.
+	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
+	public String dynmapDefaultColor = null;
+
+	/**
+	 * Gets the Dynmap default color following the configuration hierarchy:
+	 * <ol>
+	 * <li>dynmapDefaultColor (if set and valid)</li>
+	 * <li>defaultFactionColor (if valid)</li>
+	 * <li>Hard-coded constant from IntegrationDynmap</li>
+	 * </ol>
+	 * 
+	 * @return A valid hex color string
+	 */
+	public String getDynmapDefaultColorForStyle()
+	{
+		// Check Dynmap-specific override
+		if (this.dynmapDefaultColor != null && !this.dynmapDefaultColor.trim().isEmpty())
+		{
+			String color = this.dynmapDefaultColor.trim();
+			if (color.matches("^#[0-9A-Fa-f]{6}$")) return color;
+		}
+		
+		// Check generic default faction color
+		if (this.defaultFactionColor != null && !this.defaultFactionColor.trim().isEmpty())
+		{
+			String color = this.defaultFactionColor.trim();
+			if (color.matches("^#[0-9A-Fa-f]{6}$")) return color;
+		}
+		
+		// Fallback to hardcoded constant
+		return IntegrationDynmap.DYNMAP_STYLE_LINE_COLOR;
+	}
+	
 }

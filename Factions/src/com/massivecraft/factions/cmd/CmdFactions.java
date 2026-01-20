@@ -37,6 +37,7 @@ public class CmdFactions extends FactionsCommand
 	public CmdFactionsName cmdFactionsName = new CmdFactionsName();
 	public CmdFactionsDescription cmdFactionsDescription = new CmdFactionsDescription();
 	public CmdFactionsMotd cmdFactionsMotd = new CmdFactionsMotd();
+	public CmdFactionsColor cmdFactionsColor = new CmdFactionsColor();
 	public CmdFactionsInvite cmdFactionsInvite = new CmdFactionsInvite();
 	public CmdFactionsKick cmdFactionsKick = new CmdFactionsKick();
 	public CmdFactionsTitle cmdFactionsTitle = new CmdFactionsTitle();

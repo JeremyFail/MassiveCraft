@@ -3,6 +3,24 @@ package com.massivecraft.factions.integration.dynmap;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.Integration;
 
+/**
+ * Integration layer between Factions and Dynmap.
+ * 
+ * <p>
+ * This class serves as the activation point for the Dynmap integration, checking if
+ * Dynmap is installed and starting the EngineDynmap if so. It also defines constants
+ * used throughout the Dynmap integration that must be accessible even when Dynmap is not loaded.
+ * </p>
+ * 
+ * <p>
+ * Constants include:
+ * <ul>
+ * <li>Marker IDs and naming conventions</li>
+ * <li>Default style values (colors, opacity, line weight)</li>
+ * <li>Blocks per chunk (always 16 in Minecraft)</li>
+ * </ul>
+ * </p>
+ */
 public class IntegrationDynmap extends Integration
 {
 	// -------------------------------------------- //
@@ -17,7 +35,11 @@ public class IntegrationDynmap extends Integration
 	public final static String FACTIONS = "factions";
 	public final static String FACTIONS_ = FACTIONS + "_";
 
+	// Marker set IDs for different layer types
 	public final static String FACTIONS_MARKERSET = FACTIONS_ + "markerset";
+	public final static String FACTIONS_MARKERSET_TERRITORY = FACTIONS_ + "territory";
+	public final static String FACTIONS_MARKERSET_HOME = FACTIONS_ + "home";
+	public final static String FACTIONS_MARKERSET_WARPS = FACTIONS_ + "warps";
 
 	public final static String FACTIONS_AREA = FACTIONS_ + "area";
 	public final static String FACTIONS_AREA_ = FACTIONS_AREA + "_";

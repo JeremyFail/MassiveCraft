@@ -4,6 +4,22 @@ import com.massivecraft.massivecore.util.MUtil;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
+/**
+ * Represents configuration for a Dynmap marker layer/set.
+ * 
+ * <p>
+ * A marker set is a collection of related markers (in this case, all faction territory markers)
+ * that can be toggled on/off together in the Dynmap interface. This class stores:
+ * <ul>
+ * <li>Display label shown in the layer control</li>
+ * <li>Minimum zoom level at which markers appear</li>
+ * <li>Rendering priority relative to other layers</li>
+ * <li>Whether the layer is hidden by default</li>
+ * </ul>
+ * </p>
+ * 
+ * Instances are immutable - use the withXXX() methods to create modified copies.
+ */
 public class LayerValues
 {
 
@@ -43,6 +59,18 @@ public class LayerValues
 	// MASTER
 	// -------------------------------------------- //
 
+	/**
+	 * Ensures a Dynmap marker set exists and is updated with current values.
+	 * 
+	 * <p>
+	 * If the marker set doesn't exist, it will be created. If it does exist, its properties
+	 * will be updated to match this object's values.
+	 * </p>
+	 * 
+	 * @param api Dynmap API for creating marker sets
+	 * @param id Unique identifier for this marker set
+	 * @return The created or updated marker set, or null on failure
+	 */
 	public MarkerSet ensureExistsAndUpdated(MarkerAPI api, String id)
 	{
 		MarkerSet set = api.getMarkerSet(id);

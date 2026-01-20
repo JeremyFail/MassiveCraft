@@ -6,6 +6,27 @@ import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerIcon;
 import org.dynmap.markers.MarkerSet;
 
+/**
+ * Represents configuration for a Dynmap point marker (e.g., faction home location).
+ * 
+ * <p>
+ * Point markers are single location pins displayed on the Dynmap web interface.
+ * This class stores all properties needed to create or update a point marker:
+ * <ul>
+ * <li>Location (world, x, y, z coordinates)</li>
+ * <li>Display text (label, description popup)</li>
+ * <li>Icon image to display</li>
+ * </ul>
+ * </p>
+ * 
+ * <p>
+ * Currently used for faction home markers.
+ * </p>
+ * 
+ * <p>
+ * Instances are immutable - use the withXXX() methods to create modified copies.
+ * </p>
+ */
 public class MarkerValues
 {
 	// -------------------------------------------- //
@@ -59,9 +80,19 @@ public class MarkerValues
 	// MAKE SURE EXISTS
 	// -------------------------------------------- //
 
-	public Marker ensureExistsAndUpdated(MarkerAPI markerApi,  MarkerSet markerset, String id)
+	public Marker ensureExistsAndUpdated(Marker marker, MarkerAPI markerApi, MarkerSet markerset, String id)
 	{
-		throw new UnsupportedOperationException("todo");
+		// Create
+		if (marker == null)
+		{
+			return this.create(markerApi, markerset, id);
+		}
+		
+		// Update
+		this.update(markerApi, markerset, marker);
+		
+		// Return
+		return marker;
 	}
 	
 	// -------------------------------------------- //
