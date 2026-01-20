@@ -9,6 +9,7 @@ import com.massivecraft.factions.entity.MFlag;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factions.entity.Warp;
 import com.massivecraft.factions.integration.Econ;
+import com.massivecraft.massivecore.money.Money;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.util.PlaceholderProcessor;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -150,6 +151,14 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
 
                 case "faction_money_balance":
                 case "faction_bank_balance":
+                    if (mPlayer.hasFaction() && Econ.isEnabled())
+                    {
+                        return Money.format(Econ.getMoney(mPlayer.getFaction()));
+                    }
+                    return "";
+
+                case "faction_money_balance_raw":
+                case "faction_bank_balance_raw":
                     if (mPlayer.hasFaction() && Econ.isEnabled())
                     {
                         return df.format(Econ.getMoney(mPlayer.getFaction()));
