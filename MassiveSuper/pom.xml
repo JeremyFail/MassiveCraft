@@ -55,47 +55,41 @@
         <!-- http://nexus.hc.to/content/repositories/pub_releases/net/milkbowl/vault/Vault/ -->
         <massiveVaultVersion>1.5.6</massiveVaultVersion>
 
-        <!-- https://github.com/lucko/commodore -->
-        <massiveCommodoreVersion>1.2</massiveCommodoreVersion>
-
         <!-- http://maven.sk89q.com/repo/com/sk89q/worldedit/worldedit-bukkit/ -->
         <!-- The artifact in their repository was not properly shaded -->
         <!-- The solution for now is to download and install manually -->
-        <massiveWorldEditVersion>7.3.10</massiveWorldEditVersion>
+        <massiveWorldEditVersion>7.4.0</massiveWorldEditVersion>
 
         <!-- http://maven.sk89q.com/repo/com/sk89q/worldguard/worldguard-legacy/ -->
-        <massiveWorldGuardVersion>7.0.13</massiveWorldGuardVersion>
+        <massiveWorldGuardVersion>7.0.15</massiveWorldGuardVersion>
 
-        <!-- http://repo.dmulloy2.net/content/repositories/public/com/comphenix/protocol/ProtocolLib/ -->
-        <massiveProtocolLibVersion>4.3.0</massiveProtocolLibVersion>
+        <!-- https://repo.dmulloy2.net/#browse/browse:public:com%2Fcomphenix%2Fprotocol%2FProtocolLib -->
+        <massiveProtocolLibVersion>5.3.0</massiveProtocolLibVersion>
 
         <!-- http://repo.howaner.de/com/vexsoftware/votifier/ -->
         <massiveVotifierVersion>1.9</massiveVotifierVersion>
-
-        <!-- http://repo.mikeprimm.com/us/dynmap/dynmap/ -->
-        <massiveDynmapVersion>3.8</massiveDynmapVersion>
         
         <!-- https://nexus.scarsz.me/content/groups/public/com/discordsrv/discordsrv/ -->
-        <massiveDiscordSrvVersion>1.30.0</massiveDiscordSrvVersion>
+        <massiveDiscordSrvVersion>1.30.4</massiveDiscordSrvVersion>
         
         <!-- https://ci.ender.zone/plugin/repository/everything/net/ess3/EssentialsX/ -->
-        <massiveEssentialsVersion>2.16.1</massiveEssentialsVersion>
+        <massiveEssentialsVersion>2.18.2</massiveEssentialsVersion>
 
-        <!-- ~~~~~~~~~~~~~~~ -->
-        <!-- Custom Versions -->
-        <!-- ~~~~~~~~~~~~~~~ -->
+        <!-- https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI -->
+        <massivePlaceholderAPIVersion>2.11.7</massivePlaceholderAPIVersion>
 
-        <!-- https://www.spigotmc.org/resources/mcmmo.2445/ -->
-        <massiveMcmmoVersion>1.5.10</massiveMcmmoVersion>
-
-        <!-- https://www.spigotmc.org/resources/wgregionevents-continued.15946/ -->
-        <massiveWGRegionEventsVersion>2.1.0</massiveWGRegionEventsVersion>
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <!-- MANUAL DOWNLOADS REQUIRED -->
+        <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
         <!-- https://www.spigotmc.org/resources/lwc-unofficial-entity-locking.2162/ -->
         <massiveLwcVersion>2.1.5</massiveLwcVersion>
 
-        <!-- https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI -->
-        <massivePlaceholderAPIVersion>2.11.6</massivePlaceholderAPIVersion>
+        <!-- http://repo.mikeprimm.com/us/dynmap/dynmap/ -->
+        <!-- We need the full plugin to hook into dynmap completely. -->
+        <!-- Only the API is available on the repo above so must be downloaded manually -->
+        <!-- https://www.spigotmc.org/resources/dynmap%C2%AE.274/ -->
+        <massiveDynmapVersion>3.8</massiveDynmapVersion>
     </properties>
 
     <!-- Repositories -->
@@ -123,7 +117,7 @@
         <!-- ProtocolLib -->
         <repository>
             <id>dmulloy2-repo</id>
-            <url>https://repo.dmulloy2.net/nexus/repository/public/</url>
+            <url>https://repo.dmulloy2.net/service/rest/repository/browse/public</url>
         </repository>
         <!-- Votifier -->
         <repository>
@@ -140,11 +134,6 @@
             <id>ess-repo</id>
             <url>https://ci.ender.zone/plugin/repository/everything/</url>
         </repository>
-        <!-- Commodore/Brigadier
-        <repository>
-          <id>luck-repo</id>
-          <url>https://repo.lucko.me/</url>
-        </repository>-->
         <!-- PlaceholderAPI -->
         <repository>
             <id>placeholderapi</id>
@@ -460,12 +449,21 @@
 			        </exclusion>
 		      	</exclusions>
 	        </dependency>
-            <!--<dependency>
-              <groupId>me.lucko</groupId>
-              <artifactId>commodore</artifactId>
-              <version>${massiveCommodoreVersion}</version>
-              <scope>provided</scope>
-            </dependency>-->
+
+            <!-- TODO: Is this stil used? -->
+            <dependency>
+                <groupId>com.comphenix.protocol</groupId>
+                <artifactId>ProtocolLib</artifactId>
+                <version>${massiveProtocolLibVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <!-- TODO: Is this still used? -->
+            <dependency>
+                <groupId>com.vexsoftware</groupId>
+                <artifactId>votifier</artifactId>
+                <version>${massiveVotifierVersion}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!--
                 Page: https://dev.bukkit.org/projects/worldedit/files
@@ -500,18 +498,6 @@
                 <groupId>com.sk89q.worldguard</groupId>
                 <artifactId>worldguard-bukkit</artifactId>
                 <version>${massiveWorldGuardVersion}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.comphenix.protocol</groupId>
-                <artifactId>ProtocolLib-API</artifactId>
-                <version>${massiveProtocolLibVersion}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.vexsoftware</groupId>
-                <artifactId>votifier</artifactId>
-                <version>${massiveVotifierVersion}</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -558,6 +544,7 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- TODO: Remove once NMS is removed -->
             <!-- NMS - Full Spigot servers including NMS that may not be distributed. -->
             <!-- This section is relevant to supporting multiple minecraft versions for plugins using NMS. -->
             <!-- Note that we use different artifact ids to allow using all at once. -->
@@ -767,18 +754,6 @@
             <dependency>
                 <groupId>com.massivecraft.massivesuper</groupId>
                 <artifactId>MassiveSuper</artifactId>
-                <version>${project.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.massivecraft.massivebasic</groupId>
-                <artifactId>MassiveBasic</artifactId>
-                <version>${project.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.massivecraft.massiveperms</groupId>
-                <artifactId>MassivePerms</artifactId>
                 <version>${project.version}</version>
                 <scope>provided</scope>
             </dependency>
