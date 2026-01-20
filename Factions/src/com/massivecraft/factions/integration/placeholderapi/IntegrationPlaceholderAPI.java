@@ -27,6 +27,7 @@ public class IntegrationPlaceholderAPI extends Integration
 	public void setIntegrationActiveInner(boolean active)
 	{
 		if (active) PlaceholderFactions.get().register();
+		else PlaceholderFactions.get().unregister();
 	}
 
 	public static void ensureRegistered()

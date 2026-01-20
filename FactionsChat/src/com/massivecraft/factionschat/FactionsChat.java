@@ -125,6 +125,12 @@ public class FactionsChat extends JavaPlugin
     @Override
     public void onDisable()
     {
+        // Unregister our PlaceholderAPI expander
+        if (papiEnabled)
+        {
+            PlaceholderFactionsChat.get().deactivate();
+        }
+        
         // Save chat modes to file on disable
         saveChatModesFile();
         
@@ -474,8 +480,11 @@ public class FactionsChat extends JavaPlugin
         if (pm.getPlugin("PlaceholderAPI") != null) 
         {
             papiEnabled = true;
-            logger.info("PlaceholderAPI detected.");
-            new PlaceholderFactionsChat().register();
+            logger.info("PlaceholderAPI detected. Registering chat placeholders with Factions integration.");
+
+            // Register our expander with the Factions PlaceholderAPI integration
+            // This injects our chat placeholders into the existing "factions" namespace
+            PlaceholderFactionsChat.get().activate();
         } 
         else 
         {

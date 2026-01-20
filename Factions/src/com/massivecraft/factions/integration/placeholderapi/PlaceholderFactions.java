@@ -18,6 +18,9 @@ import me.clip.placeholderapi.expansion.Relational;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class PlaceholderFactions extends PlaceholderExpansion implements Relational
 {
@@ -27,6 +30,58 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
 
     private static PlaceholderFactions i = new PlaceholderFactions();
     public static PlaceholderFactions get() { return i; }
+
+    // -------------------------------------------- //
+    // EXPANDERS
+    // -------------------------------------------- //
+    
+    private static final List<PlaceholderExpander> expanders = new ArrayList<>();
+    
+    /**
+     * Register an expander that adds additional placeholders to the Factions integration.
+     * This allows other plugins (like FactionsChat) to extend the placeholder set.
+     * Multiple expanders can be registered and will be checked in registration order.
+     * 
+     * @param expander The expander to register
+     * @return True if the expander was added, false if it was already registered
+     */
+    public static boolean addExpander(PlaceholderExpander expander)
+    {
+        if (expander == null) return false;
+        if (expanders.contains(expander)) return false;
+        return expanders.add(expander);
+    }
+    
+    /**
+     * Unregister a previously registered expander.
+     * 
+     * @param expander The expander to unregister
+     * @return True if the expander was removed, false if it wasn't registered
+     */
+    public static boolean removeExpander(PlaceholderExpander expander)
+    {
+        return expanders.remove(expander);
+    }
+    
+    /**
+     * Get all currently registered expanders.
+     * 
+     * @return Unmodifiable list of registered expanders
+     */
+    public static List<PlaceholderExpander> getExpanders()
+    {
+        return Collections.unmodifiableList(expanders);
+    }
+    
+    /**
+     * Check if any expanders are currently registered.
+     * 
+     * @return True if at least one expander is registered
+     */
+    public static boolean hasExpanders()
+    {
+        return !expanders.isEmpty();
+    }
 
     // -------------------------------------------- //
     // OVERRIDE
@@ -47,15 +102,27 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
     @Override
     public String getVersion()
     {
-        return Factions.get().getDescription().getVersion();
+        // Base Factions version
+        String version = Factions.get().getDescription().getVersion();
+
+        // Append expander versions
+        if (!expanders.isEmpty())
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append(" with ");
+            boolean first = true;
+            for (PlaceholderExpander expander : expanders)
+            {
+                if (!first) sb.append(", ");
+                sb.append(expander.getExpanderVersion());
+                first = false;
+            }
+            version += sb.toString();
+        }
+        return version;
     }
 
-    @Override
-    public boolean persist()
-    {
-        return true;
-    }
-
+    // Relational placeholder handling
     @Override
     public String onPlaceholderRequest(Player player1, Player player2, String placeholder)
     {
@@ -64,6 +131,13 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
 
         // If either player is null, we will return an empty string for relational placeholders
         if (player1 == null || player2 == null) return "";
+        
+        // Try all registered expanders in order
+        for (PlaceholderExpander expander : expanders)
+        {
+            String result = expander.onPlaceholderRequest(player1, player2, placeholder);
+            if (result != null) return result;
+        }
 
         // Use PlaceholderProcessor to handle modifiers like |rp, |lp, etc.
         return PlaceholderProcessor.parsePlaceholderWithModifiers(placeholder, basePlaceholder -> {
@@ -86,6 +160,7 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
         });
     }
 
+    // Standard placeholder handling
     @Override
     public String onPlaceholderRequest(Player player, String placeholder)
     {
@@ -94,6 +169,13 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
 
         // If player is null, we will return an empty string for faction placeholders
         if (player == null) return "";
+        
+        // Try all registered expanders in order
+        for (PlaceholderExpander expander : expanders)
+        {
+            String result = expander.onPlaceholderRequest(player, placeholder);
+            if (result != null) return result;
+        }
 
         // Get the MPlayer object for the player
         MPlayer mPlayer = MPlayer.get(player);
