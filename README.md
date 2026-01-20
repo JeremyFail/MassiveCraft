@@ -1,9 +1,11 @@
 # MassiveCraft - Monorepo
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-This is a fork of MassiveCraft's projects which combines all of the necessary individual repositories into a single "monorepo" for easier compilation by anyone who wishes to compile the source themselves. The guide below contains basic instructions on how to compile MassiveCore, CreativeGates, Factions, and FactionsChat.
+This is a fork of MassiveCraft's projects which is up to date with the latest Minecraft versions. This fork combines all of the necessary individual repositories into a single "monorepo" for easier compilation by anyone who wishes to compile the source themselves. 
 
-Alternatively, releases will be made available here: [releases](https://github.com/JeremyFail/MassiveCraft/releases)
+The guide below contains basic instructions on how to compile MassiveCore, MassiveBooks, MassiveHat, CreativeGates, Factions, and FactionsChat.
+
+Alternatively, you can download compiled versions [from the releases page](https://github.com/JeremyFail/MassiveCraft/releases).
 
 # MassiveCraft Compilation Guide
 
@@ -15,7 +17,16 @@ Alternatively, releases will be made available here: [releases](https://github.c
 5. [Other Noteworthy Stuff](#other-noteworthy-stuff)
 
 ## Prerequisites
-The below instructions assume you have basic knowledge of Java programming, have Java installed, and Apache Maven installed.
+To compile the plugins contained in this repo, the following are required:
+- Git installed
+- Java installed
+- Apache Maven installed
+- Additional plugins downloaded for Maven (see below)
+
+### Additional Plugins
+Because some of the MassiveCraft plugins integrate with other third-party plugins, you will need to download these plugins manually in order to compile the source, as these plugins are not available via a Maven Repository to automatically download. The following plugins require manual installation via Maven to compile the source - check the version to download in MassiveSuper's `pom.xml` file:
+- Dynmap
+- LWC
 
 ## Setup
 First, determine where you would like to have your MassiveCraft code project located on your computer. It could be on your desktop, users folder, documents, etc. The location of this directory does not matter - place it anywhere you like!
