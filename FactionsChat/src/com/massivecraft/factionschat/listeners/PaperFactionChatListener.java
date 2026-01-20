@@ -43,7 +43,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
      * 
      * @param event The AsyncChatEvent triggered through chat.
      */
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onAsyncChat(AsyncChatEvent event)
     {
         Player sender = event.getPlayer();
