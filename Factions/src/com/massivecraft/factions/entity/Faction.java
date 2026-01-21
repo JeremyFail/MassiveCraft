@@ -75,6 +75,8 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 		this.setName(that.name);
 		this.setDescription(that.description);
 		this.setMotd(that.motd);
+		this.setPrimaryColor(that.primaryColor);
+		this.setSecondaryColor(that.secondaryColor);
 		this.setCreatedAtMillis(that.createdAtMillis);
 		this.warps.load(that.warps);
 		this.setPowerBoost(that.powerBoost);
@@ -167,11 +169,19 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 
 	private Map<String, Set<String>> perms = this.createNewPermMap();
 
-	// Factions can optionally set a custom color. This is used by 
-	// integrations such as Dynmap.
+	// Factions can optionally set custom colors. This is used by
+	// various integrations (Dynmap, etc.) and may be used by Factions
+	// directly in the future.
 	// Null means the faction uses the default color.
 	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
-	private String color = null;
+	private String primaryColor = null;
+
+	// Factions can optionally set custom colors. This is used by
+	// various integrations (Dynmap, etc.) and may be used by Factions
+	// directly in the future.
+	// Null means the faction uses the default color.
+	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
+	private String secondaryColor = null;
 	
 	// What is the base tax on members of the faction?
 	// Specific taxes on ranks or players.
@@ -563,39 +573,41 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 	}
 	
 	// -------------------------------------------- //
-	// FIELD: color
+	// FIELD: colors
 	// -------------------------------------------- //
 	
 	// RAW
 	
 	/**
-	 * Checks if this faction has a custom color set.
+	 * Checks if this faction has a primary color set.
 	 * 
-	 * @return True if a custom color is set, false if using default.
+	 * @return True if a primary color is set, false if using default.
 	 */
-	public boolean hasColor()
+	public boolean hasPrimaryColor()
 	{
-		return this.color != null;
+		return this.primaryColor != null;
 	}
 	
 	/**
-	 * Gets the custom color for this faction.
-	 * If no custom color is set, returns the default faction color from MConf.
+	 * Gets the primary color for this faction.
+	 * If no primary color is set, returns the default faction primary 
+	 * color from MConf.
 	 * 
-	 * @return The hex color string (e.g., "#00FF00"), never null.
+	 * @return The hex color string (e.g., "#00FF00"), never null (if 
+	 * no primary color is set, returns the default primary color instead).
 	 */
-	public String getColor()
+	public String getPrimaryColor()
 	{
-		if (this.color != null) return this.color;
-		return MConf.get().defaultFactionColor;
+		if (this.primaryColor != null) return this.primaryColor;
+		return MConf.get().defaultFactionPrimaryColor;
 	}
 	
 	/**
-	 * Sets the custom color for this faction.
+	 * Sets the primary color for this faction.
 	 * 
-	 * @param color The hex color string (e.g., "#00FF00"), or null to use the default color.
+	 * @param color The hex color string (e.g., "#00FF00"), or null to use the default primary color.
 	 */
-	public void setColor(String color)
+	public void setPrimaryColor(String color)
 	{
 		// Clean Null
 		if (color != null)
@@ -605,15 +617,63 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 		}
 		
 		// Detect Nochange
-		if (MUtil.equals(this.color, color)) return;
+		if (MUtil.equals(this.primaryColor, color)) return;
 		
 		// Apply
-		this.color = color;
+		this.primaryColor = color;
 		
 		// Mark as changed
 		this.changed();
 	}
-	
+
+	/**
+	 * Checks if this faction has a secondary color set.
+	 * 
+	 * @return True if a secondary color is set, false if using default.
+	 */
+	public boolean hasSecondaryColor()
+	{
+		return this.secondaryColor != null;
+	}
+
+	/**
+	 * Gets the secondary color for this faction.
+	 * If no secondary color is set, returns the default faction secondary 
+	 * color from MConf.
+	 * 
+	 * @return The hex color string (e.g., "#00FF00"), never null (if 
+	 * no secondary color is set, returns the default secondary color instead).
+	 */
+	public String getSecondaryColor()
+	{
+		if (this.secondaryColor != null) return this.secondaryColor;
+		return MConf.get().defaultFactionSecondaryColor;
+	}
+
+	/**
+	 * Sets the secondary color for this faction.
+	 * 
+	 * @param color The hex color string (e.g., "#00FF00"), or null to use the default secondary color.
+	 */
+	public void setSecondaryColor(String color)
+	{
+		// Clean Null
+		if (color != null)
+		{
+			color = color.trim();
+			if (color.isEmpty()) color = null;
+		}
+
+		// Detect Nochange
+		if (MUtil.equals(this.secondaryColor, color)) return;
+		
+		// Apply
+		this.secondaryColor = color;
+		
+		// Mark as changed
+		this.changed();
+	}
+
 	// -------------------------------------------- //
 	// FIELD: invitations
 	// -------------------------------------------- //

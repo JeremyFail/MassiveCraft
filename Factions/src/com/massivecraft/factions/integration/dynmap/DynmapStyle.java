@@ -27,7 +27,7 @@ public class DynmapStyle
 	// -------------------------------------------- //
 	
 	public final String lineColor;
-	public int getLineColor() { return getColor(coalesce(this.lineColor, MConf.get().getDynmapDefaultColorForStyle())); }
+	public int getLineColor() { return getColor(coalesce(this.lineColor, DynmapUtil.getDefaultLineColor())); }
 	public DynmapStyle withLineColor(String lineColor) { return new DynmapStyle(lineColor, lineOpacity, lineWeight, fillColor, fillOpacity, homeMarker, boost); }
 	
 	public final Double lineOpacity;
@@ -39,7 +39,7 @@ public class DynmapStyle
 	public DynmapStyle withLineWeight(Integer lineWeight) { return new DynmapStyle(lineColor, lineOpacity, lineWeight, fillColor, fillOpacity, homeMarker, boost); }
 	
 	public final String fillColor;
-	public int getFillColor() { return getColor(coalesce(this.fillColor, MConf.get().getDynmapDefaultColorForStyle())); }
+	public int getFillColor() { return getColor(coalesce(this.fillColor, DynmapUtil.getDefaultFillColor())); }
 	public DynmapStyle withFillColor(String fillColor) { return new DynmapStyle(lineColor, lineOpacity, lineWeight, fillColor, fillOpacity, homeMarker, boost); }
 	
 	public final Double fillOpacity;

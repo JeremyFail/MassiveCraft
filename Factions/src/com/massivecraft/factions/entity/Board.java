@@ -168,10 +168,12 @@ public class Board extends Entity<Board> implements BoardInterface
 		Function<Entry<PS, TerritoryAccess>, PS> mapper = Entry::getKey;
 		if (withWorld) mapper = mapper.andThen(ps -> ps.withWorld(this.getId()));
 
-		return map.entrySet().stream().collect(Collectors.groupingBy(
-			entry -> entry.getValue().getHostFaction(), // This specifies how to get the key
-			Collectors.mapping(mapper, Collectors.toSet()) // This maps the entries and puts them in the collection
-		));
+		return map.entrySet().stream()
+			.filter(entry -> entry.getValue().getHostFaction() != null) // Filter out entries with null factions
+			.collect(Collectors.groupingBy(
+				entry -> entry.getValue().getHostFaction(), // This specifies how to get the key
+				Collectors.mapping(mapper, Collectors.toSet()) // This maps the entries and puts them in the collection
+			));
 	}
 
 	@Override

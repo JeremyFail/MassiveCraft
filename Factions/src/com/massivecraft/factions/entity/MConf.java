@@ -467,10 +467,15 @@ public class MConf extends Entity<MConf>
 	// COLORS
 	// -------------------------------------------- //
 	
-	// Default faction color used when no custom color is set via /f color.
+	// Default faction primary color used when no custom color is set via /f color.
 	// This is a generic setting used by various integrations (Dynmap, etc.).
 	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
-	public String defaultFactionColor = "#00FF00";
+	public String defaultFactionPrimaryColor = "#00FF00";
+
+	// Default faction secondary color used when no custom color is set via /f color.
+	// This is a generic setting used by various integrations (Dynmap, etc.).
+	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
+	public String defaultFactionSecondaryColor = "#00FF00";
 
 	// -------------------------------------------- //
 	// EXPLOITS
@@ -769,7 +774,7 @@ public class MConf extends Entity<MConf>
 	// Should the territory layer be visible per default
 	public boolean dynmapLayerHiddenByDefault = false;
 
-	// Ordering priority in layer menu (low goes before high - default is 0)
+	// Ordering priority in layer menu (low goes before high)
 	public int dynmapLayerPriority = 2;
 
 	// (optional) set minimum zoom level before layer is visible (0 = default, always visible)
@@ -777,7 +782,7 @@ public class MConf extends Entity<MConf>
 	
 	// ========== HOME WARP LAYER ==========
 	
-	// Whether to show the home warp layer at all (can be toggled without restart)
+	// Whether to show the home warp layer at all
 	public boolean dynmapShowHomeWarp = false;
 	
 	// Name of the home warp layer
@@ -798,53 +803,61 @@ public class MConf extends Entity<MConf>
 	
 	// ========== OTHER WARPS LAYER ==========
 	
-	// Whether to show the other warps layer at all (can be toggled without restart)
+	// Whether to show the warps layer (non-home warps) at all
 	public boolean dynmapShowOtherWarps = false;
 	
-	// Name of the other warps layer
+	// Name of the warps layer
 	public String dynmapLayerNameWarps = "Faction Warps";
 	
-	// Should the other warps layer be hidden by default when enabled
+	// Should the warps layer be hidden by default when enabled
 	public boolean dynmapLayerHiddenByDefaultWarps = true;
 	
-	// Ordering priority for other warps layer
+	// Ordering priority for warps layer
 	public int dynmapLayerPriorityWarps = 4;
 	
-	// Minimum zoom level for other warps layer
+	// Minimum zoom level for warps layer
 	public int dynmapLayerMinimumZoomWarps = 0;
 	
-	// Icon to use for other (non-home) warp markers on Dynmap
+	// Icon to use for (non-home) warp markers on Dynmap
 	// See Dynmap's web/markers/ folder for available icons
 	public String dynmapWarpOtherIcon = "greenflag";
 
-	// Format for popup - substitute values for macros
-	//public String dynmapInfowindowFormat = "<div class=\"infowindow\"><span style=\"font-size:120%;\">%regionname%</span><br />Flags<br /><span style=\"font-weight:bold;\">%flags%</span></div>";
-	public String dynmapFactionDescription =
-		"<div class=\"infowindow\">\n" +
-		"<div>" +
-		"<span style=\"font-weight: bold; font-size: 150%;\">%name%</span></br>\n" +
-		"</div>" +
-		"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
-		"<span style=\"font-style: italic; font-size: 110%;\">%description%</span></br>\n" +
-		"</div>" +
-		"<div>" +
-		"<span style=\"font-weight: bold;\">Leader:</span> %players.leader%</br>\n" +
-		"<span style=\"font-weight: bold;\">Members:</span> %players%</br>\n" +
-		"</div>" +
-		"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
-		"<span style=\"font-weight: bold;\">Age:</span> %age%</br>\n" +
-		"<span style=\"font-weight: bold;\">Bank:</span> %money%</br>\n" +
-		"</div>" +
-		"<div>" +
-		"<span style=\"font-weight: bold;\">Flags:</span></br>\n" +
-		"%flags.table3%\n" +
-		"</div>" +
+	// ========== DESCRIPTION WINDOW ==========
+
+	// HTML Format for popup that appears when clicking on a faction territory on the map 
+	// Substitute values for macros - check the wiki for available macros
+	public String dynmapDescriptionWindowFormat =
+		"<div class=\"infowindow\">" +
+			"<div>" +
+				"<div style=\"font-weight: bold; font-size: 150%;\">%name%</div>" +
+			"</div>" +
+			"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
+				"<div style=\"font-style: italic; font-size: 110%;\">%description%</div>" +
+			"</div>" +
+			"<div>" +
+				"<div><strong>Leader:</strong> %players.leader%</div>" +
+				"<div><strong>Members:</strong> %players%</div>" +
+			"</div>" +
+			"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
+				"<div><strong>Age:</strong> %age%</div>" +
+				"<div><strong>Bank:</strong> %money%</div>" +
+			"</div>" +
+			"<div>" +
+				"<div style=\"font-weight: bold;\">Flags:</div>" +
+				"<div>%flags.table3%</div>" +
+			"</div>" +
 		"</div>";
 
 	// Enable the %money% macro. Only do this if you know your economy manager is thread safe.
 	public boolean dynmapShowMoneyInDescription = false;
 
-	// Allow players in faction to see one another on Dynmap (only relevant if Dynmap has 'player-info-protected' enabled)
+	// Use dark mode colors for description window on Dynmap
+	public boolean dynmapUseDarkModeColors = false;
+
+	// ========== ADDITIONAL SETTINGS ==========
+
+	// Allow players in faction to see one another on Dynmap (only relevant if Dynmap has 'player-info-protected' enabled and login is supported)
+	// TODO: Currently not implemented
 	//public boolean dynmapVisibilityByFaction = true;
 
 	// Optional setting to limit which regions to show.
@@ -860,61 +873,35 @@ public class MConf extends Entity<MConf>
 
 	@EditorVisible(false)
 	public DynmapStyle dynmapDefaultStyle = new DynmapStyle(
-		null, // lineColor - will be resolved through getDynmapColorForStyle()
+		null,
 		IntegrationDynmap.DYNMAP_STYLE_LINE_OPACITY,
 		IntegrationDynmap.DYNMAP_STYLE_LINE_WEIGHT,
-		null, // fillColor - will be resolved through getDynmapColorForStyle()
+		null,
 		IntegrationDynmap.DYNMAP_STYLE_FILL_OPACITY,
 		IntegrationDynmap.DYNMAP_STYLE_HOME_MARKER,
 		IntegrationDynmap.DYNMAP_STYLE_BOOST
 	);
 
-	// Optional per Faction style overrides. Any defined replace those in dynmapDefaultStyle.
+	// Optional per Faction style overrides. Will override Faction colors and default colors.
 	// Specify Faction either by name or UUID.
 	@EditorVisible(false)
-	public Map<String, DynmapStyle> dynmapFactionStyles = MUtil.map(
+	public Map<String, DynmapStyle> dynmapFactionStyleOverrides = MUtil.map(
 		"SafeZone", new DynmapStyle().withLineColor("#FFAA00").withFillColor("#FFAA00").withBoost(false),
 		"WarZone", new DynmapStyle().withLineColor("#FF0000").withFillColor("#FF0000").withBoost(false)
 	);
 	
 	// Whether to use faction colors set via /f color command on Dynmap.
-	// If false, factions will use the Dynmap default color or admin overrides only.
-	// Admin overrides (dynmapFactionStyles) always take priority regardless of this setting.
+	// If false, factions will use the default colors or admin overrides only.
 	public boolean dynmapUseFactionColors = true;
 	
-	// Optional Dynmap-specific default faction color override.
-	// If null or empty, Dynmap will use defaultFactionColor instead.
+	// Optional Dynmap-specific default faction color override (in case you don't want to use the defaultFactionSecondaryColor here).
+	// If null or empty, Dynmap will use defaultFactionSecondaryColor instead.
 	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
-	public String dynmapDefaultColor = null;
+	public String dynmapDefaultLineColor = null;
 
-	/**
-	 * Gets the Dynmap default color following the configuration hierarchy:
-	 * <ol>
-	 * <li>dynmapDefaultColor (if set and valid)</li>
-	 * <li>defaultFactionColor (if valid)</li>
-	 * <li>Hard-coded constant from IntegrationDynmap</li>
-	 * </ol>
-	 * 
-	 * @return A valid hex color string
-	 */
-	public String getDynmapDefaultColorForStyle()
-	{
-		// Check Dynmap-specific override
-		if (this.dynmapDefaultColor != null && !this.dynmapDefaultColor.trim().isEmpty())
-		{
-			String color = this.dynmapDefaultColor.trim();
-			if (color.matches("^#[0-9A-Fa-f]{6}$")) return color;
-		}
-		
-		// Check generic default faction color
-		if (this.defaultFactionColor != null && !this.defaultFactionColor.trim().isEmpty())
-		{
-			String color = this.defaultFactionColor.trim();
-			if (color.matches("^#[0-9A-Fa-f]{6}$")) return color;
-		}
-		
-		// Fallback to hardcoded constant
-		return IntegrationDynmap.DYNMAP_STYLE_LINE_COLOR;
-	}
+	// Optional Dynmap-specific default faction color override (in case you don't want to use the defaultFactionPrimaryColor here).
+	// If null or empty, Dynmap will use defaultFactionPrimaryColor instead.
+	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
+	public String dynmapDefaultFillColor = null;
 	
 }

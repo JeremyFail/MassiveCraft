@@ -9,7 +9,6 @@ import com.massivecraft.factions.entity.MFlag;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factions.entity.Warp;
 import com.massivecraft.factions.integration.Econ;
-import com.massivecraft.massivecore.apachecommons.StringEscapeUtils;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.collections.MassiveMap;
@@ -28,6 +27,7 @@ import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
+import java.text.DecimalFormat;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * EngineDynmap handles the integration between Factions and the Dynmap plugin.
+ * EngineDynmap handles the integration between Factions and Dynmap.
  * 
  * <p>
  * This engine runs asynchronously every 15 seconds to update faction territory displays
@@ -61,13 +61,15 @@ import java.util.stream.Stream;
  * <strong>Algorithm:</strong>
  * </p>
  * <p>
- * The base idea was based on mikeprimms plugin Dynmap-Factions, but has been modified for better accuracy
- * (supporting holes and multiple disconnected territories).
+ * The base idea was based on mikeprimm's Dynmap-Factions plugin, but has been heavily modified for better 
+ * accuracy, supporting holes and multiple disconnected territories.
  * <ul>
- * <li>Uses flood fill to group contiguous claimed chunks into separate polygons</li>
+ * <li>Uses 4-directional flood fill to group contiguous claimed chunks into separate polygons</li>
  * <li>Traces polygon outlines using a right-hand rule wall-following algorithm</li>
+ * <li>Detects holes using 8-directional (diagonal-aware) flood fill to handle "kiddy corner" holes</li>
+ * <li>Connects holes to outer boundary using shortest perpendicular (horizontal/vertical) paths</li>
+ * <li>Creates single polygons with slits using the "Etch-a-Sketch" technique</li>
  * <li>Handles multiple disconnected territories per faction by creating separate markers</li>
- * <li>Unclaimed chunks within claimed territory naturally appear as holes in the visualization</li>
  * </ul>
  * </p>
  */
@@ -149,6 +151,17 @@ public class EngineDynmap extends Engine
 		Bukkit.getScheduler().scheduleSyncDelayedTask(Factions.get(), () -> this.updateFactionsDynmap(areas));
 	}
 
+	/**
+	 * Updates all Dynmap markers on the main thread.
+	 * 
+	 * <p>
+	 * This method must run synchronously on the main thread as required by the Dynmap API.
+	 * It updates territory markers, home warp markers, and other warp markers based on
+	 * configuration settings.
+	 * </p>
+	 * 
+	 * @param areas Pre-computed area marker values from async processing
+	 */
 	public void updateFactionsDynmap(Map<String, AreaMarkerValues> areas)
 	{
 		long before = System.currentTimeMillis();
@@ -202,6 +215,10 @@ public class EngineDynmap extends Engine
 		logTimeSpent("Sync", before);
 	}
 
+	/**
+	 * Disables the Dynmap integration by removing all marker sets.
+	 * Called when Dynmap integration is disabled in configuration.
+	 */
 	public void disable()
 	{
 		if (this.markersetTerritory != null)
@@ -375,6 +392,12 @@ public class EngineDynmap extends Engine
 		return ret;
 	}
 	
+	/**
+	 * Updates home warp markers on the Dynmap.
+	 * Removes old markers that no longer exist and creates/updates current markers.
+	 * 
+	 * @param values Map of marker IDs to marker values for all current home warps
+	 */
 	// Thread Safe: NO
 	public void updateHomeWarps(Map<String, MarkerValues> values)
 	{
@@ -392,6 +415,12 @@ public class EngineDynmap extends Engine
 			value.ensureExistsAndUpdated(markers.get(markerId), this.markerApi, this.markersetHome, markerId));
 	}
 	
+	/**
+	 * Creates a map of home warp marker IDs to Marker objects for quick lookup.
+	 * 
+	 * @param markerSet The marker set containing home warp markers
+	 * @return Map of marker IDs to Marker objects
+	 */
 	private static Map<String, Marker> getHomeMarkerMap(MarkerSet markerSet)
 	{
 		return markerSet.getMarkers().stream()
@@ -452,6 +481,12 @@ public class EngineDynmap extends Engine
 		return ret;
 	}
 	
+	/**
+	 * Updates non-home warp markers on the Dynmap.
+	 * Removes old markers that no longer exist and creates/updates current markers.
+	 * 
+	 * @param values Map of marker IDs to marker values for all current non-home warps
+	 */
 	// Thread Safe: NO
 	public void updateOtherWarps(Map<String, MarkerValues> values)
 	{
@@ -469,6 +504,12 @@ public class EngineDynmap extends Engine
 			value.ensureExistsAndUpdated(markers.get(markerId), this.markerApi, this.markersetWarps, markerId));
 	}
 	
+	/**
+	 * Creates a map of non-home warp marker IDs to Marker objects for quick lookup.
+	 * 
+	 * @param markerSet The marker set containing non-home warp markers
+	 * @return Map of marker IDs to Marker objects
+	 */
 	private static Map<String, Marker> getOtherWarpsMarkerMap(MarkerSet markerSet)
 	{
 		return markerSet.getMarkers().stream()
@@ -500,11 +541,24 @@ public class EngineDynmap extends Engine
 			.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 	}
 
+	/**
+	 * Creates area markers for a world and its factions (convenience method).
+	 * 
+	 * @param superEntry Entry containing world name and faction-to-chunks mapping
+	 * @return Map of marker IDs to area marker values
+	 */
 	public Map<String, AreaMarkerValues> createAreas(Entry<String, Map<Faction, Set<PS>>> superEntry)
 	{
 		return createAreas(superEntry.getKey(), superEntry.getValue());
 	}
 
+	/**
+	 * Creates area markers for all factions in a world.
+	 * 
+	 * @param world The world name
+	 * @param map Mapping of factions to their claimed chunks
+	 * @return Map of marker IDs to area marker values
+	 */
 	public Map<String, AreaMarkerValues> createAreas(String world, Map<Faction, Set<PS>> map)
 	{
 		// For each entry convert it into the appropriate map (with method below)
@@ -516,6 +570,13 @@ public class EngineDynmap extends Engine
 			.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 	}
 
+	/**
+	 * Creates area markers for a faction in a world (convenience method).
+	 * 
+	 * @param world The world name
+	 * @param entry Entry containing faction and its claimed chunks
+	 * @return Map of marker IDs to area marker values
+	 */
 	public Map<String, AreaMarkerValues> createAreas(String world, Entry<Faction, Set<PS>> entry)
 	{
 		return createAreas(world, entry.getKey(), entry.getValue());
@@ -554,7 +615,7 @@ public class EngineDynmap extends Engine
 			List<PS> finalPolygon;
 			if (polygonWithHoles.size() > 1)
 			{
-				finalPolygon = createPolygonWithSlits(polygonWithHoles);
+				finalPolygon = createPolygonWithSlits(polygonWithHoles, polygonChunks);
 			}
 			else
 			{
@@ -611,6 +672,17 @@ public class EngineDynmap extends Engine
 	 * boundary is traced counterclockwise (opposite of the outer boundary).
 	 * </p>
 	 * 
+	 * <p>
+	 * <strong>Algorithm:</strong>
+	 * <ol>
+	 * <li>Trace outer boundary using wall-following algorithm</li>
+	 * <li>Find all unclaimed chunks within bounding box</li>
+	 * <li>Group unclaimed chunks using diagonal-aware flood fill (kiddy-corner chunks = same hole)</li>
+	 * <li>Filter out groups that touch the bounding box edge (these connect to the exterior)</li>
+	 * <li>Trace boundary for each remaining hole group</li>
+	 * </ol>
+	 * </p>
+	 * 
 	 * @param polygonChunks Set of contiguous claimed chunks
 	 * @return List where [0] is outer boundary, [1+] are holes (if any)
 	 */
@@ -649,49 +721,90 @@ public class EngineDynmap extends Engine
 			}
 		}
 		
-		// 4. Group unclaimed chunks into separate holes using flood fill
+		// 4. Group unclaimed chunks into separate holes using DIAGONAL-AWARE flood fill
+		// This treats kiddy-corner chunks as part of the same hole
 		while (!potentialHoles.isEmpty())
 		{
 			Set<PS> hole = new MassiveSet<>();
 			PS start = potentialHoles.iterator().next();
-			floodFillUnclaimed(potentialHoles, hole, start);
+			floodFillDiagonal(potentialHoles, hole, start);
 			
-			// Check if this hole touches the outer boundary (not a real hole)
-			if (!touchesBoundary(hole, minX, maxX, minZ, maxZ))
+			// Check if this hole touches the bounding box edge (not a real hole - it connects to outside)
+			if (touchesBoundary(hole, minX, maxX, minZ, maxZ))
 			{
-				// Trace this hole's boundary (counterclockwise)
-				List<PS> holeBoundary = getLineListForHole(hole, polygonChunks);
-				result.add(holeBoundary);
+				continue;
 			}
+			
+			// This is a true hole - trace its boundary
+			List<PS> holeBoundary = getLineListForHole(hole, polygonChunks);
+			result.add(holeBoundary);
 		}
 		
 		return result;
 	}
 	
 	/**
-	 * Creates a single polygon with slits connecting to holes.
+	 * Flood fill that includes diagonal neighbors (8-directional).
 	 * 
 	 * <p>
-	 * This technique creates a "corridor" from the outer boundary to each hole,
-	 * allowing the polygon to wrap around the hole and return, forming a single
-	 * contiguous polygon. The result is a proper visual representation of holes
-	 * with only thin visual artifacts where the slits are.
+	 * This treats "kiddy corner" chunks as connected, so two unclaimed chunks
+	 * that only touch at a corner are considered part of the same hole.
 	 * </p>
 	 * 
+	 * @param source Collection of remaining unclaimed chunks (modified by removal)
+	 * @param destination Collection to store discovered contiguous unclaimed chunks
+	 * @param start Starting point for the flood fill
+	 */
+	private static void floodFillDiagonal(Set<PS> source, Set<PS> destination, PS start)
+	{
+		ArrayDeque<PS> stack = new ArrayDeque<>();
+		stack.push(start);
+		
+		while (!stack.isEmpty())
+		{
+			PS next = stack.pop();
+			if (!source.remove(next)) continue;
+			
+			destination.add(next);
+			
+			int x = next.getChunkX();
+			int z = next.getChunkZ();
+			
+			// Check all 8 neighbors (orthogonal + diagonal)
+			for (int dx = -1; dx <= 1; dx++)
+			{
+				for (int dz = -1; dz <= 1; dz++)
+				{
+					if (dx == 0 && dz == 0) continue; // Skip self
+					
+					PS adjacent = PS.valueOf(x + dx, z + dz);
+					if (source.contains(adjacent))
+					{
+						stack.push(adjacent);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Creates a single polygon with slits connecting to holes using the "Etch-a-Sketch" algorithm.
+	 * 
 	 * <p>
-	 * Algorithm:
+	 * <strong>New Clean Algorithm:</strong>
 	 * <ol>
-	 * <li>Start with outer boundary</li>
-	 * <li>For each hole, find closest point on outer boundary to hole</li>
-	 * <li>Insert a path: boundary → hole → around hole → back to boundary</li>
-	 * <li>Continue with rest of boundary</li>
+	 * <li>Build a complete map of all outer boundary edges (horizontal and vertical segments)</li>
+	 * <li>For each hole, find ALL its corners and check perpendicular distances to ALL outer edges</li>
+	 * <li>Select the shortest perpendicular connection (must be horizontal or vertical only)</li>
+	 * <li>Build the final polygon by walking the outer boundary and inserting slits at the right places</li>
 	 * </ol>
 	 * </p>
 	 * 
 	 * @param polygonWithHoles List where [0] is outer boundary, [1+] are holes
+	 * @param claimedChunks Set of claimed chunks (unused in new algorithm but kept for API compatibility)
 	 * @return Single polygon with holes connected via slits
 	 */
-	private static List<PS> createPolygonWithSlits(List<List<PS>> polygonWithHoles)
+	private static List<PS> createPolygonWithSlits(List<List<PS>> polygonWithHoles, Set<PS> claimedChunks)
 	{
 		List<PS> outer = polygonWithHoles.get(0);
 		
@@ -701,7 +814,10 @@ public class EngineDynmap extends Engine
 			return new MassiveList<>(outer);
 		}
 		
-		// For each hole, find the closest connection points
+		// Build lists of horizontal and vertical edges from the outer boundary
+		List<Edge> outerEdges = buildEdgeList(outer);
+		
+		// For each hole, find the best connection point to the outer boundary
 		List<SlitConnection> connections = new MassiveList<>();
 		
 		for (int holeIdx = 1; holeIdx < polygonWithHoles.size(); holeIdx++)
@@ -709,46 +825,307 @@ public class EngineDynmap extends Engine
 			List<PS> hole = polygonWithHoles.get(holeIdx);
 			if (hole.isEmpty()) continue;
 			
-			// Find closest point pair between outer boundary and this hole
-			SlitConnection connection = findClosestPoints(outer, hole);
+			// Find the shortest perpendicular connection from this hole to the outer boundary
+			SlitConnection connection = findShortestPerpendicularConnection(outer, outerEdges, hole);
+			
+			if (connection == null)
+			{
+				EngineDynmap.logSevere("Failed to find connection for hole at " + hole.get(0) + " - skipping hole");
+				continue;
+			}
+			
 			connection.holeIndex = holeIdx;
 			connections.add(connection);
 		}
 		
 		// Sort connections by their position on the outer boundary
 		// This ensures we insert them in order as we traverse the boundary
-		connections.sort((a, b) -> Integer.compare(a.outerIndex, b.outerIndex));
+		connections.sort((a, b) -> {
+			// First compare by edge index
+			int cmp = Integer.compare(a.outerEdgeIndex, b.outerEdgeIndex);
+			if (cmp != 0) return cmp;
+			// Then by distance along the edge from the start corner
+			return Double.compare(a.distanceAlongEdge, b.distanceAlongEdge);
+		});
 		
-		// Build the result by walking the outer boundary and inserting slits
+		// Build the result using Etch-a-Sketch approach
+		return buildPolygonWithSlits(outer, polygonWithHoles, connections);
+	}
+	
+	/**
+	 * Represents an edge (line segment) of the polygon boundary.
+	 */
+	private static class Edge
+	{
+		PS start;       // Starting corner
+		PS end;         // Ending corner
+		int edgeIndex;  // Index of the starting corner in the boundary list
+		boolean isHorizontal; // true if horizontal (same Z), false if vertical (same X)
+		
+		Edge(PS start, PS end, int edgeIndex)
+		{
+			this.start = start;
+			this.end = end;
+			this.edgeIndex = edgeIndex;
+			this.isHorizontal = (start.getChunkZ() == end.getChunkZ());
+		}
+		
+		/**
+		 * Checks if a perpendicular line from the given point intersects this edge.
+		 * Returns the intersection point if it does, null otherwise.
+		 * 
+		 * @param point The point to check from
+		 * @param horizontal If true, check horizontal line from point; if false, check vertical
+		 * @return The intersection point on this edge, or null if no intersection
+		 */
+		PS getPerpendicularIntersection(PS point, boolean horizontal)
+		{
+			int px = point.getChunkX();
+			int pz = point.getChunkZ();
+			
+			if (horizontal)
+			{
+				// We're drawing a horizontal line from the point
+				// This can only intersect a vertical edge
+				if (this.isHorizontal) return null;
+				
+				int edgeX = this.start.getChunkX();
+				int minZ = Math.min(this.start.getChunkZ(), this.end.getChunkZ());
+				int maxZ = Math.max(this.start.getChunkZ(), this.end.getChunkZ());
+				
+				// Check if point's Z is within the edge's Z range
+				if (pz >= minZ && pz <= maxZ)
+				{
+					return PS.valueOf(edgeX, pz);
+				}
+			}
+			else
+			{
+				// We're drawing a vertical line from the point
+				// This can only intersect a horizontal edge
+				if (!this.isHorizontal) return null;
+				
+				int edgeZ = this.start.getChunkZ();
+				int minX = Math.min(this.start.getChunkX(), this.end.getChunkX());
+				int maxX = Math.max(this.start.getChunkX(), this.end.getChunkX());
+				
+				// Check if point's X is within the edge's X range
+				if (px >= minX && px <= maxX)
+				{
+					return PS.valueOf(px, edgeZ);
+				}
+			}
+			
+			return null;
+		}
+	}
+	
+	/**
+	 * Builds a list of edges from a polygon boundary.
+	 */
+	private static List<Edge> buildEdgeList(List<PS> boundary)
+	{
+		List<Edge> edges = new MassiveList<>();
+		for (int i = 0; i < boundary.size(); i++)
+		{
+			PS start = boundary.get(i);
+			PS end = boundary.get((i + 1) % boundary.size());
+			edges.add(new Edge(start, end, i));
+		}
+		return edges;
+	}
+	
+	/**
+	 * Finds the shortest perpendicular connection from a hole to the outer boundary.
+	 * 
+	 * <p>
+	 * For each corner of the hole, we check:
+	 * <ul>
+	 * <li>Horizontal line left (negative X direction)</li>
+	 * <li>Horizontal line right (positive X direction)</li>
+	 * <li>Vertical line up (negative Z direction)</li>
+	 * <li>Vertical line down (positive Z direction)</li>
+	 * </ul>
+	 * We find where each of these lines first intersects an outer edge, and pick the shortest.
+	 * </p>
+	 */
+	private static SlitConnection findShortestPerpendicularConnection(List<PS> outer, List<Edge> outerEdges, List<PS> hole)
+	{
+		SlitConnection best = null;
+		int bestDistance = Integer.MAX_VALUE;
+		
+		// For each corner of the hole
+		for (int holeCornerIdx = 0; holeCornerIdx < hole.size(); holeCornerIdx++)
+		{
+			PS holeCorner = hole.get(holeCornerIdx);
+			int hx = holeCorner.getChunkX();
+			int hz = holeCorner.getChunkZ();
+			
+			// Check all 4 directions
+			for (int dir = 0; dir < 4; dir++)
+			{
+				boolean horizontal = (dir < 2); // 0,1 = horizontal; 2,3 = vertical
+				boolean positive = (dir % 2 == 1); // 1,3 = positive direction
+				
+				// Find the closest edge intersection in this direction
+				PS closestIntersection = null;
+				int closestDistance = Integer.MAX_VALUE;
+				Edge closestEdge = null;
+				
+				for (Edge edge : outerEdges)
+				{
+					PS intersection = edge.getPerpendicularIntersection(holeCorner, horizontal);
+					if (intersection == null) continue;
+					
+					int ix = intersection.getChunkX();
+					int iz = intersection.getChunkZ();
+					
+					// Calculate distance and check direction
+					int distance;
+					boolean correctDirection;
+					
+					if (horizontal)
+					{
+						distance = Math.abs(ix - hx);
+						correctDirection = positive ? (ix > hx) : (ix < hx);
+					}
+					else
+					{
+						distance = Math.abs(iz - hz);
+						correctDirection = positive ? (iz > hz) : (iz < hz);
+					}
+					
+					if (correctDirection && distance > 0 && distance < closestDistance)
+					{
+						closestDistance = distance;
+						closestIntersection = intersection;
+						closestEdge = edge;
+					}
+				}
+				
+				// If we found an intersection and it's the best so far
+				if (closestIntersection != null && closestDistance < bestDistance)
+				{
+					bestDistance = closestDistance;
+					best = new SlitConnection();
+					best.holePoint = holeCorner;
+					best.holePointIndex = holeCornerIdx;
+					best.outerPoint = closestIntersection;
+					best.outerEdgeIndex = closestEdge.edgeIndex;
+					
+					// Calculate distance along the edge from the start corner
+					if (closestEdge.isHorizontal)
+					{
+						best.distanceAlongEdge = Math.abs(closestIntersection.getChunkX() - closestEdge.start.getChunkX());
+					}
+					else
+					{
+						best.distanceAlongEdge = Math.abs(closestIntersection.getChunkZ() - closestEdge.start.getChunkZ());
+					}
+					
+					// Check if the intersection point is exactly at a corner
+					best.isOnEdge = !outer.contains(closestIntersection);
+					if (!best.isOnEdge)
+					{
+						// Find the corner index
+						best.outerIndex = outer.indexOf(closestIntersection);
+					}
+					else
+					{
+						best.outerIndex = closestEdge.edgeIndex;
+					}
+				}
+			}
+		}
+		
+		return best;
+	}
+	
+	/**
+	 * Builds the final polygon by walking the outer boundary and inserting slits to holes.
+	 */
+	private static List<PS> buildPolygonWithSlits(List<PS> outer, List<List<PS>> polygonWithHoles, List<SlitConnection> connections)
+	{
 		List<PS> result = new MassiveList<>();
 		int connectionIdx = 0;
 		
 		for (int i = 0; i < outer.size(); i++)
 		{
-			result.add(outer.get(i));
+			PS currentCorner = outer.get(i);
 			
-			// Check if we need to insert a slit after this point
-			while (connectionIdx < connections.size() && connections.get(connectionIdx).outerIndex == i)
+			// Add the current corner
+			result.add(currentCorner);
+			
+			// Process any connections that start from this corner (not on edge)
+			while (connectionIdx < connections.size())
 			{
 				SlitConnection conn = connections.get(connectionIdx);
-				List<PS> hole = polygonWithHoles.get(conn.holeIndex);
 				
-				// Create the slit: current point → hole point → around hole → back
-				result.add(conn.holePoint);
+				// Check if this connection is on the current edge or at the current corner
+				if (conn.outerEdgeIndex != i && conn.outerIndex != i)
+				{
+					break;
+				}
 				
-				// Add the hole, starting from the connection point
-				// We need to rotate the hole so it starts at the connection point
-				List<PS> rotatedHole = rotateToStart(hole, conn.holePointIndex);
-				result.addAll(rotatedHole);
+				// If connection is at a corner (current corner specifically)
+				if (!conn.isOnEdge && conn.outerIndex == i)
+				{
+					// Draw slit to hole, around hole, and back
+					result.addAll(drawSlitToHole(conn, polygonWithHoles));
+					connectionIdx++;
+					continue;
+				}
 				
-				// Close back to the connection point
-				result.add(conn.holePoint);
+				// If connection is on this edge
+				if (conn.isOnEdge && conn.outerEdgeIndex == i)
+				{
+					// Draw to the edge point
+					result.add(conn.outerPoint);
+					
+					// Draw slit to hole, around hole, and back
+					result.addAll(drawSlitToHole(conn, polygonWithHoles));
+					
+					// Draw back to the edge point (already there, so just continue)
+					// The next corner will be added in the next iteration
+					connectionIdx++;
+					continue;
+				}
 				
-				// Return to the outer boundary point
-				result.add(conn.outerPoint);
-				
-				connectionIdx++;
+				break;
 			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Draws a slit from the current position to a hole, around the hole, and back.
+	 * Returns the points to add (not including the starting point).
+	 */
+	private static List<PS> drawSlitToHole(SlitConnection conn, List<List<PS>> polygonWithHoles)
+	{
+		List<PS> result = new MassiveList<>();
+		List<PS> hole = polygonWithHoles.get(conn.holeIndex);
+		
+		// Draw to hole entry point
+		result.add(conn.holePoint);
+		
+		// Trace around the hole, starting from the connection point
+		List<PS> rotatedHole = rotateToStart(hole, conn.holePointIndex);
+		
+		// Add all hole points except the first (which we just added)
+		for (int i = 1; i < rotatedHole.size(); i++)
+		{
+			result.add(rotatedHole.get(i));
+		}
+		
+		// Return to the entry point to complete the hole
+		result.add(conn.holePoint);
+		
+		// If we came from an edge point, add that too
+		if (conn.isOnEdge)
+		{
+			result.add(conn.outerPoint);
 		}
 		
 		return result;
@@ -774,97 +1151,21 @@ public class EngineDynmap extends Engine
 		return result;
 	}
 	
-	/**
-	 * Finds the closest point pair between an outer boundary and a hole.
-	 * 
-	 * @param outer The outer boundary polygon
-	 * @param hole The hole polygon
-	 * @return Connection information with the closest points and their indices
-	 */
-	private static SlitConnection findClosestPoints(List<PS> outer, List<PS> hole)
-	{
-		double minDistance = Double.MAX_VALUE;
-		SlitConnection bestConnection = new SlitConnection();
-		
-		for (int outerIdx = 0; outerIdx < outer.size(); outerIdx++)
-		{
-			PS outerPoint = outer.get(outerIdx);
-			
-			for (int holeIdx = 0; holeIdx < hole.size(); holeIdx++)
-			{
-				PS holePoint = hole.get(holeIdx);
-				
-				double distance = calculateDistance(outerPoint, holePoint);
-				
-				if (distance < minDistance)
-				{
-					minDistance = distance;
-					bestConnection.outerPoint = outerPoint;
-					bestConnection.outerIndex = outerIdx;
-					bestConnection.holePoint = holePoint;
-					bestConnection.holePointIndex = holeIdx;
-				}
-			}
-		}
-		
-		return bestConnection;
-	}
-	
-	/**
-	 * Calculates the Euclidean distance between two PS points.
-	 * 
-	 * @param a First point
-	 * @param b Second point
-	 * @return Distance between the points
-	 */
-	private static double calculateDistance(PS a, PS b)
-	{
-		double dx = a.getChunkX() - b.getChunkX();
-		double dz = a.getChunkZ() - b.getChunkZ();
-		return Math.sqrt(dx * dx + dz * dz);
-	}
-	
+
+
 	/**
 	 * Helper class to store information about a slit connection between boundary and hole.
 	 */
 	private static class SlitConnection
 	{
 		PS outerPoint;
-		int outerIndex;
+		int outerIndex; // Index of the corner (if not on edge)
+		int outerEdgeIndex; // Index of the edge (for sorting when on edge)
+		double distanceAlongEdge; // Distance from edge start to the connection point
+		boolean isOnEdge; // True if outerPoint is on an edge, not at a corner
 		PS holePoint;
 		int holePointIndex;
 		int holeIndex;
-	}
-	
-	/**
-	 * Flood fill for unclaimed chunks.
-	 * 
-	 * @param source Collection of remaining unclaimed chunks (modified by removal)
-	 * @param destination Collection to store discovered contiguous unclaimed chunks
-	 * @param start Starting point for the flood fill
-	 */
-	private static void floodFillUnclaimed(Set<PS> source, Set<PS> destination, PS start)
-	{
-		ArrayDeque<PS> stack = new ArrayDeque<>();
-		stack.push(start);
-		
-		while (!stack.isEmpty())
-		{
-			PS next = stack.pop();
-			if (!source.remove(next)) continue;
-			
-			destination.add(next);
-			
-			// Check all 4 adjacent chunks
-			for (Direction dir : Direction.values())
-			{
-				PS adjacent = dir.adjacent(next);
-				if (source.contains(adjacent))
-				{
-					stack.push(adjacent);
-				}
-			}
-		}
 	}
 	
 	/**
@@ -1130,9 +1431,18 @@ public class EngineDynmap extends Engine
 		return linelist;
 	}
 
-	// This markerIndex, is if a faction has several claims in a single world
+	// This markerIndex handles the case where a faction has multiple disconnected territories in a single world
 	private int markerIdx = 0;
 	private String lastPartialMarkerId = "";
+	
+	/**
+	 * Calculates a unique marker ID for a faction's territory in a world.
+	 * Increments counter for multiple disconnected territories.
+	 * 
+	 * @param world The world name
+	 * @param faction The faction
+	 * @return Unique marker ID string
+	 */
 	public String calcMarkerId(String world, Faction faction)
 	{
 		// Calc current partial
@@ -1146,6 +1456,12 @@ public class EngineDynmap extends Engine
 		return partial + markerIdx++;
 	}
 	
+	/**
+	 * Updates territory area markers on the Dynmap.
+	 * Removes old markers that no longer exist and creates/updates current markers.
+	 * 
+	 * @param values Map of marker IDs to area marker values for all current territories
+	 */
 	// Thread Safe: NO
 	public void updateAreas(Map<String, AreaMarkerValues> values)
 	{
@@ -1164,6 +1480,12 @@ public class EngineDynmap extends Engine
 
 	}
 
+	/**
+	 * Creates a map of area marker IDs to AreaMarker objects for quick lookup.
+	 * 
+	 * @param markerSet The marker set containing area markers
+	 * @return Map of marker IDs to AreaMarker objects
+	 */
 	private static Map<String, AreaMarker> getMarkerMap(MarkerSet markerSet)
 	{
 		return markerSet.getAreaMarkers().stream().collect(Collectors.toMap(AreaMarker::getMarkerID, m->m));
@@ -1176,33 +1498,44 @@ public class EngineDynmap extends Engine
 	// Thread Safe / Asynchronous: Yes
 	private String getDescription(Faction faction)
 	{
-		String ret = "<div class=\"regioninfo\">" + MConf.get().dynmapFactionDescription + "</div>";
+		String ret = "<div class=\"regioninfo\">" + MConf.get().dynmapDescriptionWindowFormat + "</div>";
 		
 		// Name
 		String name = faction.getName();
-		ret = addToHtml(ret, "name", name);
+		ret = DynmapUtil.addToHtml(ret, "name", name);
 		
 		// Description
 		String description = faction.getDescriptionDesc();
-		ret = addToHtml(ret, "description", description);
+		ret = DynmapUtil.addToHtml(ret, "description", description);
 
 		// MOTD (probably shouldn't be shown but if the server owner specifies it, I don't care)
 		String motd = faction.getMotd();
-		if (motd != null) ret = addToHtml(ret, "motd", motd);
+		if (motd != null) ret = DynmapUtil.addToHtml(ret, "motd", motd);
 		
 		// Age
 		long ageMillis = faction.getAge();
 		LinkedHashMap<TimeUnit, Long> ageUnitcounts = TimeDiffUtil.limit(TimeDiffUtil.unitcounts(ageMillis, TimeUnit.getAllButMillisSecondsAndMinutes()), 3);
 		String age = TimeDiffUtil.formatedVerboose(ageUnitcounts);
-		ret = addToHtml(ret, "age", age);
+		ret = DynmapUtil.addToHtml(ret, "age", age);
 		
 		// Money
-		String money = "unavailable";
+		String money;
 		if (Econ.isEnabled() && MConf.get().dynmapShowMoneyInDescription)
 		{
-			money = Money.format(Econ.getMoney(faction));
+			if (faction.isNormal())
+			{
+				money = Money.format(Econ.getMoney(faction));
+			}
+			else
+			{
+				money = "N/A";
+			}
 		}
-		ret = addToHtml(ret, "money", money);
+		else
+		{
+			money = "unavailable";
+		}
+		ret = DynmapUtil.addToHtml(ret, "money", money);
 		
 		// Flags
 		Map<MFlag, Boolean> flags = MFlag.getAll().stream()
@@ -1218,8 +1551,8 @@ public class EngineDynmap extends Engine
 			boolean value = entry.getValue();
 
 			String bool = String.valueOf(value);
-			String color = calcBoolcolor(flagName, value);
-			String boolcolor = calcBoolcolor(String.valueOf(value), value);
+			String color = DynmapUtil.calcBoolcolor(flagName, value);
+			String boolcolor = DynmapUtil.calcBoolcolor(String.valueOf(value), value);
 			
 			ret = ret.replace("%" + flagName + ".bool%", bool); // true
 			ret = ret.replace("%" + flagName + ".color%", color); // monsters (red or green)
@@ -1236,74 +1569,28 @@ public class EngineDynmap extends Engine
 		// So we loop over the possibilities
 		for (int cols = 1; cols <= 10; cols++)
 		{
-			String flagTable = getHtmlAsciTable(flagTableParts, cols);
+			String flagTable = DynmapUtil.getHtmlAsciTable(flagTableParts, cols);
 			ret = ret.replace("%flags.table" + cols + "%", flagTable);
 		}
 		
 		// Players
 		List<MPlayer> playersList = faction.getMPlayers();
 		String playersCount = String.valueOf(playersList.size());
-		String players = getHtmlPlayerString(playersList);
+		String players = DynmapUtil.getHtmlPlayerString(playersList);
 		
 		MPlayer playersLeaderObject = faction.getLeader();
-		String playersLeader = getHtmlPlayerName(playersLeaderObject);
+		String playersLeader = DynmapUtil.getHtmlPlayerName(playersLeaderObject);
+
+		DecimalFormat df = new DecimalFormat("#.##");
 		
 		ret = ret.replace("%players%", players);
 		ret = ret.replace("%players.count%", playersCount);
 		ret = ret.replace("%players.leader%", playersLeader);
+		ret = ret.replace("%power%", df.format(faction.getPower()));
+		ret = ret.replace("%maxpower%", df.format(faction.getPowerMax()));
+		ret = ret.replace("%claims%", String.valueOf(faction.getLandCount()));
 		
 		return ret;
-	}
-
-	public static String getHtmlAsciTable(Collection<String> strings, final int cols)
-	{
-		StringBuilder ret = new StringBuilder();
-		
-		int count = 0;
-		for (Iterator<String> iter = strings.iterator(); iter.hasNext();)
-		{
-			String string = iter.next();
-			count++;
-			
-			ret.append(string);
-
-			if (iter.hasNext())
-			{
-				boolean lineBreak = count % cols == 0;
-				ret.append(lineBreak ? "<br>" : " | ");
-			}
-		}
-		
-		return ret.toString();
-	}
-	
-	public static String getHtmlPlayerString(List<MPlayer> mplayers)
-	{
-		List<String> names = mplayers.stream().map(EngineDynmap::getHtmlPlayerName).collect(Collectors.toList());
-		return Txt.implodeCommaAndDot(names);
-	}
-	
-	public static String getHtmlPlayerName(MPlayer mplayer)
-	{
-		if (mplayer == null) return "none";
-		return StringEscapeUtils.escapeHtml(mplayer.getName());
-	}
-	
-	public static String calcBoolcolor(String string, boolean bool)
-	{
-		return "<span style=\"color: " + (bool ? "#008000" : "#800000") + ";\">" + string + "</span>";
-	}
-
-	public static String addToHtml(String ret, String target, String replace)
-	{
-		if (ret == null) throw new NullPointerException("ret");
-		if (target == null) throw new NullPointerException("target");
-		if (replace == null) throw new NullPointerException("replace");
-
-		target = "%" + target + "%";
-		replace = ChatColor.stripColor(replace);
-		replace = StringEscapeUtils.escapeHtml(replace);
-		return ret.replace(target, replace);
 	}
 
 	// Thread Safe / Asynchronous: Yes
@@ -1324,7 +1611,6 @@ public class EngineDynmap extends Engine
 		Set<String> visible = MConf.get().dynmapVisibleFactions;
 		Set<String> hidden = MConf.get().dynmapHiddenFactions;
 
-
 		if (!visible.isEmpty() && visible.stream().noneMatch(ids::contains))
 		{
 			return false;
@@ -1335,14 +1621,13 @@ public class EngineDynmap extends Engine
 			return false;
 		}
 
-
 		return true;
 	}
 	
 	// Thread Safe / Asynchronous: Yes
 	public DynmapStyle getStyle(Faction faction)
 	{
-		Map<String, DynmapStyle> styles = MConf.get().dynmapFactionStyles;
+		Map<String, DynmapStyle> styles = MConf.get().dynmapFactionStyleOverrides;
 		
 		// Priority 1: Check for admin override by faction ID or name
 		DynmapStyle adminOverride = DynmapStyle.coalesce(
@@ -1351,17 +1636,32 @@ public class EngineDynmap extends Engine
 		);
 		if (adminOverride != null) return adminOverride;
 		
-		// Priority 2: Check for faction custom color (if enabled and set)
-		if (MConf.get().dynmapUseFactionColors && faction.hasColor())
+		// Priority 2: Check for custom faction colors (if enabled)
+		if (MConf.get().dynmapUseFactionColors)
 		{
-			String color = faction.getColor();
-			return new DynmapStyle().withLineColor(color).withFillColor(color);
+			String primaryColor = null;
+			String secondaryColor = null;
+			if (faction.hasPrimaryColor())
+			{
+				primaryColor = faction.getPrimaryColor();
+			}
+			if (faction.hasSecondaryColor())
+			{
+				secondaryColor = faction.getSecondaryColor();
+			}
+
+			return new DynmapStyle().withLineColor(secondaryColor).withFillColor(primaryColor);
 		}
 		
-		// Priority 3: Use default style which will resolve colors via MConf.getDynmapColorForStyle()
+		// Priority 3: Use default style
 		return MConf.get().dynmapDefaultStyle;
 	}
 
+	/**
+	 * Logs a severe error message to the Factions log in red.
+	 * 
+	 * @param msg The error message to log
+	 */
 	public static void logSevere(String msg)
 	{
 		String message = ChatColor.RED.toString() + msg;
@@ -1374,6 +1674,12 @@ public class EngineDynmap extends Engine
 
 		;
 
+		/**
+		 * Gets the chunk position adjacent to the given position in this direction.
+		 * 
+		 * @param ps The starting position
+		 * @return The adjacent position
+		 */
 		public PS adjacent(PS ps)
 		{
 			switch (this)
@@ -1386,6 +1692,12 @@ public class EngineDynmap extends Engine
 			throw new RuntimeException("say what");
 		}
 
+		/**
+		 * Gets the corner position for a chunk boundary in this direction.
+		 * 
+		 * @param ps The chunk position
+		 * @return The corner position
+		 */
 		public PS getCorner(PS ps)
 		{
 			switch (this)
@@ -1398,16 +1710,31 @@ public class EngineDynmap extends Engine
 			throw new RuntimeException("say what");
 		}
 
+		/**
+		 * Rotates this direction 90 degrees clockwise.
+		 * 
+		 * @return The direction after turning right
+		 */
 		public Direction turnRight()
 		{
 			return values()[(this.ordinal() + 1) % values().length];
 		}
 
+		/**
+		 * Rotates this direction 180 degrees.
+		 * 
+		 * @return The opposite direction
+		 */
 		public Direction turnAround()
 		{
 			return this.turnRight().turnRight();
 		}
 
+		/**
+		 * Rotates this direction 90 degrees counterclockwise.
+		 * 
+		 * @return The direction after turning left
+		 */
 		public Direction turnLeft()
 		{
 			return this.turnRight().turnRight().turnRight();
