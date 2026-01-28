@@ -979,11 +979,11 @@ public final class TerritoryPolygonBuilder
 		// Return to the entry point to complete the cluster walk
 		result.add(conn.holePoint);
 		
-		// If we came from an edge point, add that too
-		if (conn.isOnEdge)
-		{
-			result.add(conn.outerPoint);
-		}
+		// Always trace back to the outer boundary point (corner or on-edge)
+		// so the path is orthogonal: holePoint -> outerPoint -> next corner.
+		// If we skip this when the cutout is at a corner, we would go
+		// holePoint -> nextCorner (diagonal) instead of holePoint -> corner -> nextCorner.
+		result.add(conn.outerPoint);
 		
 		return result;
 	}
