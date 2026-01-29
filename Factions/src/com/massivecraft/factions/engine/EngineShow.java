@@ -183,7 +183,7 @@ public class EngineShow extends Engine
 					{
 						nextValuesHighlighted.add(Txt.parse("<h>%s", val));
 					}
-					String nextValue = Txt.implode(nextValuesHighlighted, Txt.parse("<yellow>/<h>"));
+					String nextValue = Txt.implode(nextValuesHighlighted, Txt.parse("<yellow> / <h>"));
 					landvalueLines.add(show(nextKey, nextValue));
 				}
 				idPriorityLiness.put(SHOW_ID_FACTION_LANDVALUES, new PriorityLines(SHOW_PRIORITY_FACTION_LANDVALUES, landvalueLines));
