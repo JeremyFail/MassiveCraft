@@ -201,9 +201,15 @@ public class MConf extends Entity<MConf>
 	// You just won't be able to take the land as your own.
 	public boolean claimsCanBeUnconnectedIfOwnedByOtherFaction = false;
 	
-	// Is claiming from other factions even allowed?
+	// Is claiming from other factions allowed?
 	// Set this to false to disable territorial warfare altogether.
 	public boolean claimingFromOthersAllowed = true;
+
+	// Is unclaiming from other factions allowed?
+	// Set this to true to enable faction pillaging (taking the value of another faction's land, but not conquering it yourself)
+	// Use caution when enabling this - ensure you don't enable exploits with your cost/reward system by allowing a player
+	// to pillage and then claim for cheaper than conquering directly!
+	public boolean unclaimingFromOthersAllowed = false;
 
 	// Is it required for factions to have an inflated land/power ratio in order to have their land conquered by another faction?
  	// Set this to false to allow factions to invade each other without requiring them to have an inflated land/power ratio..
