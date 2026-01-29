@@ -12,5 +12,6 @@ public class CmdFactionsColor extends FactionsCommand
 	
 	public CmdFactionsColorSet cmdFactionsColorSet = new CmdFactionsColorSet();
 	public CmdFactionsColorShow cmdFactionsColorShow = new CmdFactionsColorShow();
+	public CmdFactionsColorReset cmdFactionsColorReset = new CmdFactionsColorReset();
 	
 }

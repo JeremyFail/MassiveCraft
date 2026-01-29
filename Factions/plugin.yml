@@ -36,11 +36,8 @@ permissions:
   factions.claim.all: {description: claim all faction land, default: false}
   factions.color: {description: manage faction colors, default: false}
   factions.color.set: {description: set faction colors, default: false}
-  factions.color.set.primary: {description: set primary faction color, default: false}
-  factions.color.set.secondary: {description: set secondary faction color, default: false}
+  factions.color.reset: {description: reset a faction color to the default color, default: false}
   factions.color.show: {description: show faction colors, default: false}
-  factions.color.show.primary: {description: show primary faction color, default: false}
-  factions.color.show.secondary: {description: show secondary faction color, default: false}
   factions.create: {description: create new faction, default: false}
   factions.description: {description: change faction description, default: false}
   factions.disband: {description: disband faction, default: false}
@@ -180,11 +177,8 @@ permissions:
       factions.claim.all: true
       factions.color: true
       factions.color.set: true
-      factions.color.set.primary: true
-      factions.color.set.secondary: true
+      factions.color.reset: true
       factions.color.show: true
-      factions.color.show.primary: true
-      factions.color.show.secondary: true
       factions.create: true
       factions.demote: true
       factions.description: true
@@ -368,11 +362,8 @@ permissions:
       factions.claim.all: true
       factions.color: true
       factions.color.set: true
-      factions.color.set.primary: true
-      factions.color.set.secondary: true
+      factions.color.reset: true
       factions.color.show: true
-      factions.color.show.primary: true
-      factions.color.show.secondary: true
       factions.create: true
       factions.demote: true
       factions.description: true
