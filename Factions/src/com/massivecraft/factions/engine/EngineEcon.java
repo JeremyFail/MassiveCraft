@@ -131,15 +131,59 @@ public class EngineEcon extends Engine
 			Double typeCost = MConf.get().econChunkCost.get(type);
 			if (typeCost == null) continue;
 			if (typeCost == 0) continue;
+
+			Double typeCostMultiplier = MConf.get().econChunkCostMultiplier.get(type);
+			if (typeCostMultiplier == null) typeCostMultiplier = 0.0;
+
+			// Faction whose land count is used for the multiplier: for BUY/CONQUER it's the faction gaining;
+			// for SELL/PILLAGE it's the faction losing the land (selling or being pillaged).
+			Faction factionForCount = getFactionForChunkChangeType(event, type, chunks);
+			int landCount = factionForCount != null ? factionForCount.getLandCount() : 0;
 			
-			typeCost *= chunks.size();
-			cost += typeCost;
+			// Cost per chunk: econChunkCost + (econChunkCost * econChunkCostMultiplier * ownedChunks)
+			// When gaining (BUY/CONQUER): ownedChunks = landCount + i (count before adding).
+			// When losing (SELL/PILLAGE): value the chunk as when it was acquired, ownedChunks = landCount - 1 - i
+			// (e.g. selling/pillaging the 11th chunk uses ownedChunks=10 so price matches if the values and multipliers are the same).
+			double totalTypeCost = 0;
+			int n = chunks.size();
+			for (int i = 0; i < n; i++)
+			{
+				boolean losingLand = (type == EventFactionsChunkChangeType.SELL || type == EventFactionsChunkChangeType.PILLAGE);
+				int ownedChunks = losingLand ? (landCount - 1 - i) : (landCount + i);
+				double chunkCost = typeCost + (typeCost * typeCostMultiplier * ownedChunks);
+				totalTypeCost += chunkCost;
+			}
+
+			// BUY/CONQUER: positive cost = player/faction pays. SELL/PILLAGE: negative cost = player/faction receives.
+			if (type == EventFactionsChunkChangeType.SELL || type == EventFactionsChunkChangeType.PILLAGE)
+			{
+				cost -= totalTypeCost;
+			}
+			else
+			{
+				cost += totalTypeCost;
+			}
 			
 			typeNames.add(type.now);
 		}
 		
 		String desc = Txt.implodeCommaAnd(typeNames) + " this land";
 		payForAction(event, cost, desc);
+	}
+
+	/**
+	 * Returns the faction whose land count is used for the chunk cost multiplier
+	 * for the given change type. For BUY/CONQUER it is the faction gaining land;
+	 * for SELL/PILLAGE it is the faction losing the land (seller or pillage victim).
+	 */
+	private static Faction getFactionForChunkChangeType(EventFactionsChunksChange event, EventFactionsChunkChangeType type, Set<PS> chunks)
+	{
+		if (type == EventFactionsChunkChangeType.SELL || type == EventFactionsChunkChangeType.PILLAGE)
+		{
+			PS any = chunks.isEmpty() ? null : chunks.iterator().next();
+			return any != null ? event.getOldChunkFaction().get(any) : null;
+		}
+		return event.getNewFaction();
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

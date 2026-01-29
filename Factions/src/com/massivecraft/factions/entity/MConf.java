@@ -710,9 +710,22 @@ public class MConf extends Entity<MConf>
 	// Per default "" the money is just destroyed.
 	public String econUniverseAccount = "";
 	
-	// What is the price per chunk when using /f set?
+	// What is the base price per chunk when using /f set?
 	public Map<EventFactionsChunkChangeType, Double> econChunkCost = MUtil.map(
 		EventFactionsChunkChangeType.BUY, 1.0, // when claiming from wilderness
+		EventFactionsChunkChangeType.SELL, 0.0, // when selling back to wilderness
+		EventFactionsChunkChangeType.CONQUER, 0.0, // when claiming from another player faction
+		EventFactionsChunkChangeType.PILLAGE, 0.0 // when unclaiming (to wilderness) from another player faction
+	);
+
+	// What is the multiplier for the base price per chunk when using /f set?
+	// This is used to charge more money for each chunk claimed.
+	// For example, if the base price per chunk is 100 and the multiplier is 0.5, then the price per chunk would 
+	// increase by 50 for each chunk claimed. This is useful for when you want to charge a higher price for claiming 
+	// more chunks.
+	// The calculation is: econChunkCost + (econChunkCost * econChunkCostMultiplier * ownedChunks)
+	public Map<EventFactionsChunkChangeType, Double> econChunkCostMultiplier = MUtil.map(
+		EventFactionsChunkChangeType.BUY, 0.0, // when claiming from wilderness
 		EventFactionsChunkChangeType.SELL, 0.0, // when selling back to wilderness
 		EventFactionsChunkChangeType.CONQUER, 0.0, // when claiming from another player faction
 		EventFactionsChunkChangeType.PILLAGE, 0.0 // when unclaiming (to wilderness) from another player faction
@@ -746,7 +759,7 @@ public class MConf extends Entity<MConf>
 	// This enables the command /f money.
 	public boolean bankEnabled = true;
 	
-	// That costs should the faciton bank take care of?
+	// Should the faction bank take care of costs?
 	// If you set this to false the player executing the command will pay instead.
 	public boolean bankFactionPaysCosts = true;
 
