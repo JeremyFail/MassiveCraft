@@ -75,6 +75,12 @@
             <artifactId>bluemap-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- SquareMap -->
+        <dependency>
+            <groupId>xyz.jpenilla</groupId>
+            <artifactId>squaremap-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <!-- Build -->

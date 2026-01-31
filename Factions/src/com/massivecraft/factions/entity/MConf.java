@@ -793,6 +793,12 @@ public class MConf extends Entity<MConf>
 	// Should BlueMap update timing be logged to console?
 	public boolean bluemapLogTimeSpent = false;
 
+	// Should the SquareMap integration be used?
+	public boolean squaremapEnabled = true;
+
+	// Should SquareMap update timing be logged to console?
+	public boolean squaremapLogTimeSpent = false;
+
 	// ========== SHARED: TERRITORY LAYER ==========
 
 	// Name of the Factions territory layer
