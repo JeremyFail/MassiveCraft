@@ -1,5 +1,6 @@
-package com.massivecraft.factions.integration.dynmap;
+package com.massivecraft.factions.integration.map;
 
+import com.massivecraft.factions.integration.dynmap.EngineDynmap;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.collections.MassiveSet;
@@ -45,10 +46,11 @@ public final class TerritoryPolygonBuilder
 	 * @param polygonChunks Set of contiguous claimed chunks
 	 * @return Single polygon as list of corner coordinates, or empty list if input is null/empty
 	 */
-	public static List<PS> buildPolygon(Set<PS> polygonChunks)
+	public static List<PS> buildContiguousPolygon(Set<PS> polygonChunks)
 	{
 		if (polygonChunks == null || polygonChunks.isEmpty()) return new MassiveList<>();
-		List<List<PS>> polygonWithHoles = getPolygonWithHoles(polygonChunks);
+		// Combine diagonally adjacent holes so etch-a-sketch cutouts traverse all of them as one cluster (Dynmap).
+		List<List<PS>> polygonWithHoles = getPolygonWithHoles(polygonChunks, true);
 		if (polygonWithHoles.isEmpty()) return new MassiveList<>();
 		if (polygonWithHoles.size() == 1) return new MassiveList<>(polygonWithHoles.get(0));
 		return createPolygonWithCutouts(polygonWithHoles);
@@ -59,30 +61,43 @@ public final class TerritoryPolygonBuilder
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Gets a polygon with holes, including the outer boundary and any interior holes.
-	 * 
-	 * <p>
-	 * <ol>
-	 * <li>Traces the outer boundary clockwise</li>
-	 * <li>Identifies all unclaimed chunks within the bounding box</li>
-	 * <li>Groups unclaimed chunks using diagonal-aware flood fill</li>
-	 * <li>Filters out groups touching the bounding box (exterior connections)</li>
-	 * <li>Splits interior groups into orthogonal components</li>
-	 * <li>Traces each component boundary counter-clockwise</li>
-	 * </ol>
-	 * </p>
-	 * 
+	 * Gets a polygon with holes (outer boundary plus hole boundaries).
+	 * Uses orthogonal-only hole grouping by default so diagonally adjacent holes
+	 * are returned as separate holes (e.g. for BlueMap). Use
+	 * {@link #getPolygonWithHoles(Set, boolean)} with {@code true} to combine
+	 * diagonally adjacent holes for etch-a-sketch (e.g. Dynmap).
+	 *
 	 * @param polygonChunks Set of contiguous claimed chunks
 	 * @return List where index [0] is outer boundary, [1..N] are hole boundaries
 	 */
-	private static List<List<PS>> getPolygonWithHoles(Set<PS> polygonChunks)
+	public static List<List<PS>> getPolygonWithHoles(Set<PS> polygonChunks)
+	{
+		return getPolygonWithHoles(polygonChunks, false);
+	}
+
+	/**
+	 * Gets a polygon with holes, including the outer boundary and any interior holes.
+	 *
+	 * <p>
+	 * When {@code combineDiagonallyAdjacentHoles} is {@code false} (e.g. for BlueMap):
+	 * holes are grouped using 4-neighbor (orthogonal) flood fill only, so diagonally
+	 * adjacent unclaimed chunks are separate holes. When {@code true} (e.g. for Dynmap
+	 * etch-a-sketch): diagonally adjacent holes are grouped, then split into orthogonal
+	 * components so cutouts can traverse all of them as one cluster.
+	 * </p>
+	 *
+	 * @param polygonChunks Set of contiguous claimed chunks
+	 * @param combineDiagonallyAdjacentHoles If true, group holes with 8-neighbor fill and split into orthogonal components; if false, 4-neighbor only (one hole per orthogonally-connected group)
+	 * @return List where index [0] is outer boundary, [1..N] are hole boundaries
+	 */
+	public static List<List<PS>> getPolygonWithHoles(Set<PS> polygonChunks, boolean combineDiagonallyAdjacentHoles)
 	{
 		List<List<PS>> result = new MassiveList<>();
-		
+
 		// 1. Trace outer boundary (clockwise)
 		List<PS> outerBoundary = getLineList(polygonChunks);
 		result.add(outerBoundary);
-		
+
 		// 2. Find bounding box to search for holes
 		int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
 		int minZ = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE;
@@ -95,7 +110,7 @@ public final class TerritoryPolygonBuilder
 			if (z < minZ) minZ = z;
 			if (z > maxZ) maxZ = z;
 		}
-		
+
 		// 3. Find all unclaimed chunks within the bounding box
 		Set<PS> potentialHoles = new MassiveSet<>();
 		for (int x = minX; x <= maxX; x++)
@@ -109,42 +124,32 @@ public final class TerritoryPolygonBuilder
 				}
 			}
 		}
-		
-		// 4. Group unclaimed chunks into separate holes using DIAGONAL-AWARE flood fill
-		// This treats kiddy-corner chunks as part of the same hole for the
-		// purpose of deciding whether the unclaimed area connects to the
-		// exterior (touches the bounding box). After we know a diagonal group
-		// is a true interior hole, we further split it into orthogonal
-		// components so that shapes consisting only of diagonal connections
-		// (like two squares touching at a corner) still produce separate
-		// hole boundaries and all interior voids are carved out.
+
+		// 4. Group unclaimed chunks into holes and add hole boundaries
 		while (!potentialHoles.isEmpty())
 		{
 			Set<PS> hole = new MassiveSet<>();
 			PS start = potentialHoles.iterator().next();
-			floodFillDiagonal(potentialHoles, hole, start);
-			
-			// Check if this diagonal group touches the bounding box edge (not
-			// a real hole - it connects to outside via at least a diagonal
-			// path). In that case we skip the entire group.
-			if (touchesBoundary(hole, minX, maxX, minZ, maxZ))
+			if (combineDiagonallyAdjacentHoles)
 			{
-				continue;
+				floodFillDiagonal(potentialHoles, hole, start);
+				if (touchesBoundary(hole, minX, maxX, minZ, maxZ)) continue;
+				for (Set<PS> component : splitOrthogonalComponents(hole))
+				{
+					if (component.isEmpty()) continue;
+					List<PS> holeBoundary = getLineListForHole(component);
+					if (!holeBoundary.isEmpty()) result.add(holeBoundary);
+				}
 			}
-			
-			// This is a true interior hole region. It may, however, consist of
-			// several orthogonally-disconnected components that are only
-			// connected diagonally (kiddy-corner). We want each of those
-			// components to produce its own hole boundary so that all voids
-			// are removed from the final filled area.
-			for (Set<PS> component : splitOrthogonalComponents(hole))
+			else
 			{
-				if (component.isEmpty()) continue;
-				List<PS> holeBoundary = getLineListForHole(component);
+				floodFillOrthogonal(potentialHoles, hole, start);
+				if (touchesBoundary(hole, minX, maxX, minZ, maxZ)) continue;
+				List<PS> holeBoundary = getLineListForHole(hole);
 				if (!holeBoundary.isEmpty()) result.add(holeBoundary);
 			}
 		}
-		
+
 		return result;
 	}
 
@@ -153,14 +158,52 @@ public final class TerritoryPolygonBuilder
 	// ------------------------------------------------------------------------
 
 	/**
+	 * Performs a 4-directional flood fill to group only orthogonally-connected chunks.
+	 * Diagonally adjacent chunks are not connected; each orthogonally-connected
+	 * group becomes one hole (e.g. for BlueMap, which expects separate holes).
+	 *
+	 * @param source Set of chunks to search through (modified: chunks are removed as discovered)
+	 * @param destination Set to populate with connected chunks (modified: chunks are added)
+	 * @param start Starting chunk for the flood fill
+	 */
+	private static void floodFillOrthogonal(Set<PS> source, Set<PS> destination, PS start)
+	{
+		ArrayDeque<PS> stack = new ArrayDeque<>();
+		stack.push(start);
+
+		while (!stack.isEmpty())
+		{
+			PS next = stack.pop();
+			if (!source.remove(next)) continue;
+
+			destination.add(next);
+
+			int x = next.getChunkX();
+			int z = next.getChunkZ();
+
+			// Only 4 neighbors (orthogonal)
+			PS[] orthogonal = new PS[] {
+				PS.valueOf(x + 1, z),
+				PS.valueOf(x - 1, z),
+				PS.valueOf(x, z + 1),
+				PS.valueOf(x, z - 1)
+			};
+			for (PS adj : orthogonal)
+			{
+				if (source.contains(adj)) stack.push(adj);
+			}
+		}
+	}
+
+	/**
 	 * Performs an 8-directional flood fill to group diagonally-connected chunks.
-	 * 
+	 *
 	 * <p>
 	 * This treats "kiddy corner" chunks (touching only at a corner) as connected,
 	 * which is essential for identifying hole regions that should be considered
-	 * as a single logical group even when only diagonally adjacent.
+	 * as a single logical group even when only diagonally adjacent (e.g. for Dynmap etch-a-sketch).
 	 * </p>
-	 * 
+	 *
 	 * @param source Set of chunks to search through (modified: chunks are removed as discovered)
 	 * @param destination Set to populate with connected chunks (modified: chunks are added)
 	 * @param start Starting chunk for the flood fill

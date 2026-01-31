@@ -78,6 +78,9 @@
         <!-- https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI -->
         <massivePlaceholderAPIVersion>2.11.7</massivePlaceholderAPIVersion>
 
+        <!-- https://repo.bluecolored.de/ -->
+        <massiveBlueMapVersion>2.7.7</massiveBlueMapVersion>
+
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <!-- MANUAL DOWNLOADS REQUIRED -->
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -138,6 +141,11 @@
         <repository>
             <id>placeholderapi</id>
             <url>https://repo.extendedclip.com/releases/</url>
+        </repository>
+        <!-- BlueMap -->
+        <repository>
+            <id>bluecolored</id>
+            <url>https://repo.bluecolored.de/releases</url>
         </repository>
     </repositories>
 
@@ -449,6 +457,12 @@
 			        </exclusion>
 		      	</exclusions>
 	        </dependency>
+            <dependency>
+                <groupId>de.bluecolored</groupId>
+                <artifactId>bluemap-api</artifactId>
+                <version>${massiveBlueMapVersion}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!-- TODO: Is this stil used? -->
             <dependency>

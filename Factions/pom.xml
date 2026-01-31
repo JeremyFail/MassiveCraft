@@ -69,6 +69,12 @@
           <groupId>us.dynmap</groupId>
           <artifactId>dynmap</artifactId>
         </dependency>
+        <!-- BlueMap -->
+        <dependency>
+            <groupId>de.bluecolored</groupId>
+            <artifactId>bluemap-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <!-- Build -->

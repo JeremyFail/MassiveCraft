@@ -13,12 +13,9 @@ import com.massivecraft.massivecore.Integration;
  * </p>
  * 
  * <p>
- * Constants include:
- * <ul>
- * <li>Marker IDs and naming conventions</li>
- * <li>Default style values (colors, opacity, line weight)</li>
- * <li>Blocks per chunk (always 16 in Minecraft)</li>
- * </ul>
+ * Constants include marker set IDs, area prefixes, Dynmap-specific defaults (e.g. home marker icon),
+ * and blocks per chunk. Generic map style defaults (colors, opacity, weight) are in
+ * {@link com.massivecraft.factions.integration.map.MapStyleDefaults}.
  * </p>
  */
 public class IntegrationDynmap extends Integration
@@ -44,13 +41,12 @@ public class IntegrationDynmap extends Integration
 	public final static String FACTIONS_AREA = FACTIONS_ + "area";
 	public final static String FACTIONS_AREA_ = FACTIONS_AREA + "_";
 
-	public final static transient String DYNMAP_STYLE_LINE_COLOR = "#00FF00";
-	public final static transient double DYNMAP_STYLE_LINE_OPACITY = 0.8D;
-	public final static transient int DYNMAP_STYLE_LINE_WEIGHT = 3;
-	public final static transient String DYNMAP_STYLE_FILL_COLOR = "#00FF00";
-	public final static transient double DYNMAP_STYLE_FILL_OPACITY = 0.35D;
-	public final static transient String DYNMAP_STYLE_HOME_MARKER = "greenflag";
-	public final static transient boolean DYNMAP_STYLE_BOOST = false;
+	/** 
+	 * Dynmap icon ID for home markers. 
+	 * Style defaults (colors, opacity, weight, boost) are in 
+	 * {@link com.massivecraft.factions.integration.map.MapStyleDefaults}. 
+	 **/
+	public final static String DYNMAP_STYLE_HOME_MARKER = "greenflag";
 
 	// -------------------------------------------- //
 	// INSTANCE & CONSTRUCT

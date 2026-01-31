@@ -1,19 +1,25 @@
 package com.massivecraft.factions.integration.dynmap;
 
-import com.massivecraft.factions.entity.MConf;
-import com.massivecraft.factions.entity.MPlayer;
-import com.massivecraft.massivecore.apachecommons.StringEscapeUtils;
-import com.massivecraft.massivecore.util.Txt;
-import org.bukkit.ChatColor;
+import com.massivecraft.factions.integration.map.MapLayer;
+import com.massivecraft.factions.integration.map.MapMarker;
+import com.massivecraft.factions.integration.map.MapStyle;
+import com.massivecraft.factions.integration.map.MapStyleDefaults;
+import com.massivecraft.factions.integration.map.MapTerritoryData;
+import com.massivecraft.factions.integration.map.MapUtil;
+import com.massivecraft.massivecore.ps.PS;
+import com.massivecraft.massivecore.util.MUtil;
+import org.dynmap.markers.AreaMarker;
+import org.dynmap.markers.Marker;
+import org.dynmap.markers.MarkerAPI;
+import org.dynmap.markers.MarkerIcon;
+import org.dynmap.markers.MarkerSet;
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Utility class for Dynmap integration.
- * Contains helper methods for HTML formatting, color management, and configuration access.
+ * Applies shared {@link MapLayer}, {@link MapMarker}, and {@link MapTerritoryData}
+ * to the Dynmap API: ensures marker sets (layers), point markers, and area markers exist and are updated.
  */
 public class DynmapUtil
 {
@@ -25,167 +31,237 @@ public class DynmapUtil
 	{
 		// Utility class - prevent instantiation
 	}
-	
-	// -------------------------------------------- //
-	// COLOR CONFIGURATION
-	// -------------------------------------------- //
-	
-	/**
-	 * Gets the Dynmap default line color following the configuration hierarchy:
-	 * <ol>
-	 * <li>dynmapDefaultLineColor (if set and valid)</li>
-	 * <li>defaultFactionSecondaryColor (if valid)</li>
-	 * <li>Hard-coded constant from IntegrationDynmap</li>
-	 * </ol>
-	 * 
-	 * @return A valid hex color string
-	 */
-	public static String getDefaultLineColor()
-	{
-		MConf conf = MConf.get();
-		
-		// Check Dynmap-specific override
-		if (conf.dynmapDefaultLineColor != null && !conf.dynmapDefaultLineColor.trim().isEmpty())
-		{
-			String color = conf.dynmapDefaultLineColor.trim();
-			if (color.matches("^#[0-9A-Fa-f]{6}$")) return color;
-		}
-		
-		// Check generic default faction secondary color
-		if (conf.defaultFactionSecondaryColor != null && !conf.defaultFactionSecondaryColor.trim().isEmpty())
-		{
-			String color = conf.defaultFactionSecondaryColor.trim();
-			if (color.matches("^#[0-9A-Fa-f]{6}$")) return color;
-		}
-		
-		// Fallback to hardcoded constant
-		return IntegrationDynmap.DYNMAP_STYLE_LINE_COLOR;
-	}
-	
-	/**
-	 * Gets the Dynmap default fill color following the configuration hierarchy:
-	 * <ol>
-	 * <li>dynmapDefaultFillColor (if set and valid)</li>
-	 * <li>defaultFactionPrimaryColor (if valid)</li>
-	 * <li>Hard-coded constant from IntegrationDynmap</li>
-	 * </ol>
-	 * 
-	 * @return A valid hex color string
-	 */
-	public static String getDefaultFillColor()
-	{
-		MConf conf = MConf.get();
-		
-		// Check Dynmap-specific override
-		if (conf.dynmapDefaultFillColor != null && !conf.dynmapDefaultFillColor.trim().isEmpty())
-		{
-			String color = conf.dynmapDefaultFillColor.trim();
-			if (color.matches("^#[0-9A-Fa-f]{6}$")) return color;
-		}
-		
-		// Check generic default faction primary color
-		if (conf.defaultFactionPrimaryColor != null && !conf.defaultFactionPrimaryColor.trim().isEmpty())
-		{
-			String color = conf.defaultFactionPrimaryColor.trim();
-			if (color.matches("^#[0-9A-Fa-f]{6}$")) return color;
-		}
-		
-		// Fallback to hardcoded constant
-		return IntegrationDynmap.DYNMAP_STYLE_FILL_COLOR;
-	}
-	
-	// -------------------------------------------- //
-	// HTML FORMATTING
-	// -------------------------------------------- //
-	
-	/**
-	 * Formats a collection of strings into an HTML table with the specified number of columns.
-	 * 
-	 * @param strings Collection of strings to format
-	 * @param cols Number of columns in the table
-	 * @return HTML formatted string
-	 */
-	public static String getHtmlAsciTable(Collection<String> strings, final int cols)
-	{
-		StringBuilder ret = new StringBuilder();
-		
-		int count = 0;
-		for (Iterator<String> iter = strings.iterator(); iter.hasNext();)
-		{
-			String string = iter.next();
-			count++;
-			
-			ret.append(string);
 
-			if (iter.hasNext())
-			{
-				boolean lineBreak = count % cols == 0;
-				ret.append(lineBreak ? "<br>" : " | ");
-			}
-		}
-		
-		return ret.toString();
-	}
-	
+	// -------------------------------------------- //
+	// LAYER (MarkerSet) FROM MapLayer
+	// -------------------------------------------- //
+
 	/**
-	 * Converts a list of players into a comma-separated HTML string.
-	 * 
-	 * @param mplayers List of players
-	 * @return Comma and dot separated player names
+	 * Ensures a Dynmap marker set exists and is updated with the given layer values.
+	 * If the marker set doesn't exist, it is created; otherwise its properties are updated.
+	 *
+	 * @param api    Dynmap API for creating marker sets
+	 * @param id     Unique identifier for this marker set
+	 * @param values Shared layer data (label, minimum zoom, priority, hidden by default)
+	 * @return The created or updated marker set, or null on failure
 	 */
-	public static String getHtmlPlayerString(List<MPlayer> mplayers)
+	public static MarkerSet ensureMarkerSetExistsAndUpdated(MarkerAPI api, String id, MapLayer values)
 	{
-		List<String> names = mplayers.stream().map(DynmapUtil::getHtmlPlayerName).collect(Collectors.toList());
-		return Txt.implodeCommaAndDot(names);
-	}
-	
-	/**
-	 * Gets the HTML-escaped name of a player.
-	 * 
-	 * @param mplayer The player (can be null)
-	 * @return HTML-escaped player name or "none" if null
-	 */
-	public static String getHtmlPlayerName(MPlayer mplayer)
-	{
-		if (mplayer == null) return "none";
-		return StringEscapeUtils.escapeHtml(mplayer.getName());
-	}
-	
-	/**
-	 * Wraps a string in HTML span with color based on boolean value.
-	 * Green for true, red for false.
-	 * 
-	 * @param string The string to wrap
-	 * @param bool The boolean determining color
-	 * @return HTML span element with colored text
-	 */
-	public static String calcBoolcolor(String string, boolean bool)
-	{
-		// For dark mode, use brighter colors
-		if (MConf.get().dynmapUseDarkModeColors)
+		MarkerSet set = api.getMarkerSet(id);
+		if (set == null)
 		{
-			return "<span style=\"color: " + (bool ? "#00FF00" : "#FF0000") + ";\">" + string + "</span>";
+			set = createMarkerSet(api, id, values);
 		}
-		return "<span style=\"color: " + (bool ? "#008000" : "#800000") + ";\">" + string + "</span>";
+		else
+		{
+			updateMarkerSet(set, values);
+		}
+		return set;
+	}
+
+	private static MarkerSet createMarkerSet(MarkerAPI markerApi, String id, MapLayer values)
+	{
+		MarkerSet ret = markerApi.createMarkerSet(id, values.getLabel(), null, false);
+		if (ret == null) return null;
+		if (values.getMinimumZoom() > 0)
+		{
+			ret.setMinZoom(values.getMinimumZoom());
+		}
+		ret.setLayerPriority(values.getPriority());
+		ret.setHideByDefault(values.isHiddenByDefault());
+		return ret;
+	}
+
+	private static void updateMarkerSet(MarkerSet markerset, MapLayer values)
+	{
+		if (values.getMinimumZoom() > 0)
+		{
+			MUtil.setIfDifferent(values.getMinimumZoom(), markerset::getMinZoom, markerset::setMinZoom);
+		}
+		MUtil.setIfDifferent(values.getLabel(), markerset::getMarkerSetLabel, markerset::setMarkerSetLabel);
+		MUtil.setIfDifferent(values.getPriority(), markerset::getLayerPriority, markerset::setLayerPriority);
+		MUtil.setIfDifferent(values.isHiddenByDefault(), markerset::getHideByDefault, markerset::setHideByDefault);
+	}
+
+	// -------------------------------------------- //
+	// POINT MARKER FROM MapMarker
+	// -------------------------------------------- //
+
+	/**
+	 * Ensures a Dynmap point marker exists and is updated from shared marker values.
+	 * If the existing marker is null, a new marker is created; otherwise it is updated in place.
+	 *
+	 * @param values    Shared marker data (label, world, position, icon, description)
+	 * @param existing  Existing Dynmap marker, or null to create
+	 * @param markerApi Dynmap API
+	 * @param markerSet Marker set to add to when creating
+	 * @param markerId  Marker ID for creation and lookup
+	 * @return The created or updated marker
+	 */
+	public static Marker ensurePointMarkerExistsAndUpdated(MapMarker values, Marker existing, MarkerAPI markerApi, MarkerSet markerSet, String markerId)
+	{
+		if (existing == null)
+		{
+			return createPointMarker(values, markerApi, markerSet, markerId);
+		}
+		updatePointMarker(values, markerApi, existing);
+		return existing;
+	}
+
+	private static Marker createPointMarker(MapMarker values, MarkerAPI markerApi, MarkerSet markerset, String markerId)
+	{
+		Marker ret = markerset.createMarker(
+			markerId,
+			values.getLabel(),
+			values.getWorld(),
+			values.getX(),
+			values.getY(),
+			values.getZ(),
+			getMarkerIcon(markerApi, values.getIconName()),
+			false
+		);
+		if (ret == null) return null;
+		ret.setDescription(values.getDescription());
+		return ret;
+	}
+
+	private static void updatePointMarker(MapMarker values, MarkerAPI markerApi, Marker marker)
+	{
+		if (!MUtil.equals(marker.getWorld(), values.getWorld())
+			|| marker.getX() != values.getX()
+			|| marker.getY() != values.getY()
+			|| marker.getZ() != values.getZ())
+		{
+			marker.setLocation(values.getWorld(), values.getX(), values.getY(), values.getZ());
+		}
+		MUtil.setIfDifferent(values.getLabel(), marker::getLabel, marker::setLabel);
+		MarkerIcon icon = getMarkerIcon(markerApi, values.getIconName());
+		MUtil.setIfDifferent(icon, marker::getMarkerIcon, marker::setMarkerIcon);
+		MUtil.setIfDifferent(values.getDescription(), marker::getDescription, marker::setDescription);
 	}
 
 	/**
-	 * Replaces a placeholder in HTML with an HTML-escaped value.
-	 * 
-	 * @param ret The HTML string containing placeholders
-	 * @param target The placeholder name (without % symbols)
-	 * @param replace The replacement value (will be HTML-escaped)
-	 * @return Updated HTML string
+	 * Resolves an icon name to a Dynmap MarkerIcon, falling back to the default home marker icon if not found.
+	 *
+	 * @param markerApi Dynmap API
+	 * @param iconName  Icon name from config (e.g. "redflag")
+	 * @return The MarkerIcon to use
 	 */
-	public static String addToHtml(String ret, String target, String replace)
+	public static MarkerIcon getMarkerIcon(MarkerAPI markerApi, String iconName)
 	{
-		if (ret == null) throw new NullPointerException("ret");
-		if (target == null) throw new NullPointerException("target");
-		if (replace == null) throw new NullPointerException("replace");
+		MarkerIcon ret = markerApi.getMarkerIcon(iconName);
+		if (ret == null) ret = markerApi.getMarkerIcon(IntegrationDynmap.DYNMAP_STYLE_HOME_MARKER);
+		return ret;
+	}
 
-		target = "%" + target + "%";
-		replace = ChatColor.stripColor(replace);
-		replace = StringEscapeUtils.escapeHtml(replace);
-		return ret.replace(target, replace);
+	// -------------------------------------------- //
+	// AREA MARKER (TERRITORY) FROM MapTerritoryData
+	// -------------------------------------------- //
+
+	/**
+	 * Ensures a Dynmap area marker exists and is updated from shared territory data.
+	 * Dynmap area markers support only a single polygon (no holes); only {@link MapTerritoryData#getOuter()} is used.
+	 *
+	 * @param data      Shared territory data (label, world, description, outer, style)
+	 * @param existing  Existing Dynmap area marker, or null to create
+	 * @param markerApi Dynmap API
+	 * @param markerSet Marker set to add to when creating
+	 * @param markerId  Marker ID for creation and lookup
+	 * @return The created or updated area marker, or null on failure
+	 */
+	public static AreaMarker ensureAreaMarkerExistsAndUpdated(MapTerritoryData data, AreaMarker existing, MarkerAPI markerApi, MarkerSet markerSet, String markerId)
+	{
+		if (existing == null)
+		{
+			return createAreaMarker(data, markerApi, markerSet, markerId);
+		}
+		updateAreaMarker(data, markerApi, existing);
+		return existing;
+	}
+
+	private static AreaMarker createAreaMarker(MapTerritoryData data, MarkerAPI markerApi, MarkerSet markerSet, String markerId)
+	{
+		double[] x = getOuterX(data.getOuter());
+		double[] z = getOuterZ(data.getOuter());
+		if (x.length < 3) return null;
+
+		AreaMarker ret = markerSet.createAreaMarker(
+			markerId,
+			data.getLabel(),
+			false,
+			data.getWorld(),
+			x,
+			z,
+			false
+		);
+		if (ret == null) return null;
+
+		ret.setDescription(data.getDescription());
+		MapStyle style = data.getStyle();
+		int lineColor = MapStyle.getColorAsInt(MapUtil.getResolvedLineColor(style));
+		int fillColor = MapStyle.getColorAsInt(MapUtil.getResolvedFillColor(style));
+		double lineOpacity = style != null ? style.getLineOpacity() : MapStyleDefaults.DEFAULT_LINE_OPACITY;
+		int lineWeight = style != null ? style.getLineWeight() : MapStyleDefaults.DEFAULT_LINE_WEIGHT;
+		double fillOpacity = style != null ? style.getFillOpacity() : MapStyleDefaults.DEFAULT_FILL_OPACITY;
+		boolean boost = style != null && style.getBoost();
+
+		ret.setLineStyle(lineWeight, lineOpacity, lineColor);
+		ret.setFillStyle(fillOpacity, fillColor);
+		ret.setBoostFlag(boost);
+		return ret;
+	}
+
+	private static void updateAreaMarker(MapTerritoryData data, MarkerAPI markerApi, AreaMarker marker)
+	{
+		double[] x = getOuterX(data.getOuter());
+		double[] z = getOuterZ(data.getOuter());
+
+		if (!areaMarkerCornersEqual(marker, x, z))
+		{
+			marker.setCornerLocations(x, z);
+		}
+		MUtil.setIfDifferent(data.getLabel(), marker::getLabel, marker::setLabel);
+		MUtil.setIfDifferent(data.getDescription(), marker::getDescription, marker::setDescription);
+
+		MapStyle style = data.getStyle();
+		int lineColor = MapStyle.getColorAsInt(MapUtil.getResolvedLineColor(style));
+		int fillColor = MapStyle.getColorAsInt(MapUtil.getResolvedFillColor(style));
+		double lineOpacity = style != null ? style.getLineOpacity() : MapStyleDefaults.DEFAULT_LINE_OPACITY;
+		int lineWeight = style != null ? style.getLineWeight() : MapStyleDefaults.DEFAULT_LINE_WEIGHT;
+		double fillOpacity = style != null ? style.getFillOpacity() : MapStyleDefaults.DEFAULT_FILL_OPACITY;
+		boolean boost = style != null && style.getBoost();
+
+		marker.setLineStyle(lineWeight, lineOpacity, lineColor);
+		marker.setFillStyle(fillOpacity, fillColor);
+		marker.setBoostFlag(boost);
+	}
+
+	private static double[] getOuterX(List<PS> outer)
+	{
+		if (outer == null || outer.isEmpty()) return new double[0];
+		double[] x = new double[outer.size()];
+		for (int i = 0; i < outer.size(); i++)
+			x[i] = outer.get(i).getLocationX(true);
+		return x;
+	}
+
+	private static double[] getOuterZ(List<PS> outer)
+	{
+		if (outer == null || outer.isEmpty()) return new double[0];
+		double[] z = new double[outer.size()];
+		for (int i = 0; i < outer.size(); i++)
+			z[i] = outer.get(i).getLocationZ(true);
+		return z;
+	}
+
+	private static boolean areaMarkerCornersEqual(AreaMarker marker, double[] x, double[] z)
+	{
+		int length = marker.getCornerCount();
+		if (x.length != length || z.length != length) return false;
+		for (int i = 0; i < length; i++)
+		{
+			if (marker.getCornerX(i) != x[i] || marker.getCornerZ(i) != z[i]) return false;
+		}
+		return true;
 	}
 }

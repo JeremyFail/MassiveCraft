@@ -9,13 +9,18 @@ import com.massivecraft.factions.entity.MFlag;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factions.entity.Warp;
 import com.massivecraft.factions.integration.Econ;
+import com.massivecraft.factions.integration.map.MapLayer;
+import com.massivecraft.factions.integration.map.MapMarker;
+import com.massivecraft.factions.integration.map.MapStyle;
+import com.massivecraft.factions.integration.map.MapTerritoryData;
+import com.massivecraft.factions.integration.map.MapUtil;
+import com.massivecraft.factions.integration.map.TerritoryPolygonBuilder;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.money.Money;
 import com.massivecraft.massivecore.ps.PS;
-import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.TimeDiffUtil;
 import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
@@ -127,7 +132,7 @@ public class EngineDynmap extends Engine
 		long before = System.currentTimeMillis();
 
 		// Generate area markers asynchronously (CPU intensive)
-		final Map<String, AreaMarkerValues> areas = createAreas();
+		final Map<String, MapTerritoryData> areas = createAreas();
 
 		logTimeSpent("Async", before);
 
@@ -144,9 +149,9 @@ public class EngineDynmap extends Engine
 	 * configuration settings.
 	 * </p>
 	 * 
-	 * @param areas Pre-computed area marker values from async processing
+	 * @param areas Pre-computed territory data from async processing
 	 */
-	public void updateFactionsDynmap(Map<String, AreaMarkerValues> areas)
+	public void updateFactionsDynmap(Map<String, MapTerritoryData> areas)
 	{
 		long before = System.currentTimeMillis();
 
@@ -159,11 +164,11 @@ public class EngineDynmap extends Engine
 		updateAreas(areas);
 		
 		// Update home warp layer if enabled
-		if (MConf.get().dynmapShowHomeWarp)
+		if (MConf.get().mapShowHomeWarp)
 		{
 			if (updateLayerHome(createLayerHome()))
 			{
-				Map<String, MarkerValues> homeWarps = createHomeWarps();
+				Map<String, MapMarker> homeWarps = createHomeWarps();
 				updateHomeWarps(homeWarps);
 			}
 		}
@@ -178,11 +183,11 @@ public class EngineDynmap extends Engine
 		}
 		
 		// Update other warps layer if enabled
-		if (MConf.get().dynmapShowOtherWarps)
+		if (MConf.get().mapShowOtherWarps)
 		{
 			if (updateLayerWarps(createLayerWarps()))
 			{
-				Map<String, MarkerValues> otherWarps = createOtherWarps();
+				Map<String, MapMarker> otherWarps = createOtherWarps();
 				updateOtherWarps(otherWarps);
 			}
 		}
@@ -266,60 +271,60 @@ public class EngineDynmap extends Engine
 	// ========== TERRITORY LAYER ==========
 	
 	// Thread Safe / Asynchronous: Yes
-	public LayerValues createLayerTerritory()
+	public MapLayer createLayerTerritory()
 	{
-		return new LayerValues(
-			MConf.get().dynmapLayerName,
-			MConf.get().dynmapLayerMinimumZoom,
-			MConf.get().dynmapLayerPriority,
-			MConf.get().dynmapLayerHiddenByDefault
+		return new MapLayer(
+			MConf.get().mapLayerName,
+			MConf.get().mapLayerMinimumZoom,
+			MConf.get().mapLayerPriority,
+			MConf.get().mapLayerHiddenByDefault
 		);
 	}
-	
+
 	// Thread Safe / Asynchronous: No
-	public boolean updateLayerTerritory(LayerValues temp)
+	public boolean updateLayerTerritory(MapLayer temp)
 	{
-		this.markersetTerritory = temp.ensureExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_TERRITORY);
+		this.markersetTerritory = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_TERRITORY, temp);
 		return this.markersetTerritory != null;
 	}
 	
 	// ========== HOME WARP LAYER ==========
 	
 	// Thread Safe / Asynchronous: Yes
-	public LayerValues createLayerHome()
+	public MapLayer createLayerHome()
 	{
-		return new LayerValues(
-			MConf.get().dynmapLayerNameHome,
-			MConf.get().dynmapLayerMinimumZoomHome,
-			MConf.get().dynmapLayerPriorityHome,
-			MConf.get().dynmapLayerHiddenByDefaultHome
+		return new MapLayer(
+			MConf.get().mapLayerNameHome,
+			MConf.get().mapLayerMinimumZoomHome,
+			MConf.get().mapLayerPriorityHome,
+			MConf.get().mapLayerHiddenByDefaultHome
 		);
 	}
-	
+
 	// Thread Safe / Asynchronous: No
-	public boolean updateLayerHome(LayerValues temp)
+	public boolean updateLayerHome(MapLayer temp)
 	{
-		this.markersetHome = temp.ensureExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_HOME);
+		this.markersetHome = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_HOME, temp);
 		return this.markersetHome != null;
 	}
 	
 	// ========== OTHER WARPS LAYER ==========
 	
 	// Thread Safe / Asynchronous: Yes
-	public LayerValues createLayerWarps()
+	public MapLayer createLayerWarps()
 	{
-		return new LayerValues(
-			MConf.get().dynmapLayerNameWarps,
-			MConf.get().dynmapLayerMinimumZoomWarps,
-			MConf.get().dynmapLayerPriorityWarps,
-			MConf.get().dynmapLayerHiddenByDefaultWarps
+		return new MapLayer(
+			MConf.get().mapLayerNameWarps,
+			MConf.get().mapLayerMinimumZoomWarps,
+			MConf.get().mapLayerPriorityWarps,
+			MConf.get().mapLayerHiddenByDefaultWarps
 		);
 	}
-	
+
 	// Thread Safe / Asynchronous: No
-	public boolean updateLayerWarps(LayerValues temp)
+	public boolean updateLayerWarps(MapLayer temp)
 	{
-		this.markersetWarps = temp.ensureExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_WARPS);
+		this.markersetWarps = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_WARPS, temp);
 		return this.markersetWarps != null;
 	}
 
@@ -328,75 +333,63 @@ public class EngineDynmap extends Engine
 	// -------------------------------------------- //
 	
 	// Thread Safe: YES
-	public Map<String, MarkerValues> createHomeWarps()
+	public Map<String, MapMarker> createHomeWarps()
 	{
-		Map<String, MarkerValues> ret = new MassiveMap<>();
-		
-		// For each faction
+		Map<String, MapMarker> ret = new MassiveMap<>();
+
 		for (Faction faction : FactionColl.get().getAll())
 		{
-			// For each warp
 			for (Warp warp : faction.getWarps().getAll())
 			{
-				// Only process home warps
 				if (!"home".equalsIgnoreCase(warp.getName())) continue;
-				
+
 				PS location = warp.getLocation();
 				if (location == null) continue;
-				
+
 				String world = location.getWorld();
 				if (world == null) continue;
-				
-				// Check visibility for this world
+
 				if (!isVisible(faction, world)) continue;
-				
-				// Create label
+
 				String label = faction.getName() + " - Home";
-				
-				// Create description
 				String description = "<b>" + faction.getName() + "</b><br/>Home";
-				
-				// Create marker
-				MarkerValues marker = new MarkerValues(
+
+				MapMarker marker = new MapMarker(
 					label,
 					world,
 					location.getLocationX(),
 					location.getLocationY(),
 					location.getLocationZ(),
-					MConf.get().dynmapWarpHomeIcon,
+					MConf.get().mapWarpHomeIcon,
 					description
 				);
-				
-				// Generate unique ID
+
 				String markerId = "factions_home_" + faction.getId();
 				ret.put(markerId, marker);
 			}
 		}
-		
+
 		return ret;
 	}
 	
 	/**
 	 * Updates home warp markers on the Dynmap.
 	 * Removes old markers that no longer exist and creates/updates current markers.
-	 * 
-	 * @param values Map of marker IDs to marker values for all current home warps
+	 *
+	 * @param values Map of marker IDs to shared marker values for all current home warps
 	 */
 	// Thread Safe: NO
-	public void updateHomeWarps(Map<String, MarkerValues> values)
+	public void updateHomeWarps(Map<String, MapMarker> values)
 	{
-		// Cleanup old home markers
 		this.markersetHome.getMarkers().stream()
 			.filter(m -> m.getMarkerID().startsWith("factions_home_"))
 			.filter(m -> !values.containsKey(m.getMarkerID()))
 			.forEach(Marker::deleteMarker);
-		
-		// Map current markers
+
 		Map<String, Marker> markers = getHomeMarkerMap(this.markersetHome);
-		
-		// Create or update markers
+
 		values.forEach((markerId, value) ->
-			value.ensureExistsAndUpdated(markers.get(markerId), this.markerApi, this.markersetHome, markerId));
+			DynmapUtil.ensurePointMarkerExistsAndUpdated(value, markers.get(markerId), this.markerApi, this.markersetHome, markerId));
 	}
 	
 	/**
@@ -417,75 +410,63 @@ public class EngineDynmap extends Engine
 	// -------------------------------------------- //
 	
 	// Thread Safe: YES
-	public Map<String, MarkerValues> createOtherWarps()
+	public Map<String, MapMarker> createOtherWarps()
 	{
-		Map<String, MarkerValues> ret = new MassiveMap<>();
-		
-		// For each faction
+		Map<String, MapMarker> ret = new MassiveMap<>();
+
 		for (Faction faction : FactionColl.get().getAll())
 		{
-			// For each warp
 			for (Warp warp : faction.getWarps().getAll())
 			{
-				// Skip home warp (only process other warps)
 				if ("home".equalsIgnoreCase(warp.getName())) continue;
-				
+
 				PS location = warp.getLocation();
 				if (location == null) continue;
-				
+
 				String world = location.getWorld();
 				if (world == null) continue;
-				
-				// Check visibility for this world
+
 				if (!isVisible(faction, world)) continue;
-				
-				// Create label
+
 				String label = faction.getName() + " - " + warp.getName();
-				
-				// Create description
 				String description = "<b>" + faction.getName() + "</b><br/>Warp: " + warp.getName();
-				
-				// Create marker
-				MarkerValues marker = new MarkerValues(
+
+				MapMarker marker = new MapMarker(
 					label,
 					world,
 					location.getLocationX(),
 					location.getLocationY(),
 					location.getLocationZ(),
-					MConf.get().dynmapWarpOtherIcon,
+					MConf.get().mapWarpOtherIcon,
 					description
 				);
-				
-				// Generate unique ID
+
 				String markerId = "factions_warp_" + faction.getId() + "_" + warp.getId();
 				ret.put(markerId, marker);
 			}
 		}
-		
+
 		return ret;
 	}
 	
 	/**
 	 * Updates non-home warp markers on the Dynmap.
 	 * Removes old markers that no longer exist and creates/updates current markers.
-	 * 
-	 * @param values Map of marker IDs to marker values for all current non-home warps
+	 *
+	 * @param values Map of marker IDs to shared marker values for all current non-home warps
 	 */
 	// Thread Safe: NO
-	public void updateOtherWarps(Map<String, MarkerValues> values)
+	public void updateOtherWarps(Map<String, MapMarker> values)
 	{
-		// Cleanup old warp markers
 		this.markersetWarps.getMarkers().stream()
 			.filter(m -> m.getMarkerID().startsWith("factions_warp_"))
 			.filter(m -> !values.containsKey(m.getMarkerID()))
 			.forEach(Marker::deleteMarker);
-		
-		// Map current markers
+
 		Map<String, Marker> markers = getOtherWarpsMarkerMap(this.markersetWarps);
-		
-		// Create or update markers
+
 		values.forEach((markerId, value) ->
-			value.ensureExistsAndUpdated(markers.get(markerId), this.markerApi, this.markersetWarps, markerId));
+			DynmapUtil.ensurePointMarkerExistsAndUpdated(value, markers.get(markerId), this.markerApi, this.markersetWarps, markerId));
 	}
 	
 	/**
@@ -506,7 +487,7 @@ public class EngineDynmap extends Engine
 	// -------------------------------------------- //
 	
 	// Thread Safe: YES
-	public Map<String, AreaMarkerValues> createAreas()
+	public Map<String, MapTerritoryData> createAreas()
 	{
 		Map<String, Map<Faction, Set<PS>>> worldFactionChunks = BoardColl.get().getWorldToFactionToChunks(false);
 		return createAreas(worldFactionChunks);
@@ -514,7 +495,7 @@ public class EngineDynmap extends Engine
 	}
 	
 	// Thread Safe: YES
-	public Map<String, AreaMarkerValues> createAreas(Map<String, Map<Faction, Set<PS>>> worldFactionChunks)
+	public Map<String, MapTerritoryData> createAreas(Map<String, Map<Faction, Set<PS>>> worldFactionChunks)
 	{
 		// For each world create the areas
 		return worldFactionChunks.entrySet().stream()
@@ -529,9 +510,9 @@ public class EngineDynmap extends Engine
 	 * Creates area markers for a world and its factions (convenience method).
 	 * 
 	 * @param superEntry Entry containing world name and faction-to-chunks mapping
-	 * @return Map of marker IDs to area marker values
+	 * @return Map of marker IDs to territory data
 	 */
-	public Map<String, AreaMarkerValues> createAreas(Entry<String, Map<Faction, Set<PS>>> superEntry)
+	public Map<String, MapTerritoryData> createAreas(Entry<String, Map<Faction, Set<PS>>> superEntry)
 	{
 		return createAreas(superEntry.getKey(), superEntry.getValue());
 	}
@@ -541,9 +522,9 @@ public class EngineDynmap extends Engine
 	 * 
 	 * @param world The world name
 	 * @param map Mapping of factions to their claimed chunks
-	 * @return Map of marker IDs to area marker values
+	 * @return Map of marker IDs to territory data
 	 */
-	public Map<String, AreaMarkerValues> createAreas(String world, Map<Faction, Set<PS>> map)
+	public Map<String, MapTerritoryData> createAreas(String world, Map<Faction, Set<PS>> map)
 	{
 		// For each entry convert it into the appropriate map (with method below)
 		return map.entrySet().stream()
@@ -559,14 +540,14 @@ public class EngineDynmap extends Engine
 	 * 
 	 * @param world The world name
 	 * @param entry Entry containing faction and its claimed chunks
-	 * @return Map of marker IDs to area marker values
+	 * @return Map of marker IDs to territory data
 	 */
-	public Map<String, AreaMarkerValues> createAreas(String world, Entry<Faction, Set<PS>> entry)
+	public Map<String, MapTerritoryData> createAreas(String world, Entry<Faction, Set<PS>> entry)
 	{
 		return createAreas(world, entry.getKey(), entry.getValue());
 	}
 
-	public Map<String, AreaMarkerValues> createAreas(String world, Faction faction, Set<PS> chunks)
+	public Map<String, MapTerritoryData> createAreas(String world, Faction faction, Set<PS> chunks)
 	{
 		// If the faction is visible ...
 		if (!isVisible(faction, world)) return Collections.emptyMap();
@@ -574,11 +555,11 @@ public class EngineDynmap extends Engine
 		// ... and has any chunks ...
 		if (chunks.isEmpty()) return Collections.emptyMap();
 
-		Map<String, AreaMarkerValues> ret = new MassiveMap<>();
+		Map<String, MapTerritoryData> ret = new MassiveMap<>();
 
 		// Get info
 		String description = getDescription(faction);
-		DynmapStyle style = this.getStyle(faction);
+		MapStyle style = this.getStyle(faction);
 		
 		// Here we start of with all chunks
 		// This field is slowly cleared when the chunks are grouped into polygons
@@ -592,15 +573,16 @@ public class EngineDynmap extends Engine
 			PS startChunk = it.next();
 			floodFillTarget(allChunksSource, polygonChunks, startChunk);
 
-			// Build final polygon (outer boundary + any interior holes with cutouts)
-			List<PS> finalPolygon = TerritoryPolygonBuilder.buildPolygon(polygonChunks);
-			
-			PS[] corners = finalPolygon.toArray(new PS[0]);
+			// Build single polygon with etch-a-sketch (outer + holes merged into one outline).
+			// Dynmap AreaMarker does not support holes, so we use buildPolygon which traces
+			// cutouts into the outline; BlueMap uses getPolygonWithHoles elsewhere for native holes.
+			List<PS> outer = TerritoryPolygonBuilder.buildContiguousPolygon(polygonChunks);
+			if (outer.isEmpty()) continue;
 
-			// Build information for specific area
+			// Build information for specific area (holes empty for Dynmap; outer has cutouts)
 			String markerId = calcMarkerId(world, faction);
-			AreaMarkerValues values = new AreaMarkerValues(faction.getName(), world, corners, description, style);
-			ret.put(markerId, values);
+			MapTerritoryData data = new MapTerritoryData(faction.getName(), world, description, outer, Collections.emptyList(), style);
+			ret.put(markerId, data);
 		}
 		
 		return ret;
@@ -635,10 +617,10 @@ public class EngineDynmap extends Engine
 	 * Updates territory area markers on the Dynmap.
 	 * Removes old markers that no longer exist and creates/updates current markers.
 	 * 
-	 * @param values Map of marker IDs to area marker values for all current territories
+	 * @param values Map of marker IDs to territory data for all current territories
 	 */
 	// Thread Safe: NO
-	public void updateAreas(Map<String, AreaMarkerValues> values)
+	public void updateAreas(Map<String, MapTerritoryData> values)
 	{
 		// Cleanup old markers
 		this.markersetTerritory.getAreaMarkers().stream() // Get current markers
@@ -651,8 +633,7 @@ public class EngineDynmap extends Engine
 
 		// Loop New
 		values.forEach((markerId, value) ->
-						  value.ensureExistsAndUpdated(markers.get(markerId), this.markerApi, this.markersetTerritory, markerId));
-
+			DynmapUtil.ensureAreaMarkerExistsAndUpdated(value, markers.get(markerId), this.markerApi, this.markersetTerritory, markerId));
 	}
 
 	/**
@@ -673,45 +654,38 @@ public class EngineDynmap extends Engine
 	// Thread Safe / Asynchronous: Yes
 	private String getDescription(Faction faction)
 	{
-		String ret = "<div class=\"regioninfo\">" + MConf.get().dynmapDescriptionWindowFormat + "</div>";
-		
+		String ret = "<div class=\"regioninfo\">" + MConf.get().mapDescriptionWindowFormat + "</div>";
+
 		// Name
 		String name = faction.getName();
-		ret = DynmapUtil.addToHtml(ret, "name", name);
-		
+		ret = MapUtil.addToHtml(ret, "name", name);
+
 		// Description
 		String description = faction.getDescriptionDesc();
-		ret = DynmapUtil.addToHtml(ret, "description", description);
+		ret = MapUtil.addToHtml(ret, "description", description);
 
-		// MOTD (probably shouldn't be shown but if the server owner specifies it, I don't care)
+		// MOTD
 		String motd = faction.getMotd();
-		if (motd != null) ret = DynmapUtil.addToHtml(ret, "motd", motd);
-		
+		if (motd != null) ret = MapUtil.addToHtml(ret, "motd", motd);
+
 		// Age
 		long ageMillis = faction.getAge();
 		LinkedHashMap<TimeUnit, Long> ageUnitcounts = TimeDiffUtil.limit(TimeDiffUtil.unitcounts(ageMillis, TimeUnit.getAllButMillisSecondsAndMinutes()), 3);
 		String age = TimeDiffUtil.formatedVerboose(ageUnitcounts);
-		ret = DynmapUtil.addToHtml(ret, "age", age);
-		
+		ret = MapUtil.addToHtml(ret, "age", age);
+
 		// Money
 		String money;
-		if (Econ.isEnabled() && MConf.get().dynmapShowMoneyInDescription)
+		if (Econ.isEnabled() && MConf.get().mapShowMoneyInDescription)
 		{
-			if (faction.isNormal())
-			{
-				money = Money.format(Econ.getMoney(faction));
-			}
-			else
-			{
-				money = "N/A";
-			}
+			money = faction.isNormal() ? Money.format(Econ.getMoney(faction)) : "N/A";
 		}
 		else
 		{
 			money = "unavailable";
 		}
-		ret = DynmapUtil.addToHtml(ret, "money", money);
-		
+		ret = MapUtil.addToHtml(ret, "money", money);
+
 		// Flags
 		Map<MFlag, Boolean> flags = MFlag.getAll().stream()
 			.filter(MFlag::isVisible)
@@ -719,52 +693,50 @@ public class EngineDynmap extends Engine
 
 		List<String> flagMapParts = new MassiveList<>();
 		List<String> flagTableParts = new MassiveList<>();
-		
+
 		for (Entry<MFlag, Boolean> entry : flags.entrySet())
 		{
 			String flagName = entry.getKey().getName();
 			boolean value = entry.getValue();
 
 			String bool = String.valueOf(value);
-			String color = DynmapUtil.calcBoolcolor(flagName, value);
-			String boolcolor = DynmapUtil.calcBoolcolor(String.valueOf(value), value);
-			
-			ret = ret.replace("%" + flagName + ".bool%", bool); // true
-			ret = ret.replace("%" + flagName + ".color%", color); // monsters (red or green)
-			ret = ret.replace("%" + flagName + ".boolcolor%", boolcolor); // true (red or green)
+			String color = MapUtil.calcBoolcolor(flagName, value);
+			String boolcolor = MapUtil.calcBoolcolor(String.valueOf(value), value);
+
+			ret = ret.replace("%" + flagName + ".bool%", bool);
+			ret = ret.replace("%" + flagName + ".color%", color);
+			ret = ret.replace("%" + flagName + ".boolcolor%", boolcolor);
 
 			flagMapParts.add(flagName + ": " + boolcolor);
 			flagTableParts.add(color);
 		}
-		
+
 		String flagMap = Txt.implode(flagMapParts, "<br>\n");
 		ret = ret.replace("%flags.map%", flagMap);
 
-		// The server can specify the wished number of columns
-		// So we loop over the possibilities
 		for (int cols = 1; cols <= 10; cols++)
 		{
-			String flagTable = DynmapUtil.getHtmlAsciTable(flagTableParts, cols);
+			String flagTable = MapUtil.getHtmlAsciTable(flagTableParts, cols);
 			ret = ret.replace("%flags.table" + cols + "%", flagTable);
 		}
-		
+
 		// Players
 		List<MPlayer> playersList = faction.getMPlayers();
 		String playersCount = String.valueOf(playersList.size());
-		String players = DynmapUtil.getHtmlPlayerString(playersList);
-		
+		String players = MapUtil.getHtmlPlayerString(playersList);
+
 		MPlayer playersLeaderObject = faction.getLeader();
-		String playersLeader = DynmapUtil.getHtmlPlayerName(playersLeaderObject);
+		String playersLeader = MapUtil.getHtmlPlayerName(playersLeaderObject);
 
 		DecimalFormat df = new DecimalFormat("#.##");
-		
+
 		ret = ret.replace("%players%", players);
 		ret = ret.replace("%players.count%", playersCount);
 		ret = ret.replace("%players.leader%", playersLeader);
 		ret = ret.replace("%power%", df.format(faction.getPower()));
 		ret = ret.replace("%maxpower%", df.format(faction.getPowerMax()));
 		ret = ret.replace("%claims%", String.valueOf(faction.getLandCount()));
-		
+
 		return ret;
 	}
 
@@ -773,63 +745,31 @@ public class EngineDynmap extends Engine
 	{
 		if (faction == null) throw new NullPointerException("faction");
 		if (world == null) throw new NullPointerException("world");
-
-		final String factionId = faction.getId();
-		final String factionName = faction.getName();
-		final String worldId =  "world:" + world;
-
-		Set<String> ids = MUtil.set(factionId, factionName, worldId);
-
-		if (factionId == null) throw new NullPointerException("faction id");
-		if (factionName == null) throw new NullPointerException("faction name");
-		
-		Set<String> visible = MConf.get().dynmapVisibleFactions;
-		Set<String> hidden = MConf.get().dynmapHiddenFactions;
-
-		if (!visible.isEmpty() && visible.stream().noneMatch(ids::contains))
-		{
-			return false;
-		}
-
-		if (!hidden.isEmpty() && hidden.stream().anyMatch(ids::contains))
-		{
-			return false;
-		}
-
-		return true;
+		return MapUtil.isFactionVisible(faction.getId(), faction.getName(), world);
 	}
-	
+
 	// Thread Safe / Asynchronous: Yes
-	public DynmapStyle getStyle(Faction faction)
+	public MapStyle getStyle(Faction faction)
 	{
-		Map<String, DynmapStyle> styles = MConf.get().dynmapFactionStyleOverrides;
-		
-		// Priority 1: Check for admin override by faction ID or name
-		DynmapStyle adminOverride = DynmapStyle.coalesce(
+		Map<String, MapStyle> styles = MConf.get().mapFactionStyleOverrides;
+
+		// Priority 1: Admin override by faction ID or name
+		MapStyle adminOverride = MapStyle.coalesce(
 			styles.get(faction.getId()),
 			styles.get(faction.getName())
 		);
 		if (adminOverride != null) return adminOverride;
-		
-		// Priority 2: Check for custom faction colors (if enabled)
-		if (MConf.get().dynmapUseFactionColors)
-		{
-			String primaryColor = null;
-			String secondaryColor = null;
-			if (faction.hasPrimaryColor())
-			{
-				primaryColor = faction.getPrimaryColor();
-			}
-			if (faction.hasSecondaryColor())
-			{
-				secondaryColor = faction.getSecondaryColor();
-			}
 
-			return new DynmapStyle().withLineColor(secondaryColor).withFillColor(primaryColor);
+		// Priority 2: Faction colors (if enabled)
+		if (MConf.get().mapUseFactionColors)
+		{
+			String primaryColor = faction.hasPrimaryColor() ? faction.getPrimaryColor() : null;
+			String secondaryColor = faction.hasSecondaryColor() ? faction.getSecondaryColor() : null;
+			return new MapStyle().withLineColor(secondaryColor).withFillColor(primaryColor);
 		}
-		
-		// Priority 3: Use default style
-		return MConf.get().dynmapDefaultStyle;
+
+		// Priority 3: Default style
+		return MConf.get().mapDefaultStyle;
 	}
 
 	/**

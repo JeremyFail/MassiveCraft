@@ -3,8 +3,8 @@ package com.massivecraft.factions.entity;
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.Rel;
 import com.massivecraft.factions.event.EventFactionsChunkChangeType;
-import com.massivecraft.factions.integration.dynmap.DynmapStyle;
-import com.massivecraft.factions.integration.dynmap.IntegrationDynmap;
+import com.massivecraft.factions.integration.map.MapStyle;
+import com.massivecraft.factions.integration.map.MapStyleDefaults;
 import com.massivecraft.massivecore.collections.BackstringSet;
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.collections.WorldExceptionSet;
@@ -776,76 +776,88 @@ public class MConf extends Entity<MConf>
 	public boolean useNewMoneySystem = false;
 
 	// -------------------------------------------- //
-	// INTEGRATION: DYNMAP
+	// INTEGRATION: MAP PLUGINS (Dynmap, BlueMap, etc.)
 	// -------------------------------------------- //
 
-	// Should the dynmap intagration be used?
+	// ========== PER-INTEGRATION ENABLED FLAGS ==========
+
+	// Should the Dynmap integration be used?
 	public boolean dynmapEnabled = true;
 
-	// Should the dynmap updates be logged to console output?
+	// Should Dynmap update timing be logged to console?
 	public boolean dynmapLogTimeSpent = false;
 
-	// ========== TERRITORY LAYER ==========
-	
+	// Should the BlueMap integration be used?
+	public boolean bluemapEnabled = true;
+
+	// Should BlueMap update timing be logged to console?
+	public boolean bluemapLogTimeSpent = false;
+
+	// ========== SHARED: TERRITORY LAYER ==========
+
 	// Name of the Factions territory layer
-	public String dynmapLayerName = "Factions";
+	public String mapLayerName = "Factions";
+
+	// Maximum Y level for territory extrusion on map integrations that support 3-dimensional extrusion (e.g. BlueMap). 
+	// Claim areas are drawn from world min height up to this value; use to cut off the top of claim areas. 
+	// Default 320 (modern overworld build height). Other integrations can use this if they support a Y cap.
+	// NOTE: If this value is set to a value that is higher than the world's max height, the integration will use the world's max height instead.
+	public int mapTerritoryMaxY = 320;
 
 	// Should the territory layer be visible per default
-	public boolean dynmapLayerHiddenByDefault = false;
+	public boolean mapLayerHiddenByDefault = false;
 
 	// Ordering priority in layer menu (low goes before high)
-	public int dynmapLayerPriority = 2;
+	public int mapLayerPriority = 2;
 
 	// (optional) set minimum zoom level before layer is visible (0 = default, always visible)
-	public int dynmapLayerMinimumZoom = 0;
-	
-	// ========== HOME WARP LAYER ==========
-	
+	public int mapLayerMinimumZoom = 0;
+
+	// ========== SHARED: HOME WARP LAYER ==========
+
 	// Whether to show the home warp layer at all
-	public boolean dynmapShowHomeWarp = false;
-	
+	public boolean mapShowHomeWarp = false;
+
 	// Name of the home warp layer
-	public String dynmapLayerNameHome = "Faction Homes";
-	
+	public String mapLayerNameHome = "Faction Homes";
+
 	// Should the home warp layer be hidden by default when enabled
-	public boolean dynmapLayerHiddenByDefaultHome = true;
-	
+	public boolean mapLayerHiddenByDefaultHome = true;
+
 	// Ordering priority for home warp layer
-	public int dynmapLayerPriorityHome = 3;
-	
+	public int mapLayerPriorityHome = 3;
+
 	// Minimum zoom level for home warp layer
-	public int dynmapLayerMinimumZoomHome = 0;
-	
-	// Icon to use for the home warp marker on Dynmap
-	// See Dynmap's web/markers/ folder for available icons
-	public String dynmapWarpHomeIcon = "redflag";
-	
-	// ========== OTHER WARPS LAYER ==========
-	
+	public int mapLayerMinimumZoomHome = 0;
+
+	// Icon to use for the home warp marker (Dynmap: web/markers/; BlueMap: built-in)
+	public String mapWarpHomeIcon = "redflag";
+
+	// ========== SHARED: OTHER WARPS LAYER ==========
+
 	// Whether to show the warps layer (non-home warps) at all
-	public boolean dynmapShowOtherWarps = false;
-	
+	public boolean mapShowOtherWarps = false;
+
 	// Name of the warps layer
-	public String dynmapLayerNameWarps = "Faction Warps";
-	
+	public String mapLayerNameWarps = "Faction Warps";
+
 	// Should the warps layer be hidden by default when enabled
-	public boolean dynmapLayerHiddenByDefaultWarps = true;
-	
+	public boolean mapLayerHiddenByDefaultWarps = true;
+
 	// Ordering priority for warps layer
-	public int dynmapLayerPriorityWarps = 4;
-	
+	public int mapLayerPriorityWarps = 4;
+
 	// Minimum zoom level for warps layer
-	public int dynmapLayerMinimumZoomWarps = 0;
-	
-	// Icon to use for (non-home) warp markers on Dynmap
-	// See Dynmap's web/markers/ folder for available icons
-	public String dynmapWarpOtherIcon = "greenflag";
+	public int mapLayerMinimumZoomWarps = 0;
 
-	// ========== DESCRIPTION WINDOW ==========
+	// Icon to use for (non-home) warp markers
+	public String mapWarpOtherIcon = "greenflag";
 
-	// HTML Format for popup that appears when clicking on a faction territory on the map 
-	// Substitute values for macros - check the wiki for available macros
-	public String dynmapDescriptionWindowFormat =
+	// ========== SHARED: DESCRIPTION WINDOW ==========
+
+	// HTML format for popup when clicking on a faction territory on the map.
+	// Substitute values for macros - check the wiki for available macros.
+	public String mapDescriptionWindowFormat =
 		"<div class=\"infowindow\">" +
 			"<div>" +
 				"<div style=\"font-weight: bold; font-size: 150%;\">%name%</div>" +
@@ -868,59 +880,48 @@ public class MConf extends Entity<MConf>
 		"</div>";
 
 	// Enable the %money% macro. Only do this if you know your economy manager is thread safe.
-	public boolean dynmapShowMoneyInDescription = false;
+	public boolean mapShowMoneyInDescription = false;
 
-	// Use dark mode colors for description window on Dynmap
-	public boolean dynmapUseDarkModeColors = false;
+	// Use dark mode colors for description window
+	public boolean mapUseDarkModeColors = false;
 
-	// ========== ADDITIONAL SETTINGS ==========
+	// ========== SHARED: VISIBILITY ==========
 
-	// Allow players in faction to see one another on Dynmap (only relevant if Dynmap has 'player-info-protected' enabled and login is supported)
-	// TODO: Currently not implemented
-	//public boolean dynmapVisibilityByFaction = true;
+	// Optional: limit which regions to show. If empty, all regions are shown.
+	// Specify Faction by name or UUID. To show all regions on a world, add 'world:<worldname>'.
+	public Set<String> mapVisibleFactions = new MassiveSet<>();
 
-	// Optional setting to limit which regions to show.
-	// If empty all regions are shown.
-	// Specify Faction either by name or UUID.
-	// To show all regions on a given world, add 'world:<worldname>' to the list.
-	public Set<String> dynmapVisibleFactions = new MassiveSet<>();
+	// Optional: hide specific Factions. Specify by name or UUID. Use 'world:<worldname>' to hide a world.
+	public Set<String> mapHiddenFactions = new MassiveSet<>();
 
-	// Optional setting to hide specific Factions.
-	// Specify Faction either by name or UUID.
-	// To hide all regions on a given world, add 'world:<worldname>' to the list.
-	public Set<String> dynmapHiddenFactions = new MassiveSet<>();
+	// ========== SHARED: STYLE ==========
 
 	@EditorVisible(false)
-	public DynmapStyle dynmapDefaultStyle = new DynmapStyle(
+	public MapStyle mapDefaultStyle = new MapStyle(
 		null,
-		IntegrationDynmap.DYNMAP_STYLE_LINE_OPACITY,
-		IntegrationDynmap.DYNMAP_STYLE_LINE_WEIGHT,
+		MapStyleDefaults.DEFAULT_LINE_OPACITY,
+		MapStyleDefaults.DEFAULT_LINE_WEIGHT,
 		null,
-		IntegrationDynmap.DYNMAP_STYLE_FILL_OPACITY,
-		IntegrationDynmap.DYNMAP_STYLE_HOME_MARKER,
-		IntegrationDynmap.DYNMAP_STYLE_BOOST
+		MapStyleDefaults.DEFAULT_FILL_OPACITY,
+		MapStyleDefaults.DEFAULT_BOOST
 	);
 
-	// Optional per Faction style overrides. Will override Faction colors and default colors.
-	// Specify Faction either by name or UUID.
+	// Optional per-faction style overrides. Specify Faction by name or UUID.
 	@EditorVisible(false)
-	public Map<String, DynmapStyle> dynmapFactionStyleOverrides = MUtil.map(
-		"SafeZone", new DynmapStyle().withLineColor("#FFAA00").withFillColor("#FFAA00").withBoost(false),
-		"WarZone", new DynmapStyle().withLineColor("#FF0000").withFillColor("#FF0000").withBoost(false)
+	public Map<String, MapStyle> mapFactionStyleOverrides = MUtil.map(
+		"SafeZone", new MapStyle().withLineColor("#FFAA00").withFillColor("#FFAA00").withBoost(false),
+		"WarZone", new MapStyle().withLineColor("#FF0000").withFillColor("#FF0000").withBoost(false)
 	);
-	
-	// Whether to use faction colors set via /f color command on Dynmap.
-	// If false, factions will use the default colors or admin overrides only.
-	public boolean dynmapUseFactionColors = true;
-	
-	// Optional Dynmap-specific default faction color override (in case you don't want to use the defaultFactionSecondaryColor here).
-	// If null or empty, Dynmap will use defaultFactionSecondaryColor instead.
-	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
-	public String dynmapDefaultLineColor = null;
 
-	// Optional Dynmap-specific default faction color override (in case you don't want to use the defaultFactionPrimaryColor here).
-	// If null or empty, Dynmap will use defaultFactionPrimaryColor instead.
-	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
-	public String dynmapDefaultFillColor = null;
-	
+	// Whether to use faction colors set via /f color. If false, use default or admin overrides only.
+	public boolean mapUseFactionColors = true;
+
+	// Optional default line color override. If null/empty, uses defaultFactionSecondaryColor.
+	// Format: "#RRGGBB"
+	public String mapDefaultLineColor = null;
+
+	// Optional default fill color override. If null/empty, uses defaultFactionPrimaryColor.
+	// Format: "#RRGGBB"
+	public String mapDefaultFillColor = null;
+
 }
