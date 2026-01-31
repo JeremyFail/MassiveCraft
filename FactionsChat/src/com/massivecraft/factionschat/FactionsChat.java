@@ -72,6 +72,11 @@ public class FactionsChat extends JavaPlugin
     @Override
     public void onEnable() 
     {
+        // Check for required dependency plugins and optional integrations
+        PluginManager pm = getServer().getPluginManager();
+        checkPlugins(pm);
+        checkConflictingChatPlugins(pm);
+
         // Initialize ignore manager
         ignoreManager = new IgnoreManager(this);
         
@@ -92,11 +97,6 @@ public class FactionsChat extends JavaPlugin
 
         // Initilize config
         Settings.load(getConfig());
-
-        // Check for required dependency plugins and optional integrations
-        PluginManager pm = getServer().getPluginManager();
-        checkPlugins(pm);
-        checkConflictingChatPlugins(pm);
 
         // Register event listener based on the server type
         if (MUtil.isPaper()) 
@@ -438,19 +438,22 @@ public class FactionsChat extends JavaPlugin
     
     /**
      * Checks for required or integrated plugins.
+     * 
+     * @param pm The plugin manager to check for plugins
      */
     private void checkPlugins(PluginManager pm) 
     {
         Logger logger = getLogger();
 
         // - - - - - - - - - REQUIRED PLUGINS - - - - - - - - -
-        factionsPlugin = (Factions) pm.getPlugin("Factions");
-        if (factionsPlugin == null || !factionsPlugin.isEnabled()) 
+        Plugin factions = pm.getPlugin("Factions");
+        if (factions == null || !factions.isEnabled()) 
         {
             logger.severe("Factions is required, but was not found or is disabled.");
             pm.disablePlugin(this);
             return;
         }
+        this.factionsPlugin = (Factions) factions;
         logger.info("Factions detected.");
 
         Plugin massiveCorePlugin = pm.getPlugin("MassiveCore");
@@ -463,23 +466,26 @@ public class FactionsChat extends JavaPlugin
         logger.info("MassiveCore detected.");
 
         // - - - - - - - - - OPTIONAL PLUGINS - - - - - - - - -
-        discordSrvPlugin = (DiscordSRV) pm.getPlugin("DiscordSRV");
-        if (discordSrvPlugin != null) 
+        Plugin discordSrv = pm.getPlugin("DiscordSRV");
+        if (discordSrv != null && discordSrv.isEnabled()) 
         {
+            this.discordSrvPlugin = (DiscordSRV) discordSrv;
             DiscordSRV.api.subscribe(new DiscordSRVListener());
             logger.info("DiscordSRV detected - integration enabled.");
         }
 
-        essentialsPlugin = (Essentials) pm.getPlugin("Essentials");
-        if (essentialsPlugin != null) 
+        Plugin essentials = pm.getPlugin("Essentials");
+        if (essentials != null && essentials.isEnabled()) 
         {
+            this.essentialsPlugin = (Essentials) essentials;
             logger.info("Essentials detected.");
         }
 
         // PlaceholderAPI integration
-        if (pm.getPlugin("PlaceholderAPI") != null) 
+        Plugin papi = pm.getPlugin("PlaceholderAPI");
+        if (papi != null && papi.isEnabled()) 
         {
-            papiEnabled = true;
+            this.papiEnabled = true;
             logger.info("PlaceholderAPI detected. Registering chat placeholders with Factions integration.");
 
             // Register our expander with the Factions PlaceholderAPI integration
