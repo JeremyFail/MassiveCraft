@@ -5,10 +5,7 @@ import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.factions.entity.MConf;
-import com.massivecraft.factions.entity.MFlag;
-import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factions.entity.Warp;
-import com.massivecraft.factions.integration.Econ;
 import com.massivecraft.factions.integration.map.MapLayer;
 import com.massivecraft.factions.integration.map.MapMarker;
 import com.massivecraft.factions.integration.map.MapStyle;
@@ -16,13 +13,9 @@ import com.massivecraft.factions.integration.map.MapTerritoryData;
 import com.massivecraft.factions.integration.map.MapUtil;
 import com.massivecraft.factions.integration.map.TerritoryPolygonBuilder;
 import com.massivecraft.massivecore.Engine;
-import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.collections.MassiveSet;
-import com.massivecraft.massivecore.money.Money;
 import com.massivecraft.massivecore.ps.PS;
-import com.massivecraft.massivecore.util.TimeDiffUtil;
-import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -32,12 +25,10 @@ import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
-import java.text.DecimalFormat;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -558,7 +549,7 @@ public class EngineDynmap extends Engine
 		Map<String, MapTerritoryData> ret = new MassiveMap<>();
 
 		// Get info
-		String description = getDescription(faction);
+		String description = MapUtil.getFactionDescriptionHtml(faction);
 		MapStyle style = this.getStyle(faction);
 		
 		// Here we start of with all chunks
@@ -651,95 +642,6 @@ public class EngineDynmap extends Engine
 	// UTIL & SHARED
 	// -------------------------------------------- //
 	
-	// Thread Safe / Asynchronous: Yes
-	private String getDescription(Faction faction)
-	{
-		String ret = "<div class=\"regioninfo\">" + MConf.get().mapDescriptionWindowFormat + "</div>";
-
-		// Name
-		String name = faction.getName();
-		ret = MapUtil.addToHtml(ret, "name", name);
-
-		// Description
-		String description = faction.getDescriptionDesc();
-		ret = MapUtil.addToHtml(ret, "description", description);
-
-		// MOTD
-		String motd = faction.getMotd();
-		if (motd != null) ret = MapUtil.addToHtml(ret, "motd", motd);
-
-		// Age
-		long ageMillis = faction.getAge();
-		LinkedHashMap<TimeUnit, Long> ageUnitcounts = TimeDiffUtil.limit(TimeDiffUtil.unitcounts(ageMillis, TimeUnit.getAllButMillisSecondsAndMinutes()), 3);
-		String age = TimeDiffUtil.formatedVerboose(ageUnitcounts);
-		ret = MapUtil.addToHtml(ret, "age", age);
-
-		// Money
-		String money;
-		if (Econ.isEnabled() && MConf.get().mapShowMoneyInDescription)
-		{
-			money = faction.isNormal() ? Money.format(Econ.getMoney(faction)) : "N/A";
-		}
-		else
-		{
-			money = "unavailable";
-		}
-		ret = MapUtil.addToHtml(ret, "money", money);
-
-		// Flags
-		Map<MFlag, Boolean> flags = MFlag.getAll().stream()
-			.filter(MFlag::isVisible)
-			.collect(Collectors.toMap(m -> m, faction::getFlag));
-
-		List<String> flagMapParts = new MassiveList<>();
-		List<String> flagTableParts = new MassiveList<>();
-
-		for (Entry<MFlag, Boolean> entry : flags.entrySet())
-		{
-			String flagName = entry.getKey().getName();
-			boolean value = entry.getValue();
-
-			String bool = String.valueOf(value);
-			String color = MapUtil.calcBoolcolor(flagName, value);
-			String boolcolor = MapUtil.calcBoolcolor(String.valueOf(value), value);
-
-			ret = ret.replace("%" + flagName + ".bool%", bool);
-			ret = ret.replace("%" + flagName + ".color%", color);
-			ret = ret.replace("%" + flagName + ".boolcolor%", boolcolor);
-
-			flagMapParts.add(flagName + ": " + boolcolor);
-			flagTableParts.add(color);
-		}
-
-		String flagMap = Txt.implode(flagMapParts, "<br>\n");
-		ret = ret.replace("%flags.map%", flagMap);
-
-		for (int cols = 1; cols <= 10; cols++)
-		{
-			String flagTable = MapUtil.getHtmlAsciTable(flagTableParts, cols);
-			ret = ret.replace("%flags.table" + cols + "%", flagTable);
-		}
-
-		// Players
-		List<MPlayer> playersList = faction.getMPlayers();
-		String playersCount = String.valueOf(playersList.size());
-		String players = MapUtil.getHtmlPlayerString(playersList);
-
-		MPlayer playersLeaderObject = faction.getLeader();
-		String playersLeader = MapUtil.getHtmlPlayerName(playersLeaderObject);
-
-		DecimalFormat df = new DecimalFormat("#.##");
-
-		ret = ret.replace("%players%", players);
-		ret = ret.replace("%players.count%", playersCount);
-		ret = ret.replace("%players.leader%", playersLeader);
-		ret = ret.replace("%power%", df.format(faction.getPower()));
-		ret = ret.replace("%maxpower%", df.format(faction.getPowerMax()));
-		ret = ret.replace("%claims%", String.valueOf(faction.getLandCount()));
-
-		return ret;
-	}
-
 	// Thread Safe / Asynchronous: Yes
 	private boolean isVisible(Faction faction, String world)
 	{

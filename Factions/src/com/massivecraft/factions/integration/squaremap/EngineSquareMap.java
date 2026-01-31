@@ -6,7 +6,6 @@ import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factions.entity.Warp;
-import com.massivecraft.factions.integration.Econ;
 import com.massivecraft.factions.integration.map.MapMarker;
 import com.massivecraft.factions.integration.map.MapStyle;
 import com.massivecraft.factions.integration.map.MapTerritoryData;
@@ -15,10 +14,7 @@ import com.massivecraft.factions.integration.map.TerritoryPolygonBuilder;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.Engine;
-import com.massivecraft.massivecore.money.Money;
 import com.massivecraft.massivecore.ps.PS;
-import com.massivecraft.massivecore.util.TimeDiffUtil;
-import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -32,19 +28,16 @@ import xyz.jpenilla.squaremap.api.SquaremapProvider;
 import xyz.jpenilla.squaremap.api.WorldIdentifier;
 import xyz.jpenilla.squaremap.api.marker.Marker;
 
-import java.text.DecimalFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -365,7 +358,7 @@ public class EngineSquareMap extends Engine
 				if (!MapUtil.isFactionVisible(faction.getId(), faction.getName(), world) || chunks.isEmpty())
 					continue;
 
-				String description = buildDescription(faction);
+				String description = MapUtil.getFactionDescriptionHtml(faction);
 				MapStyle style = getStyle(faction);
 
 				// Process chunks in contiguous groups: each group becomes one polygon (with holes)
@@ -488,65 +481,6 @@ public class EngineSquareMap extends Engine
 			}
 		}
 		return byWorld;
-	}
-
-	/**
-	 * Builds the HTML tooltip/description for a faction shown when clicking territory on the map.
-	 * Uses the shared format from config ({@link MConf#mapDescriptionWindowFormat}) and replaces
-	 * placeholders: name, description, motd, age, money, flags, players, power, claims, etc.
-	 *
-	 * @param faction The faction to describe
-	 * @return HTML string for the description popup
-	 */
-	private String buildDescription(Faction faction)
-	{
-		String ret = "<div class=\"regioninfo\">" + MConf.get().mapDescriptionWindowFormat + "</div>";
-		ret = MapUtil.addToHtml(ret, "name", faction.getName());
-		ret = MapUtil.addToHtml(ret, "description", faction.getDescriptionDesc());
-		String motd = faction.getMotd();
-		if (motd != null) ret = MapUtil.addToHtml(ret, "motd", motd);
-
-		// Age: break into time units (days, hours, etc.), keep at most 3, format verbosely
-		LinkedHashMap<TimeUnit, Long> ageUnitcounts = TimeDiffUtil.limit(TimeDiffUtil.unitcounts(faction.getAge(), TimeUnit.getAllButMillisSecondsAndMinutes()), 3);
-		ret = MapUtil.addToHtml(ret, "age", TimeDiffUtil.formatedVerboose(ageUnitcounts));
-
-		// Money: only if economy enabled and mapShowMoneyInDescription (thread-safety)
-		String money;
-		if (Econ.isEnabled() && MConf.get().mapShowMoneyInDescription)
-			money = faction.isNormal() ? Money.format(Econ.getMoney(faction)) : "N/A";
-		else
-			money = "unavailable";
-		ret = MapUtil.addToHtml(ret, "money", money);
-
-		// Flags: visible flags only; replace %flagName.bool%, .color%, .boolcolor%, %flags.map%, %flags.tableN%
-		Map<com.massivecraft.factions.entity.MFlag, Boolean> flags = com.massivecraft.factions.entity.MFlag.getAll().stream()
-			.filter(com.massivecraft.factions.entity.MFlag::isVisible)
-			.collect(Collectors.toMap(m -> m, faction::getFlag));
-		List<String> flagTableParts = new ArrayList<>();
-		for (Entry<com.massivecraft.factions.entity.MFlag, Boolean> entry : flags.entrySet())
-		{
-			String flagName = entry.getKey().getName();
-			boolean value = entry.getValue();
-			ret = ret.replace("%" + flagName + ".bool%", String.valueOf(value));
-			ret = ret.replace("%" + flagName + ".color%", MapUtil.calcBoolcolor(flagName, value));
-			ret = ret.replace("%" + flagName + ".boolcolor%", MapUtil.calcBoolcolor(String.valueOf(value), value));
-			flagTableParts.add(MapUtil.calcBoolcolor(flagName, value));
-		}
-		ret = ret.replace("%flags.map%", String.join("<br>\n", flagTableParts));
-		for (int cols = 1; cols <= 10; cols++)
-			ret = ret.replace("%flags.table" + cols + "%", MapUtil.getHtmlAsciTable(flagTableParts, cols));
-
-		// Players: list, count, leader
-		List<com.massivecraft.factions.entity.MPlayer> playersList = faction.getMPlayers();
-		ret = ret.replace("%players%", MapUtil.getHtmlPlayerString(playersList));
-		ret = ret.replace("%players.count%", String.valueOf(playersList.size()));
-		ret = ret.replace("%players.leader%", MapUtil.getHtmlPlayerName(faction.getLeader()));
-		// Power and land count
-		DecimalFormat df = new DecimalFormat("#.##");
-		ret = ret.replace("%power%", df.format(faction.getPower()));
-		ret = ret.replace("%maxpower%", df.format(faction.getPowerMax()));
-		ret = ret.replace("%claims%", String.valueOf(faction.getLandCount()));
-		return ret;
 	}
 
 	/**

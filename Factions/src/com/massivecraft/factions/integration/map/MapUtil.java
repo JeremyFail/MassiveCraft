@@ -1,14 +1,25 @@
 package com.massivecraft.factions.integration.map;
 
+import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.MConf;
+import com.massivecraft.factions.entity.MFlag;
 import com.massivecraft.factions.entity.MPlayer;
+import com.massivecraft.factions.integration.Econ;
 import com.massivecraft.massivecore.apachecommons.StringEscapeUtils;
+import com.massivecraft.massivecore.collections.MassiveList;
+import com.massivecraft.massivecore.money.Money;
+import com.massivecraft.massivecore.util.TimeDiffUtil;
+import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.ChatColor;
 
+import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,6 +31,7 @@ import java.util.stream.Collectors;
  * <ul>
  * <li>Default line and fill colors from {@link MConf} (mapDefaultLineColor, mapDefaultFillColor, defaultFactionPrimaryColor, defaultFactionSecondaryColor)</li>
  * <li>HTML formatting for description popups (tables, player lists, boolean colors, placeholder replacement)</li>
+ * <li>Building the full faction description HTML from {@link MConf#mapDescriptionWindowFormat} ({@link #getFactionDescriptionHtml})</li>
  * <li>Faction visibility checks using shared {@link MConf#mapVisibleFactions} and {@link MConf#mapHiddenFactions}</li>
  * </ul>
  * </p>
@@ -203,6 +215,103 @@ public final class MapUtil
 		replace = ChatColor.stripColor(replace);
 		replace = StringEscapeUtils.escapeHtml(replace);
 		return ret.replace(target, replace);
+	}
+
+	/**
+	 * Builds the HTML description for a faction for use in map integration popups (Dynmap, BlueMap, SquareMap).
+	 * Uses {@link MConf#mapDescriptionWindowFormat} and replaces placeholders: name, description, motd, age,
+	 * money, flags (per-flag and table/map), players, power, claims.
+	 *
+	 * @param faction The faction to describe (must not be null)
+	 * @return HTML string for the description popup, wrapped in a div with class "regioninfo"
+	 * @throws NullPointerException if faction is null
+	 */
+	public static String getFactionDescriptionHtml(Faction faction)
+	{
+		if (faction == null) throw new NullPointerException("faction");
+		String ret = "<div class=\"regioninfo\">" + MConf.get().mapDescriptionWindowFormat + "</div>";
+
+		// Name
+		ret = addToHtml(ret, "name", faction.getName());
+
+		// Description
+		String description = faction.getDescriptionDesc();
+		ret = addToHtml(ret, "description", description);
+
+		// MOTD
+		String motd = faction.getMotd();
+		if (motd != null) ret = addToHtml(ret, "motd", motd);
+
+		// Age
+		long ageMillis = faction.getAge();
+		LinkedHashMap<TimeUnit, Long> ageUnitcounts = TimeDiffUtil.limit(TimeDiffUtil.unitcounts(ageMillis, TimeUnit.getAllButMillisSecondsAndMinutes()), 3);
+		String age = TimeDiffUtil.formatedVerboose(ageUnitcounts);
+		ret = addToHtml(ret, "age", age);
+
+		// Money
+		String money;
+		if (Econ.isEnabled() && MConf.get().mapShowMoneyInDescription)
+		{
+			money = faction.isNormal() ? Money.format(Econ.getMoney(faction)) : "N/A";
+		}
+		else
+		{
+			money = "unavailable";
+		}
+		ret = addToHtml(ret, "money", money);
+
+		// Flags
+		Map<MFlag, Boolean> flags = MFlag.getAll().stream()
+			.filter(MFlag::isVisible)
+			.collect(Collectors.toMap(m -> m, faction::getFlag));
+
+		List<String> flagMapParts = new MassiveList<>();
+		List<String> flagTableParts = new MassiveList<>();
+
+		for (Entry<MFlag, Boolean> entry : flags.entrySet())
+		{
+			String flagName = entry.getKey().getName();
+			boolean value = entry.getValue();
+
+			String bool = String.valueOf(value);
+			String color = calcBoolcolor(flagName, value);
+			String boolcolor = calcBoolcolor(String.valueOf(value), value);
+
+			ret = ret.replace("%" + flagName + ".bool%", bool);
+			ret = ret.replace("%" + flagName + ".color%", color);
+			ret = ret.replace("%" + flagName + ".boolcolor%", boolcolor);
+
+			flagMapParts.add(flagName + ": " + boolcolor);
+			flagTableParts.add(color);
+		}
+
+		String flagMap = Txt.implode(flagMapParts, "<br>\n");
+		ret = ret.replace("%flags.map%", flagMap);
+
+		for (int cols = 1; cols <= 10; cols++)
+		{
+			String flagTable = getHtmlAsciTable(flagTableParts, cols);
+			ret = ret.replace("%flags.table" + cols + "%", flagTable);
+		}
+
+		// Players
+		List<MPlayer> playersList = faction.getMPlayers();
+		String playersCount = String.valueOf(playersList.size());
+		String players = getHtmlPlayerString(playersList);
+
+		MPlayer playersLeaderObject = faction.getLeader();
+		String playersLeader = getHtmlPlayerName(playersLeaderObject);
+
+		DecimalFormat df = new DecimalFormat("#.##");
+
+		ret = ret.replace("%players%", players);
+		ret = ret.replace("%players.count%", playersCount);
+		ret = ret.replace("%players.leader%", playersLeader);
+		ret = ret.replace("%power%", df.format(faction.getPower()));
+		ret = ret.replace("%maxpower%", df.format(faction.getPowerMax()));
+		ret = ret.replace("%claims%", String.valueOf(faction.getLandCount()));
+
+		return ret;
 	}
 
 	// -------------------------------------------- //
