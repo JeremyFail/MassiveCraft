@@ -602,8 +602,9 @@ public class EnginePermBuild extends Engine
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void vehicleDestroy(VehicleDestroyEvent event)
 	{
-		// If a player destroys a vehicle...
-		if (MUtil.isntPlayer(event.getAttacker())) return;
+		// If a player destroys a vehicle... (attacker is null when vehicle is destroyed by environment)
+		if (event.getAttacker() == null || MUtil.isntPlayer(event.getAttacker())) return;
+		
 		Player player = (Player) event.getAttacker();
 		Block block = event.getVehicle().getLocation().getBlock();
 		
