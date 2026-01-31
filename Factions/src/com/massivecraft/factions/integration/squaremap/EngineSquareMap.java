@@ -6,11 +6,14 @@ import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factions.entity.Warp;
+import com.massivecraft.factions.integration.map.MapIconUtil;
 import com.massivecraft.factions.integration.map.MapMarker;
 import com.massivecraft.factions.integration.map.MapStyle;
 import com.massivecraft.factions.integration.map.MapTerritoryData;
 import com.massivecraft.factions.integration.map.MapUtil;
 import com.massivecraft.factions.integration.map.TerritoryPolygonBuilder;
+
+import java.awt.image.BufferedImage;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.Engine;
@@ -22,6 +25,7 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import xyz.jpenilla.squaremap.api.Key;
 import xyz.jpenilla.squaremap.api.MapWorld;
+import xyz.jpenilla.squaremap.api.Registry;
 import xyz.jpenilla.squaremap.api.SimpleLayerProvider;
 import xyz.jpenilla.squaremap.api.Squaremap;
 import xyz.jpenilla.squaremap.api.SquaremapProvider;
@@ -207,6 +211,7 @@ public class EngineSquareMap extends Engine
 	private void updateSquareMap(Squaremap api, Map<String, Map<String, MapTerritoryData>> territoryByWorld,
 	                             Map<String, List<MapMarker>> homeWarps, Map<String, List<MapMarker>> otherWarps)
 	{
+		ensureFactionsIconsRegistered(api);
 		MConf conf = MConf.get();
 
 		for (World world : Bukkit.getWorlds())
@@ -245,6 +250,31 @@ public class EngineSquareMap extends Engine
 			{
 				for (MapMarker mv : worldOtherWarps)
 					layers.warpsProvider.addMarker(Key.of(SquareMapUtil.sanitizeKey(mv.getId())), SquareMapUtil.toIcon(mv));
+			}
+		}
+	}
+
+	/**
+	 * Ensures Factions icon keys from config (mapWarpHomeIcon, mapWarpOtherIcon) are registered
+	 * with SquareMap's icon registry. SquareMap only displays icon markers whose image key is
+	 * registered; unregistered images are removed on plugin startup. We register only the keys
+	 * currently configured, using shared {@link MapIconUtil} to generate marker images. Called on
+	 * the main thread from {@link #updateSquareMap}.
+	 *
+	 * @param api SquareMap API instance
+	 */
+	private void ensureFactionsIconsRegistered(Squaremap api)
+	{
+		Registry<BufferedImage> iconRegistry = (Registry<BufferedImage>) api.iconRegistry();
+		for (String key : MapIconUtil.getConfiguredWarpIconKeys(MConf.get()))
+		{
+			Key iconKey = Key.of(SquareMapUtil.sanitizeKey(key));
+			if (iconRegistry.hasEntry(iconKey)) continue;
+			BufferedImage img = MapIconUtil.createMarkerImageForKey(key);
+			if (img != null)
+			{
+				try { iconRegistry.register(iconKey, img); }
+				catch (Throwable t) { /* already registered */ }
 			}
 		}
 	}
