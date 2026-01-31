@@ -84,6 +84,9 @@
         <!-- https://central.sonatype.com/artifact/xyz.jpenilla/squaremap-api -->
         <massiveSquareMapVersion>1.3.12</massiveSquareMapVersion>
 
+        <!-- https://modrinth.com/project/pl3xmap -->
+        <massivePl3xMapVersion>1.21.5-527</massivePl3xMapVersion>
+
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <!-- MANUAL DOWNLOADS REQUIRED -->
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -149,6 +152,11 @@
         <repository>
             <id>bluecolored</id>
             <url>https://repo.bluecolored.de/releases</url>
+        </repository>
+        <!-- Pl3xMap (Modrinth) -->
+        <repository>
+            <id>Modrinth</id>
+            <url>https://api.modrinth.com/maven</url>
         </repository>
     </repositories>
 
@@ -470,6 +478,12 @@
                 <groupId>xyz.jpenilla</groupId>
                 <artifactId>squaremap-api</artifactId>
                 <version>${massiveSquareMapVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>maven.modrinth</groupId>
+                <artifactId>pl3xmap</artifactId>
+                <version>${massivePl3xMapVersion}</version>
                 <scope>provided</scope>
             </dependency>
 

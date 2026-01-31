@@ -81,6 +81,12 @@
             <artifactId>squaremap-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- Pl3xMap -->
+        <dependency>
+            <groupId>maven.modrinth</groupId>
+            <artifactId>pl3xmap</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <!-- Build -->

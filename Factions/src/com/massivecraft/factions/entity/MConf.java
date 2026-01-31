@@ -799,6 +799,12 @@ public class MConf extends Entity<MConf>
 	// Should SquareMap update timing be logged to console?
 	public boolean squaremapLogTimeSpent = false;
 
+	// Should the Pl3xMap integration be used?
+	public boolean pl3xmapEnabled = true;
+
+	// Should Pl3xMap update timing be logged to console?
+	public boolean pl3xmapLogTimeSpent = false;
+
 	// ========== SHARED: TERRITORY LAYER ==========
 
 	// Name of the Factions territory layer

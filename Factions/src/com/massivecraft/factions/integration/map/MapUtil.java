@@ -248,11 +248,21 @@ public final class MapUtil
 		String age = TimeDiffUtil.formatedVerboose(ageUnitcounts);
 		ret = addToHtml(ret, "age", age);
 
-		// Money
+		// Money: format from current thread. If the economy plugin is not thread-safe, calling from the async 
+		// map engine may throw ConcurrentModificationException; we will catch it and use "unavailable" so the 
+		// task does not crash. Stale or missing money in the popup is acceptable for this use case.
 		String money;
 		if (Econ.isEnabled() && MConf.get().mapShowMoneyInDescription)
 		{
-			money = faction.isNormal() ? Money.format(Econ.getMoney(faction)) : "N/A";
+			try
+			{
+				money = faction.isNormal() ? Money.format(Econ.getMoney(faction)) : "N/A";
+			}
+			catch (RuntimeException e)
+			{
+				// Fallback to "unavailable" so the task does not crash
+				money = "unavailable";
+			}
 		}
 		else
 		{
