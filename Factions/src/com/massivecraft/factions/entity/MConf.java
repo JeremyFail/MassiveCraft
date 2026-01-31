@@ -860,7 +860,7 @@ public class MConf extends Entity<MConf>
 	public String mapDescriptionWindowFormat =
 		"<div class=\"infowindow\">" +
 			"<div>" +
-				"<div style=\"font-weight: bold; font-size: 150%;\">%name%</div>" +
+				"<div style=\"font-weight: bold; font-size: 150%; line-height: 150%;\">%name%</div>" +
 			"</div>" +
 			"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
 				"<div style=\"font-style: italic; font-size: 110%;\">%description%</div>" +
