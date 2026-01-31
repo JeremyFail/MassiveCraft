@@ -187,16 +187,16 @@ public class MConf extends Entity<MConf>
 	
 	// Must claims be connected to each other?
 	// If you set this to false you will allow factions to claim more than one base per world map.
-	// That would makes outposts possible but also potentially ugly weird claims messing up your Dynmap and ingame experiance.
+	// This allows for outposts or multiple small bases.
 	public boolean claimsMustBeConnected = true;
 
 	// Must claims be connected to each other enforced strictly?
-	// If this is enabled there is also done a check on
-	// unclaim which makes sure you can't make two different bases by unclaiming land.
+	// If this is enabled, a check is performed on unclaim which makes 
+	// sure you can't make two different bases by unclaiming land.
 	public boolean claimsMustBeConnectedStrict = false;
 	
 	// Would you like to allow unconnected claims when conquering land from another faction?
-	// Setting this to true would allow taking over someone elses base even if claims normally have to be connected.
+	// Setting this to true would allow taking over someone else's base even if claims normally have to be connected.
 	// Note that even without this you can pillage/unclaim another factions territory in war.
 	// You just won't be able to take the land as your own.
 	public boolean claimsCanBeUnconnectedIfOwnedByOtherFaction = false;
@@ -212,7 +212,7 @@ public class MConf extends Entity<MConf>
 	public boolean unclaimingFromOthersAllowed = false;
 
 	// Is it required for factions to have an inflated land/power ratio in order to have their land conquered by another faction?
- 	// Set this to false to allow factions to invade each other without requiring them to have an inflated land/power ratio..
+ 	// Set this to false to allow factions to invade each other without requiring them to have an inflated land/power ratio.
 	public boolean claimingFromOthersMustBeInflated = true;
 	
 	// Is a minimum distance (measured in chunks) to other factions required?
@@ -587,6 +587,7 @@ public class MConf extends Entity<MConf>
 		MPerm.ID_NAME, MUtil.set("LEADER"),
 		MPerm.ID_DESC, MUtil.set("LEADER", "OFFICER"),
 		MPerm.ID_MOTD, MUtil.set("LEADER", "OFFICER"),
+		MPerm.ID_COLOR, MUtil.set("LEADER", "OFFICER"),
 		MPerm.ID_INVITE, MUtil.set("LEADER", "OFFICER"),
 		MPerm.ID_KICK, MUtil.set("LEADER", "OFFICER"),
 		MPerm.ID_RANK, MUtil.set("LEADER", "OFFICER"),
