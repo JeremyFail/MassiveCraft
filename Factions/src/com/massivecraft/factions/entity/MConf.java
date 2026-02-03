@@ -783,25 +783,25 @@ public class MConf extends Entity<MConf>
 	// ========== PER-INTEGRATION ENABLED FLAGS ==========
 
 	// Should the Dynmap integration be used?
-	public boolean dynmapEnabled = true;
+	public boolean dynmapEnabled = false;
 
 	// Should Dynmap update timing be logged to console?
 	public boolean dynmapLogTimeSpent = false;
 
 	// Should the BlueMap integration be used?
-	public boolean bluemapEnabled = true;
+	public boolean bluemapEnabled = false;
 
 	// Should BlueMap update timing be logged to console?
 	public boolean bluemapLogTimeSpent = false;
 
 	// Should the SquareMap integration be used?
-	public boolean squaremapEnabled = true;
+	public boolean squaremapEnabled = false;
 
 	// Should SquareMap update timing be logged to console?
 	public boolean squaremapLogTimeSpent = false;
 
 	// Should the Pl3xMap integration be used?
-	public boolean pl3xmapEnabled = true;
+	public boolean pl3xmapEnabled = false;
 
 	// Should Pl3xMap update timing be logged to console?
 	public boolean pl3xmapLogTimeSpent = false;
