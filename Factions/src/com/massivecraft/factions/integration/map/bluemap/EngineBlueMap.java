@@ -1,4 +1,4 @@
-package com.massivecraft.factions.integration.bluemap;
+package com.massivecraft.factions.integration.map.bluemap;
 
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.entity.BoardColl;
@@ -150,7 +150,7 @@ public class EngineBlueMap extends Engine
 				List<MapMarker> worldOtherWarps = otherWarps.getOrDefault(lookupKey, Collections.emptyList());
 
 				// Territory
-				MarkerSet territorySet = map.getMarkerSets().get(IntegrationBlueMap.FACTIONS_MARKERSET_TERRITORY);
+				MarkerSet territorySet = map.getMarkerSets().get(IntegrationBlueMap.FACTIONS_LAYER_TERRITORY);
 				if (territorySet != null)
 				{
 					territorySet.getMarkers().clear();
@@ -167,7 +167,7 @@ public class EngineBlueMap extends Engine
 				// Home warps
 				if (conf.mapShowHomeWarp)
 				{
-					MarkerSet homeSet = map.getMarkerSets().get(IntegrationBlueMap.FACTIONS_MARKERSET_HOME);
+					MarkerSet homeSet = map.getMarkerSets().get(IntegrationBlueMap.FACTIONS_LAYER_HOME);
 					if (homeSet != null)
 					{
 						homeSet.getMarkers().clear();
@@ -181,7 +181,7 @@ public class EngineBlueMap extends Engine
 				// Other warps
 				if (conf.mapShowOtherWarps)
 				{
-					MarkerSet warpsSet = map.getMarkerSets().get(IntegrationBlueMap.FACTIONS_MARKERSET_WARPS);
+					MarkerSet warpsSet = map.getMarkerSets().get(IntegrationBlueMap.FACTIONS_LAYER_WARPS);
 					if (warpsSet != null)
 					{
 						warpsSet.getMarkers().clear();
@@ -235,25 +235,25 @@ public class EngineBlueMap extends Engine
 		MConf conf = MConf.get();
 		Map<String, MarkerSet> sets = map.getMarkerSets();
 
-		if (!sets.containsKey(IntegrationBlueMap.FACTIONS_MARKERSET_TERRITORY))
+		if (!sets.containsKey(IntegrationBlueMap.FACTIONS_LAYER_TERRITORY))
 		{
 			MarkerSet territory = new MarkerSet(conf.mapLayerName, true, conf.mapLayerHiddenByDefault);
 			territory.setSorting(conf.mapLayerPriority);
-			sets.put(IntegrationBlueMap.FACTIONS_MARKERSET_TERRITORY, territory);
+			sets.put(IntegrationBlueMap.FACTIONS_LAYER_TERRITORY, territory);
 		}
 
-		if (conf.mapShowHomeWarp && !sets.containsKey(IntegrationBlueMap.FACTIONS_MARKERSET_HOME))
+		if (conf.mapShowHomeWarp && !sets.containsKey(IntegrationBlueMap.FACTIONS_LAYER_HOME))
 		{
 			MarkerSet home = new MarkerSet(conf.mapLayerNameHome, true, conf.mapLayerHiddenByDefaultHome);
 			home.setSorting(conf.mapLayerPriorityHome);
-			sets.put(IntegrationBlueMap.FACTIONS_MARKERSET_HOME, home);
+			sets.put(IntegrationBlueMap.FACTIONS_LAYER_HOME, home);
 		}
 
-		if (conf.mapShowOtherWarps && !sets.containsKey(IntegrationBlueMap.FACTIONS_MARKERSET_WARPS))
+		if (conf.mapShowOtherWarps && !sets.containsKey(IntegrationBlueMap.FACTIONS_LAYER_WARPS))
 		{
 			MarkerSet warps = new MarkerSet(conf.mapLayerNameWarps, true, conf.mapLayerHiddenByDefaultWarps);
 			warps.setSorting(conf.mapLayerPriorityWarps);
-			sets.put(IntegrationBlueMap.FACTIONS_MARKERSET_WARPS, warps);
+			sets.put(IntegrationBlueMap.FACTIONS_LAYER_WARPS, warps);
 		}
 	}
 
@@ -268,9 +268,9 @@ public class EngineBlueMap extends Engine
 		{
 			for (de.bluecolored.bluemap.api.BlueMapMap map : bmWorld.getMaps())
 			{
-				map.getMarkerSets().remove(IntegrationBlueMap.FACTIONS_MARKERSET_TERRITORY);
-				map.getMarkerSets().remove(IntegrationBlueMap.FACTIONS_MARKERSET_HOME);
-				map.getMarkerSets().remove(IntegrationBlueMap.FACTIONS_MARKERSET_WARPS);
+				map.getMarkerSets().remove(IntegrationBlueMap.FACTIONS_LAYER_TERRITORY);
+				map.getMarkerSets().remove(IntegrationBlueMap.FACTIONS_LAYER_HOME);
+				map.getMarkerSets().remove(IntegrationBlueMap.FACTIONS_LAYER_WARPS);
 			}
 		}
 	}

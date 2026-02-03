@@ -1,4 +1,4 @@
-package com.massivecraft.factions.integration.dynmap;
+package com.massivecraft.factions.integration.map.dynmap;
 
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.entity.BoardColl;
@@ -275,7 +275,7 @@ public class EngineDynmap extends Engine
 	// Thread Safe / Asynchronous: No
 	public boolean updateLayerTerritory(MapLayer temp)
 	{
-		this.markersetTerritory = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_TERRITORY, temp);
+		this.markersetTerritory = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_LAYER_TERRITORY, temp);
 		return this.markersetTerritory != null;
 	}
 	
@@ -295,7 +295,7 @@ public class EngineDynmap extends Engine
 	// Thread Safe / Asynchronous: No
 	public boolean updateLayerHome(MapLayer temp)
 	{
-		this.markersetHome = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_HOME, temp);
+		this.markersetHome = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_LAYER_HOME, temp);
 		return this.markersetHome != null;
 	}
 	
@@ -315,7 +315,7 @@ public class EngineDynmap extends Engine
 	// Thread Safe / Asynchronous: No
 	public boolean updateLayerWarps(MapLayer temp)
 	{
-		this.markersetWarps = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_MARKERSET_WARPS, temp);
+		this.markersetWarps = DynmapUtil.ensureMarkerSetExistsAndUpdated(this.markerApi, IntegrationDynmap.FACTIONS_LAYER_WARPS, temp);
 		return this.markersetWarps != null;
 	}
 

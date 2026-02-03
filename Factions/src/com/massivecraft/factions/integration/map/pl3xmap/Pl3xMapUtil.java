@@ -1,4 +1,4 @@
-package com.massivecraft.factions.integration.pl3xmap;
+package com.massivecraft.factions.integration.map.pl3xmap;
 
 import com.massivecraft.factions.integration.map.MapIconUtil;
 import com.massivecraft.factions.integration.map.MapMarker;
@@ -63,12 +63,17 @@ public final class Pl3xMapUtil
 		// Sanitize key for Pl3xMap layer/marker registry (allowed chars only).
 		markerKey = sanitizeKey(markerKey);
 		List<PS> outer = data.getOuter();
-		if (outer == null || outer.size() < 3) return null;
+		if (outer == null || outer.size() < 3) 
+		{
+			return null;
+		}
 
 		// Build outer boundary: chunk-corner PS -> Pl3xMap Point (block x,z). getLocationX(true) = block coord.
 		List<Point> mainPoints = new ArrayList<>();
 		for (PS ps : outer)
+		{
 			mainPoints.add(Point.of(ps.getLocationX(true), ps.getLocationZ(true)));
+		}
 
 		Polyline outerPoly = Polyline.of(markerKey + "_outer", mainPoints);
 
@@ -79,10 +84,16 @@ public final class Pl3xMapUtil
 		int holeIdx = 0;
 		for (List<PS> hole : data.getHoles())
 		{
-			if (hole == null || hole.size() < 3) continue;
+			if (hole == null || hole.size() < 3) 
+			{
+				continue;
+			}
+
 			List<Point> holePoints = new ArrayList<>();
 			for (PS ps : hole)
+			{
 				holePoints.add(Point.of(ps.getLocationX(true), ps.getLocationZ(true)));
+			}
 			polylines.add(Polyline.of(markerKey + "_hole_" + holeIdx++, holePoints));
 		}
 
@@ -119,13 +130,19 @@ public final class Pl3xMapUtil
 		String key = values.getId() != null ? values.getId() : "marker_" + values.getX() + "_" + values.getZ();
 		key = sanitizeKey(key);
 		Point point = Point.of(values.getX(), values.getZ());
+
 		String iconName = values.getIconName();
-		if (iconName == null || iconName.trim().isEmpty()) iconName = "redflag";
+		if (iconName == null || iconName.trim().isEmpty())
+		{
+			iconName = "redflag";
+		}
 		iconName = iconName.trim().toLowerCase().replace(" ", "_");
 
 		Icon icon = Icon.of(key, point, iconName, DEFAULT_ICON_SIZE);
 		if (values.getDescription() != null && !values.getDescription().isEmpty())
+		{
 			icon = icon.setOptions(new Options(null, null, new Tooltip(values.getDescription()), null));
+		}
 		return icon;
 	}
 
@@ -137,7 +154,10 @@ public final class Pl3xMapUtil
 	 */
 	public static String sanitizeKey(String id)
 	{
-		if (id == null) return "unknown";
+		if (id == null) 
+		{
+			return "unknown";
+		}
 		return id.replaceAll("[^a-zA-Z0-9._-]", "_");
 	}
 
@@ -154,10 +174,17 @@ public final class Pl3xMapUtil
 	 */
 	public static IconImage createIconImage(String iconKey)
 	{
-		if (iconKey == null || iconKey.trim().isEmpty()) return null;
+		if (iconKey == null || iconKey.trim().isEmpty()) 
+		{
+			return null;
+		}
+
 		String key = iconKey.trim().toLowerCase().replace(" ", "_");
 		BufferedImage img = MapIconUtil.createMarkerImageForKey(key);
-		if (img == null) return null;
+		if (img == null) 
+		{
+			return null;
+		}
 		return new IconImage(key, img, "png");
 	}
 }

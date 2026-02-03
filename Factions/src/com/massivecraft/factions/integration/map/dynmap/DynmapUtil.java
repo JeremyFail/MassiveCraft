@@ -1,4 +1,4 @@
-package com.massivecraft.factions.integration.dynmap;
+package com.massivecraft.factions.integration.map.dynmap;
 
 import com.massivecraft.factions.integration.map.MapLayer;
 import com.massivecraft.factions.integration.map.MapMarker;
@@ -17,9 +17,26 @@ import org.dynmap.markers.MarkerSet;
 import java.util.List;
 
 /**
- * Utility class for Dynmap integration.
- * Applies shared {@link MapLayer}, {@link MapMarker}, and {@link MapTerritoryData}
- * to the Dynmap API: ensures marker sets (layers), point markers, and area markers exist and are updated.
+ * Utility class for the Dynmap map integration.
+ *
+ * <p>
+ * Converts Factions' shared map data into Dynmap API types and ensures markers stay in sync:
+ * <ul>
+ * <li><b>Marker sets (layers):</b> {@link MapLayer} -> Dynmap {@link org.dynmap.markers.MarkerSet}. Used for
+ *     territory, home warps, and other warps. Creates or updates the set label, priority, min zoom, and visibility.</li>
+ * <li><b>Point markers:</b> {@link MapMarker} -> Dynmap {@link org.dynmap.markers.Marker}. Used for faction home
+ *     and warp locations. Icon names from config are resolved via {@link #getMarkerIcon}; missing icons fall back
+ *     to {@link IntegrationDynmap#DYNMAP_STYLE_HOME_MARKER}.</li>
+ * <li><b>Area markers (territory):</b> {@link MapTerritoryData} -> Dynmap {@link org.dynmap.markers.AreaMarker}.
+ *     Only the outer boundary is used (Dynmap area markers do not support holes). Corner coordinates are block
+ *     positions from chunk-corner {@link PS} via {@code getLocationX(true)} / {@code getLocationZ(true)}.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * All public methods are "ensure" style: they create the Dynmap object if missing, or update it in place so
+ * the map reflects current Factions data without leaving stale markers.
+ * </p>
  */
 public class DynmapUtil
 {
@@ -59,10 +76,22 @@ public class DynmapUtil
 		return set;
 	}
 
+	/**
+	 * Creates a new Dynmap marker set with the given id and applies layer options (label, min zoom, priority, hidden).
+	 *
+	 * @param markerApi Dynmap API
+	 * @param id        Marker set id (e.g. {@link IntegrationDynmap#FACTIONS_LAYER_TERRITORY})
+	 * @param values    Shared layer config
+	 * @return The new MarkerSet, or null if creation failed
+	 */
 	private static MarkerSet createMarkerSet(MarkerAPI markerApi, String id, MapLayer values)
 	{
 		MarkerSet ret = markerApi.createMarkerSet(id, values.getLabel(), null, false);
-		if (ret == null) return null;
+		if (ret == null) 
+		{
+			return null;
+		}
+
 		if (values.getMinimumZoom() > 0)
 		{
 			ret.setMinZoom(values.getMinimumZoom());
@@ -72,6 +101,10 @@ public class DynmapUtil
 		return ret;
 	}
 
+	/**
+	 * Updates an existing marker set so its label, min zoom, priority, and hidden-by-default match the shared layer config.
+	 * Only calls setters when the value actually changed (via {@link MUtil#setIfDifferent}).
+	 */
 	private static void updateMarkerSet(MarkerSet markerset, MapLayer values)
 	{
 		if (values.getMinimumZoom() > 0)
@@ -108,6 +141,15 @@ public class DynmapUtil
 		return existing;
 	}
 
+	/**
+	 * Creates a new Dynmap point marker for a warp/home location. Uses world, block position, label, icon, and description.
+	 *
+	 * @param values    Shared marker data (from engine's buildHomeWarps / buildOtherWarps)
+	 * @param markerApi Dynmap API
+	 * @param markerset Marker set (layer) to add the marker to
+	 * @param markerId  Unique id for this marker (e.g. factions_home_&lt;factionId&gt;)
+	 * @return The new Marker, or null if creation failed
+	 */
 	private static Marker createPointMarker(MapMarker values, MarkerAPI markerApi, MarkerSet markerset, String markerId)
 	{
 		Marker ret = markerset.createMarker(
@@ -120,13 +162,21 @@ public class DynmapUtil
 			getMarkerIcon(markerApi, values.getIconName()),
 			false
 		);
-		if (ret == null) return null;
+		if (ret == null) 
+		{
+			return null;
+		}
 		ret.setDescription(values.getDescription());
 		return ret;
 	}
 
+	/**
+	 * Updates an existing point marker so location, label, icon, and description match the shared marker data.
+	 * Location is updated only when it changed; other fields use setIfDifferent to avoid redundant API calls.
+	 */
 	private static void updatePointMarker(MapMarker values, MarkerAPI markerApi, Marker marker)
 	{
+		// Dynmap markers are identified by id; update world/position if they changed (e.g. warp moved)
 		if (!MUtil.equals(marker.getWorld(), values.getWorld())
 			|| marker.getX() != values.getX()
 			|| marker.getY() != values.getY()
@@ -141,16 +191,21 @@ public class DynmapUtil
 	}
 
 	/**
-	 * Resolves an icon name to a Dynmap MarkerIcon, falling back to the default home marker icon if not found.
+	 * Resolves a config icon name to a Dynmap MarkerIcon. If the name is not registered in Dynmap (e.g. typo or
+	 * custom icon not in web/tiles), falls back to {@link IntegrationDynmap#DYNMAP_STYLE_HOME_MARKER} so the
+	 * marker still displays.
 	 *
-	 * @param markerApi Dynmap API
-	 * @param iconName  Icon name from config (e.g. "redflag")
-	 * @return The MarkerIcon to use
+	 * @param markerApi Dynmap API (provides icon registry)
+	 * @param iconName  Icon name from config (e.g. mapWarpHomeIcon "redflag")
+	 * @return The MarkerIcon to use for the point marker
 	 */
 	public static MarkerIcon getMarkerIcon(MarkerAPI markerApi, String iconName)
 	{
 		MarkerIcon ret = markerApi.getMarkerIcon(iconName);
-		if (ret == null) ret = markerApi.getMarkerIcon(IntegrationDynmap.DYNMAP_STYLE_HOME_MARKER);
+		if (ret == null) 
+		{
+			ret = markerApi.getMarkerIcon(IntegrationDynmap.DYNMAP_STYLE_HOME_MARKER);
+		}
 		return ret;
 	}
 
@@ -179,6 +234,17 @@ public class DynmapUtil
 		return existing;
 	}
 
+	/**
+	 * Creates a new Dynmap area marker for one contiguous territory region. Uses only the outer boundary
+	 * (Dynmap area markers do not support holes). Corner coordinates are block positions from chunk-corner
+	 * {@link PS} via {@link #getOuterX} / {@link #getOuterZ}. Applies line/fill style from shared config or faction style.
+	 *
+	 * @param data      Shared territory data (outer polygon, world, label, description, style)
+	 * @param markerApi Dynmap API
+	 * @param markerSet Territory marker set to add to
+	 * @param markerId  Unique id (e.g. factions_area_world__factionId__regionIndex)
+	 * @return The new AreaMarker, or null if outer has fewer than 3 corners or creation failed
+	 */
 	private static AreaMarker createAreaMarker(MapTerritoryData data, MarkerAPI markerApi, MarkerSet markerSet, String markerId)
 	{
 		double[] x = getOuterX(data.getOuter());
@@ -194,9 +260,13 @@ public class DynmapUtil
 			z,
 			false
 		);
-		if (ret == null) return null;
+		if (ret == null) 
+		{
+			return null;
+		}
 
 		ret.setDescription(data.getDescription());
+		// Line/fill colors from MapUtil (config or faction override); opacity and weight from style or defaults
 		MapStyle style = data.getStyle();
 		int lineColor = MapStyle.getColorAsInt(MapUtil.getResolvedLineColor(style));
 		int fillColor = MapStyle.getColorAsInt(MapUtil.getResolvedFillColor(style));
@@ -211,6 +281,10 @@ public class DynmapUtil
 		return ret;
 	}
 
+	/**
+	 * Updates an existing area marker so corners, label, description, and line/fill style match the shared
+	 * territory data. Corner arrays are only written when they actually changed (avoids unnecessary Dynmap updates).
+	 */
 	private static void updateAreaMarker(MapTerritoryData data, MarkerAPI markerApi, AreaMarker marker)
 	{
 		double[] x = getOuterX(data.getOuter());
@@ -236,31 +310,74 @@ public class DynmapUtil
 		marker.setBoostFlag(boost);
 	}
 
+	/**
+	 * Converts the outer boundary of a territory polygon from chunk-corner {@link PS} list to block X coordinates.
+	 * Uses {@code getLocationX(true)} so chunk (cx, cz) yields block position (cx*16, cz*16) at the corner.
+	 *
+	 * @param outer List of chunk-corner PS from {@link MapTerritoryData#getOuter()} (clockwise boundary)
+	 * @return Array of X block coordinates for Dynmap area marker corners; empty if outer is null or empty
+	 */
 	private static double[] getOuterX(List<PS> outer)
 	{
-		if (outer == null || outer.isEmpty()) return new double[0];
+		if (outer == null || outer.isEmpty()) 
+		{
+			return new double[0];
+		}
+
 		double[] x = new double[outer.size()];
 		for (int i = 0; i < outer.size(); i++)
+		{
 			x[i] = outer.get(i).getLocationX(true);
+		}
 		return x;
 	}
 
+	/**
+	 * Converts the outer boundary of a territory polygon from chunk-corner {@link PS} list to block Z coordinates.
+	 * Mirrors {@link #getOuterX}; same indices correspond to the same corner.
+	 *
+	 * @param outer List of chunk-corner PS from {@link MapTerritoryData#getOuter()}
+	 * @return Array of Z block coordinates for Dynmap area marker corners; empty if outer is null or empty
+	 */
 	private static double[] getOuterZ(List<PS> outer)
 	{
-		if (outer == null || outer.isEmpty()) return new double[0];
+		if (outer == null || outer.isEmpty()) 
+		{
+			return new double[0];
+		}
+
 		double[] z = new double[outer.size()];
 		for (int i = 0; i < outer.size(); i++)
+		{
 			z[i] = outer.get(i).getLocationZ(true);
+		}
 		return z;
 	}
 
+	/**
+	 * Returns true if the area marker's current corner positions match the given x and z arrays (same length and values).
+	 * Used to avoid calling {@link AreaMarker#setCornerLocations} when the polygon has not changed.
+	 *
+	 * @param marker Existing Dynmap area marker
+	 * @param x      New corner X block coordinates
+	 * @param z      New corner Z block coordinates
+	 * @return true if marker corners equal (x, z) element-wise
+	 */
 	private static boolean areaMarkerCornersEqual(AreaMarker marker, double[] x, double[] z)
 	{
 		int length = marker.getCornerCount();
-		if (x.length != length || z.length != length) return false;
+		if (x.length != length || z.length != length) 
+		{
+			return false;
+		}
+
+		// Loop through the corners and check if they are equal
 		for (int i = 0; i < length; i++)
 		{
-			if (marker.getCornerX(i) != x[i] || marker.getCornerZ(i) != z[i]) return false;
+			if (marker.getCornerX(i) != x[i] || marker.getCornerZ(i) != z[i]) 
+			{
+				return false;
+			}
 		}
 		return true;
 	}

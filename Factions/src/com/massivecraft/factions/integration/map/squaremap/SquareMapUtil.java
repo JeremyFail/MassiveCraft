@@ -1,4 +1,4 @@
-package com.massivecraft.factions.integration.squaremap;
+package com.massivecraft.factions.integration.map.squaremap;
 
 import com.massivecraft.factions.integration.map.MapMarker;
 import com.massivecraft.factions.integration.map.MapStyle;
@@ -51,21 +51,32 @@ public final class SquareMapUtil
 	public static Marker toPolygon(MapTerritoryData data)
 	{
 		List<PS> outer = data.getOuter();
-		if (outer == null || outer.size() < 3) return null;
+		if (outer == null || outer.size() < 3) 
+		{
+			return null;
+		}
 
 		// Main polygon: PS chunk corners -> Point(x, z). getLocationX(true) = block corner (e.g. chunk * 16)
 		List<Point> mainPoints = new ArrayList<>();
 		for (PS ps : outer)
+		{
 			mainPoints.add(Point.of(ps.getLocationX(true), ps.getLocationZ(true)));
+		}
 
 		// Holes (unclaimed areas inside the boundary): same conversion, each hole is a list of points
 		List<List<Point>> negativeSpace = new ArrayList<>();
 		for (List<PS> hole : data.getHoles())
 		{
-			if (hole == null || hole.size() < 3) continue;
+			if (hole == null || hole.size() < 3) 
+			{
+				continue;
+			}
+
 			List<Point> holePoints = new ArrayList<>();
 			for (PS ps : hole)
+			{
 				holePoints.add(Point.of(ps.getLocationX(true), ps.getLocationZ(true)));
+			}
 			negativeSpace.add(holePoints);
 		}
 
@@ -105,12 +116,17 @@ public final class SquareMapUtil
 	{
 		Point point = Point.of(values.getX(), values.getZ());
 		String iconName = values.getIconName();
-		if (iconName == null || iconName.trim().isEmpty()) iconName = "redflag";
+		if (iconName == null || iconName.trim().isEmpty()) 
+		{
+			iconName = "redflag";
+		}
 		Key imageKey = Key.of(iconName.trim().toLowerCase().replace(" ", "_"));
 
 		Marker marker = Marker.icon(point, imageKey, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE);
 		if (values.getDescription() != null && !values.getDescription().isEmpty())
+		{
 			marker = marker.markerOptions(marker.markerOptions().asBuilder().clickTooltip(values.getDescription()).build());
+		}
 		return marker;
 	}
 
@@ -122,7 +138,10 @@ public final class SquareMapUtil
 	 */
 	public static String sanitizeKey(String id)
 	{
-		if (id == null) return "unknown";
+		if (id == null) 
+		{
+			return "unknown";
+		}
 		return id.replaceAll("[^a-zA-Z0-9._-]", "_");
 	}
 }

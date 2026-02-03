@@ -1,4 +1,4 @@
-package com.massivecraft.factions.integration.bluemap;
+package com.massivecraft.factions.integration.map.bluemap;
 
 import com.flowpowered.math.vector.Vector2d;
 import com.flowpowered.math.vector.Vector2i;
@@ -225,7 +225,10 @@ public final class BlueMapUtil
 	public static ExtrudeMarker toExtrudeMarker(MapTerritoryData data, int minY, int maxY)
 	{
 		List<PS> outer = data.getOuter();
-		if (outer == null || outer.size() < 3) return null;
+		if (outer == null || outer.size() < 3) 
+		{
+			return null;
+		}
 
 		MapStyle style = data.getStyle();
 		double lineOpacity = style != null ? style.getLineOpacity() : MapStyleDefaults.DEFAULT_LINE_OPACITY;
@@ -235,7 +238,9 @@ public final class BlueMapUtil
 		// Outer boundary: PS -> Vector2d (block x,z), then inset toward centroid
 		List<Vector2d> points = new ArrayList<>();
 		for (PS ps : outer)
+		{
 			points.add(new Vector2d(ps.getLocationX(true), ps.getLocationZ(true)));
+		}
 		List<Vector2d> outerPoints = scaleShapeTowardCentroid(points, SHAPE_INSET_SCALE);
 		Shape shape = new Shape(outerPoints);
 		ExtrudeMarker marker = new ExtrudeMarker(data.getLabel(), shape, minY, maxY);
@@ -245,12 +250,21 @@ public final class BlueMapUtil
 		List<List<Vector2d>> holePointLists = new ArrayList<>();
 		for (List<PS> hole : data.getHoles())
 		{
-			if (hole == null || hole.size() < 3) continue;
+			if (hole == null || hole.size() < 3) 
+			{
+				continue;
+			}
+
+			// Convert hole boundary to Vector2d
 			List<Vector2d> holePoints = new ArrayList<>();
-			for (PS ps : hole)
-				holePoints.add(new Vector2d(ps.getLocationX(true), ps.getLocationZ(true)));
-			holePoints = scaleShapeTowardCentroid(holePoints, SHAPE_HOLE_OUTSET_SCALE);
-			holePointLists.add(holePoints);
+			{
+				for (PS ps : hole)
+				{
+					holePoints.add(new Vector2d(ps.getLocationX(true), ps.getLocationZ(true)));
+				}
+				holePoints = scaleShapeTowardCentroid(holePoints, SHAPE_HOLE_OUTSET_SCALE);
+				holePointLists.add(holePoints);
+			}
 		}
 		for (List<Vector2d> holePoints : holePointLists)
 		{

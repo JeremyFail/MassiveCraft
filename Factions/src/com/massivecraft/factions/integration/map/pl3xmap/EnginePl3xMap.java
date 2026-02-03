@@ -1,4 +1,4 @@
-package com.massivecraft.factions.integration.pl3xmap;
+package com.massivecraft.factions.integration.map.pl3xmap;
 
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.entity.BoardColl;

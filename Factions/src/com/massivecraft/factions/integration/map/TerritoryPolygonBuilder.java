@@ -1,6 +1,6 @@
 package com.massivecraft.factions.integration.map;
 
-import com.massivecraft.factions.integration.dynmap.EngineDynmap;
+import com.massivecraft.factions.integration.map.dynmap.EngineDynmap;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.collections.MassiveSet;

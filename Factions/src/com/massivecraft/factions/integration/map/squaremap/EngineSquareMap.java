@@ -1,4 +1,4 @@
-package com.massivecraft.factions.integration.squaremap;
+package com.massivecraft.factions.integration.map.squaremap;
 
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.entity.BoardColl;
