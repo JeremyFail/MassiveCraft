@@ -33,7 +33,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
      * 
      * @param event The AsyncPlayerChatEvent triggered through chat.
      */
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event)
     {
         Player sender = event.getPlayer();

@@ -127,13 +127,35 @@ public class EngineShow extends Engine
 			{
 				// LANDVALUES
 				List<String> landvalueLines = new LinkedList<>();
-				long landCount = faction.getLandCount();
+				List<String> nextTypeNames = new LinkedList<>();
+				List<String> nextFormattedValues = new LinkedList<>();
+				int landCount = faction.getLandCount();
 				for (EventFactionsChunkChangeType type : EventFactionsChunkChangeType.values())
 				{
-					Double money = MConf.get().econChunkCost.get(type);
-					if (money == null) continue;
-					if (money == 0) continue;
-					money *= landCount;
+					if (type == EventFactionsChunkChangeType.NONE) continue;
+
+					Double typeCost = MConf.get().econChunkCost.get(type);
+					if (typeCost == null) continue;
+					if (typeCost == 0) continue;
+
+					Double typeCostMultiplier = MConf.get().econChunkCostMultiplier.get(type);
+					if (typeCostMultiplier == null) typeCostMultiplier = 0.0;
+
+					boolean losingLand = (type == EventFactionsChunkChangeType.SELL || type == EventFactionsChunkChangeType.PILLAGE);
+
+					// Same formula as EngineEcon: cost for one chunk = typeCost + (typeCost * typeCostMultiplier * ownedChunks).
+					// To get total value of all their land, we sum that over each chunk they own based on the type
+					double money;
+					if (typeCostMultiplier == 0 || landCount <= 0)
+					{
+						money = typeCost * landCount;
+					}
+					else
+					{
+						money = landCount * typeCost * (1.0 + typeCostMultiplier * (landCount - 1) / 2.0);
+					}
+					// SELL/PILLAGE are rewards (you receive); negate so the Cost/Reward logic below works.
+					if (losingLand) money = -Math.abs(money);
 
 					String word = "Cost";
 					if (money <= 0)
@@ -146,6 +168,23 @@ public class EngineShow extends Engine
 					String value = Txt.parse("<h>%s", Money.format(money));
 					String line = show(key, value);
 					landvalueLines.add(line);
+
+					// Next cost/reward for one chunk: BUY/CONQUER use landCount; SELL/PILLAGE use landCount-1
+					int ownedChunksForNext = losingLand ? Math.max(0, landCount - 1) : landCount;
+					double nextMoney = typeCost + (typeCost * typeCostMultiplier * ownedChunksForNext);
+					nextTypeNames.add(type.toString().charAt(0) + type.toString().substring(1).toLowerCase());
+					nextFormattedValues.add(Money.format(nextMoney));
+				}
+				if (!nextTypeNames.isEmpty())
+				{
+					String nextKey = "Next " + Txt.implode(nextTypeNames, " / ");
+					List<String> nextValuesHighlighted = new LinkedList<>();
+					for (String val : nextFormattedValues)
+					{
+						nextValuesHighlighted.add(Txt.parse("<h>%s", val));
+					}
+					String nextValue = Txt.implode(nextValuesHighlighted, Txt.parse("<yellow> / <h>"));
+					landvalueLines.add(show(nextKey, nextValue));
 				}
 				idPriorityLiness.put(SHOW_ID_FACTION_LANDVALUES, new PriorityLines(SHOW_PRIORITY_FACTION_LANDVALUES, landvalueLines));
 

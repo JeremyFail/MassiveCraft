@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.massivecraft.massivesuper</groupId>
         <artifactId>MassiveSuper</artifactId>
-        <version>3.4.0-alpha-11</version>
+        <version>3.4.0-alpha-12</version>
         <relativePath>../MassiveSuper</relativePath>
     </parent>
 
@@ -68,6 +68,24 @@
         <dependency>
           <groupId>us.dynmap</groupId>
           <artifactId>dynmap</artifactId>
+        </dependency>
+        <!-- BlueMap -->
+        <dependency>
+            <groupId>de.bluecolored</groupId>
+            <artifactId>bluemap-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- SquareMap -->
+        <dependency>
+            <groupId>xyz.jpenilla</groupId>
+            <artifactId>squaremap-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Pl3xMap -->
+        <dependency>
+            <groupId>maven.modrinth</groupId>
+            <artifactId>pl3xmap</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

@@ -3,8 +3,8 @@ package com.massivecraft.factions.entity;
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.Rel;
 import com.massivecraft.factions.event.EventFactionsChunkChangeType;
-import com.massivecraft.factions.integration.dynmap.DynmapStyle;
-import com.massivecraft.factions.integration.dynmap.IntegrationDynmap;
+import com.massivecraft.factions.integration.map.MapStyle;
+import com.massivecraft.factions.integration.map.MapStyleDefaults;
 import com.massivecraft.massivecore.collections.BackstringSet;
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.collections.WorldExceptionSet;
@@ -187,26 +187,32 @@ public class MConf extends Entity<MConf>
 	
 	// Must claims be connected to each other?
 	// If you set this to false you will allow factions to claim more than one base per world map.
-	// That would makes outposts possible but also potentially ugly weird claims messing up your Dynmap and ingame experiance.
+	// This allows for outposts or multiple small bases.
 	public boolean claimsMustBeConnected = true;
 
 	// Must claims be connected to each other enforced strictly?
-	// If this is enabled there is also done a check on
-	// unclaim which makes sure you can't make two different bases by unclaiming land.
+	// If this is enabled, a check is performed on unclaim which makes 
+	// sure you can't make two different bases by unclaiming land.
 	public boolean claimsMustBeConnectedStrict = false;
 	
 	// Would you like to allow unconnected claims when conquering land from another faction?
-	// Setting this to true would allow taking over someone elses base even if claims normally have to be connected.
+	// Setting this to true would allow taking over someone else's base even if claims normally have to be connected.
 	// Note that even without this you can pillage/unclaim another factions territory in war.
 	// You just won't be able to take the land as your own.
 	public boolean claimsCanBeUnconnectedIfOwnedByOtherFaction = false;
 	
-	// Is claiming from other factions even allowed?
+	// Is claiming from other factions allowed?
 	// Set this to false to disable territorial warfare altogether.
 	public boolean claimingFromOthersAllowed = true;
 
+	// Is unclaiming from other factions allowed?
+	// Set this to true to enable faction pillaging (taking the value of another faction's land, but not conquering it yourself)
+	// Use caution when enabling this - ensure you don't enable exploits with your cost/reward system by allowing a player
+	// to pillage and then claim for cheaper than conquering directly!
+	public boolean unclaimingFromOthersAllowed = false;
+
 	// Is it required for factions to have an inflated land/power ratio in order to have their land conquered by another faction?
- 	// Set this to false to allow factions to invade each other without requiring them to have an inflated land/power ratio..
+ 	// Set this to false to allow factions to invade each other without requiring them to have an inflated land/power ratio.
 	public boolean claimingFromOthersMustBeInflated = true;
 	
 	// Is a minimum distance (measured in chunks) to other factions required?
@@ -445,11 +451,11 @@ public class MConf extends Entity<MConf>
 	);
 	
 	// -------------------------------------------- //
-	// COLORS
+	// RELATION COLORS
 	// -------------------------------------------- //
 	
 	// Here you can alter the colors tied to certain faction relations and settings.
-	// You probably don't want to edit these to much.
+	// You probably don't want to edit these too much.
 	// Doing so might confuse players that are used to Factions.
 	public ChatColor colorMember = ChatColor.GREEN;
 	public ChatColor colorAlly = ChatColor.DARK_PURPLE;
@@ -462,6 +468,20 @@ public class MConf extends Entity<MConf>
 	
 	// This one is for example applied to WarZone since that faction has the friendly fire flag set to true.
 	public ChatColor colorFriendlyFire = ChatColor.DARK_RED;
+	
+	// -------------------------------------------- //
+	// COLORS
+	// -------------------------------------------- //
+	
+	// Default faction primary color used when no custom color is set via /f color.
+	// This is a generic setting used by various integrations (Dynmap, etc.).
+	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
+	public String defaultFactionPrimaryColor = "#00FF00";
+
+	// Default faction secondary color used when no custom color is set via /f color.
+	// This is a generic setting used by various integrations (Dynmap, etc.).
+	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
+	public String defaultFactionSecondaryColor = "#00FF00";
 
 	// -------------------------------------------- //
 	// EXPLOITS
@@ -567,6 +587,7 @@ public class MConf extends Entity<MConf>
 		MPerm.ID_NAME, MUtil.set("LEADER"),
 		MPerm.ID_DESC, MUtil.set("LEADER", "OFFICER"),
 		MPerm.ID_MOTD, MUtil.set("LEADER", "OFFICER"),
+		MPerm.ID_COLOR, MUtil.set("LEADER", "OFFICER"),
 		MPerm.ID_INVITE, MUtil.set("LEADER", "OFFICER"),
 		MPerm.ID_KICK, MUtil.set("LEADER", "OFFICER"),
 		MPerm.ID_RANK, MUtil.set("LEADER", "OFFICER"),
@@ -696,9 +717,22 @@ public class MConf extends Entity<MConf>
 	// Per default "" the money is just destroyed.
 	public String econUniverseAccount = "";
 	
-	// What is the price per chunk when using /f set?
+	// What is the base price per chunk when using /f set?
 	public Map<EventFactionsChunkChangeType, Double> econChunkCost = MUtil.map(
 		EventFactionsChunkChangeType.BUY, 1.0, // when claiming from wilderness
+		EventFactionsChunkChangeType.SELL, 0.0, // when selling back to wilderness
+		EventFactionsChunkChangeType.CONQUER, 0.0, // when claiming from another player faction
+		EventFactionsChunkChangeType.PILLAGE, 0.0 // when unclaiming (to wilderness) from another player faction
+	);
+
+	// What is the multiplier for the base price per chunk when using /f set?
+	// This is used to charge more money for each chunk claimed.
+	// For example, if the base price per chunk is 100 and the multiplier is 0.5, then the price per chunk would 
+	// increase by 50 for each chunk claimed. This is useful for when you want to charge a higher price for claiming 
+	// more chunks.
+	// The calculation is: econChunkCost + (econChunkCost * econChunkCostMultiplier * ownedChunks)
+	public Map<EventFactionsChunkChangeType, Double> econChunkCostMultiplier = MUtil.map(
+		EventFactionsChunkChangeType.BUY, 0.0, // when claiming from wilderness
 		EventFactionsChunkChangeType.SELL, 0.0, // when selling back to wilderness
 		EventFactionsChunkChangeType.CONQUER, 0.0, // when claiming from another player faction
 		EventFactionsChunkChangeType.PILLAGE, 0.0 // when unclaiming (to wilderness) from another player faction
@@ -732,84 +766,175 @@ public class MConf extends Entity<MConf>
 	// This enables the command /f money.
 	public boolean bankEnabled = true;
 	
-	// That costs should the faciton bank take care of?
+	// Should the faction bank take care of costs?
 	// If you set this to false the player executing the command will pay instead.
 	public boolean bankFactionPaysCosts = true;
 
+	// This setting stores money values on the Faction instead of using an external economy plugin.
+	// This should only be enabled if your economy plugin does not support accounts for non-players.
+	// Once enabled, run the /f moneyconvert command to migrate existing faction balances to the internal system.
+	// WARNING: Once you have converted to the new money system there is no going back!
 	public boolean useNewMoneySystem = false;
 
 	// -------------------------------------------- //
-	// INTEGRATION: DYNMAP
+	// INTEGRATION: MAP PLUGINS (Dynmap, BlueMap, etc.)
 	// -------------------------------------------- //
 
-	// Should the dynmap intagration be used?
+	// ========== PER-INTEGRATION ENABLED FLAGS ==========
+
+	// Should the Dynmap integration be used?
 	public boolean dynmapEnabled = true;
 
-	// Should the dynmap updates be logged to console output?
+	// Should Dynmap update timing be logged to console?
 	public boolean dynmapLogTimeSpent = false;
 
-	// Name of the Factions layer
-	public String dynmapLayerName = "Factions";
+	// Should the BlueMap integration be used?
+	public boolean bluemapEnabled = true;
 
-	// Should the layer be visible per default
-	public boolean dynmapLayerHiddenByDefault = false;
+	// Should BlueMap update timing be logged to console?
+	public boolean bluemapLogTimeSpent = false;
 
-	// Ordering priority in layer menu (low goes before high - default is 0)
-	public int dynmapLayerPriority = 2;
+	// Should the SquareMap integration be used?
+	public boolean squaremapEnabled = true;
 
-	// (optional) set minimum zoom level before layer is visible (0 = defalt, always visible)
-	public int dynmapLayerMinimumZoom = 0;
+	// Should SquareMap update timing be logged to console?
+	public boolean squaremapLogTimeSpent = false;
 
-	// Format for popup - substitute values for macros
-	//public String dynmapInfowindowFormat = "<div class=\"infowindow\"><span style=\"font-size:120%;\">%regionname%</span><br />Flags<br /><span style=\"font-weight:bold;\">%flags%</span></div>";
-	public String dynmapFactionDescription =
-		"<div class=\"infowindow\">\n" +
-		"<span style=\"font-weight: bold; font-size: 150%;\">%name%</span></br>\n" +
-		"<span style=\"font-style: italic; font-size: 110%;\">%description%</span></br>\n" +
-		"</br>\n" +
-		"<span style=\"font-weight: bold;\">Leader:</span> %players.leader%</br>\n" +
-		"<span style=\"font-weight: bold;\">Members:</span> %players%</br>\n" +
-		"</br>\n" +
-		"<span style=\"font-weight: bold;\">Age:</span> %age%</br>\n" +
-		"<span style=\"font-weight: bold;\">Bank:</span> %money%</br>\n" +
-		"</br>\n" +
-		"<span style=\"font-weight: bold;\">Flags:</span></br>\n" +
-		"%flags.table3%\n" +
+	// Should the Pl3xMap integration be used?
+	public boolean pl3xmapEnabled = true;
+
+	// Should Pl3xMap update timing be logged to console?
+	public boolean pl3xmapLogTimeSpent = false;
+
+	// ========== SHARED: TERRITORY LAYER ==========
+
+	// Name of the Factions territory layer
+	public String mapLayerName = "Factions";
+
+	// Maximum Y level for territory extrusion on map integrations that support 3-dimensional extrusion (e.g. BlueMap). 
+	// Claim areas are drawn from world min height up to this value; use to cut off the top of claim areas. 
+	// Default 320 (modern overworld build height). Other integrations can use this if they support a Y cap.
+	// NOTE: If this value is set to a value that is higher than the world's max height, the integration will use the world's max height instead.
+	public int mapTerritoryMaxY = 320;
+
+	// Should the territory layer be visible per default
+	public boolean mapLayerHiddenByDefault = false;
+
+	// Ordering priority in layer menu (low goes before high)
+	public int mapLayerPriority = 2;
+
+	// (optional) set minimum zoom level before layer is visible (0 = default, always visible)
+	public int mapLayerMinimumZoom = 0;
+
+	// ========== SHARED: HOME WARP LAYER ==========
+
+	// Whether to show the home warp layer at all
+	public boolean mapShowHomeWarp = false;
+
+	// Name of the home warp layer
+	public String mapLayerNameHome = "Faction Homes";
+
+	// Should the home warp layer be hidden by default when enabled
+	public boolean mapLayerHiddenByDefaultHome = true;
+
+	// Ordering priority for home warp layer
+	public int mapLayerPriorityHome = 3;
+
+	// Minimum zoom level for home warp layer
+	public int mapLayerMinimumZoomHome = 0;
+
+	// Icon to use for the home warp marker (Dynmap: web/markers/; BlueMap: built-in)
+	public String mapWarpHomeIcon = "redflag";
+
+	// ========== SHARED: OTHER WARPS LAYER ==========
+
+	// Whether to show the warps layer (non-home warps) at all
+	public boolean mapShowOtherWarps = false;
+
+	// Name of the warps layer
+	public String mapLayerNameWarps = "Faction Warps";
+
+	// Should the warps layer be hidden by default when enabled
+	public boolean mapLayerHiddenByDefaultWarps = true;
+
+	// Ordering priority for warps layer
+	public int mapLayerPriorityWarps = 4;
+
+	// Minimum zoom level for warps layer
+	public int mapLayerMinimumZoomWarps = 0;
+
+	// Icon to use for (non-home) warp markers
+	public String mapWarpOtherIcon = "greenflag";
+
+	// ========== SHARED: DESCRIPTION WINDOW ==========
+
+	// HTML format for popup when clicking on a faction territory on the map.
+	// Substitute values for macros - check the wiki for available macros.
+	public String mapDescriptionWindowFormat =
+		"<div class=\"infowindow\">" +
+			"<div>" +
+				"<div style=\"font-weight: bold; font-size: 150%; line-height: 150%;\">%name%</div>" +
+			"</div>" +
+			"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
+				"<div style=\"font-style: italic; font-size: 110%;\">%description%</div>" +
+			"</div>" +
+			"<div>" +
+				"<div><strong>Leader:</strong> %players.leader%</div>" +
+				"<div><strong>Members:</strong> %players%</div>" +
+			"</div>" +
+			"<div style=\"margin-bottom:7px;padding-bottom: 7px;border-bottom: 1px solid gray;\">" +
+				"<div><strong>Age:</strong> %age%</div>" +
+				"<div><strong>Bank:</strong> %money%</div>" +
+			"</div>" +
+			"<div>" +
+				"<div style=\"font-weight: bold;\">Flags:</div>" +
+				"<div>%flags.table3%</div>" +
+			"</div>" +
 		"</div>";
 
 	// Enable the %money% macro. Only do this if you know your economy manager is thread safe.
-	public boolean dynmapShowMoneyInDescription = false;
+	public boolean mapShowMoneyInDescription = false;
 
-	// Allow players in faction to see one another on Dynmap (only relevant if Dynmap has 'player-info-protected' enabled)
-	//public boolean dynmapVisibilityByFaction = true;
+	// Use dark mode colors for description window
+	public boolean mapUseDarkModeColors = false;
 
-	// Optional setting to limit which regions to show.
-	// If empty all regions are shown.
-	// Specify Faction either by name or UUID.
-	// To show all regions on a given world, add 'world:<worldname>' to the list.
-	public Set<String> dynmapVisibleFactions = new MassiveSet<>();
+	// ========== SHARED: VISIBILITY ==========
 
-	// Optional setting to hide specific Factions.
-	// Specify Faction either by name or UUID.
-	// To hide all regions on a given world, add 'world:<worldname>' to the list.
-	public Set<String> dynmapHiddenFactions = new MassiveSet<>();
+	// Optional: limit which regions to show. If empty, all regions are shown.
+	// Specify Faction by name or UUID. To show all regions on a world, add 'world:<worldname>'.
+	public Set<String> mapVisibleFactions = new MassiveSet<>();
+
+	// Optional: hide specific Factions. Specify by name or UUID. Use 'world:<worldname>' to hide a world.
+	public Set<String> mapHiddenFactions = new MassiveSet<>();
+
+	// ========== SHARED: STYLE ==========
 
 	@EditorVisible(false)
-	public DynmapStyle dynmapDefaultStyle = new DynmapStyle(
-		IntegrationDynmap.DYNMAP_STYLE_LINE_COLOR,
-		IntegrationDynmap.DYNMAP_STYLE_LINE_OPACITY,
-		IntegrationDynmap.DYNMAP_STYLE_LINE_WEIGHT,
-		IntegrationDynmap.DYNMAP_STYLE_FILL_COLOR,
-		IntegrationDynmap.DYNMAP_STYLE_FILL_OPACITY,
-		IntegrationDynmap.DYNMAP_STYLE_HOME_MARKER,
-		IntegrationDynmap.DYNMAP_STYLE_BOOST
+	public MapStyle mapDefaultStyle = new MapStyle(
+		null,
+		MapStyleDefaults.DEFAULT_LINE_OPACITY,
+		MapStyleDefaults.DEFAULT_LINE_WEIGHT,
+		null,
+		MapStyleDefaults.DEFAULT_FILL_OPACITY,
+		MapStyleDefaults.DEFAULT_BOOST
 	);
 
-	// Optional per Faction style overrides. Any defined replace those in dynmapDefaultStyle.
-	// Specify Faction either by name or UUID.
+	// Optional per-faction style overrides. Specify Faction by name or UUID.
 	@EditorVisible(false)
-	public Map<String, DynmapStyle> dynmapFactionStyles = MUtil.map(
-		"SafeZone", new DynmapStyle().withLineColor("#FFAA00").withFillColor("#FFAA00").withBoost(false),
-		"WarZone", new DynmapStyle().withLineColor("#FF0000").withFillColor("#FF0000").withBoost(false)
+	public Map<String, MapStyle> mapFactionStyleOverrides = MUtil.map(
+		"SafeZone", new MapStyle().withLineColor("#FFAA00").withFillColor("#FFAA00").withBoost(false),
+		"WarZone", new MapStyle().withLineColor("#FF0000").withFillColor("#FF0000").withBoost(false)
 	);
+
+	// Whether to use faction colors set via /f color. If false, use default or admin overrides only.
+	public boolean mapUseFactionColors = true;
+
+	// Optional default line color override. If null/empty, uses defaultFactionSecondaryColor.
+	// Format: "#RRGGBB"
+	public String mapDefaultLineColor = null;
+
+	// Optional default fill color override. If null/empty, uses defaultFactionPrimaryColor.
+	// Format: "#RRGGBB"
+	public String mapDefaultFillColor = null;
+
 }

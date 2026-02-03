@@ -46,6 +46,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public final static transient String ID_NAME = "name";
 	public final static transient String ID_DESC = "desc";
 	public final static transient String ID_MOTD = "motd";
+	public final static transient String ID_COLOR = "color";
 	public final static transient String ID_INVITE = "invite";
 	public final static transient String ID_KICK = "kick";
 	public final static transient String ID_RANK = "rank";
@@ -77,6 +78,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public final static transient int PRIORITY_NAME = 7000;
 	public final static transient int PRIORITY_DESC = 8000;
 	public final static transient int PRIORITY_MOTD = 9000;
+	public final static transient int PRIORITY_COLOR = 8500;
 	public final static transient int PRIORITY_INVITE = 10000;
 	public final static transient int PRIORITY_KICK = 11000;
 	public final static transient int PRIORITY_RANK = 11500;
@@ -132,6 +134,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 		getPermName();
 		getPermDesc();
 		getPermMotd();
+		getPermColor();
 		getPermInvite();
 		getPermKick();
 		getPermRank();
@@ -164,6 +167,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public static MPerm getPermName() { return getCreative(PRIORITY_NAME, ID_NAME, ID_NAME, "set name", false, true, true); }
 	public static MPerm getPermDesc() { return getCreative(PRIORITY_DESC, ID_DESC, ID_DESC, "set description", false, true, true); }
 	public static MPerm getPermMotd() { return getCreative(PRIORITY_MOTD, ID_MOTD, ID_MOTD, "set motd", false, true, true); }
+	public static MPerm getPermColor() { return getCreative(PRIORITY_COLOR, ID_COLOR, ID_COLOR, "set color", false, true, true); }
 	public static MPerm getPermInvite() { return getCreative(PRIORITY_INVITE, ID_INVITE, ID_INVITE, "invite players", false, true, true); }
 	public static MPerm getPermKick() { return getCreative(PRIORITY_KICK, ID_KICK, ID_KICK, "kick members", false, true, true); }
 	public static MPerm getPermRank() { return getCreative(PRIORITY_RANK, ID_RANK, ID_RANK, "change ranks", false, true, true); }

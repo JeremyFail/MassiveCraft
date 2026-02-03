@@ -1,5 +1,6 @@
 package com.massivecraft.factionschat.integrations;
 
+import com.massivecraft.factions.integration.placeholderapi.PlaceholderExpander;
 import com.massivecraft.factions.integration.placeholderapi.PlaceholderFactions;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
@@ -9,17 +10,54 @@ import com.massivecraft.massivecore.util.PlaceholderProcessor;
 import org.bukkit.entity.Player;
 
 /**
- * PlaceholderAPI Expansion for FactionsChat, this extends the 
- * Factions Placeholder Expansion to add the chat-related placeholders
- * to the already supported list of Factions placeholders, thereby 
- * providing player-specific chat mode information.
+ * PlaceholderAPI integration for FactionsChat. This implements PlaceholderExpander
+ * to inject chat-related placeholders into the base Factions placeholder integration,
+ * avoiding conflicts when PlaceholderAPI re-registers expansions.
+ * 
+ * <p>
+ * This expander adds chat mode placeholders to the existing "factions" identifier,
+ * keeping all placeholders under one namespace while allowing FactionsChat to extend
+ * the functionality without creating plugin dependencies.
  */
-public class PlaceholderFactionsChat extends PlaceholderFactions
+public class PlaceholderFactionsChat implements PlaceholderExpander
 {
-    @Override
-    public String getVersion()
+    // -------------------------------------------- //
+    // INSTANCE & CONSTRUCT
+    // -------------------------------------------- //
+    
+    private static PlaceholderFactionsChat i = new PlaceholderFactionsChat();
+    public static PlaceholderFactionsChat get() { return i; }
+    
+    // -------------------------------------------- //
+    // ACTIVATE & DEACTIVATE
+    // -------------------------------------------- //
+    
+    /**
+     * Register this expander with the Factions PlaceholderAPI integration.
+     * This should be called when FactionsChat enables.
+     */
+    public void activate()
     {
-        return super.getVersion() + " with FactionsChat " + FactionsChat.instance.getDescription().getVersion();
+        PlaceholderFactions.addExpander(this);
+    }
+    
+    /**
+     * Unregister this expander from the Factions PlaceholderAPI integration.
+     * This should be called when FactionsChat disables.
+     */
+    public void deactivate()
+    {
+        PlaceholderFactions.removeExpander(this);
+    }
+    
+    // -------------------------------------------- //
+    // OVERRIDE: PlaceholderExpander
+    // -------------------------------------------- //
+    
+    @Override
+    public String getExpanderVersion()
+    {
+        return FactionsChat.instance.getName() + " " + FactionsChat.instance.getDescription().getVersion();
     }
 
     @Override
@@ -27,10 +65,6 @@ public class PlaceholderFactionsChat extends PlaceholderFactions
     {
         // Invalid placeholder
         if (placeholder == null) return null;
-
-        // Call the parent method to handle any existing faction placeholders
-        String factionsPlaceholder = super.onPlaceholderRequest(player, placeholder);
-        if (factionsPlaceholder != null) return factionsPlaceholder;
 
         // If the player is null, we will return an empty string for chat-specific placeholders
         boolean isNull = player == null;
@@ -49,7 +83,7 @@ public class PlaceholderFactionsChat extends PlaceholderFactions
                     return !isNull ? Settings.TextColors.getColor(ChatMode.getChatModeForPlayer(player)) : "";
                 
                 default:
-                    return null; // Unknown placeholder
+                    return null; // Unknown placeholder - let Factions handle it
             }
         });
     }

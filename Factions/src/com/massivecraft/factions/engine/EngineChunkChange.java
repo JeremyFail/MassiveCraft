@@ -93,7 +93,7 @@ public class EngineChunkChange extends Engine
 			}
 
 			// ... ensure we have permission to alter the territory of the new faction ...
-			if ( ! MPerm.getPermTerritory().has(mplayer, newFaction, true))
+			if (!MPerm.getPermTerritory().has(mplayer, newFaction, true))
 			{
 				// NOTE: No need to send a message. We send message from the permission check itself.
 				event.setCancelled(true);
@@ -109,7 +109,7 @@ public class EngineChunkChange extends Engine
 			}
 
 			int claimedLandCount = newFaction.getLandCount();
-			if ( ! newFaction.getFlag(MFlag.getFlagInfpower()))
+			if (!newFaction.getFlag(MFlag.getFlagInfpower()))
 			{
 				// ... ensure the claim would not bypass the global max limit ...
 				if (MConf.get().claimedLandsMax != 0 && claimedLandCount + chunks.size() > MConf.get().claimedLandsMax)
@@ -246,7 +246,7 @@ public class EngineChunkChange extends Engine
 			// ... consider all reasons to forbid "overclaiming/warclaiming" ...
 
 			// ... claiming from others may be forbidden ...
-			if ( ! MConf.get().claimingFromOthersAllowed)
+			if (!MConf.get().claimingFromOthersAllowed)
 			{
 				mplayer.msg("<b>You may not claim land from others.");
 				event.setCancelled(true);
@@ -254,7 +254,7 @@ public class EngineChunkChange extends Engine
 			}
 
 			// ... and they must actually be claiming ...
-			if (newFaction.isNone())
+			if (newFaction.isNone() && !MConf.get().unclaimingFromOthersAllowed)
 			{
 				mplayer.msg("<b>You can't unclaim land belonging to others.");
 				event.setCancelled(true);
@@ -278,7 +278,7 @@ public class EngineChunkChange extends Engine
 			}
 
 			// ... and you might be trying to claim without starting at the border ...
-			if ( ! BoardColl.get().isAnyBorderPs(chunks))
+			if (!BoardColl.get().isAnyBorderPs(chunks))
 			{
 				mplayer.msg("<b>You must start claiming land at the border of the territory.");
 				event.setCancelled(true);
