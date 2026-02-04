@@ -59,7 +59,8 @@ public class DiscordSRVListener
     public void onMessageReceive(DiscordGuildMessagePostProcessEvent event)
     {
         String channelId = event.getChannel().getId();
-        if (!DiscordSRV.getPlugin().getChannels().get("staff").equals(channelId))
+        String staffChannelId = DiscordSRV.getPlugin().getChannels().get("staff");
+        if (staffChannelId == null || !staffChannelId.equals(channelId))
         {
             return;
         }
