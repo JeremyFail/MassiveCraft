@@ -19,11 +19,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -250,7 +251,6 @@ public class EngineMain extends Engine
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void updatePerform(PlayerInteractEntityEvent event)
 	{
-		// TODO: Do we actually want this?
 		// Ignore Off Hand
 		if (isOffHand(event)) return;
 		
@@ -293,35 +293,75 @@ public class EngineMain extends Engine
 		MPlayer mplayer = MPlayer.get(player);
 		if (!mplayer.isUsingAutoUpdate()) return;
 		
-		BookUtil.updateBook(event.getItem());
+		BookUtil.updateBook(event.getItem(), player);
 	}
-	
-	// Can be cancelled but we don't care :P
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void updatePerform(InventoryClickEvent event)
+
+	// Update the book's display name immediately after signing (MONITOR = after server applies the signed book).
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void updatePerform(PlayerEditBookEvent event)
 	{
-		final Player player = IdUtil.getAsPlayer(event.getWhoClicked());
+		if (!event.isSigning()) return;
+
+		final Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;
-		
-		MPlayer mplayer = MPlayer.get(player);
-		if (!mplayer.isUsingAutoUpdate()) return;
-		
-		BookUtil.updateBooks(event.getInventory());
-		BookUtil.updateBooks(event.getWhoClicked());
+
+		// Run one tick later so the signed book is actually in the player's hand.
+		Bukkit.getScheduler().scheduleSyncDelayedTask(MassiveBooks.get(), () -> {
+			// Prefer main hand; if both hands hold a book, use main hand.
+			ItemStack item = null;
+			boolean inMainHand = false;
+			ItemStack main = InventoryUtil.getMainHand(player);
+			if (main != null && BookUtil.hasBookMeta(main))
+			{
+				item = main;
+				inMainHand = true;
+			}
+			if (item == null)
+			{
+				ItemStack offhandItem = InventoryUtil.getOffHand(player);
+				if (offhandItem != null && BookUtil.hasBookMeta(offhandItem))
+				{
+					item = offhandItem;
+					inMainHand = false;
+				}
+			}
+			if (item == null)
+			{
+				// In theory this should never happen... but just in case
+				return;
+			}
+
+			BookUtil.setDisplayName(item, Lang.descDisplayName(item));
+			if (inMainHand)
+			{
+				InventoryUtil.setMainHand(player, item);
+			}
+			else
+			{
+				InventoryUtil.setOffHand(player, item);
+			}
+		});
 	}
-	
+
 	// Can be cancelled but we don't care :P
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void updatePerform(InventoryOpenEvent event)
 	{
 		final Player player = IdUtil.getAsPlayer(event.getPlayer());
 		if (MUtil.isntPlayer(player)) return;
-		
+
 		MPlayer mplayer = MPlayer.get(player);
 		if (!mplayer.isUsingAutoUpdate()) return;
-		
-		BookUtil.updateBooks(event.getInventory());
-		BookUtil.updateBooks(player);
+
+		// Run one tick later so the inventory view is fully open on the client.
+		final Inventory top = event.getView().getTopInventory();
+		final Inventory bottom = event.getView().getBottomInventory();
+		Bukkit.getScheduler().scheduleSyncDelayedTask(MassiveBooks.get(), () -> {
+			BookUtil.updateBooks(top);
+			BookUtil.updateBooks(bottom);
+			// Explicitly update player inventory so the held item and all slots refresh (covers own-inventory view edge cases).
+			BookUtil.updateBooks(player);
+		});
 	}
 	
 }

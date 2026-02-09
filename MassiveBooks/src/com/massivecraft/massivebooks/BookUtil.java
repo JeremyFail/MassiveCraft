@@ -6,6 +6,7 @@ import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.InventoryUtil;
 import com.massivecraft.massivecore.util.MUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.HumanEntity;
@@ -76,12 +77,18 @@ public class BookUtil
 	public static void updateBooks(Inventory inventory)
 	{
 		if (inventory == null) return;
+		Player viewer = null;
+		if (inventory.getHolder() instanceof Player)
+			viewer = (Player) inventory.getHolder();
+		else
+			for (HumanEntity e : inventory.getViewers())
+				if (e instanceof Player) { viewer = (Player) e; break; }
 		boolean update = false;
 		ItemStack[] contents = inventory.getContents();
 		for (int i = 0; i < contents.length; i++)
 		{
 			ItemStack item = contents[i];
-			if (updateBook(item))
+			if (updateBook(item, viewer))
 			{
 				inventory.setItem(i, item);
 				update = true;
@@ -95,43 +102,45 @@ public class BookUtil
 	public static void updateBook(ItemFrame itemFrame)
 	{
 		ItemStack item = itemFrame.getItem();
-		if (updateBook(item)) itemFrame.setItem(item);
+		if (updateBook(item, null)) itemFrame.setItem(item);
 	}
 	
-	public static void updateBook(Item item)
+	public static void updateBook(Item item, Player viewer)
 	{
-		updateBook(item.getItemStack());
+		ItemStack stack = item.getItemStack();
+		if (updateBook(stack, viewer)) item.setItemStack(stack);
 	}
 	
 	public static boolean updateBook(ItemStack item)
 	{
+		return updateBook(item, null);
+	}
+	
+	public static boolean updateBook(ItemStack item, Player viewer)
+	{
 		if (item == null) return false;
 		if (!hasBookMeta(item)) return false;
-		if (updateServerbook(item)) return true;
+		if (updateServerbook(item, viewer)) return true;
 		return updateDisplayName(item);
 	}
 	
 	// Saved
 	
-	public static boolean updateServerbook(ItemStack item)
+	public static boolean updateServerbook(ItemStack item, Player viewer)
 	{
 		if (!MConf.get().autoupdatingServerbooks) return false;
-		
 		if (item == null) return false;
 		String title = getTitle(item);
 		if (title == null) return false;
-		
 		MBook mbook = MBook.get(title);
 		if (mbook == null) return false;
-		
 		ItemStack blueprint = mbook.getItem();
 		if (blueprint == null) return false;
-		
+		if (viewer != null && MassiveBooks.get().isPapiEnabled())
+			blueprint = MassiveBooks.get().processBookPlaceholdersForViewer(blueprint, viewer);
 		if (item.isSimilar(blueprint)) return false;
-		
 		item.setType(blueprint.getType());
 		item.setItemMeta(blueprint.getItemMeta());
-		
 		return true;
 	}
 	
@@ -141,6 +150,7 @@ public class BookUtil
 	{
 		if (!MConf.get().autoupdatingDisplayNames) return false;
 		if (item == null) return false;
+
 		String targetDisplayname = Lang.descDisplayName(item);
 		return setDisplayName(item, targetDisplayname);
 	}
@@ -148,9 +158,11 @@ public class BookUtil
 	public static boolean setDisplayName(ItemStack item, String targetDisplayName)
 	{
 		if (item == null || targetDisplayName == null) return false;
+
 		ItemMeta meta = InventoryUtil.createMeta(item);
 		String currentDisplayName = meta.getDisplayName();
 		if (MUtil.equals(currentDisplayName, targetDisplayName)) return false;
+
 		meta.setDisplayName(targetDisplayName);
 		return item.setItemMeta(meta);
 	}
@@ -191,8 +203,10 @@ public class BookUtil
 	{
 		BookMeta meta = getBookMeta(item);
 		if (meta == null) return;
+
 		meta.setTitle(title);
 		if (!item.setItemMeta(meta)) return;
+		
 		updateBook(item);
 	}
 	
@@ -265,6 +279,59 @@ public class BookUtil
 		List<String> actualPages = getPages(item);
 		if (actualPages == null) return pages == null;
 		return actualPages.equals(pages);
+	}
+
+	// -------------------------------------------- //
+	// COLOR CODES (PAPI-agnostic; always applied when processing book text)
+	// -------------------------------------------- //
+
+	/**
+	 * Translate alternate color codes ({@code &}) to ChatColor in the given text.
+	 * Safe to call with null or when PAPI is not installed.
+	 *
+	 * @param text Text that may contain {@code &} color codes.
+	 * @return The text with codes translated, or null if input was null.
+	 */
+	public static String translateColorCodes(String text)
+	{
+		if (text == null || text.isEmpty()) return text;
+		if (!text.contains("&")) return text;
+		return ChatColor.translateAlternateColorCodes('&', text);
+	}
+
+	/**
+	 * Apply {@code &} color code translation to a book's title, author, and pages.
+	 * Modifies the item in place. Use when preparing book content for display (with or without PAPI).
+	 *
+	 * @param item A book item; must have BookMeta.
+	 * @return true if the item was modified.
+	 */
+	public static boolean applyColorCodesToBook(ItemStack item)
+	{
+		if (item == null) return false;
+		BookMeta meta = getBookMeta(item);
+		if (meta == null) return false;
+		boolean changed = false;
+		if (meta.hasTitle())
+		{
+			String t = translateColorCodes(meta.getTitle());
+			if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
+		}
+		if (meta.hasAuthor())
+		{
+			String a = translateColorCodes(meta.getAuthor());
+			if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
+		}
+		if (meta.hasPages())
+		{
+			List<String> pages = meta.getPages();
+			List<String> out = new java.util.ArrayList<>(pages.size());
+			for (String page : pages)
+				out.add(translateColorCodes(page));
+			if (!pages.equals(out)) { meta.setPages(out); changed = true; }
+		}
+		if (changed) item.setItemMeta(meta);
+		return changed;
 	}
 	
 	// -------------------------------------------- //
