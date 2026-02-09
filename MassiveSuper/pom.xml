@@ -164,7 +164,7 @@
     <build>
         <!-- Basics -->
         <defaultGoal>clean install</defaultGoal>
-        <finalName>${project.artifactId}</finalName>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <sourceDirectory>${project.basedir}/src</sourceDirectory>
 
         <!-- Plugins -->

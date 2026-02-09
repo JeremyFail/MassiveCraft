@@ -21,6 +21,59 @@
     <!-- Build -->
     <build>
         <defaultGoal>install</defaultGoal>
+        <plugins>
+            <!-- Copy all module JARs to root target (runs in root's install phase, after root's clean) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-jars-to-root-target</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/target</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/CreativeGates/target</directory>
+                                    <includes><include>*.jar</include></includes>
+                                    <targetPath>.</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/FactionsChat/target</directory>
+                                    <includes><include>*.jar</include></includes>
+                                    <targetPath>.</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/Factions/target</directory>
+                                    <includes><include>*.jar</include></includes>
+                                    <targetPath>.</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/MassiveBooks/target</directory>
+                                    <includes><include>*.jar</include></includes>
+                                    <targetPath>.</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/MassiveHat/target</directory>
+                                    <includes><include>*.jar</include></includes>
+                                    <targetPath>.</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/MassiveCore/target</directory>
+                                    <includes><include>*.jar</include></includes>
+                                    <excludes><exclude>original-*.jar</exclude></excludes>
+                                    <targetPath>.</targetPath>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
  
 </project>
