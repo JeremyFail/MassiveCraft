@@ -252,8 +252,10 @@ public class BookUtil
 	{
 		BookMeta meta = getBookMeta(item);
 		if (meta == null) return false;
+
 		meta.setPages(pages);
 		if (!item.setItemMeta(meta)) return false;
+
 		updateDisplayName(item);
 		return true;
 	}
@@ -273,6 +275,7 @@ public class BookUtil
 	{
 		if (item == null) return;
 		if (item.getType() == Material.WRITABLE_BOOK) return;
+
 		List<String> pages = getPages(item);
 		item.setType(Material.WRITABLE_BOOK);
 		if (pages != null) setPages(item, pages);
@@ -283,6 +286,7 @@ public class BookUtil
 	{
 		if (item == null) return;
 		if (item.getType() == Material.WRITTEN_BOOK) return;
+
 		List<String> pages = getPages(item);
 		item.setType(Material.WRITTEN_BOOK);
 		if (pages != null) setPages(item, pages);
@@ -324,6 +328,7 @@ public class BookUtil
 	{
 		if (flag == null) return false;
 		if (!item.hasItemMeta()) return false;
+
 		ItemMeta meta = InventoryUtil.createMeta(item);
 		List<String> lore = meta.getLore();
 		return lore != null && lore.contains(flag);
@@ -333,6 +338,7 @@ public class BookUtil
 	{
 		if (flag == null) return;
 		if (containsFlag(item, flag)) return;
+
 		List<String> lore = InventoryUtil.getLore(item);
 		if (lore != null)
 		{
@@ -350,8 +356,10 @@ public class BookUtil
 	{
 		if (flag == null) return;
 		if (!containsFlag(item, flag)) return;
+
 		List<String> lore = InventoryUtil.getLore(item);
 		if (lore == null) return;
+		
 		lore.remove(flag);
 		if (lore.size() == 0)
 		{

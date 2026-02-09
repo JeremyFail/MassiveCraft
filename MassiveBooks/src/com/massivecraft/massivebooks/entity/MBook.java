@@ -53,12 +53,12 @@ public class MBook extends Entity<MBook>
 	// UTIL
 	// -------------------------------------------- //
 	
+	/** Returns a clean copy for storage/display; does not parse placeholders (raw content only). */
 	public static ItemStack fixItem(ItemStack item)
 	{
 		if (!BookUtil.hasBookMeta(item)) return null;
 		item = new ItemStack(item);
 		item.setAmount(1);
-		BookUtil.updateDisplayName(item);
 		return item;
 	}
 	

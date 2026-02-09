@@ -198,6 +198,7 @@ public class EngineMain extends Engine
 		// ... possibly ...
 		final Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;
+
 		final boolean sneaking = player.isSneaking();
 		if (sneaking && MConf.get().itemFrameRotateIfSneakTrue) return;
 		if (!sneaking && MConf.get().itemFrameRotateIfSneakFalse) return;
@@ -218,6 +219,7 @@ public class EngineMain extends Engine
 		
 		final Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;
+
 		MPlayer mplayer = MPlayer.get(player);
 		if (mplayer.isUsingAutoUpdate()) return;
 		
@@ -248,6 +250,7 @@ public class EngineMain extends Engine
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void updatePerform(PlayerInteractEntityEvent event)
 	{
+		// TODO: Do we actually want this?
 		// Ignore Off Hand
 		if (isOffHand(event)) return;
 		
@@ -257,6 +260,7 @@ public class EngineMain extends Engine
 		
 		final Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;
+
 		MPlayer mplayer = MPlayer.get(player);
 		if (!mplayer.isUsingAutoUpdate()) return;
 		
@@ -269,6 +273,7 @@ public class EngineMain extends Engine
 	{
 		final Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;
+
 		MPlayer mplayer = MPlayer.get(player);
 		if (!mplayer.isUsingAutoUpdate()) return;
 		
@@ -281,8 +286,10 @@ public class EngineMain extends Engine
 	{
 		Entity entity = event.getEntity();
 		if (MUtil.isntPlayer(entity)) return;
+
 		final Player player = (Player) entity;
 		if (MUtil.isntPlayer(player)) return;
+		
 		MPlayer mplayer = MPlayer.get(player);
 		if (!mplayer.isUsingAutoUpdate()) return;
 		

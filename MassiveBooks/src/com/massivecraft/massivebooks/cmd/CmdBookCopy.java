@@ -1,6 +1,7 @@
 package com.massivecraft.massivebooks.cmd;
 
 import com.massivecraft.massivebooks.BookUtil;
+import com.massivecraft.massivebooks.MassiveBooks;
 import com.massivecraft.massivebooks.Lang;
 import com.massivecraft.massivebooks.Perm;
 import com.massivecraft.massivebooks.cmd.type.TypeBookInHand;
@@ -50,10 +51,10 @@ public class CmdBookCopy extends MassiveBooksCommand
 	{
 		// Get item arg
 		ItemStack item = TypeBookInHand.getWritten().read(sender);
-		BookUtil.updateBook(item);
-		
+		BookUtil.updateBook(item, me);
 		item = item.clone();
 		item.setAmount(1);
+		item = MassiveBooks.get().processBookPlaceholdersForViewer(item, me);
 		
 		// Get times arg
 		int times = this.readArg();

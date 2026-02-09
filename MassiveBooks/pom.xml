@@ -31,6 +31,12 @@
             <groupId>com.massivecraft.massivecore</groupId>
             <artifactId>MassiveCore</artifactId>
         </dependency>
+        <!-- PlaceholderAPI (optional: used when present to replace placeholders in signed books) -->
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <!-- Build -->
