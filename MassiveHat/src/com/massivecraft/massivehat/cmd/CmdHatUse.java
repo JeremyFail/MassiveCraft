@@ -20,8 +20,7 @@ public class CmdHatUse extends MassiveCommand
 	// INSTANCE
 	// -------------------------------------------- //
 	
-	private static final CmdHatUse i = new CmdHatUse() { @Override public List<String> getAliases() { return new MassiveList<>(MConf.get().getAliasesHatUseOuter()); }};
-	public static CmdHatUse get() { return i; }
+	public static CmdHatUse get() { return CmdHat.get().cmdHatUse; }
 	
 	// -------------------------------------------- //
 	// CONSTRUCT
@@ -67,7 +66,7 @@ public class CmdHatUse extends MassiveCommand
 	@Override
 	public List<String> getAliases()
 	{
-		return new MassiveList<>(MConf.get().getAliasesHatUseInner());
+		return new MassiveList<>(MConf.get().getAliasesHatUse());
 	}
 	
 }

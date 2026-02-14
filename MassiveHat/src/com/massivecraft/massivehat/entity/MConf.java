@@ -22,23 +22,27 @@ public class MConf extends Entity<MConf>
 	// FIELDS
 	// -------------------------------------------- //
 	
-	// Aliases
-	private Set<String> aliasesHat = MUtil.set("massivehat");
-	public Set<String> getAliasesHat() { return this.aliasesHat; }
-	public void setAliasesHat(Set<String> aliasesHat) { this.aliasesHat = aliasesHat; }
+	// Aliases for the main base command (e.g. /massivehat)
+	private Set<String> aliasesMassiveHat = MUtil.set("massivehat");
+	public Set<String> getAliasesMassiveHat() { return this.aliasesMassiveHat; }
+	public void setAliasesMassiveHat(Set<String> aliasesMassiveHat) { this.aliasesMassiveHat = aliasesMassiveHat; }
 
-	private Set<String> aliasesHatUseInner = MUtil.set("use", "wear", "apply");
-	public Set<String> getAliasesHatUseInner() { return this.aliasesHatUseInner; }
-	public void setAliasesHatUseInner(Set<String> aliasesHatUseInner) { this.aliasesHatUseInner = aliasesHatUseInner; }
+	// Aliases for the "use" shortcut command (e.g. /mhat = /massivehat use). Add /hat etc. in config if desired.
+	private Set<String> aliasesMhat = MUtil.set("mhat", "usehat", "blockhat", "hat");
+	public Set<String> getAliasesMhat() { return this.aliasesMhat; }
+	public void setAliasesMhat(Set<String> aliasesMhat) { this.aliasesMhat = aliasesMhat; }
 
-	private Set<String> aliasesHatUseOuter = MUtil.set("usehat", "hat", "blockhat", "mhat");
-	public Set<String> getAliasesHatUseOuter() { return this.aliasesHatUseOuter; }
-	public void setAliasesHatUseOuter(Set<String> aliasesHatUseOuter) { this.aliasesHatUseOuter = aliasesHatUseOuter; }
+	// Subcommand aliases for "use" under the base (e.g. /massivehat use, /massivehat wear)
+	private Set<String> aliasesHatUse = MUtil.set("use", "wear", "apply");
+	public Set<String> getAliasesHatUse() { return this.aliasesHatUse; }
+	public void setAliasesHatUse(Set<String> aliasesHatUse) { this.aliasesHatUse = aliasesHatUse; }
 	
+	// Aliases for the /massivehat config sub-command
 	private Set<String> aliasesHatConfig = MUtil.set("config");
 	public Set<String> getAliasesHatConfig() { return this.aliasesHatConfig; }
 	public void setAliasesHatConfig(Set<String> aliasesHatConfig) { this.aliasesHatConfig = aliasesHatConfig; }
 
+	// Aliases for the /massivehat version sub-command
 	private Set<String> aliasesHatVersion = MUtil.set("v", "version");
 	public Set<String> getAliasesHatVersion() { return this.aliasesHatVersion; }
 	public void setAliasesHatVersion(Set<String> aliasesHatVersion) { this.aliasesHatVersion = aliasesHatVersion; }
