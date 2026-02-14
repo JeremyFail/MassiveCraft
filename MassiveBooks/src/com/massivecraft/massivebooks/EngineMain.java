@@ -331,6 +331,8 @@ public class EngineMain extends Engine
 				return;
 			}
 
+			// Apply & color codes on the newly signed book (same as for saved books).
+			BookUtil.applyColorCodesToBook(item);
 			BookUtil.setDisplayName(item, Lang.descDisplayName(item));
 			if (inMainHand)
 			{

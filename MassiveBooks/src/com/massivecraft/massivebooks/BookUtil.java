@@ -333,6 +333,55 @@ public class BookUtil
 		if (changed) item.setItemMeta(meta);
 		return changed;
 	}
+
+	/**
+	 * Convert ChatColor codes ({@code §}) back to alternate form ({@code &}) so text can be edited.
+	 * Use when unlocking a book so the editor shows {@code &a}, {@code &b}, etc. instead of raw formatting.
+	 *
+	 * @param text Text that may contain {@code §} color codes (e.g. from a signed book).
+	 * @return The text with {@code §} replaced by {@code &} for color codes, or null if input was null.
+	 */
+	public static String stripColorCodesToAlternate(String text)
+	{
+		if (text == null || text.isEmpty()) return text;
+		if (!text.contains("\u00A7")) return text;
+		return text.replaceAll("\u00A7([0-9a-fk-or])", "&$1");
+	}
+
+	/**
+	 * Replace formatted color codes with {@code &} form on a book's title, author, and pages.
+	 * Use when unlocking so the writable book content is editable with familiar {@code &} codes.
+	 *
+	 * @param item A book item; must have BookMeta.
+	 * @return true if the item was modified.
+	 */
+	public static boolean stripColorCodesToAlternateForBook(ItemStack item)
+	{
+		if (item == null) return false;
+		BookMeta meta = getBookMeta(item);
+		if (meta == null) return false;
+		boolean changed = false;
+		if (meta.hasTitle())
+		{
+			String t = stripColorCodesToAlternate(meta.getTitle());
+			if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
+		}
+		if (meta.hasAuthor())
+		{
+			String a = stripColorCodesToAlternate(meta.getAuthor());
+			if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
+		}
+		if (meta.hasPages())
+		{
+			List<String> pages = meta.getPages();
+			List<String> out = new java.util.ArrayList<>(pages.size());
+			for (String page : pages)
+				out.add(stripColorCodesToAlternate(page));
+			if (!pages.equals(out)) { meta.setPages(out); changed = true; }
+		}
+		if (changed) item.setItemMeta(meta);
+		return changed;
+	}
 	
 	// -------------------------------------------- //
 	// UNLOCK & LOCK
@@ -343,9 +392,31 @@ public class BookUtil
 		if (item == null) return;
 		if (item.getType() == Material.WRITABLE_BOOK) return;
 
+		BookMeta meta = getBookMeta(item);
+		// Capture title/author before setType; changing type can clear the item's meta.
+		String savedTitle = (meta != null && meta.hasTitle()) ? meta.getTitle() : null;
+		String savedAuthor = (meta != null && meta.hasAuthor()) ? meta.getAuthor() : null;
 		List<String> pages = getPages(item);
 		item.setType(Material.WRITABLE_BOOK);
-		if (pages != null) setPages(item, pages);
+		BookMeta writableMeta = getBookMeta(item);
+		if (writableMeta != null)
+		{
+			if (savedTitle != null) writableMeta.setTitle(stripColorCodesToAlternate(savedTitle));
+			if (savedAuthor != null) writableMeta.setAuthor(stripColorCodesToAlternate(savedAuthor));
+			if (pages != null)
+			{
+				List<String> stripped = new java.util.ArrayList<>(pages.size());
+				for (String p : pages) stripped.add(stripColorCodesToAlternate(p));
+				writableMeta.setPages(stripped);
+			}
+			item.setItemMeta(writableMeta);
+		}
+		else if (pages != null)
+		{
+			List<String> stripped = new java.util.ArrayList<>(pages.size());
+			for (String p : pages) stripped.add(stripColorCodesToAlternate(p));
+			setPages(item, stripped);
+		}
 		updateDisplayName(item);
 	}
 	
@@ -354,9 +425,24 @@ public class BookUtil
 		if (item == null) return;
 		if (item.getType() == Material.WRITTEN_BOOK) return;
 
+		BookMeta meta = getBookMeta(item);
+		// Keep previous title and author when locking (e.g. after unlock → edit → lock).
+		String savedTitle = (meta != null && meta.hasTitle()) ? meta.getTitle() : null;
+		String savedAuthor = (meta != null && meta.hasAuthor()) ? meta.getAuthor() : null;
 		List<String> pages = getPages(item);
 		item.setType(Material.WRITTEN_BOOK);
-		if (pages != null) setPages(item, pages);
+		BookMeta writtenMeta = getBookMeta(item);
+		if (writtenMeta != null)
+		{
+			if (savedTitle != null) writtenMeta.setTitle(savedTitle);
+			if (savedAuthor != null) writtenMeta.setAuthor(savedAuthor);
+			if (pages != null) writtenMeta.setPages(pages);
+			item.setItemMeta(writtenMeta);
+		}
+		else if (pages != null)
+		{
+			setPages(item, pages);
+		}
 		updateDisplayName(item);
 	}
 	
