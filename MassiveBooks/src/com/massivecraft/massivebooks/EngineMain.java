@@ -140,12 +140,14 @@ public class EngineMain extends Engine
 		{
 			// Has right to copy?
 			if (!BookUtil.hasCopyPerm(itemInFrame, player, true)) return true;
-			
-			// ... do load ...
+
+			// Upgrade legacy serverbook in the frame to new format (bookId/bookType), then copy to player.
+			BookUtil.upgradeLegacyServerbook(itemInFrame, player);
+			((ItemFrame) event.getRightClicked()).setItem(itemInFrame);
 			ItemStack target = new ItemStack(itemInFrame);
 			target.setAmount(itemInHand.getAmount());
 			InventoryUtil.setMainHand(player, target);
-			
+
 			// ... and inform.
 			MixinMessage.get().messageOne(player, Lang.getFrameLoad(target));
 		}

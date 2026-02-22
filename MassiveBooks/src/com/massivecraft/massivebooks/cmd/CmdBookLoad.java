@@ -1,5 +1,6 @@
 package com.massivecraft.massivebooks.cmd;
 
+import com.massivecraft.massivebooks.BookUtil;
 import com.massivecraft.massivebooks.MassiveBooks;
 import com.massivecraft.massivebooks.Lang;
 import com.massivecraft.massivebooks.Perm;
@@ -49,6 +50,7 @@ public class CmdBookLoad extends MassiveBooksCommand
 		ItemStack old = TypeBookInHand.getEither().read(sender);
 		ItemStack target = MassiveBooks.get().processBookPlaceholdersForViewer(mbook.getItem(), me);
 		target.setAmount(old.getAmount());
+		BookUtil.applyMBookMetadata(target, mbook);
 		InventoryUtil.setMainHand(me, target);
 		
 		message(Lang.getSuccessLoad(target));

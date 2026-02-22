@@ -4,6 +4,7 @@ import com.massivecraft.massivebooks.cmd.CmdBook;
 import com.massivecraft.massivebooks.entity.MBookColl;
 import com.massivecraft.massivebooks.entity.MConfColl;
 import com.massivecraft.massivebooks.entity.migrator.MigratorMBook001IntIdToString;
+import com.massivecraft.massivebooks.entity.migrator.MigratorMBook002BookIdAndType;
 import com.massivecraft.massivebooks.integration.placeholderapi.IntegrationPlaceholderAPI;
 import com.massivecraft.massivecore.MassivePlugin;
 import com.massivecraft.massivecore.util.MUtil;
@@ -30,7 +31,8 @@ public class MassiveBooks extends MassivePlugin
 	public List<Class<?>> getClassesActiveMigrators()
 	{
 		return MUtil.list(
-			MigratorMBook001IntIdToString.class
+			MigratorMBook001IntIdToString.class,
+			MigratorMBook002BookIdAndType.class
 		);
 	}
 	

@@ -1,6 +1,8 @@
 package com.massivecraft.massivebooks;
 
+import com.massivecraft.massivebooks.entity.BookType;
 import com.massivecraft.massivebooks.entity.MBook;
+import com.massivecraft.massivebooks.entity.MBookColl;
 import com.massivecraft.massivebooks.entity.MConf;
 import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.InventoryUtil;
@@ -8,6 +10,7 @@ import com.massivecraft.massivecore.util.MUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Item;
@@ -17,11 +20,14 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class BookUtil
 {
@@ -61,7 +67,101 @@ public class BookUtil
 		if (meta.hasPages()) return false;
 		return true;
 	}
-	
+
+	// -------------------------------------------- //
+	// BOOK METADATA (PDC): bookId, bookType
+	// -------------------------------------------- //
+
+	private static NamespacedKey keyBookId() { return new NamespacedKey(MassiveBooks.get(), "book_id"); }
+	private static NamespacedKey keyBookType() { return new NamespacedKey(MassiveBooks.get(), "book_type"); }
+
+	public static UUID getBookId(ItemStack item)
+	{
+		if (item == null || !item.hasItemMeta()) return null;
+		ItemMeta meta = item.getItemMeta();
+		if (meta == null || !meta.getPersistentDataContainer().has(keyBookId(), PersistentDataType.STRING)) return null;
+		String s = meta.getPersistentDataContainer().get(keyBookId(), PersistentDataType.STRING);
+		if (s == null || s.isEmpty()) return null;
+		try { return UUID.fromString(s); } catch (IllegalArgumentException e) { return null; }
+	}
+
+	public static void setBookId(ItemStack item, UUID bookId)
+	{
+		if (item == null) return;
+		ItemMeta meta = InventoryUtil.createMeta(item);
+		if (bookId == null) meta.getPersistentDataContainer().remove(keyBookId());
+		else meta.getPersistentDataContainer().set(keyBookId(), PersistentDataType.STRING, bookId.toString());
+		item.setItemMeta(meta);
+	}
+
+	public static BookType getBookType(ItemStack item)
+	{
+		if (item == null || !item.hasItemMeta()) return null;
+		ItemMeta meta = item.getItemMeta();
+		if (meta == null || !meta.getPersistentDataContainer().has(keyBookType(), PersistentDataType.STRING)) return null;
+		String s = meta.getPersistentDataContainer().get(keyBookType(), PersistentDataType.STRING);
+		if (s == null) return null;
+		try { return BookType.valueOf(s); } catch (IllegalArgumentException e) { return null; }
+	}
+
+	public static void setBookType(ItemStack item, BookType type)
+	{
+		if (item == null) return;
+		ItemMeta meta = InventoryUtil.createMeta(item);
+		if (type == null) meta.getPersistentDataContainer().remove(keyBookType());
+		else meta.getPersistentDataContainer().set(keyBookType(), PersistentDataType.STRING, type.name());
+		item.setItemMeta(meta);
+	}
+
+	/** Remove bookId and bookType from item PDC (e.g. so they are not stored in MBook template). */
+	public static void removeBookMetadata(ItemStack item)
+	{
+		if (item == null || !item.hasItemMeta()) return;
+		ItemMeta meta = item.getItemMeta();
+		meta.getPersistentDataContainer().remove(keyBookId());
+		meta.getPersistentDataContainer().remove(keyBookType());
+		item.setItemMeta(meta);
+	}
+
+	public static boolean isServerBook(ItemStack item)
+	{
+		return getBookType(item) == BookType.SERVER_BOOK;
+	}
+
+	/** If showBookTypeAsLore is enabled, append the type's friendly name as a lore line (not saved in book data). Removes any existing type line first. */
+	public static void applyBookTypeLore(ItemStack item)
+	{
+		if (item == null) return;
+		BookType type = getBookType(item);
+		if (type == null) return;
+		if (!MConf.get().showBookTypeAsLore) return;
+
+		List<String> lore = InventoryUtil.getLore(item);
+		String friendlyName = type.getFriendlyName();
+		// Remove any existing line that is the type's friendly name (strip color for comparison)
+		if (lore != null)
+		{
+			lore = new ArrayList<>(lore);
+			lore.removeIf(line -> line != null && ChatColor.stripColor(line).trim().equals(friendlyName));
+		}
+		else
+		{
+			lore = new ArrayList<>();
+		}
+		lore.add(ChatColor.GOLD + friendlyName);
+		InventoryUtil.setLore(item, lore);
+	}
+
+	/** Apply MBook identity and display to a book item (bookId, bookType, display name, type lore). Use when giving/loading or after setting content from an MBook. */
+	public static void applyMBookMetadata(ItemStack item, MBook mbook)
+	{
+		if (item == null || mbook == null) return;
+		setBookId(item, mbook.getBookId());
+		setBookType(item, mbook.getBookType());
+		updateDisplayName(item);
+		applyBookTypeLore(item);
+	}
+
 	// -------------------------------------------- //
 	// UPDATE BOOKS
 	// -------------------------------------------- //
@@ -132,29 +232,64 @@ public class BookUtil
 		if (updateServerbook(item, viewer)) return true;
 		return updateDisplayName(item);
 	}
-	
-	// Saved
-	
+
+	// Saved (server books): by ID first, then legacy by title
+
 	public static boolean updateServerbook(ItemStack item, Player viewer)
 	{
 		if (!MConf.get().autoupdatingServerbooks) return false;
 		if (item == null) return false;
+
+		// New format: look up by bookId on the item
+		UUID bookId = getBookId(item);
+		if (bookId != null)
+		{
+			MBook mbook = MBookColl.get().getById(bookId);
+			if (mbook != null)
+			{
+				applyServerbookContent(item, mbook, viewer);
+				return true;
+			}
+		}
+
+		// Legacy: look up by title (easy to remove later)
+		return updateServerbookLegacy(item, viewer);
+	}
+
+	/** Legacy serverbook update by title. Remove when dropping support for old-format books. */
+	public static boolean updateServerbookLegacy(ItemStack item, Player viewer)
+	{
 		String title = getTitle(item);
 		if (title == null) return false;
 		MBook mbook = MBook.get(title);
 		if (mbook == null) return false;
+		applyServerbookContent(item, mbook, viewer);
+		return true;
+	}
+
+	/** Apply saved serverbook content to item (content + bookId/bookType + display name + type lore). */
+	public static void applyServerbookContent(ItemStack item, MBook mbook, Player viewer)
+	{
 		ItemStack blueprint = mbook.getItem();
-		if (blueprint == null) return false;
+		if (blueprint == null) return;
+
+		// Process placeholders for the viewer if PAPI is enabled
 		if (viewer != null && MassiveBooks.get().isPapiEnabled())
-			blueprint = MassiveBooks.get().processBookPlaceholdersForViewer(blueprint, viewer);
-		if (item.isSimilar(blueprint)) return false;
+		{
+			blueprint = MassiveBooks.get().processBookPlaceholdersForViewer(blueprint.clone(), viewer);
+		}
+
 		item.setType(blueprint.getType());
 		item.setItemMeta(blueprint.getItemMeta());
-		// Apply display name so serverbooks show "by X" consistently and don't flip-flop when
-		// blueprint was saved without a display name (next update would run updateDisplayName and
-		// then replace again, toggling the text on/off).
-		if (MConf.get().autoupdatingDisplayNames) setDisplayName(item, Lang.descDisplayName(item));
-		return true;
+		applyMBookMetadata(item, mbook);
+	}
+
+	/** If item is a legacy serverbook (title matches saved, no bookId), upgrade it in place to new format and apply latest content. Used when loading from item frame. */
+	public static void upgradeLegacyServerbook(ItemStack item, Player viewer)
+	{
+		if (item == null || !hasBookMeta(item)) return;
+		if (getBookId(item) != null) return; // already new format
+		updateServerbookLegacy(item, viewer);
 	}
 	
 	// DisplayName

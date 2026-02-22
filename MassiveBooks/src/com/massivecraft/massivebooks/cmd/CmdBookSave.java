@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.UUID;
 
 public class CmdBookSave extends MassiveBooksCommand
 {
@@ -79,11 +80,12 @@ public class CmdBookSave extends MassiveBooksCommand
 
 		MBook mbook = MBookColl.get().get(title, true);
 		mbook.setItem(item);
+		if (mbook.getBookId() == null) mbook.setBookId(UUID.randomUUID());
 
 		// Put the parsed version (for this viewer) in hand so they see placeholders resolved.
 		ItemStack parsed = MassiveBooks.get().processBookPlaceholdersForViewer(mbook.getItem(), player);
 		parsed.setAmount(item.getAmount());
-		BookUtil.updateDisplayName(parsed);
+		BookUtil.applyMBookMetadata(parsed, mbook);
 		if (inMainHand)
 			InventoryUtil.setMainHand(player, parsed);
 		else

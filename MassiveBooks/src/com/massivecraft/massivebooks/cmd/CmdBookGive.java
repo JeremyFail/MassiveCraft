@@ -1,5 +1,6 @@
 package com.massivecraft.massivebooks.cmd;
 
+import com.massivecraft.massivebooks.BookUtil;
 import com.massivecraft.massivebooks.MassiveBooks;
 import com.massivecraft.massivebooks.Lang;
 import com.massivecraft.massivebooks.Perm;
@@ -91,7 +92,9 @@ public class CmdBookGive extends MassiveBooksCommand
 		{
 			for (MBook mbook : mbooks)
 			{
-				items.add(MassiveBooks.get().processBookPlaceholdersForViewer(mbook.getItem(), player));
+				ItemStack item = MassiveBooks.get().processBookPlaceholdersForViewer(mbook.getItem(), player);
+				BookUtil.applyMBookMetadata(item, mbook);
+				items.add(item);
 			}
 		}
 
