@@ -147,7 +147,10 @@ public class CmdBookCopy extends MassiveBooksCommand
 		
 		// Inform		
 		message(Lang.getSuccessCopyCopies(times));
-		message(Lang.getSuccessCopyResources(moneyRequired, booksRequired, inksacsRequired, feathersRequired));
+		if (moneyRequired > 0 || booksRequired > 0 || inksacsRequired > 0 || feathersRequired > 0)
+		{
+			message(Lang.getSuccessCopyResources(moneyRequired, booksRequired, inksacsRequired, feathersRequired));
+		}
 	}
 	
 	// -------------------------------------------- //
