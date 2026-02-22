@@ -216,12 +216,20 @@ public class BookUtil
 		InventoryUtil.setLore(item, lore);
 	}
 
-	/** Apply MBook identity and display to a book item (bookId, bookType, display name, type lore). Use when giving/loading or after setting content from an MBook. */
+	/** Apply MBook identity and display to a book item (bookId, bookType, copyrighted, display name, type lore). Use when giving/loading or after setting content from an MBook. */
 	public static void applyMBookMetadata(ItemStack item, MBook mbook)
 	{
 		if (item == null || mbook == null) return;
 		setBookId(item, mbook.getBookId());
 		setBookType(item, mbook.getBookType());
+		if (mbook.isCopyrighted())
+		{
+			addFlag(item, Const.COPYRIGHTED);
+		}
+		else
+		{
+			removeFlag(item, Const.COPYRIGHTED);
+		}
 		updateDisplayName(item);
 		applyBookTypeLore(item);
 	}
@@ -406,9 +414,10 @@ public class BookUtil
 	public static String getTitle(ItemStack item)
 	{
 		BookMeta meta = getBookMeta(item);
-		if (meta == null) return null;
-		if (!meta.hasTitle()) return null;
-		return meta.getTitle();
+		if (meta != null && meta.hasTitle()) return meta.getTitle();
+		// Unlocked (writable) books don't store title in BookMeta; use PDC if set
+		if (item != null && item.getType() == Material.WRITABLE_BOOK) return getUnlockTitle(item);
+		return null;
 	}
 	
 	public static void setTitle(ItemStack item, String title)
@@ -436,9 +445,10 @@ public class BookUtil
 	public static String getAuthor(ItemStack item)
 	{
 		BookMeta meta = getBookMeta(item);
-		if (meta == null) return null;
-		if (!meta.hasAuthor()) return null;
-		return meta.getAuthor();
+		if (meta != null && meta.hasAuthor()) return meta.getAuthor();
+		// Unlocked (writable) books don't store author in BookMeta; use PDC if set
+		if (item != null && item.getType() == Material.WRITABLE_BOOK) return getUnlockAuthor(item);
+		return null;
 	}
 	
 	public static void setAuthor(ItemStack item, String author)
@@ -605,16 +615,14 @@ public class BookUtil
 		if (item.getType() == Material.WRITABLE_BOOK) return;
 
 		BookMeta meta = getBookMeta(item);
-		// Capture title/author before setType; changing type can clear the item's meta.
-		String savedTitle = (meta != null && meta.hasTitle()) ? meta.getTitle() : null;
-		String savedAuthor = (meta != null && meta.hasAuthor()) ? meta.getAuthor() : null;
+		// Capture title/author before setType; writable books don't support them in BookMeta, so we store in PDC.
+		String savedTitle = (meta != null && meta.hasTitle()) ? stripColorCodesToAlternate(meta.getTitle()) : null;
+		String savedAuthor = (meta != null && meta.hasAuthor()) ? stripColorCodesToAlternate(meta.getAuthor()) : null;
 		List<String> pages = getPages(item);
 		item.setType(Material.WRITABLE_BOOK);
 		BookMeta writableMeta = getBookMeta(item);
 		if (writableMeta != null)
 		{
-			if (savedTitle != null) writableMeta.setTitle(stripColorCodesToAlternate(savedTitle));
-			if (savedAuthor != null) writableMeta.setAuthor(stripColorCodesToAlternate(savedAuthor));
 			if (pages != null)
 			{
 				List<String> stripped = new java.util.ArrayList<>(pages.size());
@@ -629,6 +637,7 @@ public class BookUtil
 			for (String p : pages) stripped.add(stripColorCodesToAlternate(p));
 			setPages(item, stripped);
 		}
+		setUnlockTitleAuthor(item, savedTitle, savedAuthor);
 		updateDisplayName(item);
 	}
 	
@@ -638,9 +647,9 @@ public class BookUtil
 		if (item.getType() == Material.WRITTEN_BOOK) return;
 
 		BookMeta meta = getBookMeta(item);
-		// Keep previous title and author when locking (e.g. after unlock → edit → lock).
-		String savedTitle = (meta != null && meta.hasTitle()) ? meta.getTitle() : null;
-		String savedAuthor = (meta != null && meta.hasAuthor()) ? meta.getAuthor() : null;
+		// Keep previous title and author when locking (e.g. after unlock → edit → lock). Writable books store them in PDC.
+		String savedTitle = (meta != null && meta.hasTitle()) ? meta.getTitle() : getUnlockTitle(item);
+		String savedAuthor = (meta != null && meta.hasAuthor()) ? meta.getAuthor() : getUnlockAuthor(item);
 		List<String> pages = getPages(item);
 		item.setType(Material.WRITTEN_BOOK);
 		BookMeta writtenMeta = getBookMeta(item);
@@ -655,6 +664,7 @@ public class BookUtil
 		{
 			setPages(item, pages);
 		}
+		clearUnlockTitleAuthor(item);
 		updateDisplayName(item);
 	}
 	
@@ -735,6 +745,24 @@ public class BookUtil
 			InventoryUtil.setLore(item, lore);
 		}
 		updateDisplayName(item);
+	}
+
+	/** Remove the COPYRIGHTED lore line only (no display name update). Used when building the MBook template so copyrighted is stored as entity field, not in lore. */
+	public static void removeCopyrightedFromLoreOnly(ItemStack item)
+	{
+		if (item == null || !containsFlag(item, Const.COPYRIGHTED)) return;
+		List<String> lore = InventoryUtil.getLore(item);
+		if (lore == null) return;
+		lore = new ArrayList<>(lore);
+		lore.remove(Const.COPYRIGHTED);
+		if (lore.isEmpty())
+		{
+			InventoryUtil.setLore(item, (Collection<String>) null);
+		}
+		else
+		{
+			InventoryUtil.setLore(item, lore);
+		}
 	}
 	
 	// -------------------------------------------- //

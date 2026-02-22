@@ -1,6 +1,7 @@
 package com.massivecraft.massivebooks.entity;
 
 import com.massivecraft.massivebooks.BookUtil;
+import com.massivecraft.massivebooks.Const;
 import com.massivecraft.massivecore.store.Entity;
 import org.bukkit.inventory.ItemStack;
 
@@ -27,6 +28,7 @@ public class MBook extends Entity<MBook>
 		this.item = that.item;
 		this.bookId = that.bookId;
 		this.bookType = that.bookType;
+		this.copyrighted = that.copyrighted;
 		return this;
 	}
 
@@ -47,6 +49,7 @@ public class MBook extends Entity<MBook>
 	}
 	public void setItem(ItemStack item)
 	{
+		this.copyrighted = item != null && BookUtil.containsFlag(item, Const.COPYRIGHTED);
 		item = fixItem(item);
 		this.item = item;
 		this.changed();
@@ -62,17 +65,23 @@ public class MBook extends Entity<MBook>
 	public BookType getBookType() { return bookType; }
 	public void setBookType(BookType bookType) { this.bookType = bookType; this.changed(); }
 
+	/** Whether copying is restricted (author or COPY_COPYRIGHTED only). Stored as own field so lore can be edited separately. */
+	private boolean copyrighted = false;
+	public boolean isCopyrighted() { return copyrighted; }
+	public void setCopyrighted(boolean copyrighted) { this.copyrighted = copyrighted; this.changed(); }
+
 	// -------------------------------------------- //
 	// UTIL
 	// -------------------------------------------- //
 
-	/** Returns a clean copy for storage/display; strips bookId/bookType from item so they are not stored in the template. */
+	/** Returns a clean copy for storage/display; strips bookId/bookType and COPYRIGHTED lore so they are not stored in the template. */
 	public static ItemStack fixItem(ItemStack item)
 	{
 		if (!BookUtil.hasBookMeta(item)) return null;
 		item = new ItemStack(item);
 		item.setAmount(1);
 		BookUtil.removeBookMetadata(item);
+		BookUtil.removeCopyrightedFromLoreOnly(item);
 		return item;
 	}
 
