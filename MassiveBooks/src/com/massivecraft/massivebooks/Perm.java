@@ -35,6 +35,7 @@ public enum Perm implements Identified
 	LIST,
 	LOAD,
 	GIVE,
+	GIVESILENT,
 	SAVE,
 	DELETE,
 	

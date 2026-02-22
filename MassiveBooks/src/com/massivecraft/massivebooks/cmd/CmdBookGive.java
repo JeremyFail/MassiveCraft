@@ -14,8 +14,10 @@ import com.massivecraft.massivecore.command.type.container.TypeList;
 import com.massivecraft.massivecore.command.type.sender.TypePlayer;
 import com.massivecraft.massivecore.mixin.MixinDisplayName;
 import com.massivecraft.massivecore.mixin.MixinMessage;
+import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.InventoryUtil;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -54,14 +56,32 @@ public class CmdBookGive extends MassiveBooksCommand
 	public void perform() throws MassiveException
 	{
 		Player player = this.readArg(me);
-		
-		// How many? or perhaps ensure the player has at least one?
 		Integer amount = this.readArg();
 		boolean ensure = Objects.equals(amount, TypeBookAmount.ENSURE);
 		if (ensure) amount = 1;
-		
-		// What items should we give?
 		List<MBook> mbooks = this.readArg(new MassiveList<>());
+		performGive(this.sender, player, amount, ensure, mbooks, true);
+	}
+
+	// -------------------------------------------- //
+	// SHARED LOGIC (used by give and givesilent)
+	// -------------------------------------------- //
+
+	/**
+	 * Gives books to a player. Sender always gets feedback; 
+	 * player gets messages only when messagePlayer is true (and not suppressed by config for console).
+	 * 
+	 * @param sender The command sender
+	 * @param player The player to give the books to
+	 * @param amount The amount of books to give
+	 * @param ensure Whether to ensure the player has at least one book
+	 * @param mbooks The list of books to give
+	 * @param messagePlayer Whether to message the player
+	 */
+	public static void performGive(CommandSender sender, Player player, int amount, boolean ensure, List<MBook> mbooks, boolean messagePlayer)
+	{
+		boolean actuallyMessagePlayer = messagePlayer && !(IdUtil.isConsole(sender) && MConf.get().getSuppressGiveMessageFromConsole());
+
 		List<ItemStack> items = new MassiveList<>();
 		if (mbooks.isEmpty())
 		{
@@ -74,29 +94,28 @@ public class CmdBookGive extends MassiveBooksCommand
 				items.add(MassiveBooks.get().processBookPlaceholdersForViewer(mbook.getItem(), player));
 			}
 		}
-		
-		// Now for each item ...
+
 		for (ItemStack item : items)
 		{
 			PlayerInventory inventory = player.getInventory();
 			if (ensure && inventory.containsAtLeast(item, 1))
 			{
 				MixinMessage.get().messageOne(sender, Lang.getAlreadyHave(MixinDisplayName.get().getDisplayName(player, sender), item));
-				MixinMessage.get().messageOne(player, Lang.getAlreadyHave("You", item));
+				if (actuallyMessagePlayer) MixinMessage.get().messageOne(player, Lang.getAlreadyHave("You", item));
 				continue;
 			}
-			
+
 			if (InventoryUtil.roomLeft(inventory, item, amount) < amount)
 			{
 				MixinMessage.get().messageOne(sender, Lang.getNotEnoughRoomFor(amount, item));
-				MixinMessage.get().messageOne(player, Lang.getNotEnoughRoomFor(amount, item));
+				if (actuallyMessagePlayer) MixinMessage.get().messageOne(player, Lang.getNotEnoughRoomFor(amount, item));
 				continue;
 			}
-			
+
 			InventoryUtil.addItemTimes(inventory, item, amount);
-			
+
 			MixinMessage.get().messageOne(sender, Lang.getGave("You", MixinDisplayName.get().getDisplayName(player, sender), amount, item));
-			MixinMessage.get().messageOne(player, Lang.getGave(MixinDisplayName.get().getDisplayName(sender, player), "you", amount, item));
+			if (actuallyMessagePlayer) MixinMessage.get().messageOne(player, Lang.getGave(MixinDisplayName.get().getDisplayName(sender, player), "you", amount, item));
 		}
 	}
 

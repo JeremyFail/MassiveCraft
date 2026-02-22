@@ -79,10 +79,19 @@ public class BookUtil
 		if (inventory == null) return;
 		Player viewer = null;
 		if (inventory.getHolder() instanceof Player)
+		{
 			viewer = (Player) inventory.getHolder();
+		}
 		else
+		{
 			for (HumanEntity e : inventory.getViewers())
-				if (e instanceof Player) { viewer = (Player) e; break; }
+			{
+				if (e instanceof Player) 
+				{ 
+					viewer = (Player) e; break;
+				}
+			}
+		}
 		boolean update = false;
 		ItemStack[] contents = inventory.getContents();
 		for (int i = 0; i < contents.length; i++)
@@ -141,6 +150,10 @@ public class BookUtil
 		if (item.isSimilar(blueprint)) return false;
 		item.setType(blueprint.getType());
 		item.setItemMeta(blueprint.getItemMeta());
+		// Apply display name so serverbooks show "by X" consistently and don't flip-flop when
+		// blueprint was saved without a display name (next update would run updateDisplayName and
+		// then replace again, toggling the text on/off).
+		if (MConf.get().autoupdatingDisplayNames) setDisplayName(item, Lang.descDisplayName(item));
 		return true;
 	}
 	

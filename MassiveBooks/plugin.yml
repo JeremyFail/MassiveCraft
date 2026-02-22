@@ -28,6 +28,7 @@ permissions:
   massivebooks.list: {description: list saved books, default: false}
   massivebooks.load: {description: load a saved book, default: false}
   massivebooks.give: {description: give saved book(s), default: false}
+  massivebooks.givesilent: {description: give saved book(s) silently, default: false}
   massivebooks.save: {description: save a book, default: false}
   massivebooks.delete: {description: delete a saved book, default: false}
   massivebooks.autoupdate: {description: alter your autoupdate state, default: false}
