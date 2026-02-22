@@ -124,13 +124,22 @@ public class CmdBookCopy extends MassiveBooksCommand
 		}
 		
 		// ... books (assumed to succeed)
-		inventory.removeItem(new ItemStack(Material.BOOK, booksRequired));
-		
+		if (booksRequired > 0)
+		{
+			inventory.removeItem(new ItemStack(Material.BOOK, booksRequired));
+		}
+			
 		// ... inksacs (assumed to succeed)
-		inventory.removeItem(new ItemStack(Material.INK_SAC, inksacsRequired));
+		if (inksacsRequired > 0)
+		{
+			inventory.removeItem(new ItemStack(Material.INK_SAC, inksacsRequired));
+		}
 		
 		// ... feathers (assumed to succeed)
-		inventory.removeItem(new ItemStack(Material.FEATHER, feathersRequired));
+		if (feathersRequired > 0)
+		{
+			inventory.removeItem(new ItemStack(Material.FEATHER, feathersRequired));
+		}
 		
 		// ... room (assumed to succeed)
 		// (add book copies)
