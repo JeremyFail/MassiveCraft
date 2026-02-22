@@ -487,7 +487,6 @@ public class MConf extends Entity<MConf>
 	// EXPLOITS
 	// -------------------------------------------- //
 	
-	public boolean handleNetherPortalTrap = true;
 	public boolean handleExploitObsidianGenerators = true;
 	public boolean handleExploitEnderPearlClipping = true;
 	public boolean handleExploitEnderPearlWorldBorder = true;
