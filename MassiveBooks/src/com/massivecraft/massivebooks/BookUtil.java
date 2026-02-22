@@ -123,6 +123,70 @@ public class BookUtil
 		item.setItemMeta(meta);
 	}
 
+	// -------------------------------------------- //
+	// UNLOCK TITLE/AUTHOR (PDC) – writable books don't support title/author in BookMeta
+	// -------------------------------------------- //
+
+	private static NamespacedKey keyUnlockTitle() { return new NamespacedKey(MassiveBooks.get(), "unlock_title"); }
+	private static NamespacedKey keyUnlockAuthor() { return new NamespacedKey(MassiveBooks.get(), "unlock_author"); }
+
+	public static String getUnlockTitle(ItemStack item)
+	{
+		if (item == null || !item.hasItemMeta()) return null;
+
+		ItemMeta meta = item.getItemMeta();
+		if (meta == null || !meta.getPersistentDataContainer().has(keyUnlockTitle(), PersistentDataType.STRING)) return null;
+
+		return meta.getPersistentDataContainer().get(keyUnlockTitle(), PersistentDataType.STRING);
+	}
+
+	public static String getUnlockAuthor(ItemStack item)
+	{
+		if (item == null || !item.hasItemMeta()) return null;
+
+		ItemMeta meta = item.getItemMeta();
+		if (meta == null || !meta.getPersistentDataContainer().has(keyUnlockAuthor(), PersistentDataType.STRING)) return null;
+
+		return meta.getPersistentDataContainer().get(keyUnlockAuthor(), PersistentDataType.STRING);
+	}
+
+	private static void setUnlockTitleAuthor(ItemStack item, String title, String author)
+	{
+		if (item == null) return;
+		
+		// NOTE: We store the unlock title and author in the item PDC since writable books don't support BookMeta title/author
+		ItemMeta meta = InventoryUtil.createMeta(item);
+		if (title != null) 
+		{
+			meta.getPersistentDataContainer().set(keyUnlockTitle(), PersistentDataType.STRING, title);
+		}
+		else 
+		{
+			meta.getPersistentDataContainer().remove(keyUnlockTitle());
+		}
+
+		if (author != null)
+		{
+			meta.getPersistentDataContainer().set(keyUnlockAuthor(), PersistentDataType.STRING, author);
+		}
+		else 
+		{
+			meta.getPersistentDataContainer().remove(keyUnlockAuthor());
+		}
+		
+		item.setItemMeta(meta);
+	}
+
+	private static void clearUnlockTitleAuthor(ItemStack item)
+	{
+		if (item == null || !item.hasItemMeta()) return;
+
+		ItemMeta meta = item.getItemMeta();
+		meta.getPersistentDataContainer().remove(keyUnlockTitle());
+		meta.getPersistentDataContainer().remove(keyUnlockAuthor());
+		item.setItemMeta(meta);
+	}
+
 	public static boolean isServerBook(ItemStack item)
 	{
 		return getBookType(item) == BookType.SERVER_BOOK;
