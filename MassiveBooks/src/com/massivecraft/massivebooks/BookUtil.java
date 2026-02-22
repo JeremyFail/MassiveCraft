@@ -123,6 +123,39 @@ public class BookUtil
 		item.setItemMeta(meta);
 	}
 
+	/** Remove the book-type lore line (e.g. "Server Book") from the item. Call while item still has bookType set so we know which line to remove. Does not touch copyrighted. */
+	public static void removeBookTypeLoreLine(ItemStack item)
+	{
+		if (item == null) return;
+
+		BookType type = getBookType(item);
+		if (type == null) return;
+
+		List<String> lore = InventoryUtil.getLore(item);
+		if (lore == null || lore.isEmpty()) return;
+		
+		String friendlyName = type.getFriendlyName();
+		lore = new ArrayList<>(lore);
+		lore.removeIf(line -> line != null && ChatColor.stripColor(line).trim().equals(friendlyName));
+		if (lore.isEmpty())
+		{
+			InventoryUtil.setLore(item, (Collection<String>) null);
+		}
+		else
+		{
+			InventoryUtil.setLore(item, lore);
+		}
+	}
+
+	/** Clear server-book identity from item when the saved book was deleted (bookId, bookType, type lore). Keeps copyrighted status. */
+	public static void clearServerbookMetadataFromItem(ItemStack item)
+	{
+		if (item == null) return;
+		removeBookTypeLoreLine(item);
+		setBookId(item, null);
+		setBookType(item, null);
+	}
+
 	// -------------------------------------------- //
 	// UNLOCK TITLE/AUTHOR (PDC) – writable books don't support title/author in BookMeta
 	// -------------------------------------------- //
@@ -173,7 +206,7 @@ public class BookUtil
 		{
 			meta.getPersistentDataContainer().remove(keyUnlockAuthor());
 		}
-		
+
 		item.setItemMeta(meta);
 	}
 
@@ -322,6 +355,9 @@ public class BookUtil
 				applyServerbookContent(item, mbook, viewer);
 				return true;
 			}
+			// Saved book was deleted: clear stale server-book metadata (keep copyrighted)
+			clearServerbookMetadataFromItem(item);
+			return false;
 		}
 
 		// Legacy: look up by title (easy to remove later)
@@ -334,7 +370,15 @@ public class BookUtil
 		String title = getTitle(item);
 		if (title == null) return false;
 		MBook mbook = MBook.get(title);
-		if (mbook == null) return false;
+		if (mbook == null)
+		{
+			// Had server-book metadata but no saved book (e.g. deleted); clear it (keep copyrighted)
+			if (getBookId(item) != null || getBookType(item) != null)
+			{
+				clearServerbookMetadataFromItem(item);
+			}
+			return false;
+		}
 		applyServerbookContent(item, mbook, viewer);
 		return true;
 	}
