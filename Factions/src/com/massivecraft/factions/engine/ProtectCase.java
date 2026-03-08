@@ -13,6 +13,7 @@ public enum ProtectCase
 	// -------------------------------------------- //
 	
 	BUILD,
+	BUILD_VEHICLE,
 	USE_BLOCK,
 	USE_ITEM,
 	USE_ENTITY,
@@ -33,6 +34,9 @@ public enum ProtectCase
 		{
 			case BUILD:
 				return MPerm.getPermBuild();
+
+			case BUILD_VEHICLE:
+				return MPerm.getPermVehicle();
 			
 			case USE_ITEM:
 				if (!(object instanceof Material)) return null;

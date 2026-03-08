@@ -166,6 +166,11 @@ public class EnginePermBuild extends Engine
 		Player player = (Player) entity;
 		return protect(ProtectCase.BUILD, verboose, player, PS.valueOf(block), block, (Cancellable) event);
 	}
+
+	public static Boolean buildVehicle(Player player, Block block, Cancellable cancellable)
+	{
+		return protect(ProtectCase.BUILD_VEHICLE, true, player, PS.valueOf(block), block.getType(), cancellable);
+	}
 	
 	public static Boolean useItem(Player player, Block block, Material material, Cancellable cancellable)
 	{
@@ -580,6 +585,22 @@ public class EnginePermBuild extends Engine
 		protect(ProtectCase.BUILD, false, player, PS.valueOf(block), block, event);
 	}
 
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void frostWalker(EntityBlockFormEvent event)
+	{
+		// If a player forms a block (I.e. FrostWalker) ...
+		Entity entity = event.getEntity();
+		if (MUtil.isntPlayer(entity)) return;
+		Player player = (Player) entity;
+		
+		// ... and the player can't build there, cancel the event
+		protect(ProtectCase.BUILD, false, player, PS.valueOf(event.getBlock()), event.getBlock(), event);
+	}
+
+	// -------------------------------------------- //
+	// BUILD > VEHICLE
+	// -------------------------------------------- //
+
 	// Handles placing vehicles
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void vehiclePlace(PlayerInteractEvent event) 
@@ -595,7 +616,7 @@ public class EnginePermBuild extends Engine
 		// If the item is a vehicle material
 		if (EnumerationUtil.isMaterialVehicle(item))
 		{
-			build(player, block, event);
+			buildVehicle(player, block, event);
 		}
 	}
 
@@ -609,20 +630,12 @@ public class EnginePermBuild extends Engine
 		Block block = event.getVehicle().getLocation().getBlock();
 		
 		// then check for build permissions.
-		build(player, block, event);
+		buildVehicle(player, block, event);
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void frostWalker(EntityBlockFormEvent event)
-	{
-		// If a player forms a block (I.e. FrostWalker) ...
-		Entity entity = event.getEntity();
-		if (MUtil.isntPlayer(entity)) return;
-		Player player = (Player) entity;
-		
-		// ... and the player can't build there, cancel the event
-		protect(ProtectCase.BUILD, false, player, PS.valueOf(event.getBlock()), event.getBlock(), event);
-	}
+	// -------------------------------------------- //
+	// BUILD > CONTAINER
+	// -------------------------------------------- //
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void containerBreak(BlockBreakEvent event)

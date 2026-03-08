@@ -36,6 +36,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	
 	public final static transient String ID_BUILD = "build";
 	public final static transient String ID_PAINBUILD = "painbuild";
+	public final static transient String ID_VEHICLE = "vehicle";
 	public final static transient String ID_DOOR = "door";
 	public final static transient String ID_BUTTON = "button";
 	public final static transient String ID_PRESSURE_PLATE = "pressureplate";
@@ -68,6 +69,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 
 	public final static transient int PRIORITY_BUILD = 1000;
 	public final static transient int PRIORITY_PAINBUILD = 2000;
+	public final static transient int PRIORITY_VEHICLE = 2500;
 	public final static transient int PRIORITY_DOOR = 3000;
 	public final static transient int PRIORITY_BUTTON = 4000;
 	public final static transient int PRIORITY_PRESSURE_PLATE = 4500;
@@ -124,6 +126,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	{
 		getPermBuild();
 		getPermPainbuild();
+		getPermVehicle();
 		getPermDoor();
 		getPermButton();
 		getPermPressurePlate();
@@ -157,6 +160,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	
 	public static MPerm getPermBuild() { return getCreative(PRIORITY_BUILD, ID_BUILD, ID_BUILD, "edit the terrain", true, true, true); }
 	public static MPerm getPermPainbuild() { return getCreative(PRIORITY_PAINBUILD, ID_PAINBUILD, ID_PAINBUILD, "edit, take damage", true, true, true); }
+	public static MPerm getPermVehicle() { return getCreative(PRIORITY_VEHICLE, ID_VEHICLE, ID_VEHICLE, "place/destroy vehicles", true, true, true); }
 	public static MPerm getPermDoor() { return getCreative(PRIORITY_DOOR, ID_DOOR, ID_DOOR, "use doors", true, true, true); }
 	public static MPerm getPermButton() { return getCreative(PRIORITY_BUTTON, ID_BUTTON, ID_BUTTON, "use buttons", true, true, true); }
 	public static MPerm getPermPressurePlate() { return getCreative(PRIORITY_PRESSURE_PLATE, ID_PRESSURE_PLATE, ID_PRESSURE_PLATE, "use pressure plates", true, true, true); }

@@ -576,6 +576,7 @@ public class MConf extends Entity<MConf>
 	public Map<String, Set<String>> perm2default = MUtil.map(
 		MPerm.ID_BUILD, MUtil.set("LEADER", "OFFICER", "MEMBER"),
 		MPerm.ID_PAINBUILD, MUtil.set(),
+		MPerm.ID_VEHICLE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_DOOR, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_BUTTON, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_PRESSURE_PLATE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
