@@ -540,8 +540,8 @@ public class EnginePermBuild extends Engine
 		if (MConf.get().playersWhoBypassAllProtection.contains(mplayer.getName())) return;
 		if (mplayer.isOverriding()) return;
 		
-		// ... check if they can use containers
-		if (Boolean.TRUE.equals(!MPerm.getPermContainer().has(mplayer, PS.valueOf(block), verbose))) event.setCancelled(true);
+		// ... check if they can take books from lecterns
+		if (Boolean.TRUE.equals(!MPerm.getPermLectern().has(mplayer, PS.valueOf(block), verbose))) event.setCancelled(true);
 	}
 
 	// -------------------------------------------- //

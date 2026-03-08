@@ -582,6 +582,7 @@ public class MConf extends Entity<MConf>
 		MPerm.ID_PRESSURE_PLATE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_LEVER, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_CONTAINER, MUtil.set("LEADER", "OFFICER", "MEMBER"),
+		MPerm.ID_LECTERN, MUtil.set("LEADER", "OFFICER", "MEMBER"),
 		MPerm.ID_LEASH, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 
 		MPerm.ID_NAME, MUtil.set("LEADER"),

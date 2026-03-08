@@ -54,6 +54,9 @@ public enum ProtectCase
 			case USE_BLOCK:
 				if (!(object instanceof Material)) return null;
 				Material material = (Material) object;
+				// Lectern: allow opening/viewing without permission; taking books is checked by getPermLectern in PlayerTakeLecternBookEvent
+				if (material == Material.LECTERN) return null;
+				
 				if (EnumerationUtil.isMaterialEditOnInteract(material)) return MPerm.getPermBuild();
 				if (EnumerationUtil.isMaterialContainer(material)) return MPerm.getPermContainer();
 				if (EnumerationUtil.isMaterialDoorOrRelated(material)) return MPerm.getPermDoor();
