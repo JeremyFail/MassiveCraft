@@ -104,7 +104,7 @@ public class MConf extends Entity<MConf>
 	public void setAliasesBookVersion(Set<String> aliasesBookVersion) { this.aliasesBookVersion = aliasesBookVersion; }
 	
 	// New Player Commands
-	public boolean usingNewPlayerCommands = true;
+	public boolean usingNewPlayerCommands = false;
 	@EditorTypeInner(TypeStringCommand.class)
 	public List<String> newPlayerCommands = MUtil.list("book give {p} ensure all");
 	public boolean usingNewPlayerCommandsDelayTicks = true;
