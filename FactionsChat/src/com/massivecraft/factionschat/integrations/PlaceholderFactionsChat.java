@@ -7,6 +7,10 @@ import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.massivecore.util.PlaceholderProcessor;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 /**
@@ -61,9 +65,32 @@ public class PlaceholderFactionsChat implements PlaceholderExpander
     }
 
     @Override
+    public List<String> getPlaceholders()
+    {
+        List<String> supportedPlaceholders = new ArrayList<>();
+        supportedPlaceholders.add("%factions_chat_prefix%");
+        supportedPlaceholders.add("%factions_chat_color%");
+        return supportedPlaceholders;
+    }
+
+    @Override
     public String onPlaceholderRequest(Player player, String placeholder)
     {
-        // Invalid placeholder
+        return parsePlaceholder(player, placeholder);
+    }
+
+    @Override
+    public String onPlaceholderRequest(OfflinePlayer player, String placeholder)
+    {
+        if (player == null || !player.isOnline()) return "";
+        return parsePlaceholder(player.getPlayer(), placeholder);
+    }
+
+    /**
+     * Single place for chat placeholder parsing. Requires an online player for chat mode.
+     */
+    private static String parsePlaceholder(Player player, String placeholder)
+    {
         if (placeholder == null) return null;
 
         // If the player is null, we will return an empty string for chat-specific placeholders

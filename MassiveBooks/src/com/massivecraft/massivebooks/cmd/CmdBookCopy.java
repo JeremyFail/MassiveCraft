@@ -1,6 +1,7 @@
 package com.massivecraft.massivebooks.cmd;
 
 import com.massivecraft.massivebooks.BookUtil;
+import com.massivecraft.massivebooks.MassiveBooks;
 import com.massivecraft.massivebooks.Lang;
 import com.massivecraft.massivebooks.Perm;
 import com.massivecraft.massivebooks.cmd.type.TypeBookInHand;
@@ -50,10 +51,10 @@ public class CmdBookCopy extends MassiveBooksCommand
 	{
 		// Get item arg
 		ItemStack item = TypeBookInHand.getWritten().read(sender);
-		BookUtil.updateBook(item);
-		
+		BookUtil.updateBook(item, me);
 		item = item.clone();
 		item.setAmount(1);
+		item = MassiveBooks.get().processBookPlaceholdersForViewer(item, me);
 		
 		// Get times arg
 		int times = this.readArg();
@@ -123,13 +124,22 @@ public class CmdBookCopy extends MassiveBooksCommand
 		}
 		
 		// ... books (assumed to succeed)
-		inventory.removeItem(new ItemStack(Material.BOOK, booksRequired));
-		
+		if (booksRequired > 0)
+		{
+			inventory.removeItem(new ItemStack(Material.BOOK, booksRequired));
+		}
+			
 		// ... inksacs (assumed to succeed)
-		inventory.removeItem(new ItemStack(Material.INK_SAC, inksacsRequired));
+		if (inksacsRequired > 0)
+		{
+			inventory.removeItem(new ItemStack(Material.INK_SAC, inksacsRequired));
+		}
 		
 		// ... feathers (assumed to succeed)
-		inventory.removeItem(new ItemStack(Material.FEATHER, feathersRequired));
+		if (feathersRequired > 0)
+		{
+			inventory.removeItem(new ItemStack(Material.FEATHER, feathersRequired));
+		}
 		
 		// ... room (assumed to succeed)
 		// (add book copies)
@@ -137,7 +147,10 @@ public class CmdBookCopy extends MassiveBooksCommand
 		
 		// Inform		
 		message(Lang.getSuccessCopyCopies(times));
-		message(Lang.getSuccessCopyResources(moneyRequired, booksRequired, inksacsRequired, feathersRequired));
+		if (moneyRequired > 0 || booksRequired > 0 || inksacsRequired > 0 || feathersRequired > 0)
+		{
+			message(Lang.getSuccessCopyResources(moneyRequired, booksRequired, inksacsRequired, feathersRequired));
+		}
 	}
 	
 	// -------------------------------------------- //

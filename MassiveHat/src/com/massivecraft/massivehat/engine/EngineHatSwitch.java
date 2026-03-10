@@ -49,7 +49,7 @@ public class EngineHatSwitch extends Engine
 		
 		// If a player ...
 		if (MUtil.isntPlayer(clicker)) return;
-		final Player me = (Player) clicker;
+		final Player player = (Player) clicker;
 		
 		final InventoryView view = event.getView();
 		
@@ -65,7 +65,7 @@ public class EngineHatSwitch extends Engine
 		if (!PredicateIsHat.getHat().apply(cursor)) return;
 		
 		// ... and hatting is allowed ...
-		if (!Perm.USE.has(me, MConf.get().hatPlacePermDenyVerbose)) return;
+		if (!Perm.USE.has(player, MConf.get().hatPlacePermDenyVerbose)) return;
 
 		// Get
 		final ItemStack current = event.getCurrentItem();

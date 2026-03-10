@@ -90,12 +90,19 @@ public class EngineMain extends Engine
 		if (block.getType() != Material.NETHER_PORTAL) return;
 		
 		// ... and we are filling or that block is stable according to our algorithm ...
-		if ( ! (CreativeGates.get().isFilling() || isPortalBlockStable(block))) return;
+		if (!(CreativeGates.get().isFilling() || isPortalBlockStable(block))) return;
 		
 		// ... then block the physics to stop the portal from disappearing.
 		event.setCancelled(true);
 	}
 	
+	/**
+	 * Check if a portal block is stable according to our geometric algorithm.
+	 * This is used to determine if a portal block should be protected from physics.
+	 * 
+	 * @param block The block to check.
+	 * @return True if the block is stable, false otherwise.
+	 */
 	public static boolean isPortalBlockStable(Block block)
 	{
 		if (CreativeGates.isVoid(block.getRelative(+0, +1, +0))) return false;
@@ -264,6 +271,9 @@ public class EngineMain extends Engine
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void destroyGate(EntityExplodeEvent event)
 	{
+		// Wind charge: do not treat explosion as gate-destroying (use vanilla behavior)
+		if (event.getEntity() != null && event.getEntity().getType() == EntityType.WIND_CHARGE) return;
+
 		for (Block block : event.blockList())
 		{
 			destroyGate(block);

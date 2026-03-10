@@ -4,7 +4,9 @@ import com.massivecraft.massivebooks.BookUtil;
 import com.massivecraft.massivebooks.Lang;
 import com.massivecraft.massivebooks.Perm;
 import com.massivecraft.massivebooks.cmd.type.TypeBookInHand;
+import com.massivecraft.massivebooks.entity.MBook;
 import com.massivecraft.massivebooks.entity.MConf;
+import org.bukkit.inventory.meta.BookMeta;
 import com.massivecraft.massivecore.MassiveException;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
@@ -49,6 +51,26 @@ public class CmdBookUnlock extends MassiveBooksCommand
 		}
 		
 		if (!BookUtil.isAuthorEquals(item, sender) && !Perm.UNLOCK_OTHER.has(sender, true)) return;
+
+		// If this book matches a saved book, load the saved raw content (unparsed placeholders) so the user can edit them.
+		String title = BookUtil.getTitle(item);
+		if (title != null)
+		{
+			MBook mbook = MBook.get(title);
+			if (mbook != null)
+			{
+				ItemStack raw = mbook.getItem();
+				BookMeta rawMeta = raw != null ? (BookMeta) raw.getItemMeta() : null;
+				BookMeta itemMeta = item.getItemMeta() instanceof BookMeta ? (BookMeta) item.getItemMeta() : null;
+				if (rawMeta != null && itemMeta != null)
+				{
+					if (rawMeta.hasTitle()) itemMeta.setTitle(rawMeta.getTitle()); else itemMeta.setTitle(null);
+					if (rawMeta.hasAuthor()) itemMeta.setAuthor(rawMeta.getAuthor()); else itemMeta.setAuthor(null);
+					if (rawMeta.hasPages()) itemMeta.setPages(new java.util.ArrayList<>(rawMeta.getPages())); else itemMeta.setPages(new java.util.ArrayList<>());
+					item.setItemMeta(itemMeta);
+				}
+			}
+		}
 		
 		// Check if we have a stack - book and quills don't stack
 		int amount = item.getAmount();

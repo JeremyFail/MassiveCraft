@@ -487,7 +487,6 @@ public class MConf extends Entity<MConf>
 	// EXPLOITS
 	// -------------------------------------------- //
 	
-	public boolean handleNetherPortalTrap = true;
 	public boolean handleExploitObsidianGenerators = true;
 	public boolean handleExploitEnderPearlClipping = true;
 	public boolean handleExploitEnderPearlWorldBorder = true;
@@ -577,11 +576,13 @@ public class MConf extends Entity<MConf>
 	public Map<String, Set<String>> perm2default = MUtil.map(
 		MPerm.ID_BUILD, MUtil.set("LEADER", "OFFICER", "MEMBER"),
 		MPerm.ID_PAINBUILD, MUtil.set(),
+		MPerm.ID_VEHICLE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_DOOR, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_BUTTON, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_PRESSURE_PLATE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_LEVER, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_CONTAINER, MUtil.set("LEADER", "OFFICER", "MEMBER"),
+		MPerm.ID_LECTERN, MUtil.set("LEADER", "OFFICER", "MEMBER"),
 		MPerm.ID_LEASH, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 
 		MPerm.ID_NAME, MUtil.set("LEADER"),

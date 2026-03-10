@@ -36,11 +36,13 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	
 	public final static transient String ID_BUILD = "build";
 	public final static transient String ID_PAINBUILD = "painbuild";
+	public final static transient String ID_VEHICLE = "vehicle";
 	public final static transient String ID_DOOR = "door";
 	public final static transient String ID_BUTTON = "button";
 	public final static transient String ID_PRESSURE_PLATE = "pressureplate";
 	public final static transient String ID_LEVER = "lever";
 	public final static transient String ID_CONTAINER = "container";
+	public final static transient String ID_LECTERN = "lectern";
 	public final static transient String ID_LEASH = "lead";
 	
 	public final static transient String ID_NAME = "name";
@@ -68,11 +70,13 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 
 	public final static transient int PRIORITY_BUILD = 1000;
 	public final static transient int PRIORITY_PAINBUILD = 2000;
+	public final static transient int PRIORITY_VEHICLE = 2500;
 	public final static transient int PRIORITY_DOOR = 3000;
 	public final static transient int PRIORITY_BUTTON = 4000;
 	public final static transient int PRIORITY_PRESSURE_PLATE = 4500;
 	public final static transient int PRIORITY_LEVER = 5000;
 	public final static transient int PRIORITY_CONTAINER = 6000;
+	public final static transient int PRIORITY_LECTERN = 6200;
 	public final static transient int PRIORITY_LEASH = 6500;
 
 	public final static transient int PRIORITY_NAME = 7000;
@@ -124,11 +128,13 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	{
 		getPermBuild();
 		getPermPainbuild();
+		getPermVehicle();
 		getPermDoor();
 		getPermButton();
 		getPermPressurePlate();
 		getPermLever();
 		getPermContainer();
+		getPermLectern();
 		getPermLeashMob();
 		
 		getPermName();
@@ -157,11 +163,13 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	
 	public static MPerm getPermBuild() { return getCreative(PRIORITY_BUILD, ID_BUILD, ID_BUILD, "edit the terrain", true, true, true); }
 	public static MPerm getPermPainbuild() { return getCreative(PRIORITY_PAINBUILD, ID_PAINBUILD, ID_PAINBUILD, "edit, take damage", true, true, true); }
+	public static MPerm getPermVehicle() { return getCreative(PRIORITY_VEHICLE, ID_VEHICLE, ID_VEHICLE, "place/destroy vehicles", true, true, true); }
 	public static MPerm getPermDoor() { return getCreative(PRIORITY_DOOR, ID_DOOR, ID_DOOR, "use doors", true, true, true); }
 	public static MPerm getPermButton() { return getCreative(PRIORITY_BUTTON, ID_BUTTON, ID_BUTTON, "use buttons", true, true, true); }
 	public static MPerm getPermPressurePlate() { return getCreative(PRIORITY_PRESSURE_PLATE, ID_PRESSURE_PLATE, ID_PRESSURE_PLATE, "use pressure plates", true, true, true); }
 	public static MPerm getPermLever() { return getCreative(PRIORITY_LEVER, ID_LEVER, ID_LEVER, "use levers", true, true, true); }
 	public static MPerm getPermContainer() { return getCreative(PRIORITY_CONTAINER, ID_CONTAINER, ID_CONTAINER, "use containers", true, true, true); }
+	public static MPerm getPermLectern() { return getCreative(PRIORITY_LECTERN, ID_LECTERN, ID_LECTERN, "take books from lecterns", true, true, true); }
 	public static MPerm getPermLeashMob() { return getCreative(PRIORITY_LEASH, ID_LEASH, ID_LEASH, "attach/detach leads", true, true, true); }
 
 	public static MPerm getPermName() { return getCreative(PRIORITY_NAME, ID_NAME, ID_NAME, "set name", false, true, true); }

@@ -15,6 +15,7 @@ import com.massivecraft.massivecore.util.PlaceholderProcessor;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -87,18 +88,47 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
     // OVERRIDE
     // -------------------------------------------- //
 
+    /**
+     * Retrieves the identifier for the Factions PlaceholderAPI integration.
+     * 
+     * @return Identifier for the Factions PlaceholderAPI integration.
+     */
     @Override
     public String getIdentifier()
     {
         return "factions";
     }
 
+    /**
+     * Retrieves the author string for the Factions PlaceholderAPI integration, along with the author strings of any registered expanders.
+     * 
+     * @return Author string for the Factions PlaceholderAPI integration and any registered expanders.
+     */
     @Override
     public String getAuthor()
     {
-        return "Ymerejliaf";
+        // Base Factions author
+        String author = "Ymerejliaf";
+
+        // Append expander authors
+        if (!expanders.isEmpty())
+        {
+            for (PlaceholderExpander expander : expanders)
+            {
+                if (expander.getAuthor() != null)
+                {
+                    author += ", " + expander.getAuthor();
+                }
+            }
+        }
+        return author;
     }
 
+    /**
+     * Retrieves the version string for the Factions PlaceholderAPI integration, along with the version strings of any registered expanders.
+     * 
+     * @return Version string for the Factions PlaceholderAPI integration and any registered expanders.
+     */
     @Override
     public String getVersion()
     {
@@ -120,6 +150,125 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
             version += sb.toString();
         }
         return version;
+    }
+
+    /**
+     * This is required for the expansion to be persistent and not be unloaded when PlaceholderAPI is reloaded.
+     */
+    @Override
+    public boolean persist()
+    {
+        return true;
+    }
+
+    /**
+     * Handle placeholder requests when the player may be offline (e.g. books, signs).
+     * Resolves to MPlayer and delegates to the same parsing logic as online requests.
+     */
+    @Override
+    public String onRequest(OfflinePlayer player, String params)
+    {
+        if (params == null) return null;
+        if (player == null) return "";
+        for (PlaceholderExpander expander : expanders)
+        {
+            String result = expander.onPlaceholderRequest(player, params);
+            if (result != null) return result;
+        }
+        MPlayer mplayer = MPlayer.get(player);
+        if (mplayer == null) return "";
+        return parsePlaceholder(mplayer, params, null);
+    }
+
+    /**
+     * Get the placeholders supported by the Factions PlaceholderAPI integration and any registered expanders.
+     * 
+     * @return List of placeholders supported by the Factions PlaceholderAPI integration.
+     */
+    @Override
+    public List<String> getPlaceholders()
+    {
+        List<String> supportedPlaceholders = new ArrayList<>();
+
+        // Add base Factions placeholders
+        supportedPlaceholders.add("%factions_faction_internal_id%");
+        supportedPlaceholders.add("%factions_faction_name%");
+        supportedPlaceholders.add("%factions_faction_nameforce%");
+        supportedPlaceholders.add("%factions_faction_description%");
+        supportedPlaceholders.add("%factions_faction_descriptionforce%");
+        supportedPlaceholders.add("%factions_faction_power%");
+        supportedPlaceholders.add("%factions_faction_powermax%");
+        supportedPlaceholders.add("%factions_faction_powerboost%");
+        supportedPlaceholders.add("%factions_faction_money_balance%");
+        supportedPlaceholders.add("%factions_faction_money_balance_raw%");
+        supportedPlaceholders.add("%factions_faction_leader%");
+        supportedPlaceholders.add("%factions_faction_founded%");
+        supportedPlaceholders.add("%factions_faction_peaceful%");
+        supportedPlaceholders.add("%factions_faction_warps%");
+        supportedPlaceholders.add("%factions_faction_home_formatted%");
+        supportedPlaceholders.add("%factions_faction_home_world%");
+        supportedPlaceholders.add("%factions_faction_home_x%");
+        supportedPlaceholders.add("%factions_faction_home_y%");
+        supportedPlaceholders.add("%factions_faction_home_z%");
+        supportedPlaceholders.add("%factions_faction_claims%");
+        supportedPlaceholders.add("%factions_faction_onlinemembers%");
+        supportedPlaceholders.add("%factions_faction_offlinemembers%");
+        supportedPlaceholders.add("%factions_faction_allmembers%");
+        supportedPlaceholders.add("%factions_faction_allies%");
+        supportedPlaceholders.add("%factions_faction_allies_players%");
+        supportedPlaceholders.add("%factions_faction_allies_players_online%");
+        supportedPlaceholders.add("%factions_faction_allies_players_offline%");
+        supportedPlaceholders.add("%factions_faction_enemies%");
+        supportedPlaceholders.add("%factions_faction_enemies_players%");
+        supportedPlaceholders.add("%factions_faction_enemies_players_online%");
+        supportedPlaceholders.add("%factions_faction_enemies_players_offline%");
+        supportedPlaceholders.add("%factions_faction_truces%");
+        supportedPlaceholders.add("%factions_faction_truces_players%");
+        supportedPlaceholders.add("%factions_faction_truces_players_online%");
+        supportedPlaceholders.add("%factions_faction_truces_players_offline%");
+        supportedPlaceholders.add("%factions_territory_internal_id%");
+        supportedPlaceholders.add("%factions_territory_name%");
+        supportedPlaceholders.add("%factions_territory_description%");
+        supportedPlaceholders.add("%factions_territory_power%");
+        supportedPlaceholders.add("%factions_territory_powermax%");
+        supportedPlaceholders.add("%factions_territory_powerboost%");
+        supportedPlaceholders.add("%factions_territory_money_balance%");
+        supportedPlaceholders.add("%factions_territory_bank_balance%");
+        supportedPlaceholders.add("%factions_territory_leader%");
+        supportedPlaceholders.add("%factions_territory_founded%");
+        supportedPlaceholders.add("%factions_territory_created%");
+        supportedPlaceholders.add("%factions_territory_peaceful%");
+        supportedPlaceholders.add("%factions_territory_warps%");
+        supportedPlaceholders.add("%factions_territory_relation_color%");
+        supportedPlaceholders.add("%factions_territory_claims%");
+        supportedPlaceholders.add("%factions_territory_onlinemembers%");
+        supportedPlaceholders.add("%factions_territory_offlinemembers%");
+        supportedPlaceholders.add("%factions_territory_allmembers%");
+        supportedPlaceholders.add("%factions_territory_allies%");
+        supportedPlaceholders.add("%factions_territory_allies_players%");
+        supportedPlaceholders.add("%factions_territory_allies_players_online%");
+        supportedPlaceholders.add("%factions_territory_allies_players_offline%");
+        supportedPlaceholders.add("%factions_territory_enemies%");
+        supportedPlaceholders.add("%factions_territory_enemies_players%");
+        supportedPlaceholders.add("%factions_territory_enemies_players_online%");
+        supportedPlaceholders.add("%factions_territory_enemies_players_offline%");
+        supportedPlaceholders.add("%factions_territory_truces%");
+        supportedPlaceholders.add("%factions_territory_truces_players%");
+        supportedPlaceholders.add("%factions_territory_truces_players_online%");
+        supportedPlaceholders.add("%factions_territory_truces_players_offline%");
+        supportedPlaceholders.add("%faction_relation%");
+        supportedPlaceholders.add("%faction_relation_color%");
+
+        // Add placeholders from registered expanders
+        if (!expanders.isEmpty())
+        {
+            for (PlaceholderExpander expander : expanders)
+            {
+                supportedPlaceholders.addAll(expander.getPlaceholders());
+            }
+        }
+
+        return supportedPlaceholders;
     }
 
     // Relational placeholder handling
@@ -177,19 +326,30 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
             if (result != null) return result;
         }
 
-        // Get the MPlayer object for the player
-        MPlayer mPlayer = MPlayer.get(player);
+        // Get the Mplayer object for the player
+        MPlayer mplayer = MPlayer.get(player);
 
         // If the MPlayer is null, return an empty string
-        if (mPlayer == null) return "";
+        if (mplayer == null) return "";
 
-        // Format for decimal values
+        // Get the location of the player
+        PS locationPs = PS.valueOf(player.getLocation());
+        return parsePlaceholder(mplayer, placeholder, locationPs);
+    }
+
+    /**
+     * Single place for all Factions placeholder parsing. Works for both online and offline players.
+     * When locationPs is null (e.g. offline), territory placeholders return "".
+     */
+    private String parsePlaceholder(MPlayer mPlayer, String placeholder, PS locationPs)
+    {
         DecimalFormat df = new DecimalFormat("#.##");
-
-        // Use PlaceholderProcessor to handle modifiers like |rp, |lp, etc.
         return PlaceholderProcessor.parsePlaceholderWithModifiers(placeholder, basePlaceholder -> {
-            // Variable to hold the faction at the player's location for territory placeholders
-            Faction factionAtLocation = basePlaceholder.startsWith("faction_territory_") ? BoardColl.get().getFactionAt(PS.valueOf(player.getLocation())) : null;
+            Faction factionAtLocation = basePlaceholder.startsWith("faction_territory_") && locationPs != null
+                ? BoardColl.get().getFactionAt(locationPs)
+                : null;
+            if (basePlaceholder.startsWith("faction_territory_") && factionAtLocation == null)
+                return "";
 
             switch (basePlaceholder)
             {
@@ -663,7 +823,7 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
                 case "player_roleforce":
                 case "rankforce":
                 case "roleforce":
-                    return MPlayer.get(player).getRank().getName();
+                    return mPlayer.getRank().getName();
 
                 case "player_rankprefix":
                 case "player_roleprefix":

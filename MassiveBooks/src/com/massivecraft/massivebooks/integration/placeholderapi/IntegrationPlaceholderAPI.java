@@ -1,7 +1,13 @@
-package com.massivecraft.factions.integration.placeholderapi;
+package com.massivecraft.massivebooks.integration.placeholderapi;
 
+import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.Integration;
 
+/**
+ * Integration with PlaceholderAPI.
+ * Placeholders are stored raw in books and parsed when a book is loaded/given/updated for a viewer
+ * (see {@link PlaceholderAPIProcessor}). We do not register any placeholders.
+ */
 public class IntegrationPlaceholderAPI extends Integration
 {
 	// -------------------------------------------- //
@@ -20,15 +26,14 @@ public class IntegrationPlaceholderAPI extends Integration
 	// -------------------------------------------- //
 
 	@Override
-	public void setIntegrationActiveInner(boolean active)
+	public Engine getEngine()
 	{
-		if (active) PlaceholderFactions.get().register();
-		else PlaceholderFactions.get().unregister();
+		return EnginePlaceholderAPI.get();
 	}
 
-	public static void ensureRegistered()
+	@Override
+	public void setIntegrationActiveInner(boolean active)
 	{
-		if (PlaceholderFactions.get().isRegistered()) return;
-		PlaceholderFactions.get().register();
+		// No placeholders to register or unregister; we only consume the API when signing books.
 	}
 }

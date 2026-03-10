@@ -71,6 +71,10 @@ public class MConf extends Entity<MConf>
 	public Set<String> getAliasesBookGive() { return this.aliasesBookGive; }
 	public void setAliasesBookGive(Set<String> aliasesBookGive) { this.aliasesBookGive = aliasesBookGive; }
 
+	private Set<String> aliasesBookGiveSilent = MUtil.set("givesilent");
+	public Set<String> getAliasesBookGiveSilent() { return this.aliasesBookGiveSilent; }
+	public void setAliasesBookGiveSilent(Set<String> aliasesBookGiveSilent) { this.aliasesBookGiveSilent = aliasesBookGiveSilent; }
+
 	private Set<String> aliasesBookSave = MUtil.set("save");
 	public Set<String> getAliasesBookSave() { return this.aliasesBookSave; }
 	public void setAliasesBookSave(Set<String> aliasesBookSave) { this.aliasesBookSave = aliasesBookSave; }
@@ -100,14 +104,13 @@ public class MConf extends Entity<MConf>
 	public void setAliasesBookVersion(Set<String> aliasesBookVersion) { this.aliasesBookVersion = aliasesBookVersion; }
 	
 	// New Player Commands
-	public boolean usingNewPlayerCommands = true;
+	public boolean usingNewPlayerCommands = false;
 	@EditorTypeInner(TypeStringCommand.class)
 	public List<String> newPlayerCommands = MUtil.list("book give {p} ensure all");
 	public boolean usingNewPlayerCommandsDelayTicks = true;
 	public int newPlayerCommandsDelayTicks = 5;
 	
 	// Copy Cost
-	
 	public Map<String, Double> permToCopyCost = MUtil.map(
 		"massivebooks.copycost.free", 0D,
 		"massivebooks.copycost.0", 0D,
@@ -136,6 +139,9 @@ public class MConf extends Entity<MConf>
 	public boolean autoupdatingServerbooks = true;
 	public boolean autoupdatingDisplayNames = true;
 	public boolean usingAuthorDisplayName = false;
+
+	/** When true, server books (and other typed books) show their type as an extra lore line when updated. */
+	public boolean showBookTypeAsLore = true;
 	
 	// ItemFrame Load
 	public boolean itemFrameLoadIfSneakTrue = false;
@@ -148,6 +154,11 @@ public class MConf extends Entity<MConf>
 	// ItemFrame Rotate
 	public boolean itemFrameRotateIfSneakTrue = true;
 	public boolean itemFrameRotateIfSneakFalse = true;
+
+	// When true, /book give from console does not send "@console gave you ..." to the player.
+	private boolean suppressGiveMessageFromConsole = false;
+	public boolean getSuppressGiveMessageFromConsole() { return this.suppressGiveMessageFromConsole; }
+	public void setSuppressGiveMessageFromConsole(boolean suppressGiveMessageFromConsole) { this.suppressGiveMessageFromConsole = suppressGiveMessageFromConsole; }
 	
 	// -------------------------------------------- //
 	// UTILS

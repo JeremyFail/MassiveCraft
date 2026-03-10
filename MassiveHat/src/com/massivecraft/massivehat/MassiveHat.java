@@ -2,7 +2,7 @@ package com.massivecraft.massivehat;
 
 import com.massivecraft.massivecore.MassivePlugin;
 import com.massivecraft.massivehat.cmd.CmdHat;
-import com.massivecraft.massivehat.cmd.CmdHatUse;
+import com.massivecraft.massivehat.cmd.CmdMhat;
 import com.massivecraft.massivehat.engine.EngineHatSwitch;
 import com.massivecraft.massivehat.entity.MConfColl;
 
@@ -31,9 +31,9 @@ public class MassiveHat extends MassivePlugin
 			// Engine
 			EngineHatSwitch.class,
 			
-			// Command
+			// Commands: /massivehat (base + subcommands), /mhat = alias for /massivehat use
 			CmdHat.class,
-			CmdHatUse.class
+			CmdMhat.class
 		);
 	}
 	

@@ -2,54 +2,54 @@ package com.massivecraft.massivehat.cmd;
 
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommand;
-import com.massivecraft.massivecore.command.MassiveCommandHelp;
 import com.massivecraft.massivecore.command.requirement.RequirementHasPerm;
+import com.massivecraft.massivecore.command.requirement.RequirementIsPlayer;
 import com.massivecraft.massivehat.Perm;
 import com.massivecraft.massivehat.entity.MConf;
 
 import java.util.List;
 
-public class CmdHat extends MassiveCommand
+/**
+ * Root command that is an alias for /massivehat use.
+ * Like /f home is an alias for /f warp go home.
+ * Default /mhat; add /hat, /usehat etc. via aliasesMhat in config.
+ */
+public class CmdMhat extends MassiveCommand
 {
 	// -------------------------------------------- //
 	// INSTANCE
 	// -------------------------------------------- //
-	
-	private static final CmdHat i = new CmdHat();
-	public static CmdHat get() { return i; }
-	
-	// -------------------------------------------- //
-	// FIELDS
-	// -------------------------------------------- //
-	
-	public final CmdHatUse cmdHatUse = new CmdHatUse();
-	public final CmdHatConfig cmdHatConfig = new CmdHatConfig();
-	public final CmdHatVersion cmdHatVersion = new CmdHatVersion();
-	
+
+	private static final CmdMhat i = new CmdMhat();
+	public static CmdMhat get() { return i; }
+
 	// -------------------------------------------- //
 	// CONSTRUCT
 	// -------------------------------------------- //
-	
-	public CmdHat()
+
+	public CmdMhat()
 	{
-		// Help first (index 0) so /massivehat with no args shows subcommand list
-		this.addChild(new MassiveCommandHelp(), 0);
-		this.addChild(this.cmdHatUse);
-		this.addChild(this.cmdHatConfig);
-		this.addChild(this.cmdHatVersion);
-		
 		// Requirements
+		this.addRequirements(RequirementIsPlayer.get());
 		this.addRequirements(RequirementHasPerm.get(Perm.BASECOMMAND));
+		this.addRequirements(RequirementHasPerm.get(Perm.USE));
+
+		this.setDesc("Use the block in hand as a hat (same as /massivehat use)");
 	}
 
 	// -------------------------------------------- //
 	// OVERRIDE
 	// -------------------------------------------- //
-	
+
 	@Override
 	public List<String> getAliases()
 	{
-		return new MassiveList<>(MConf.get().getAliasesMassiveHat());
+		return new MassiveList<>(MConf.get().getAliasesMhat());
 	}
-	
+
+	@Override
+	public void perform()
+	{
+		CmdHat.get().cmdHatUse.execute(me, new MassiveList<>());
+	}
 }

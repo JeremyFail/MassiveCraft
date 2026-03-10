@@ -13,6 +13,7 @@ public enum ProtectCase
 	// -------------------------------------------- //
 	
 	BUILD,
+	BUILD_VEHICLE,
 	USE_BLOCK,
 	USE_ITEM,
 	USE_ENTITY,
@@ -33,6 +34,9 @@ public enum ProtectCase
 		{
 			case BUILD:
 				return MPerm.getPermBuild();
+
+			case BUILD_VEHICLE:
+				return MPerm.getPermVehicle();
 			
 			case USE_ITEM:
 				if (!(object instanceof Material)) return null;
@@ -50,6 +54,9 @@ public enum ProtectCase
 			case USE_BLOCK:
 				if (!(object instanceof Material)) return null;
 				Material material = (Material) object;
+				// Lectern: allow opening/viewing without permission; taking books is checked by getPermLectern in PlayerTakeLecternBookEvent
+				if (material == Material.LECTERN) return null;
+				
 				if (EnumerationUtil.isMaterialEditOnInteract(material)) return MPerm.getPermBuild();
 				if (EnumerationUtil.isMaterialContainer(material)) return MPerm.getPermContainer();
 				if (EnumerationUtil.isMaterialDoorOrRelated(material)) return MPerm.getPermDoor();
