@@ -472,6 +472,7 @@ public class BookUtil
 		meta.setTitle(title);
 		if (!item.setItemMeta(meta)) return;
 		
+		if (applyColorCodesToBookTitle(meta)) item.setItemMeta(meta);
 		updateBook(item);
 	}
 	
@@ -501,6 +502,7 @@ public class BookUtil
 		if (meta == null) return;
 		meta.setAuthor(author);
 		if (!item.setItemMeta(meta)) return;
+		if (applyColorCodesToBookAuthor(meta)) item.setItemMeta(meta);
 		updateDisplayName(item);
 	}
 	
@@ -579,6 +581,89 @@ public class BookUtil
 	}
 
 	/**
+	 * Apply color code translation to a book's title.
+	 * If stripColorFromBooks is enabled, will instead strip all color codes from the title.
+	 *
+	 * @param meta A book's metadata.
+	 * @return true if the title was modified.
+	 */
+	private static boolean applyColorCodesToBookTitle(BookMeta meta)
+	{
+		if (meta == null || !meta.hasTitle()) return false;
+		boolean changed = false;
+		boolean stripColors = MConf.get().stripColorFromBooks;
+
+		if (MConf.get().translateColorCodesInBookTitles)
+		{
+			String t = translateColorCodes(meta.getTitle());
+			if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
+		}
+		if (stripColors)
+		{
+			String t = stripColorCodes(meta.getTitle());
+			if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
+		}
+		return changed;
+	}
+
+	/**
+	 * Apply color code translation to a book's author.
+	 * If stripColorFromBooks is enabled, will instead strip all color codes from the author.
+	 *
+	 * @param meta A book's metadata.
+	 * @return true if the author was modified.
+	 */
+	private static boolean applyColorCodesToBookAuthor(BookMeta meta)
+	{
+		if (meta == null || !meta.hasAuthor()) return false;
+		boolean changed = false;
+		boolean stripColors = MConf.get().stripColorFromBooks;
+
+		if (MConf.get().translateColorCodesInBookAuthors)
+		{
+			String a = translateColorCodes(meta.getAuthor());
+			if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
+		}
+		if (stripColors)
+		{
+			String a = stripColorCodes(meta.getAuthor());
+			if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
+		}
+		return changed;
+	}
+
+	/**
+	 * Apply color code translation to a book's pages.
+	 * If stripColorFromBooks is enabled, will instead strip all color codes from the pages.
+	 *
+	 * @param meta A book's metadata.
+	 * @return true if the pages were modified.
+	 */
+	private static boolean applyColorCodesToBookPages(BookMeta meta)
+	{
+		if (meta == null || !meta.hasPages()) return false;
+		List<String> pages = meta.getPages();
+		List<String> out = new java.util.ArrayList<>(pages.size());
+		boolean changed = false;
+		boolean stripColors = MConf.get().stripColorFromBooks;
+		boolean translateColors = MConf.get().translateColorCodesInBookPages;
+
+		for (String page : pages)
+		{
+			if (translateColors)
+			{
+				out.add(translateColorCodes(page));
+			}
+			if (stripColors)
+			{
+				out.add(stripColorCodes(page));
+			}
+		}
+		if (!pages.equals(out)) { meta.setPages(out); changed = true; }
+		return changed;
+	}
+
+	/**
 	 * Apply {@code &} color code translation to a book's title, author, and pages.
 	 * If stripColorFromBooks is enabled, will instead strip all color codes from the book.
 	 * Modifies the item in place. Use when preparing book content for display (with or without PAPI).
@@ -592,52 +677,11 @@ public class BookUtil
 		BookMeta meta = getBookMeta(item);
 		if (meta == null) return false;
 		boolean changed = false;
-		boolean stripColors = MConf.get().stripColorFromBooks;
 
-		if (meta.hasTitle())
-		{
-			if (MConf.get().translateColorCodesInBookTitles)
-			{
-				String t = translateColorCodes(meta.getTitle());
-				if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
-			}
-			if (stripColors)
-			{
-				String t = stripColorCodes(meta.getTitle());
-				if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
-			}
-		}
-		if (meta.hasAuthor())
-		{
-			if (MConf.get().translateColorCodesInBookAuthors)
-			{
-				String a = translateColorCodes(meta.getAuthor());
-				if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
-			}
-			if (stripColors)
-			{
-				String a = stripColorCodes(meta.getAuthor());
-				if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
-			}
-		}
-		if (meta.hasPages())
-		{
-			List<String> pages = meta.getPages();
-			List<String> out = new java.util.ArrayList<>(pages.size());
-			boolean translateColors = MConf.get().translateColorCodesInBookPages;
-			for (String page : pages)
-			{
-				if (translateColors)
-				{
-					out.add(translateColorCodes(page));
-				}
-				if (stripColors)
-				{
-					out.add(stripColorCodes(page));
-				}
-			}
-			if (!pages.equals(out)) { meta.setPages(out); changed = true; }
-		}
+		if (applyColorCodesToBookTitle(meta)) changed = true;
+		if (applyColorCodesToBookAuthor(meta)) changed = true;
+		if (applyColorCodesToBookPages(meta)) changed = true;
+
 		if (changed) item.setItemMeta(meta);
 		return changed;
 	}
@@ -751,6 +795,7 @@ public class BookUtil
 			setPages(item, pages);
 		}
 		clearUnlockTitleAuthor(item);
+		applyColorCodesToBook(item);
 		updateDisplayName(item);
 	}
 	
