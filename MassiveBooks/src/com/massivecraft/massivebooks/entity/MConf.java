@@ -155,6 +155,16 @@ public class MConf extends Entity<MConf>
 	public boolean itemFrameRotateIfSneakTrue = true;
 	public boolean itemFrameRotateIfSneakFalse = true;
 
+	// Book colors - translate ampersand color codes in book titles, authors, and pages if true
+	public boolean translateColorCodesInBookTitles = true;
+	public boolean translateColorCodesInBookAuthors = true;
+	public boolean translateColorCodesInBookPages = true;
+	
+	// Removes all color codes from book titles, authors, and pages if true.
+	// Applied after translateColorCodesInBook* options, so color codes will be 
+	// stripped even if translation is enabled.
+	public boolean stripColorFromBooks = false;
+
 	// When true, /book give from console does not send "@console gave you ..." to the player.
 	private boolean suppressGiveMessageFromConsole = false;
 	public boolean getSuppressGiveMessageFromConsole() { return this.suppressGiveMessageFromConsole; }

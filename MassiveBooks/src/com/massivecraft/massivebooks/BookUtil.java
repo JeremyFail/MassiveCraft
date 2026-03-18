@@ -566,7 +566,21 @@ public class BookUtil
 	}
 
 	/**
+	 * Remove ChatColor codes ({@code §}) from the given text so it can be stored 
+	 * without formatting.
+	 * 
+	 * @param text Text that may contain {@code §} color codes.
+	 * @return The text with {@code §} codes removed, or null if input was null.
+	 */
+	public static String stripColorCodes(String text)
+	{
+		text = translateColorCodes(text);
+		return ChatColor.stripColor(text);
+	}
+
+	/**
 	 * Apply {@code &} color code translation to a book's title, author, and pages.
+	 * If stripColorFromBooks is enabled, will instead strip all color codes from the book.
 	 * Modifies the item in place. Use when preparing book content for display (with or without PAPI).
 	 *
 	 * @param item A book item; must have BookMeta.
@@ -578,22 +592,50 @@ public class BookUtil
 		BookMeta meta = getBookMeta(item);
 		if (meta == null) return false;
 		boolean changed = false;
+		boolean stripColors = MConf.get().stripColorFromBooks;
+
 		if (meta.hasTitle())
 		{
-			String t = translateColorCodes(meta.getTitle());
-			if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
+			if (MConf.get().translateColorCodesInBookTitles)
+			{
+				String t = translateColorCodes(meta.getTitle());
+				if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
+			}
+			if (stripColors)
+			{
+				String t = stripColorCodes(meta.getTitle());
+				if (!meta.getTitle().equals(t)) { meta.setTitle(t); changed = true; }
+			}
 		}
 		if (meta.hasAuthor())
 		{
-			String a = translateColorCodes(meta.getAuthor());
-			if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
+			if (MConf.get().translateColorCodesInBookAuthors)
+			{
+				String a = translateColorCodes(meta.getAuthor());
+				if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
+			}
+			if (stripColors)
+			{
+				String a = stripColorCodes(meta.getAuthor());
+				if (!meta.getAuthor().equals(a)) { meta.setAuthor(a); changed = true; }
+			}
 		}
 		if (meta.hasPages())
 		{
 			List<String> pages = meta.getPages();
 			List<String> out = new java.util.ArrayList<>(pages.size());
+			boolean translateColors = MConf.get().translateColorCodesInBookPages;
 			for (String page : pages)
-				out.add(translateColorCodes(page));
+			{
+				if (translateColors)
+				{
+					out.add(translateColorCodes(page));
+				}
+				if (stripColors)
+				{
+					out.add(stripColorCodes(page));
+				}
+			}
 			if (!pages.equals(out)) { meta.setPages(out); changed = true; }
 		}
 		if (changed) item.setItemMeta(meta);
