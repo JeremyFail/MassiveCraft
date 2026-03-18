@@ -62,7 +62,8 @@ public class CmdBookAuthor extends MassiveBooksCommand
 		BookUtil.setAuthor(item, target);
 		InventoryUtil.setMainHand(me, item);
 		
-		message(Lang.getAlterAuthor(old, target));
+		String updated = BookUtil.getAuthor(item);
+		message(Lang.getAlterAuthor(old, updated));
 	}
 	
 }
