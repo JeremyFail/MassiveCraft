@@ -9,6 +9,7 @@ import com.massivecraft.factions.entity.MPerm.MPermable;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.massivecore.MassiveException;
 import com.massivecraft.massivecore.collections.MassiveList;
+import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.Txt;
 
 import java.util.Collection;
@@ -65,11 +66,13 @@ public class CmdFactionsPermShow extends FactionsCommand
 		}
 
 		// Otherwise, create messages
+		// Use me when sender is a player; when run from console me is null so use console (never pass null to permablesToDisplayString)
+		Object watcher = me != null ? me : IdUtil.getConsole();
 		msg(
 			"<i>In <reset>%s <i>permission <reset>%s <i>is granted to <reset>%s<i>.",
 			faction.describeTo(msender),
 			mperm.getDesc(true, false),
-			permablesToDisplayString(permables, me)
+			permablesToDisplayString(permables, watcher)
 		);
 	}
 
@@ -81,7 +84,9 @@ public class CmdFactionsPermShow extends FactionsCommand
 
 	public static String permablesToDisplayString(Collection<MPermable> permables, Object watcherObject)
 	{
-		MPlayer mplayer = MPlayer.get(watcherObject);
+		// When run from console or when caller passes null, use console so MPlayer.get() never receives null
+		Object effectiveWatcher = watcherObject != null ? watcherObject : IdUtil.getConsole();
+		MPlayer mplayer = MPlayer.get(effectiveWatcher);
 		Faction faction = mplayer.getFaction();
 
 		String removeString;
