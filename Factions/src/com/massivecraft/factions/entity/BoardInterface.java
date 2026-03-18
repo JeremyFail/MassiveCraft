@@ -3,6 +3,8 @@ package com.massivecraft.factions.entity;
 import com.massivecraft.factions.TerritoryAccess;
 import com.massivecraft.massivecore.ps.PS;
 
+import org.bukkit.Location;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -11,13 +13,16 @@ public interface BoardInterface
 	// GET
 	TerritoryAccess getTerritoryAccessAt(PS ps);
 	Faction getFactionAt(PS ps);
+	Faction getFactionAt(Location location);
 	
 	// SET
 	void setTerritoryAccessAt(PS ps, TerritoryAccess territoryAccess);
 	void setFactionAt(PS ps, Faction faction);
+	void setFactionAt(Location location, Faction faction);
 	
 	// REMOVE
 	void removeAt(PS ps);
+	void removeAt(Location location);
 	void removeAll(Faction faction);
 
 	// CHUNKS
