@@ -6,6 +6,8 @@ import com.massivecraft.factions.TerritoryAccess;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.store.Entity;
 
+import org.bukkit.Location;
+
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Map;
@@ -93,6 +95,14 @@ public class Board extends Entity<Board> implements BoardInterface
 		return this.getTerritoryAccessAt(ps).getHostFaction();
 	}
 	
+	@Override
+	public Faction getFactionAt(Location location)
+	{
+		if (location == null) throw new NullPointerException("location");
+		PS ps = PS.valueOf(location);
+		return this.getFactionAt(ps);
+	}
+	
 	// SET
 	
 	@Override
@@ -122,6 +132,14 @@ public class Board extends Entity<Board> implements BoardInterface
 		}
 		this.setTerritoryAccessAt(ps, territoryAccess);
 	}
+
+	@Override
+	public void setFactionAt(Location location, Faction faction)
+	{
+		if (location == null) throw new NullPointerException("location");
+		PS ps = PS.valueOf(location);
+		this.setFactionAt(ps, faction);
+	}
 	
 	// REMOVE
 	
@@ -129,6 +147,14 @@ public class Board extends Entity<Board> implements BoardInterface
 	public void removeAt(PS ps)
 	{
 		this.setTerritoryAccessAt(ps, null);
+	}
+
+	@Override
+	public void removeAt(Location location)
+	{
+		if (location == null) throw new NullPointerException("location");
+		PS ps = PS.valueOf(location);
+		this.removeAt(ps);
 	}
 	
 	@Override
