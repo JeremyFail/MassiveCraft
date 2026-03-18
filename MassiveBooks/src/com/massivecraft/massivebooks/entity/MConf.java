@@ -140,7 +140,7 @@ public class MConf extends Entity<MConf>
 	public boolean autoupdatingDisplayNames = true;
 	public boolean usingAuthorDisplayName = false;
 
-	/** When true, server books (and other typed books) show their type as an extra lore line when updated. */
+	// When true, server books (and other typed books) show their type as an extra lore line when updated.
 	public boolean showBookTypeAsLore = true;
 	
 	// ItemFrame Load
