@@ -42,6 +42,10 @@ public enum Perm implements Identified
 	SETPOWER,
 	CONFIG,
 	VERSION,
+	PERM_MANAGE,
+	PERM_MANAGE_BYPASS,
+	PERM_SHOW,
+	PERM_INSPECT,
 
 	// These are just here to tell the system that it is seechunk rather than see.chunk
 	SEECHUNK,

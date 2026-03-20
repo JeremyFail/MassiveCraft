@@ -1,5 +1,6 @@
 package com.massivecraft.factions.cmd;
 
+import com.massivecraft.factions.cmd.req.ReqPermInspectOrShow;
 import com.massivecraft.factions.cmd.type.TypeFaction;
 import com.massivecraft.factions.cmd.type.TypeMPerm;
 import com.massivecraft.factions.cmd.type.TypeMPermable;
@@ -17,15 +18,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CmdFactionsPermShow extends FactionsCommand
+/**
+ * Show who has a given permission in a faction. Aliased as "show" for backward compatibility.
+ * Accepts either factions.perm.inspect or factions.perm.show.
+ */
+public class CmdFactionsPermInspect extends FactionsCommand
 {
 	// -------------------------------------------- //
 	// CONSTRUCT
 	// -------------------------------------------- //
-	
-	public CmdFactionsPermShow()
+
+	public CmdFactionsPermInspect()
 	{
-		// Parameters
+		this.setAliases("show");
+		this.addRequirements(ReqPermInspectOrShow.get());
 		this.addParameter(TypeMPerm.get(), "perm");
 		this.addParameter(TypeFaction.get(), "faction", "you");
 	}
@@ -33,11 +39,10 @@ public class CmdFactionsPermShow extends FactionsCommand
 	// -------------------------------------------- //
 	// OVERRIDE
 	// -------------------------------------------- //
-	
+
 	@Override
 	public void perform() throws MassiveException
 	{
-		// Arg: Faction
 		MPerm mperm = this.readArg();
 		Faction faction = this.readArg(msenderFaction);
 
@@ -54,19 +59,16 @@ public class CmdFactionsPermShow extends FactionsCommand
 			}
 		}
 
-		// If no one has this permission, inform the sender
 		if (permables.isEmpty())
 		{
 			msg(
-				"<i>In <reset>%s<i> permission <reset>%s<i> is not currently granted to anyone.", 
-				faction.describeTo(msender), 
+				"<i>In <reset>%s<i> permission <reset>%s<i> is not currently granted to anyone.",
+				faction.describeTo(msender),
 				mperm.getDesc(true, false)
 			);
 			return;
 		}
 
-		// Otherwise, create messages
-		// Use me when sender is a player; when run from console me is null so use console (never pass null to permablesToDisplayString)
 		Object watcher = me != null ? me : IdUtil.getConsole();
 		msg(
 			"<i>In <reset>%s <i>permission <reset>%s <i>is granted to <reset>%s<i>.",
@@ -84,7 +86,6 @@ public class CmdFactionsPermShow extends FactionsCommand
 
 	public static String permablesToDisplayString(Collection<MPermable> permables, Object watcherObject)
 	{
-		// When run from console or when caller passes null, use console so MPlayer.get() never receives null
 		Object effectiveWatcher = watcherObject != null ? watcherObject : IdUtil.getConsole();
 		MPlayer mplayer = MPlayer.get(effectiveWatcher);
 		Faction faction = mplayer.getFaction();
@@ -100,5 +101,4 @@ public class CmdFactionsPermShow extends FactionsCommand
 
 		return Txt.implodeCommaAnd(permableList, Txt.parse("<i>"));
 	}
-	
 }

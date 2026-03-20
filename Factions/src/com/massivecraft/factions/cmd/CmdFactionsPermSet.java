@@ -5,10 +5,13 @@ import com.massivecraft.factions.cmd.type.TypeMPerm;
 import com.massivecraft.factions.cmd.type.TypeMPermable;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.MConf;
+import com.massivecraft.factions.util.PermTableUtil;
 import com.massivecraft.factions.entity.MPerm;
 import com.massivecraft.factions.event.EventFactionsPermChange;
 import com.massivecraft.massivecore.MassiveException;
+import com.massivecraft.massivecore.command.Parameter;
 import com.massivecraft.massivecore.command.type.primitive.TypeBooleanYes;
+import com.massivecraft.massivecore.command.type.primitive.TypeString;
 import com.massivecraft.massivecore.util.Txt;
 
 public class CmdFactionsPermSet extends FactionsCommand
@@ -19,11 +22,21 @@ public class CmdFactionsPermSet extends FactionsCommand
 	
 	public CmdFactionsPermSet()
 	{
-		// Parameters
+		// Parameters: perm, entity, value, faction, [manage], [page] — last two optional to re-display table after set
 		this.addParameter(TypeMPerm.get(), "perm");
 		this.addParameter(TypeMPermable.get(), "rank/rel/player/faction");
 		this.addParameter(TypeBooleanYes.get(), "yes/no");
 		this.addParameter(TypeFaction.get(), "faction", "you");
+		this.addParameter(TypeString.get(), "manage", "");
+		this.addParameter(Parameter.getPage());
+	}
+
+	/**
+	 * Builds the full command line for /f perm set (used by PermTableUtil for click-to-toggle).
+	 */
+	public static String buildSetCommandLine(String permId, String permableArg, String value, String factionId, String manage, String page)
+	{
+		return CmdFactions.get().cmdFactionsPerm.cmdFactionsPermSet.getCommandLine(permId, permableArg, value, factionId, manage, page);
 	}
 
 	// -------------------------------------------- //
@@ -79,6 +92,15 @@ public class CmdFactionsPermSet extends FactionsCommand
 		// Inform sender
 		String yesNo = Txt.parse(value ? "<g>YES" : "<b>NOO");
 		msg("<i>Set perm <h>%s <i>to <h>%s <i>for <reset>%s<i> in <reset>%s<i>.", perm.getName(), yesNo, permable.getDisplayName(msender), faction.describeTo(msender));
+
+		// Re-display manage table if "manage" and page were provided (avoids multi-command click)
+		String manageOpt = this.readArgAt(4, "");
+		Integer pageOpt = this.readArgAt(5, 1);
+		if (manageOpt != null && "manage".equalsIgnoreCase(manageOpt.trim()) && pageOpt != null && pageOpt >= 1)
+		{
+			String targetArg = CmdFactionsPermManage.getTargetArgForPermable(permable, faction);
+			PermTableUtil.displayTable(sender, targetArg, faction, pageOpt, true, null, CmdFactions.get().cmdFactionsPerm.cmdFactionsPermManage);
+		}
 	}
 	
 }

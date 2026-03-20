@@ -7,9 +7,10 @@ public class CmdFactionsPerm extends FactionsCommand
 	// -------------------------------------------- //
 	
 	CmdFactionsPermList cmdFactionsPermList = new CmdFactionsPermList();
-	CmdFactionsPermShow cmdFactionsPermShow = new CmdFactionsPermShow();
+	CmdFactionsPermInspect cmdFactionsPermInspect = new CmdFactionsPermInspect();
 	CmdFactionsPermView cmdFactionsPermView = new CmdFactionsPermView();
 	CmdFactionsPermViewall cmdFactionsPermViewall = new CmdFactionsPermViewall();
 	CmdFactionsPermSet cmdFactionsPermSet = new CmdFactionsPermSet();
+	CmdFactionsPermManage cmdFactionsPermManage = new CmdFactionsPermManage();
 
 }

@@ -10,6 +10,7 @@ import com.massivecraft.factions.entity.MPerm.MPermable;
 import com.massivecraft.factions.predicate.PredicateCommandSenderFaction;
 import com.massivecraft.factions.predicate.PredicateMPlayerRank;
 import com.massivecraft.factions.util.MiscUtil;
+import com.massivecraft.factions.util.PermUtil;
 import com.massivecraft.factions.util.RelationUtil;
 import com.massivecraft.massivecore.Couple;
 import com.massivecraft.massivecore.Identified;
@@ -1017,29 +1018,63 @@ public class Faction extends Entity<Faction> implements FactionsParticipator, MP
 
 	// IS PERMITTED
 
+	/**
+	 * True if the player has this permission (via relation, faction, or rank).
+	 * 
+	 * @param mplayer the player to check the permission for
+	 * @param permId the permission id to check
+	 * @return true if the player has this permission (via relation, faction, or rank)
+	 */
 	public boolean isPlayerPermitted(MPlayer mplayer, String permId)
 	{
-		if (isPermitted(mplayer.getId(), permId)) return true;
-		if (isPermitted(mplayer.getFaction().getId(), permId)) return true;
-		if (isPermitted(mplayer.getRank().getId(), permId)) return true;
-		if (isPermitted(RelationUtil.getRelationOfThatToMe(mplayer, this).toString(), permId)) return true;
-
-		return false;
+		return PermUtil.getPlayerPermissionSourcePermable(this, mplayer, permId) != null;
 	}
 
+	/**
+	 * True if the player has this permission (via relation, faction, or rank).
+	 * 
+	 * @param mplayer the player to check the permission for
+	 * @param mperm the permission to check
+	 * @return true if the player has this permission (via relation, faction, or rank)
+	 */
 	public boolean isPlayerPermitted(MPlayer mplayer, MPerm mperm)
 	{
 		return isPlayerPermitted(mplayer, mperm.getId());
 	}
 
+	/**
+	 * Checks if the faction has the specified permission (directly or via relation).
+	 * Hierarchy for source: relation (highest) then faction.
+	 * 
+	 * @param faction the faction to check the permission for
+	 * @param permId the permission id to check
+	 * @return true if the other faction has this permission (directly or via relation)
+	 */
 	public boolean isFactionPermitted(Faction faction, String permId)
 	{
-		if (isPermitted(faction.getId(), permId)) return true;
-		if (isPermitted(RelationUtil.getRelationOfThatToMe(faction, this).toString(), permId)) return true;
-
-		return false;
+		return PermUtil.getFactionPermissionSourcePermable(this, faction, permId) != null;
 	}
 
+	/**
+	 * True if the rank has this permission (via relation, faction, or rank).
+	 * Hierarchy: relation (rank's faction to this) > faction (rank's faction) > rank.
+	 * 
+	 * @param rank the rank to check the permission for
+	 * @param permId the permission id to check
+	 * @return true if the rank has this permission (via relation, faction, or rank)
+	 */
+	public boolean isRankPermitted(Rank rank, String permId)
+	{
+		return PermUtil.getRankPermissionSourcePermable(this, rank, permId) != null;
+	}
+
+	/**
+	 * Checks if the faction has the specified permission (directly or via relation).
+	 * 
+	 * @param faction the faction to check the permission for
+	 * @param mperm the permission to check
+	 * @return true if the faction has this permission (directly or via relation)
+	 */
 	public boolean isFactionPermitted(Faction faction, MPerm mperm)
 	{
 		return isFactionPermitted(faction, mperm.getId());

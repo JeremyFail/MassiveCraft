@@ -65,7 +65,7 @@ public abstract class CmdFactionsAccessAbstract extends FactionsCommand
 		
 		msg("<k>Host Faction: %s", hostFaction.describeTo(msender, true));
 		msg("<k>Host Faction Allowed: %s", ta.isHostFactionAllowed() ? Txt.parse("<lime>TRUE") : Txt.parse("<rose>FALSE"));
-		msg("<k>Granted to: %s", CmdFactionsPermShow.permablesToDisplayString(ta.getGranteds(), msender));
+		msg("<k>Granted to: %s", CmdFactionsPermInspect.permablesToDisplayString(ta.getGranteds(), msender));
 	}
 
 	public void setAccess(Collection<PS> chunks, MPermable mpermable, boolean granted)
