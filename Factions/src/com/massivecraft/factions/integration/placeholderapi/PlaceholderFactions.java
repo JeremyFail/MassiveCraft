@@ -15,6 +15,7 @@ import com.massivecraft.massivecore.util.PlaceholderProcessor;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
 
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -162,22 +163,16 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
     }
 
     /**
-     * Handle placeholder requests when the player may be offline (e.g. books, signs).
-     * Resolves to MPlayer and delegates to the same parsing logic as online requests.
+     * PlaceholderAPI entry for {@code %...%} parsing.
+     * 
+     * {@link me.clip.placeholderapi.PlaceholderHook#onRequest} calls
+     * {@link #onPlaceholderRequest(Player, String)} with {@code null} when the subject is offline,
+     * which would drop all {@link MPlayer}-backed placeholders for books, signs, etc.
      */
     @Override
     public String onRequest(OfflinePlayer player, String params)
     {
-        if (params == null) return null;
-        if (player == null) return "";
-        for (PlaceholderExpander expander : expanders)
-        {
-            String result = expander.onPlaceholderRequest(player, params);
-            if (result != null) return result;
-        }
-        MPlayer mplayer = MPlayer.get(player);
-        if (mplayer == null) return "";
-        return parsePlaceholder(mplayer, params, null);
+        return handlePlaceholder(player, params);
     }
 
     /**
@@ -258,6 +253,7 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
         supportedPlaceholders.add("%factions_territory_truces_players_offline%");
         supportedPlaceholders.add("%faction_relation%");
         supportedPlaceholders.add("%faction_relation_color%");
+        supportedPlaceholders.add("%factions_faction_map_row_N%");
 
         // Add placeholders from registered expanders
         if (!expanders.isEmpty())
@@ -309,9 +305,21 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
         });
     }
 
-    // Standard placeholder handling
+    /**
+     * Called by the default {@code PlaceholderHook.onRequest} when online (and by any direct caller).
+     * Delegates to {@link #handlePlaceholder}; all non-relational logic lives there.
+     */
     @Override
     public String onPlaceholderRequest(Player player, String placeholder)
+    {
+        return handlePlaceholder(player, placeholder);
+    }
+
+    /**
+     * Single path for standard placeholders: PAPI {@link #onRequest}, direct {@link Player} hooks, and
+     * offline players (subject is non-null {@link OfflinePlayer} but not necessarily online).
+     */
+    private String handlePlaceholder(OfflinePlayer player, String placeholder)
     {
         // Invalid placeholder
         if (placeholder == null) return null;
@@ -322,7 +330,15 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
         // Try all registered expanders in order
         for (PlaceholderExpander expander : expanders)
         {
-            String result = expander.onPlaceholderRequest(player, placeholder);
+            String result;
+            if (player instanceof Player)
+            {
+                result = expander.onPlaceholderRequest((Player) player, placeholder);
+            }
+            else
+            {
+                result = expander.onPlaceholderRequest(player, placeholder);
+            }
             if (result != null) return result;
         }
 
@@ -332,8 +348,16 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
         // If the MPlayer is null, return an empty string
         if (mplayer == null) return "";
 
-        // Get the location of the player
-        PS locationPs = PS.valueOf(player.getLocation());
+        PS locationPs = null;
+        if (player.isOnline())
+        {
+            Player online = player.getPlayer();
+            if (online != null)
+            {
+                Location loc = online.getLocation();
+                if (loc != null) locationPs = PS.valueOf(loc);
+            }
+        }
         return parsePlaceholder(mplayer, placeholder, locationPs);
     }
 
@@ -345,6 +369,29 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
     {
         DecimalFormat df = new DecimalFormat("#.##");
         return PlaceholderProcessor.parsePlaceholderWithModifiers(placeholder, basePlaceholder -> {
+            // - - - - - FACTION MAP ROW PLACEHOLDERS - - - - -
+            // These return the map row relative to the player's current location
+            if (basePlaceholder.startsWith("faction_map_row_"))
+            {
+                if (locationPs == null) return "";
+
+                // Get the row index from the placeholder
+                String suffix = basePlaceholder.substring("faction_map_row_".length());
+                int row;
+                try
+                {
+                    row = Integer.parseInt(suffix);
+                }
+                catch (NumberFormatException e)
+                {
+                    return null;
+                }
+                if (row < 1 || row > 9) return null;
+
+                // Now get the map row relative to the player's current location
+                return PlaceholderFactionMap.getMapRow(mPlayer, locationPs, row);
+            }
+
             Faction factionAtLocation = basePlaceholder.startsWith("faction_territory_") && locationPs != null
                 ? BoardColl.get().getFactionAt(locationPs)
                 : null;

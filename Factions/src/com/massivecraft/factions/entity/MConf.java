@@ -674,6 +674,26 @@ public class MConf extends Entity<MConf>
 	public BackstringSet<EntityType> entityTypesAnimals = new BackstringSet<>(EntityType.class);
 
 	// -------------------------------------------- //
+	// INTEGRATION: PLACEHOLDERAPI — TERRITORY MAP (%factions_faction_map_row_N%)
+	// -------------------------------------------- //
+	
+	// Map size for placeholder rows. Width and height are each rounded up to the nearest odd number (minimum 3).
+	// Keep values reasonable for scoreboard line length; square maps are recommended but not required.
+	public int placeholderMapWidth = 9;
+	public int placeholderMapHeight = 9;
+	
+	// Legacy § color code for each map cell (one character: 0-9, a-f).
+	public String placeholderMapColorWilderness = "8";
+	public String placeholderMapColorSafezone = "6";
+	public String placeholderMapColorWarzone = "c";
+	public String placeholderMapColorAlly = "2";
+	public String placeholderMapColorEnemy = "4";
+	public String placeholderMapColorNeutral = "7";
+	public String placeholderMapColorTruce = "b";
+	public String placeholderMapColorPlayerFaction = "a";
+	public String placeholderMapColorYou = "e";
+
+	// -------------------------------------------- //
 	// INTEGRATION: LWC
 	// -------------------------------------------- //
 	
