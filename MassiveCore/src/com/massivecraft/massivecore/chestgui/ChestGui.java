@@ -1,9 +1,7 @@
 package com.massivecraft.massivecore.chestgui;
 
-import com.massivecraft.massivecore.SoundEffect;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.collections.MassiveMap;
-import com.massivecraft.massivecore.entity.MassiveCoreMConf;
 import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
@@ -119,28 +117,6 @@ public class ChestGui
 	
 	private final List<Runnable> runnablesClose = new MassiveList<>();
 	public List<Runnable> getRunnablesClose() { return this.runnablesClose; }
-	
-	// -------------------------------------------- //
-	// SOUNDS
-	// -------------------------------------------- //
-	// This section contains all kinds of sounds.
-	// You can disable a sound by setting it to null.
-	
-	// The sound you should hear when clicking an action slot.
-	private SoundEffect soundClick = MassiveCoreMConf.get().clickSound;
-	public SoundEffect getSoundClick() { return this.soundClick; }
-	public void setSoundClick(SoundEffect soundClick) { this.soundClick = soundClick; }
-	
-	// The sound you should hear when opening the GUI.
-	private SoundEffect soundOpen = SoundEffect.valueOf("CHEST_OPEN", 0.75f, 1.0f);
-	public SoundEffect getSoundOpen() { return this.soundOpen; }
-	public void setSoundOpen(SoundEffect soundOpen) { this.soundOpen = soundOpen; }
-	
-	// The sound you should hear when closing the GUI.
-	// This sound will be skipped if another inventory was opened by the GUI action.
-	private SoundEffect soundClose = SoundEffect.valueOf("CHEST_CLOSE", 0.75f, 1.0f);
-	public SoundEffect getSoundClose() { return this.soundClose; }
-	public void setSoundClose(SoundEffect soundClose) { this.soundClose= soundClose; }
 	
 	// -------------------------------------------- //
 	// AUTOCLOSING

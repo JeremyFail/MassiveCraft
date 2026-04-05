@@ -8,7 +8,6 @@ import com.massivecraft.massivecore.collections.WorldExceptionSet;
 import com.massivecraft.massivecore.command.editor.annotation.EditorType;
 import com.massivecraft.massivecore.command.editor.annotation.EditorTypeInner;
 import com.massivecraft.massivecore.command.type.combined.TypeEntry;
-import com.massivecraft.massivecore.command.type.combined.TypeSoundEffect;
 import com.massivecraft.massivecore.command.type.container.TypeBackstringSet;
 import com.massivecraft.massivecore.command.type.container.TypeExceptionSet;
 import com.massivecraft.massivecore.command.type.container.TypeList;
@@ -30,7 +29,6 @@ import com.massivecraft.massivecore.command.type.enumeration.TypeMaterial;
 import com.massivecraft.massivecore.command.type.enumeration.TypeParrotVariant;
 import com.massivecraft.massivecore.command.type.enumeration.TypeParticle;
 import com.massivecraft.massivecore.command.type.enumeration.TypeRabbitType;
-import com.massivecraft.massivecore.command.type.enumeration.TypeSound;
 import com.massivecraft.massivecore.command.type.enumeration.TypeSpawnReason;
 import com.massivecraft.massivecore.command.type.enumeration.TypeVillagerProfession;
 import com.massivecraft.massivecore.command.type.enumeration.TypeWorldType;
@@ -310,7 +308,6 @@ public class RegistryType
 		register(TypeRabbitType.get());
 		register(TypeLlamaColor.get());
 		register(TypeParrotVariant.get());
-		register(TypeSound.get());
 		register(TypeVillagerProfession.get());
 		register(TypeWorldType.get());
 		
@@ -322,8 +319,6 @@ public class RegistryType
 		register(TypePotionEffectType.get());
 		register(TypePS.get());
 		register(TypeWorld.get());
-		register(TypeSoundEffect.get());
-		
 		// Sender
 		register(TypePlayer.get());
 		register(TypeSender.get());

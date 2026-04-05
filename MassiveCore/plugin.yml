@@ -15,7 +15,6 @@ permissions:
   massivecore.basecommand: {description: use the MassiveCore base command, default: false}
   massivecore.test: {description: run developer test, default: false}
   massivecore.id: {description: see the server id, default: false}
-  massivecore.hearsound: {description: hear a sound, default: false}
   massivecore.store: {description: use the mstore command, default: false}
   massivecore.store.stats: {description: show mstore statistics, default: false}
   massivecore.store.listcolls: {description: list collections in a database, default: false}
@@ -61,7 +60,6 @@ permissions:
       massivecore.basecommand: true
       massivecore.test: true
       massivecore.id: true
-      massivecore.hearsound: true
       massivecore.store: true
       massivecore.store.stats: true
       massivecore.store.listcolls: true
@@ -140,7 +138,6 @@ permissions:
     default: false
     children:
       massivecore.basecommand: true
-      massivecore.hearsound: true
       massivecore.click: true
       massivecore.version: true
   massivecore.kit.default:

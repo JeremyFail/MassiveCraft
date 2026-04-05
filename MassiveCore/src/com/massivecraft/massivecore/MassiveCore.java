@@ -19,7 +19,6 @@ import com.massivecraft.massivecore.adapter.AdapterMassiveTreeSet;
 import com.massivecraft.massivecore.adapter.AdapterModdedEnumType;
 import com.massivecraft.massivecore.adapter.AdapterMson;
 import com.massivecraft.massivecore.adapter.AdapterMsonEvent;
-import com.massivecraft.massivecore.adapter.AdapterSound;
 import com.massivecraft.massivecore.adapter.AdapterUUID;
 import com.massivecraft.massivecore.cmd.CmdMassiveCore;
 import com.massivecraft.massivecore.cmd.CmdMassiveCoreBuffer;
@@ -104,7 +103,6 @@ import com.massivecraft.massivecore.util.TimeDiffUtil;
 import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Modifier;
@@ -180,7 +178,6 @@ public class MassiveCore extends MassivePlugin
 		// Assorted Custom
 		ret.registerTypeAdapter(BackstringSet.class, AdapterBackstringSet.get());
 		ret.registerTypeAdapter(PS.class, PSAdapter.get());
-		ret.registerTypeAdapter(Sound.class, AdapterSound.get());
 		ret.registerTypeAdapter(UUID.class, AdapterUUID.get());
 
 		// Mson

@@ -1,9 +1,7 @@
 package com.massivecraft.massivecore.command.type;
 
 import com.massivecraft.massivecore.MassiveException;
-import com.massivecraft.massivecore.command.type.enumeration.TypeSound;
 import com.massivecraft.massivecore.command.type.primitive.TypeStringId;
-import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 
 public class TypeId<T> extends TypeTransformer<T, String> 
@@ -11,9 +9,6 @@ public class TypeId<T> extends TypeTransformer<T, String>
 	// -------------------------------------------- //
 	// INSTANCE & CONSTRUCT
 	// -------------------------------------------- //
-	
-	private static TypeId<Sound> iSound = TypeId.get(TypeSound.get());
-	public static TypeId<Sound> getSound() { return iSound; }
 	
 	public static <T> TypeId<T> get(Type<T> inner) { return new TypeId<>(inner); }
 	public TypeId(Type<T> inner)

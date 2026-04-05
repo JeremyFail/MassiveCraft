@@ -122,7 +122,7 @@ public class PropertyReflection<O, V> extends Property<O, V>
 	{
 		Type<V> typeValue = (Type<V>) RegistryType.getType(field);
 		
-		// This makes sure it is called "volume for clickSound" instead of "volume for UiButtonClick 0.75 1.0"
+		// Prefer the field name for composite inner properties (e.g. "volume for mySetting") over the inner type's raw visual.
 		// We also only do it for things with properties, so the edited message works and shows the actual visual.
 		if (typeValue.hasInnerProperties())
 		{

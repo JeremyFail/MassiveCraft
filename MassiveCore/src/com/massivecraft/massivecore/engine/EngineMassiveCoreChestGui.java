@@ -1,20 +1,17 @@
 package com.massivecraft.massivecore.engine;
 
 import com.massivecraft.massivecore.Engine;
-import com.massivecraft.massivecore.SoundEffect;
 import com.massivecraft.massivecore.chestgui.ChestAction;
 import com.massivecraft.massivecore.chestgui.ChestGui;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.util.InventoryUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryType;
 
 public class EngineMassiveCoreChestGui extends Engine
 {
@@ -64,10 +61,6 @@ public class EngineMassiveCoreChestGui extends Engine
 		// ... set last action ...
 		gui.setLastAction(action);
 		
-		// ... then play click sound ...
-		SoundEffect sound = gui.getSoundClick();
-		if (sound != null) sound.run(event.getWhoClicked());
-		
 		// ... close the GUI ...
 		if (gui.isAutoclosing()) event.getView().close();
 		
@@ -81,14 +74,6 @@ public class EngineMassiveCoreChestGui extends Engine
 		// Get
 		final ChestGui gui = ChestGui.get(event);
 		if (gui == null) return;
-		
-		// Sound
-		SoundEffect sound = gui.getSoundOpen();
-		if (sound != null)
-		{
-			HumanEntity human = event.getPlayer();
-			sound.run(human);
-		}
 		
 		// Later
 		Bukkit.getScheduler().runTask(getPlugin(), () -> {
@@ -104,20 +89,10 @@ public class EngineMassiveCoreChestGui extends Engine
 		final ChestGui gui = ChestGui.get(event);
 		if (gui == null) return;
 		
-		// Human
-		final HumanEntity human = event.getPlayer();
-		
 		// Later
 		Bukkit.getScheduler().runTask(getPlugin(), () -> {
 			// Runnables
 			gui.getRunnablesClose().forEach(Runnable::run);
-
-			// Sound
-			SoundEffect sound = gui.getSoundClose();
-			if (sound != null && human.getOpenInventory().getTopInventory().getType() == InventoryType.CRAFTING)
-			{
-				sound.run(human);
-			}
 		});
 		
 		if (gui.isAutoremoving())
