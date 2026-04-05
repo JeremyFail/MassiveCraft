@@ -27,7 +27,6 @@ public class CmdMassiveCore extends MassiveCoreCommand
 	public CmdMassiveCoreStore cmdMassiveCoreMStore = new CmdMassiveCoreStore();
 	public CmdMassiveCoreId cmdMassiveCoreId = new CmdMassiveCoreId();
 	public CmdMassiveCoreTest cmdMassiveCoreTest = new CmdMassiveCoreTest();
-	public CmdMassiveCoreHearsound cmdMassiveCoreHearsound = new CmdMassiveCoreHearsound();
 	public CmdMassiveCoreBuffer cmdMassiveCoreBuffer = new CmdMassiveCoreBuffer();
 	public CmdMassiveCoreCmdurl cmdMassiveCoreCmdurl = new CmdMassiveCoreCmdurl();
 	public CommandEditAbstract<MassiveCoreMConf, MassiveCoreMConf> cmdMassiveCoreConfig = new CommandEditSingleton<>(MassiveCoreMConf.get()).addRequirements(RequirementHasPerm.get(MassiveCorePerm.CONFIG));

@@ -1,6 +1,5 @@
 package com.massivecraft.massivecore.entity;
 
-import com.massivecraft.massivecore.SoundEffect;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.command.editor.annotation.EditorName;
 import com.massivecraft.massivecore.command.editor.annotation.EditorType;
@@ -123,13 +122,6 @@ public class MassiveCoreMConf extends Entity<MassiveCoreMConf>
 	
 	public String variableBufferName = "***buffer***";
 	public boolean variableBufferEnabled = true;
-	
-	// -------------------------------------------- //
-	// CLICK
-	// -------------------------------------------- //
-	// Button click sound configuration.
-	
-	public SoundEffect clickSound = SoundEffect.valueOf("UI_BUTTON_CLICK", 0.75f, 1.0f);
 	
 	// -------------------------------------------- //
 	// MSTORE
