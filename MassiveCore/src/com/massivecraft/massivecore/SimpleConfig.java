@@ -1,6 +1,6 @@
 package com.massivecraft.massivecore;
 
-import com.google.gson.Gson;
+import com.massivecraft.massivecore.gson.Gson;
 import com.massivecraft.massivecore.store.accessor.Accessor;
 import com.massivecraft.massivecore.util.DiscUtil;
 import org.bukkit.plugin.Plugin;

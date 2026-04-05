@@ -76,6 +76,14 @@
                                     <include>com.google.code.gson:gson</include>
                                 </includes>
                             </artifactSet>
+                            <!-- Relocate bundled Gson; shade rewrites MassiveCore internals. Dependent plugins use
+                                 com.massivecraft.massivecore.gson (wrappers); com.google.gson in MassiveCore sources becomes lib.gson in the JAR. -->
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>com.massivecraft.massivecore.lib.gson</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

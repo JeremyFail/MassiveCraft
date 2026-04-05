@@ -26,13 +26,13 @@ public class AdapterMsonEvent implements JsonDeserializer<MsonEvent>, JsonSerial
 	@Override
 	public JsonElement serialize(MsonEvent src, Type typeOfSrc, JsonSerializationContext context)
 	{
-		return MsonEvent.toJson(src);
+		return MsonEvent.toJson(src).unwrapNative();
 	}
 
 	@Override
 	public MsonEvent deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
 	{
-		return MsonEvent.fromJson(json);
+		return MsonEvent.fromJson(com.massivecraft.massivecore.gson.JsonElement.wrap(json));
 	}
 	
 }

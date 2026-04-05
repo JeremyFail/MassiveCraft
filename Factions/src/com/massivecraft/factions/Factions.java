@@ -1,6 +1,6 @@
 package com.massivecraft.factions;
 
-import com.google.gson.GsonBuilder;
+import com.massivecraft.massivecore.gson.GsonBuilder;
 import com.massivecraft.factions.adapter.BoardAdapter;
 import com.massivecraft.factions.adapter.BoardMapAdapter;
 import com.massivecraft.factions.adapter.TerritoryAccessAdapter;

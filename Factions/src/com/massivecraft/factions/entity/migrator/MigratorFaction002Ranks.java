@@ -1,8 +1,8 @@
 package com.massivecraft.factions.entity.migrator;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonObject;
+import com.massivecraft.massivecore.gson.reflect.TypeToken;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factions.entity.MPerm;
@@ -82,7 +82,7 @@ public class MigratorFaction002Ranks extends MigratorRoot
 
 		if (priorPerms != null)
 		{
-			Map<String,Set<String>> permMap = MassiveCore.gson.fromJson(priorPerms, (new TypeToken<Map<String,Set<String>>>(){}).getType());
+			Map<String,Set<String>> permMap = MassiveCore.gson.fromJsonType(priorPerms, (new TypeToken<Map<String,Set<String>>>(){}).getType());
 			// ... and if anything is explicitly set we use that info ...
 			Iterator<Map.Entry<String, Set<String>>> iter = permMap.entrySet().iterator();
 			while (iter.hasNext())

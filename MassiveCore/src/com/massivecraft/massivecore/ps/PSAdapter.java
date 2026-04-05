@@ -33,7 +33,7 @@ public class PSAdapter implements JsonDeserializer<PS>
 	
 	public static PS deserialize(JsonElement json)
 	{
-		return PS.valueOf(json);
+		return PS.valueOf(com.massivecraft.massivecore.gson.JsonElement.wrap(json));
 	}
 	
 }

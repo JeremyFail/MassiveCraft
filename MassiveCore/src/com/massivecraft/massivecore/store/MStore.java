@@ -1,7 +1,7 @@
 package com.massivecraft.massivecore.store;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonObject;
 import com.massivecraft.massivecore.ConfServer;
 import com.massivecraft.massivecore.entity.MassiveCoreMConf;
 

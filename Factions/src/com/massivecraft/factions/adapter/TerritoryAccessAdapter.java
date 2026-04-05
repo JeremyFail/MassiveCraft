@@ -1,15 +1,15 @@
 package com.massivecraft.factions.adapter;
 
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.reflect.TypeToken;
+import com.massivecraft.massivecore.gson.JsonDeserializationContext;
+import com.massivecraft.massivecore.gson.JsonDeserializer;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonParseException;
+import com.massivecraft.massivecore.gson.JsonPrimitive;
+import com.massivecraft.massivecore.gson.JsonSerializationContext;
+import com.massivecraft.massivecore.gson.JsonSerializer;
+import com.massivecraft.massivecore.gson.reflect.TypeToken;
 import com.massivecraft.factions.TerritoryAccess;
 import com.massivecraft.massivecore.store.migrator.MigratorUtil;
 

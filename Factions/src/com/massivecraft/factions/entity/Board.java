@@ -1,6 +1,6 @@
 package com.massivecraft.factions.entity;
 
-import com.google.gson.reflect.TypeToken;
+import com.massivecraft.massivecore.gson.reflect.TypeToken;
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.TerritoryAccess;
 import com.massivecraft.massivecore.ps.PS;

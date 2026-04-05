@@ -27,13 +27,13 @@ public class AdapterMsonEventFix implements JsonDeserializer<MsonEvent>, JsonSer
 	@Override
 	public JsonElement serialize(MsonEvent src, Type typeOfSrc, JsonSerializationContext context)
 	{
-		return Mson.getGson(false).toJsonTree(src);
+		return Mson.getGson(false).toJsonTree(src).unwrapNative();
 	}
 
 	@Override
 	public MsonEvent deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
 	{
-		MsonEvent ret = Mson.getGson(false).fromJson(json, MsonEvent.class);
+		MsonEvent ret = Mson.getGson(false).fromJson(com.massivecraft.massivecore.gson.JsonElement.wrap(json), MsonEvent.class);
 		ret.repair();
 		return ret;
 	}

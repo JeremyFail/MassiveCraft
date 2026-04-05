@@ -3,7 +3,7 @@ package com.massivecraft.massivebooks.entity;
 import com.massivecraft.massivecore.MassiveCore;
 import com.massivecraft.massivecore.store.Coll;
 
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonObject;
 
 import java.util.Map.Entry;
 

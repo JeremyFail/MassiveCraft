@@ -1,7 +1,7 @@
 package com.massivecraft.massivecore.ps;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import com.massivecraft.massivecore.MassiveCore;
 import com.massivecraft.massivecore.collections.MassiveSet;

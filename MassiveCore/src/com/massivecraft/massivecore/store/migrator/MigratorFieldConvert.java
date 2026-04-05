@@ -1,10 +1,10 @@
 package com.massivecraft.massivecore.store.migrator;
 
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonNull;
+import com.massivecraft.massivecore.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonPrimitive;
 
 public abstract class MigratorFieldConvert implements Migrator
 {
