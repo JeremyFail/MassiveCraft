@@ -59,7 +59,7 @@ public final class PermTableUtil
 	}
 
 	/**
-	 * True if the target string is the bulk "ranks" or "relationships" (and aliases) view — multiple columns like manage.
+	 * True if the target string is the bulk "ranks" or "relationships" (and aliases) view - multiple columns like manage.
 	 */
 	public static boolean isBulkRanksOrRelationshipsTarget(String targetArg)
 	{

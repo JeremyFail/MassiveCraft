@@ -22,7 +22,7 @@ public class CmdFactionsPermSet extends FactionsCommand
 	
 	public CmdFactionsPermSet()
 	{
-		// Parameters: perm, entity, value, faction, [manage], [page] — last two optional to re-display table after set
+		// Parameters: perm, entity, value, faction, [manage], [page] - last two optional to re-display table after set
 		this.addParameter(TypeMPerm.get(), "perm");
 		this.addParameter(TypeMPermable.get(), "rank/rel/player/faction");
 		this.addParameter(TypeBooleanYes.get(), "yes/no");
