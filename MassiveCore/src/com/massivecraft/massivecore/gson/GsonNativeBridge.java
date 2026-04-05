@@ -75,7 +75,7 @@ final class GsonNativeBridge
 			}
 			catch (com.google.gson.JsonParseException e)
 			{
-				// Our adapters throw JsonParseException; unwrap would recurse — map to public type.
+				// Our adapters throw JsonParseException; unwrap would recurse - map to public type.
 				throw new JsonParseException(e.getMessage(), e);
 			}
 		}
