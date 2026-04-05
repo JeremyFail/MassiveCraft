@@ -97,6 +97,7 @@ import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.PeriodUtil;
 import com.massivecraft.massivecore.util.PlayerUtil;
 import com.massivecraft.massivecore.util.ReflectionUtil;
+import com.massivecraft.massivecore.util.MassiveUpdate;
 import com.massivecraft.massivecore.util.SignUtil;
 import com.massivecraft.massivecore.util.SmokeUtil;
 import com.massivecraft.massivecore.util.TimeDiffUtil;
@@ -276,6 +277,13 @@ public class MassiveCore extends MassivePlugin
 		Bukkit.getScheduler().scheduleSyncDelayedTask(this, MassiveCoreTaskDeleteFiles.get());
 	}
 
+	@Override
+	public void onEnablePost()
+	{
+		super.onEnablePost();
+		MassiveUpdate.scheduleAfterPluginsEnabled(this);
+	}
+
 	// These are overriden because the reflection trick was buggy and didn't work on all systems
 	@Override
 	public List<Class<?>> getClassesActiveMigrators()
@@ -385,6 +393,7 @@ public class MassiveCore extends MassivePlugin
 	@Override
 	public void onDisable()
 	{
+		MassiveUpdate.shutdown();
 		super.onDisable();
 		ModificationPollerLocal.get().interrupt();
 		ModificationPollerRemote.get().interrupt();

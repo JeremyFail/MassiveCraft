@@ -674,7 +674,7 @@ public class MConf extends Entity<MConf>
 	public BackstringSet<EntityType> entityTypesAnimals = new BackstringSet<>(EntityType.class);
 
 	// -------------------------------------------- //
-	// INTEGRATION: PLACEHOLDERAPI — TERRITORY MAP (%factions_faction_map_row_N%)
+	// INTEGRATION: PLACEHOLDERAPI - TERRITORY MAP (%factions_faction_map_row_N%)
 	// -------------------------------------------- //
 	
 	// Map size for placeholder rows. Width and height are each rounded up to the nearest odd number (minimum 3).
