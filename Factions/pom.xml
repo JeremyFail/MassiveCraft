@@ -26,7 +26,7 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
         </dependency>
-        <!-- MassiveCore -->
+        <!-- MassiveCore (shaded JAR exposes com.massivecraft.massivecore.lib.gson - must match in source; not com.google.gson). -->
         <dependency>
             <groupId>com.massivecraft.massivecore</groupId>
             <artifactId>MassiveCore</artifactId>
