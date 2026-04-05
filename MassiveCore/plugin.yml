@@ -48,6 +48,7 @@ permissions:
   massivecore.click: {description: click, default: false}
   massivecore.version: {description: diplay plugin version, default: false}
 # misc
+  massivecore.update.notify: {description: receive in-game update notices on join, default: false}
   massivecore.notpdelay: {description: teleport without delay, default: false}
   massivecore.variable.book: {description: replace ***book*** with content of book in your hand, default: false}
   massivecore.variable.buffer: {description: replace ***buffer*** with content of your buffer, default: false}
