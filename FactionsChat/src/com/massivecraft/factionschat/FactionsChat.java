@@ -58,8 +58,6 @@ public class FactionsChat extends JavaPlugin
     private DiscordSRV discordSrvPlugin;
     private Factions factionsPlugin;
     private Essentials essentialsPlugin;
-    // TODO: Reimplement?
-    // private UpdateManager updateManager;
     
     private boolean papiEnabled = false;
     
