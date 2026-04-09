@@ -5,16 +5,19 @@
 #           Main Configuration File          #
 #                                            #
 ##############################################
-version: 2
+version: 3
 
 
 
 #----------------- Chat Settings -----------------#
-# Chat-related settings not specific to any channel
+# Chat-related settings not specific to any chat mode
 # https://factions.wiki/FactionsChat/admin-guide/configuration/
 ChatSettings:
-  # The chat format for all messages. Supports PlaceholderAPI placeholders if PAPI is installed.
-  # Supports color codes (ampersand or section sign, including hex codes).
+  # The chat format for all messages. 
+  # On Paper: §, &, hex, and MiniMessage tags are parsed. 
+  # On Spigot: legacy §, &, and hex tags are parsed. Minimessage is not supported.
+  #
+  # Supports PlaceholderAPI placeholders if PAPI is installed.
   # Also supports modifiers such as |rp (right padding) or |lp (left padding), which 
   # conditionally add right/left padding (a space) if the placeholder is not empty.
   # See the wiki for more details on the PAPI integration:
@@ -32,14 +35,22 @@ ChatSettings:
   AllowClickableLinksUnderline: true
   # Determines the range (in blocks) for local chat visibility
   LocalChatRange: 1000
+  # If true, chat reporting for messages sent by players is completely disabled.
+  # If false, chat reporting will be enabled, however, if you allow players to use color codes or formatting,
+  # messages with color codes or formatting that are parsed will show that they are modified by the server. 
+  # This is normal/expected behavior as the server will have modified the original message. If you do not
+  # want this behavior, you should not give players permission to use color codes or formatting.
+  # NOTE: This setting only applies to Paper servers. For Spigot servers, chat reporting is always disabled.
+  DisableChatReporting: false
 
 
 
 #---------------- Prefix Settings ----------------#
-# Chat prefixes for each channel - controls what is displayed in the %factions_chat_prefix% placeholder.
-# <fcolor> is a placeholder for the faction colors set in the factions config files
-# Supports color/format codes or hex codes using the section sign (§) or ampersand (&). See the wiki for details.
-# NOTE: This prefix will not actually be used in the message text unless the %factions_chat_prefix% placeholder is used.
+# Chat prefixes for each chat mode - controls what is displayed in the %factions_chat_prefix% placeholder.
+# <fcolor> is a placeholder that is replaced with the faction relation color from Factions.
+# You may use § or & for legacy colors/format (including hex like &#RRGGBB where supported in the full chat pipeline).
+# On Paper, MiniMessage tags (e.g. <yellow>, <gradient>, etc.) work here too. Minimessage is not supported on Spigot.
+# NOTE: This prefix is NOT used unless the %factions_chat_prefix% placeholder appears in ChatFormat.
 ChatPrefixes:
   Ally: '§e[<fcolor>ALLY§e]§r'
   Truce: '§e[<fcolor>TRUCE§e]§r'
@@ -54,10 +65,10 @@ ChatPrefixes:
 
 
 #-------------- Text Color Settings --------------#
-# Text colors for each channel - controls what color is returned from the %factions_chat_color% placeholder.
-# <fcolor> is a placeholder for the faction colors set in the factions config files
-# Supports legacy color/format codes using the section sign (§)
-# NOTE: These colors will not actually be used in the message text unless the %factions_chat_color% placeholder is used.
+# Text colors for each chat mode - controls what is returned from the %factions_chat_color% placeholder.
+# <fcolor> is a placeholder that is replaced with the faction relation color from Factions.
+# Use § or & for legacy codes; on Paper, MiniMessage snippets (e.g. <gradient:...>) are also supported (on Paper).
+# NOTE: These colors are NOT used unless the %factions_chat_color% placeholder appears in ChatFormat.
 TextColors:
   Ally: '<fcolor>'
   Truce: '<fcolor>'

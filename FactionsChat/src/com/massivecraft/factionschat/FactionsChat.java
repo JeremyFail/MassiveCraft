@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 /**
@@ -42,10 +43,15 @@ public class FactionsChat extends JavaPlugin
     public static FactionsChat instance;
 
     /**
-     * A map of players in quick message mode.
-     * The key is the player's UUID, and the value is the ChatMode they are sending a quick message to.
+     * While handling a single outgoing chat message, placeholders resolve against this channel when set
+     * (e.g. {@code :faction hello} should show faction prefix for that send only).
      */
-    public static final Map<UUID, ChatMode> qmPlayers = new HashMap<>();
+    private static final ThreadLocal<ChatMode> CHAT_MODE_PLACEHOLDER_OVERRIDE = new ThreadLocal<>();
+
+    /**
+     * Whether the chat reporting notice for Spigot servers has been logged yet.
+     */
+    private static final AtomicBoolean spigotChatReportingNoticeLogged = new AtomicBoolean(false);
     
     /**
      * A map of player chat modes (what mode they are currently using).
@@ -95,6 +101,12 @@ public class FactionsChat extends JavaPlugin
 
         // Initilize config
         Settings.load(getConfig());
+
+        if (!MUtil.isPaper() && !Settings.disableChatReporting && spigotChatReportingNoticeLogged.compareAndSet(false, true))
+        {
+            getLogger().warning("Chat reporting is only supported on Paper. No messages sent in chat will be able to be " +
+                    "reported to Mojang. Set ChatSettings.DisableChatReporting to true to silence this warning.");
+        }
 
         // Register event listener based on the server type
         if (MUtil.isPaper()) 
@@ -228,6 +240,42 @@ public class FactionsChat extends JavaPlugin
     public DisabledChatManager getDisabledChatManager()
     {
         return this.disabledChatManager;
+    }
+
+    /**
+     * Sets the chat mode placeholder override for the current thread.
+     * 
+     * Used while building one chat send so {@link ChatMode#getChatModeForPlayer} matches a quick channel (e.g. {@code :f}).
+     * @param mode The chat mode to override the placeholder for.
+     */
+    public static void setChatModePlaceholderOverride(ChatMode mode)
+    {
+        if (mode == null)
+        {
+            CHAT_MODE_PLACEHOLDER_OVERRIDE.remove();
+        }
+        else
+        {
+            CHAT_MODE_PLACEHOLDER_OVERRIDE.set(mode);
+        }
+    }
+
+    /**
+     * Clears the chat mode placeholder override for the current thread.
+     */
+    public static void clearChatModePlaceholderOverride()
+    {
+        CHAT_MODE_PLACEHOLDER_OVERRIDE.remove();
+    }
+
+    /**
+     * Retrieves the chat mode placeholder override for the current thread.
+     * 
+     * @return The chat mode placeholder override for the current thread, or null if no override is set.
+     */
+    public static ChatMode getChatModePlaceholderOverride()
+    {
+        return CHAT_MODE_PLACEHOLDER_OVERRIDE.get();
     }
     
     // - - - - - PUBLIC METHODS - - - - -

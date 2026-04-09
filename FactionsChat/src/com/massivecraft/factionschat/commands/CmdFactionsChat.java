@@ -4,7 +4,6 @@ import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.TypeChatMode;
-import com.massivecraft.massivecore.command.type.primitive.TypeString;
 import com.massivecraft.massivecore.pager.Pager;
 
 import org.bukkit.ChatColor;
@@ -16,7 +15,7 @@ import java.util.List;
 
 /**
  * Represents the <code>/f c {channel}</code> command.
- * Supports switching chat channels, as well as sending a single message to a channel.
+ * Switches chat channels and subcommands; quick one-off messages use {@code :channel} in chat.
  */
 public class CmdFactionsChat extends FactionsCommand
 {
@@ -31,8 +30,7 @@ public class CmdFactionsChat extends FactionsCommand
     public CmdFactionsChat()
     {
         addParameter(TypeChatMode.getInstance(), false, "chat mode");
-        addParameter(TypeString.get(), false, "message", "message", true);
-        setDesc("Switches chat modes, sends a quick message to a channel, or manages other faction chat settings");
+        setDesc("Switches chat modes or manages other faction chat settings");
         addAliases("chat", "c");
         
         // Subcommands will be handled manually through the perform() method custom routing system
@@ -49,7 +47,8 @@ public class CmdFactionsChat extends FactionsCommand
         {
             ChatMode currentMode = ChatMode.getChatModeForPlayer(msender.getPlayer());
             msender.message(ChatColor.YELLOW + "Current chat mode: " + ChatColor.AQUA + currentMode.name().toLowerCase());
-            msender.message(ChatColor.GRAY + "Use " + ChatColor.LIGHT_PURPLE + "/f c <mode>" + ChatColor.GRAY + " to switch modes.");
+            msender.message(ChatColor.GRAY + "Use " + ChatColor.LIGHT_PURPLE + "/f c <mode>" + ChatColor.GRAY + " to switch modes, or "
+                + ChatColor.AQUA + ":<mode>" + ChatColor.GRAY + " / " + ChatColor.AQUA + ":<letter>" + ChatColor.GRAY + " in chat for a one-off message or toggle.");
             msender.message(ChatColor.GRAY + "Use " + ChatColor.AQUA + "/f c help" + ChatColor.GRAY + " to see all available commands and modes.");
             return;
         }
@@ -85,19 +84,8 @@ public class CmdFactionsChat extends FactionsCommand
             return;
         }
         
-        // If the player is sending a quick message (not switching to the channel)
-        String msg = arg();
-        if (msg != null)
-        {
-            FactionsChat.qmPlayers.put(msender.getPlayer().getUniqueId(), chatMode);
-            msender.getPlayer().chat(msg);
-        }
-        // Otherwise, switch the chat mode
-        else
-        {
-            FactionsChat.instance.getPlayerChatModes().put(msender.getUuid(), chatMode);
-            msender.message(ChatColor.YELLOW + "Chat mode set to: " + ChatColor.AQUA + chatMode.name().toLowerCase());
-        }
+        FactionsChat.instance.getPlayerChatModes().put(msender.getUuid(), chatMode);
+        msender.message(ChatColor.YELLOW + "Chat mode set to: " + ChatColor.AQUA + chatMode.name().toLowerCase());
     }
     
     /**

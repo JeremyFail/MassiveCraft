@@ -4,11 +4,13 @@ import com.massivecraft.factions.Rel;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
+import com.massivecraft.factionschat.chat.ChatPermissions;
 import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.util.InternalPlaceholders;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -21,6 +23,11 @@ import java.util.regex.Pattern;
  */
 public abstract class FactionChatListenerBase
 {
+    protected static void runSync(Runnable task)
+    {
+        Bukkit.getScheduler().runTask(FactionsChat.instance, task);
+    }
+
     /**
      * Regex pattern for message parsing of RGB Codes. 
      * 
@@ -196,8 +203,10 @@ public abstract class FactionChatListenerBase
     }
 
     /**
-     * Strips disallowed color and formatting codes from a message.
-     * 
+     * Strips disallowed color and formatting codes from a message (and translates remaining {@code &}).
+     * Player chat on Paper/Spigot should use {@link com.massivecraft.factionschat.chat.PermissionAwareChatMessage}
+     * instead so disallowed codes stay visible as plain text and signed content is not altered by stripping.
+     *
      * @param message The message to process.
      * @param permissions The ChatPermissions object containing permission flags.
      * @return The processed message with disallowed codes removed.
@@ -251,16 +260,28 @@ public abstract class FactionChatListenerBase
         boolean settingAllowUrl = Settings.allowUrl;
         boolean settingUnderlineUrl = Settings.allowUrlUnderline;
         
-        ChatPermissions perms = new ChatPermissions(
+        return new ChatPermissions(
             settingAllowColorCodes && sender.hasPermission("factions.chat.color"),
             settingAllowColorCodes && sender.hasPermission("factions.chat.format"),
             settingAllowColorCodes && sender.hasPermission("factions.chat.magic"),
             settingAllowColorCodes && sender.hasPermission("factions.chat.rgb"),
             settingAllowUrl && sender.hasPermission("factions.chat.url"),
-            settingUnderlineUrl
-        );
-        
-        return perms;
+            settingUnderlineUrl,
+            sender.hasPermission("factions.chat.hover"),
+            sender.hasPermission("factions.chat.click"),
+            sender.hasPermission("factions.chat.insert"),
+            sender.hasPermission("factions.chat.keybind"),
+            sender.hasPermission("factions.chat.translatable"),
+            settingAllowColorCodes && sender.hasPermission("factions.chat.rainbow"),
+            settingAllowColorCodes && sender.hasPermission("factions.chat.gradient"),
+            settingAllowColorCodes && sender.hasPermission("factions.chat.transition"),
+            settingAllowColorCodes && sender.hasPermission("factions.chat.font"),
+            sender.hasPermission("factions.chat.selector"),
+            sender.hasPermission("factions.chat.score"),
+            sender.hasPermission("factions.chat.nbt"),
+            settingAllowColorCodes && sender.hasPermission("factions.chat.pride"),
+            sender.hasPermission("factions.chat.sprite"),
+            sender.hasPermission("factions.chat.head"));
     }
 
     /**
@@ -372,27 +393,4 @@ public abstract class FactionChatListenerBase
         }
     }
 
-    /**
-     * Container class for chat permissions to avoid passing many boolean parameters.
-     */
-    protected static class ChatPermissions
-    {
-        public final boolean allowColor;
-        public final boolean allowFormat;
-        public final boolean allowMagic;
-        public final boolean allowRgb;
-        public final boolean allowUrl;
-        public final boolean underlineUrl;
-        
-        public ChatPermissions(boolean allowColor, boolean allowFormat, boolean allowMagic, 
-                             boolean allowRgb, boolean allowUrl, boolean underlineUrl)
-        {
-            this.allowColor = allowColor;
-            this.allowFormat = allowFormat;
-            this.allowMagic = allowMagic;
-            this.allowRgb = allowRgb;
-            this.allowUrl = allowUrl;
-            this.underlineUrl = underlineUrl;
-        }
-    }
 }

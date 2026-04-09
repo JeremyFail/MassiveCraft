@@ -1,8 +1,10 @@
 package com.massivecraft.factionschat.listeners;
 
 import com.massivecraft.factionschat.ChatMode;
-import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.FactionsChat;
+import com.massivecraft.factionschat.config.Settings;
+import com.massivecraft.factionschat.util.ColonChannelChatParser;
+import com.massivecraft.factionschat.util.ColonChannelChatParser.ParseType;
 
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.api.events.DiscordGuildMessagePostProcessEvent;
@@ -17,7 +19,7 @@ import org.bukkit.Bukkit;
  * chats to a discord server channel. Requires the server have DiscordSRV
  * installed and the config file to be setup with the Discord channel ID.
  */
-public class DiscordSRVListener
+public class DiscordSRVListener extends FactionChatListenerBase
 {
     /**
      * Handles game chat messages and redirects them to the appropriate Discord channel
@@ -28,9 +30,24 @@ public class DiscordSRVListener
     @Subscribe
     public void onGameChatMessage(GameChatMessagePreProcessEvent event)
     {
-        ChatMode cm = FactionsChat.qmPlayers.containsKey(event.getPlayer().getUniqueId()) 
-                ? FactionsChat.qmPlayers.get(event.getPlayer().getUniqueId()) 
-                : FactionsChat.instance.getPlayerChatModes().getOrDefault(event.getPlayer().getUniqueId(), ChatMode.GLOBAL);
+        ColonChannelChatParser.ParseResult colon = ColonChannelChatParser.parse(event.getPlayer(), event.getMessage());
+        if (colon.getType() == ParseType.INVALID || colon.getType() == ParseType.TOGGLE)
+        {
+            event.setCancelled(true);
+            return;
+        }
+
+        ChatMode cm;
+        if (colon.getType() == ParseType.QUICK_MESSAGE)
+        {
+            cm = colon.getTargetMode();
+            // Legacy § string so DiscordSRV's shaded Adventure can re-parse via MessageUtil (setMessageComponent(net.kyori) is not compatible).
+            event.setMessage(DiscordSRVChatRelayFormatter.playerBodyToDiscordLegacy(event.getPlayer(), colon.getMessageBody(), this));
+        }
+        else
+        {
+            cm = FactionsChat.instance.getPlayerChatModes().getOrDefault(event.getPlayer().getUniqueId(), ChatMode.GLOBAL);
+        }
 
         // Send global messages to default Discord channel
         if (cm == ChatMode.GLOBAL)
@@ -69,7 +86,9 @@ public class DiscordSRVListener
         event.setCancelled(true);
 
         // Broadcast message in staff channel
-        Bukkit.broadcast(Settings.ChatPrefixes.STAFF + event.getProcessedMessage(), "factions.chat.staff");
+        Bukkit.broadcast(
+            DiscordSRVChatRelayFormatter.trustedConfigSnippetToLegacy(Settings.ChatPrefixes.STAFF) + event.getProcessedMessage(),
+            "factions.chat.staff");
     }
 
     /**

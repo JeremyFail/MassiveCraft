@@ -2,7 +2,14 @@ package com.massivecraft.factionschat.listeners;
 
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
+import com.massivecraft.factionschat.adventure.AdventureChatPermissionSanitizer;
+import com.massivecraft.factionschat.adventure.LegacyRgbMessageCodec;
+import com.massivecraft.factionschat.adventure.PaperAdventureChatCodec;
+import com.massivecraft.factionschat.chat.ChatPermissions;
+import com.massivecraft.factionschat.chat.PermissionAwareChatMessage;
 import com.massivecraft.factionschat.config.Settings;
+import com.massivecraft.factionschat.util.ColonChannelChatParser;
+import com.massivecraft.factionschat.util.ColonChannelChatParser.ParseType;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
@@ -12,6 +19,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,71 +33,327 @@ import java.util.stream.Collectors;
 
 /**
  * Listens for Paper's AsyncChatEvent and handles FactionsChat formatting.
- * 
- * This cancels the original chat event and sends custom formatted messages
- * as server messages which allows per-recipient, per-message formatting
- * using Placeholder API or built-in tags, using the format string from the config.
  *
+ * <p>When {@link Settings#disableChatReporting} is false, uses a custom {@link io.papermc.paper.chat.ChatRenderer} and
+ * viewer filtering so messages stay on the signed chat path. When true, cancels the event and
+ * delivers formatted chat as plugin messages, which disables chat reporting.
+ * 
  * This listener is only registered if the server is running Paper.
+ *
+ * <p>Chat is rendered with {@link io.papermc.paper.chat.ChatRenderer} as {@code header + message body}
+ * (no {@code chat.type.text} wrapper - that key is {@code <%s> %s} in en_us and adds unwanted outer
+ * brackets around an already-decorated header).</p>
+ *
+ * <p>The message body is always run through {@link #processMessageForSender} (legacy + MiniMessage + permissions)
+ * so typed content parses the same way whether or not signed chat is enabled. Secure chat compares the displayed
+ * message to what the client signed; re-encoding on the server can make some clients show a “message modified”
+ * indicator-that tradeoff is expected if you want full formatting on the line.</p>
+ *
+ * <p>Format strings (prefix, channel color before {@code %MESSAGE%}) use the same unified codec.</p>
  */
 public class PaperFactionChatListener extends FactionChatListenerBase implements Listener
-{    
+{
     private final LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
+    private final LegacyRgbMessageCodec legacyRgbCodec = new LegacyRgbMessageCodec(serializer);
+    private static final PlainTextComponentSerializer plainSerializer = PlainTextComponentSerializer.plainText();
 
     /**
      * Handles the AsyncChatEvent.
      * This method processes the chat message, applies the appropriate chat mode,
-     * and sends formatted messages to appropriate recipients as server messages.
+     * and either uses Paper's signed chat renderer or cancels and sends plugin messages
+     * (see {@link Settings#disableChatReporting}).
      * 
      * @param event The AsyncChatEvent triggered through chat.
      */
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onAsyncChat(AsyncChatEvent event)
     {
         Player sender = event.getPlayer();
-        String originalMessage = serializer.serialize(event.message());
-        
-        // Cancel the original chat event - we'll send our own formatted messages
-        event.setCancelled(true);
-        
-        // Use quick chat mode if present, otherwise persistent
-        final ChatMode chatMode = ChatMode.getChatModeForPlayer(sender);
+        String plainMessage = plainSerializer.serialize(event.message());
 
-        // Apply general placeholders to the chat format (this is the same for all recipients)
-        String preParsedFormat = applyNonRelationalPlaceholders(sender, Settings.chatFormat, chatMode);
-        
-        TextColor baseColor = getBaseColorFromFormat(preParsedFormat);
-        
-        // Process the message to apply any formatting (this is the same for all recipients)
-        Component processedMessageComponent = processMessageForSender(sender, originalMessage, baseColor, chatMode);
-        
-        // Filter and send to viewers
-        for (Audience audience : event.viewers())
+        // Parse the chat message for colon channel prefixes
+        ColonChannelChatParser.ParseResult colon = ColonChannelChatParser.parse(sender, plainMessage);
+        if (colon.getType() == ParseType.INVALID)
+        {
+            event.setCancelled(true);
+            final String err = colon.getInvalidReason();
+            runSync(() -> sender.sendMessage(err));
+            return;
+        }
+        if (colon.getType() == ParseType.TOGGLE)
+        {
+            event.setCancelled(true);
+            final ChatMode mode = colon.getTargetMode();
+            runSync(() ->
+            {
+                FactionsChat.instance.getPlayerChatModes().put(sender.getUniqueId(), mode);
+                sender.sendMessage(org.bukkit.ChatColor.YELLOW + "Chat mode set to: "
+                    + org.bukkit.ChatColor.AQUA + mode.name().toLowerCase());
+            });
+            return;
+        }
+
+        // Determine the chat mode and message text
+        final ChatMode chatMode;
+        final String messagePlain;
+        final boolean colonQuick;
+        if (colon.getType() == ParseType.QUICK_MESSAGE)
+        {
+            chatMode = colon.getTargetMode();
+            messagePlain = colon.getMessageBody();
+            colonQuick = true;
+        }
+        else
+        {
+            chatMode = ChatMode.getChatModeForPlayer(sender);
+            messagePlain = colon.getMessageBody();
+            colonQuick = false;
+        }
+
+        final ChatPermissions senderPerms = getPlayerChatPermissions(sender);
+
+        // If chat reporting is disabled, deliver the message as plugin messages
+        if (Settings.disableChatReporting)
+        {
+            deliverLegacyCancelled(event, sender, chatMode, messagePlain, colonQuick, senderPerms);
+            return;
+        }
+
+        // Deliver the message using the signed renderer
+        deliverWithSignedRenderer(event, sender, chatMode, messagePlain, colonQuick, senderPerms);
+    }
+
+    private void deliverLegacyCancelled(AsyncChatEvent event, Player sender, ChatMode chatMode, String messagePlain, boolean colonQuick, ChatPermissions senderPerms)
+    {
+        event.setCancelled(true);
+
+        try
+        {
+            // Set the chat mode placeholder override if this is a colon quick message
+            if (colonQuick)
+            {
+                FactionsChat.setChatModePlaceholderOverride(chatMode);
+            }
+
+            // Apply general placeholders to the chat format (this is the same for all recipients)
+            String preParsedFormat = applyNonRelationalPlaceholders(sender, Settings.chatFormat, chatMode);
+            TextColor baseColor = getBaseColorFromFormat(preParsedFormat);
+
+            // Process the message to apply any formatting (this is the same for all recipients)
+            Component processedMessageComponent = processMessageForSender(sender, messagePlain, baseColor, chatMode, senderPerms);
+
+            // Filter and send to viewers
+            for (Audience audience : event.viewers())
+            {
+                if (!(audience instanceof Player))
+                {
+                    continue; // Skip non-player audiences (console isn't usually in viewers anyway)
+                }
+                Player player = (Player) audience;
+
+                // Send the formatted message if this player should receive it
+                if (!shouldExcludeRecipient(chatMode, sender, player))
+                {
+                    Component finalMessage = formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, player, baseColor, chatMode);
+                    audience.sendMessage(finalMessage);
+                }
+            }
+
+            // Always send to console (console should see all chat messages) on the main thread
+            final Component consoleMessage = formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, null, baseColor, chatMode);
+            logFormattedChatToConsoleSync(consoleMessage);
+        }
+        finally
+        {
+            // Clear the chat mode placeholder override
+            if (colonQuick)
+            {
+                FactionsChat.clearChatModePlaceholderOverride();
+            }
+        }
+    }
+
+    /**
+     * Delivers chat without cancelling the event, using a {@code chat.type.text} translatable so Paper's
+     * {@link io.papermc.paper.event.player.AsyncChatEvent} pipeline keeps player signing / reporting semantics.
+     * Falls back to a single component tree if the config format omits {@link #PLACEHOLDER_MESSAGE}.
+     *
+     * @param event The AsyncChatEvent triggered through chat.
+     * @param sender The player sending the message.
+     * @param chatMode The chat mode being used.
+     * @param messagePlain The plain text message (body only when {@code colonQuick}).
+     * @param colonQuick Whether the chat message is a colon channel quick message.
+     */
+    private void deliverWithSignedRenderer(AsyncChatEvent event, Player sender, ChatMode chatMode, String messagePlain, boolean colonQuick, ChatPermissions senderPerms)
+    {
+        final String fullFormat = Settings.chatFormat;
+        final int messagePlaceholderIndex = fullFormat.indexOf(PLACEHOLDER_MESSAGE);
+
+        // When the format has no %MESSAGE%, fall back to embedding the body in a single component tree
+        // (signing behavior may not match vanilla in that edge case).
+        if (messagePlaceholderIndex < 0)
+        {
+            deliverWithSignedRendererLegacyTree(event, sender, chatMode, messagePlain, colonQuick, fullFormat, senderPerms);
+            return;
+        }
+
+        final String formatBeforeMessage = fullFormat.substring(0, messagePlaceholderIndex);
+        final String formatAfterMessage = fullFormat.substring(messagePlaceholderIndex + PLACEHOLDER_MESSAGE.length());
+
+        final String preBeforeNonRel;
+        final String preAfterNonRel;
+        try
+        {
+            // Set the chat mode placeholder override if this is a colon quick message
+            if (colonQuick)
+            {
+                FactionsChat.setChatModePlaceholderOverride(chatMode);
+            }
+
+            // Expand placeholders only for the header/suffix segments (message content is the signed argument)
+            preBeforeNonRel = applyNonRelationalPlaceholders(sender, formatBeforeMessage, chatMode);
+            preAfterNonRel = formatAfterMessage.isEmpty()
+                ? ""
+                : applyNonRelationalPlaceholders(sender, formatAfterMessage, chatMode);
+        }
+        finally
+        {
+            // Clear the chat mode placeholder override
+            if (colonQuick)
+            {
+                FactionsChat.clearChatModePlaceholderOverride();
+            }
+        }
+
+        // Base message color: last color before %MESSAGE% in the full template (placeholder keeps index valid)
+        final TextColor baseColor = getBaseColorFromFormat(
+            preBeforeNonRel + PLACEHOLDER_MESSAGE + formatAfterMessage);
+
+        final Component messageBodyFinal = processMessageForSender(sender, messagePlain, baseColor, chatMode, senderPerms);
+
+        // Remove recipients who should not receive the message
+        event.viewers().removeIf(audience ->
         {
             if (!(audience instanceof Player))
             {
-                continue; // Skip non-player audiences (console isn't usually in viewers anyway)
+                return false;
             }
-
-            Player player = (Player) audience;
-            
-            // Send the formatted message if this player should receive it
-            if (!shouldExcludeRecipient(chatMode, sender, player))
+            Player recipient = (Player) audience;
+            if (recipient.equals(sender))
             {
-                Component finalMessage = formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, player, baseColor, chatMode);
-                audience.sendMessage(finalMessage);
+                return false;
+            }
+            return shouldExcludeRecipient(chatMode, sender, recipient);
+        });
+
+        final String preBeforeFinal = preBeforeNonRel;
+        final String preAfterFinal = preAfterNonRel;
+
+        event.renderer((source, sourceDisplayName, messageComponent, viewer) ->
+        {
+            Player recipientPlayer = viewer instanceof Player ? (Player) viewer : null;
+            return buildFormattedChatLine(source, recipientPlayer, preBeforeFinal, preAfterFinal, messageBodyFinal);
+        });
+
+        // Console receives the same line via the renderer (Console is usually a viewer); do not log again.
+    }
+
+    /**
+     * Fallback when {@link Settings#chatFormat} does not contain {@link #PLACEHOLDER_MESSAGE}:
+     * one component tree per viewer (signing may not match vanilla).
+     */
+    private void deliverWithSignedRendererLegacyTree(AsyncChatEvent event, Player sender, ChatMode chatMode, String messagePlain, boolean colonQuick, String fullFormat, ChatPermissions senderPerms)
+    {
+        String preParsedFormat;
+        try
+        {
+            if (colonQuick)
+            {
+                FactionsChat.setChatModePlaceholderOverride(chatMode);
+            }
+
+            // Apply general placeholders to the chat format (this is the same for all recipients)
+            preParsedFormat = applyNonRelationalPlaceholders(sender, fullFormat, chatMode);
+        }
+        finally
+        {
+            if (colonQuick)
+            {
+                FactionsChat.clearChatModePlaceholderOverride();
             }
         }
-        
-        // Always send to console (console should see all chat messages)
-        Component consoleMessage = formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, null, baseColor, chatMode);
-        Bukkit.getConsoleSender().sendMessage(serializer.serialize(consoleMessage));
 
-        // Remove from quick chat mode if they were using it
-        if (FactionsChat.qmPlayers.containsKey(sender.getUniqueId()))
+        // Extract the base color from the chat format
+        final TextColor baseColor = getBaseColorFromFormat(preParsedFormat);
+        final Component messageBodyFinal = processMessageForSender(sender, messagePlain, baseColor, chatMode, senderPerms);
+
+        // Remove recipients who should not receive the message
+        event.viewers().removeIf(audience ->
         {
-            FactionsChat.qmPlayers.remove(sender.getUniqueId());
+            if (!(audience instanceof Player))
+            {
+                return false;
+            }
+            Player recipient = (Player) audience;
+            if (recipient.equals(sender))
+            {
+                return false;
+            }
+            return shouldExcludeRecipient(chatMode, sender, recipient);
+        });
+
+        // Set the renderer to format the message for each recipient
+        final String preFinal = preParsedFormat;
+        final ChatMode modeFinal = chatMode;
+
+        // Format the message for each recipient
+        event.renderer((source, sourceDisplayName, messageComponent, viewer) ->
+        {
+            if (viewer instanceof Player)
+            {
+                return formatMessageForRecipient(source, preFinal, messageBodyFinal, (Player) viewer, baseColor, modeFinal);
+            }
+            return formatMessageForRecipient(source, preFinal, messageBodyFinal, null, baseColor, modeFinal);
+        });
+
+        // Console uses the same renderer when present in viewers.
+    }
+
+    /**
+     * Per-viewer chat line: parsed header (+ optional suffix) and message body, without extra {@code chat.type.text} brackets.
+     */
+    private Component buildFormattedChatLine(
+        Player source,
+        Player recipientOrNull,
+        String preBefore,
+        String preAfter,
+        Component messageBody)
+    {
+        String headerRaw = applyRelationalPlaceholders(source, recipientOrNull, preBefore);
+        Component header = formatExpandedFormatToComponent(headerRaw);
+        Component line = Component.empty().append(header).append(messageBody);
+        if (preAfter != null && !preAfter.isEmpty())
+        {
+            String afterRaw = applyRelationalPlaceholders(source, recipientOrNull, preAfter);
+            line = line.append(formatExpandedFormatToComponent(afterRaw));
         }
+        return line;
+    }
+
+    private void logFormattedChatToConsoleSync(Component line)
+    {
+        // CommandSender in this dependency set only exposes String sendMessage; use legacy text for the console.
+        final String legacy = serializer.serialize(line);
+        runSync(() -> Bukkit.getConsoleSender().sendMessage(legacy));
+    }
+
+    /**
+     * Chat format segment (header/suffix / full template): no root default tint so {@code §r} is true white and
+     * colors before {@code %MESSAGE%} stay on the serialized string (see {@link PaperAdventureChatCodec}).
+     */
+    private Component formatExpandedFormatToComponent(String expandedFormat)
+    {
+        return PaperAdventureChatCodec.toComponent(expandedFormat, null, legacyRgbCodec);
     }
 
     /**
@@ -102,7 +366,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
     private TextColor getBaseColorFromFormat(String format)
     {
         BaseColorResult result = extractBaseColorFromFormat(format);
-        
+
         if (result.isRgb)
         {
             try
@@ -114,7 +378,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
                 // Invalid hex code, fall back to legacy
             }
         }
-        
+
         // Convert legacy ChatColor to TextColor
         Color awtColor = result.legacyColor.asBungee().getColor();
         return TextColor.color(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
@@ -136,18 +400,12 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         // Replace placeholders based on whether PlaceholderAPI is enabled
         preParsedFormat = applyRelationalPlaceholders(sender, recipient, preParsedFormat);
 
-        // Process the entire format string into a component (handling RGB codes if present)
-        Component processedFormatComponent;
-        if (preParsedFormat.contains("&#") || preParsedFormat.contains("§#") || preParsedFormat.contains("§x"))
-        {
-            processedFormatComponent = processRgbColorCodes(preParsedFormat, baseColor);
-        }
-        else
-        {
-            processedFormatComponent = serializer.deserialize(preParsedFormat);
-        }
+        // Full format string -> component; root default null so prefix §r and § before %MESSAGE% behave correctly.
+        Component processedFormatComponent = PaperAdventureChatCodec.toComponent(
+            preParsedFormat,
+            null,
+            legacyRgbCodec);
 
-        // Replace the placeholder with the actual message component
         return replaceComponentPlaceholder(processedFormatComponent, PLACEHOLDER_MESSAGE, processedMessageComponent);
     }
 
@@ -162,24 +420,14 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
      * @param chatMode The chat mode being used (e.g., GLOBAL, FACTION, ALLY, etc.).
      * @return A Component with the processed message ready for sending.
      */
-    private Component processMessageForSender(Player sender, String originalMessage, TextColor baseColor, ChatMode chatMode)
+    private Component processMessageForSender(Player sender, String originalMessage, TextColor baseColor, ChatMode chatMode, ChatPermissions permissions)
     {
-        // Get player permissions
-        ChatPermissions permissions = getPlayerChatPermissions(sender);
-
-        // Remove disallowed codes and parse legacy color/format codes in the original message
-        String processedMessage = stripColorFormatCodes(originalMessage, permissions);
-
-        // - - - - - RGB Processing - - - - -
-        Component messageComponent;
-        if (permissions.allowRgb && (processedMessage.contains("&#") || processedMessage.contains("§#") || processedMessage.contains("§x")))
-        {
-            messageComponent = processRgbColorCodes(processedMessage, baseColor);
-        }
-        else
-        {
-            messageComponent = serializer.deserialize(processedMessage).colorIfAbsent(baseColor);
-        }
+        // Disallowed codes stay literal (avoids stripping & changing signed chat); allowed runs use the unified codec.
+        Component messageComponent = PermissionAwareChatMessage.toAdventureComponent(
+            originalMessage,
+            baseColor,
+            permissions,
+            legacyRgbCodec);
 
         // - - - - - URL Processing - - - - -
         if (permissions.allowUrl)
@@ -187,7 +435,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             messageComponent = processLinksInComponent(messageComponent, permissions.underlineUrl);
         }
 
-        return messageComponent;
+        return AdventureChatPermissionSanitizer.sanitize(messageComponent, permissions, baseColor);
     }
 
     /**
@@ -203,7 +451,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         // Recursively process all text components to find and replace URLs
         return processComponentForLinks(input, underline, 0);
     }
-    
+
     /**
      * Recursively processes a Component tree to find and replace URLs with clickable links.
      * This preserves all formatting (color, bold, italic, etc.) while making URLs clickable.
@@ -220,12 +468,12 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         {
             TextComponent textComponent = (TextComponent) component;
             String content = textComponent.content();
-            
+
             if (content != null && !content.isEmpty())
             {
                 Pattern urlPattern = Pattern.compile(URL_REGEX);
                 Matcher matcher = urlPattern.matcher(content);
-                
+
                 if (matcher.find())
                 {
                     // URLs found - need to split the component
@@ -259,7 +507,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
                         result = result.append(urlComponent);
                         lastEnd = matcher.end();
                     }
-                    
+
                     // Add any remaining text after the last URL
                     if (lastEnd < content.length())
                     {
@@ -272,123 +520,25 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
                     {
                         result = result.append(processComponentForLinks(child, underline, depth + 1));
                     }
-                    
+
                     return result;
                 }
             }
         }
-        
+
         // No URLs found in this TextComponent, or it's not a TextComponent
         // Process children recursively and return component with processed children
         if (component.children().isEmpty())
         {
-            return component; // Leaf component with no URLs
-        }
-        else
-        {
-            // Process all children recursively
-            return component.children(
-                component.children().stream()
-                    .map(child -> processComponentForLinks(child, underline, depth + 1))
-                    .collect(Collectors.toList())
-            );
-        }
-    }
-    
-    /**
-     * Processes RGB color codes in multiple formats and converts them to TextColor components.
-     * Supports modern RGB (&#RRGGBB), legacy Bukkit RGB (§x§R§R§G§G§B§B), and 3-digit hex codes.
-     *
-     * @param message The message containing RGB color codes.
-     * @param baseColor The base color to use if no RGB code is present.
-     * @return A Component with the RGB colors applied.
-     */
-    private Component processRgbColorCodes(String message, TextColor baseColor)
-    {
-        Pattern rgbPattern = Pattern.compile(RGB_REGEX);
-        Matcher rgbMatcher = rgbPattern.matcher(message);
-        
-        if (!rgbMatcher.find())
-        {
-            // No RGB codes found, use legacy deserializer to preserve all formatting codes
-            return serializer.deserialize(message).colorIfAbsent(baseColor);
+            return component; // component with no URLs
         }
         
-        // RGB codes found, need custom processing
-        rgbMatcher.reset(); // Reset matcher for actual processing
-        
-        int lastEnd = 0;
-        Component comp = Component.empty();
-        TextColor currentColor = null;
-        
-        // Iterate through all matches of the RGB pattern
-        while (rgbMatcher.find())
-        {
-            // Get the substring before the current match and deserialize it (preserves formatting)
-            String before = message.substring(lastEnd, rgbMatcher.start());
-            if (!before.isEmpty())
-            {
-                TextColor colorToUse = currentColor != null ? currentColor : baseColor;
-                
-                // Use legacy deserializer to preserve formatting codes, then apply color
-                Component beforeComponent = serializer.deserialize(before).colorIfAbsent(colorToUse);
-                comp = comp.append(beforeComponent);
-            }
-            
-            // Extract the hex color code based on which format matched
-            String hex = null;
-            if (rgbMatcher.group(1) != null)
-            {
-                // Modern format: &#RRGGBB or §#RRGGBB
-                hex = rgbMatcher.group(1);
-            }
-            else if (rgbMatcher.group(2) != null)
-            {
-                // Legacy Bukkit format: §x§R§R§G§G§B§B
-                String legacyHex = rgbMatcher.group(2);
-                // Extract hex digits from §R§R§G§G§B§B format
-                StringBuilder hexBuilder = new StringBuilder();
-                for (int i = 1; i < legacyHex.length(); i += 2)
-                {
-                    hexBuilder.append(legacyHex.charAt(i));
-                }
-                hex = hexBuilder.toString();
-            }
-            
-            if (hex != null)
-            {
-                try
-                {
-                    // Convert 3-digit hex to 6-digit if needed
-                    if (hex.length() == 3)
-                    {
-                        hex = "" + hex.charAt(0) + hex.charAt(0) + 
-                                  hex.charAt(1) + hex.charAt(1) + 
-                                  hex.charAt(2) + hex.charAt(2);
-                    }
-                    currentColor = TextColor.fromHexString("#" + hex);
-                }
-                catch (IllegalArgumentException e)
-                {
-                    // Invalid hex code, keep current color
-                }
-            }
-            
-            lastEnd = rgbMatcher.end();
-        }
-        
-        // Append any remaining text after the last RGB code
-        if (lastEnd < message.length())
-        {
-            String after = message.substring(lastEnd);
-            TextColor colorToUse = currentColor != null ? currentColor : baseColor;
-            
-            // Use legacy deserializer to preserve formatting codes, then apply color
-            Component afterComponent = serializer.deserialize(after).colorIfAbsent(colorToUse);
-            comp = comp.append(afterComponent);
-        }
-
-        return comp;
+        // Process all children recursively
+        return component.children(
+            component.children().stream()
+                .map(child -> processComponentForLinks(child, underline, depth + 1))
+                .collect(Collectors.toList())
+        );
     }
 
     /**
@@ -425,24 +575,22 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
                         result = result.append(replacement);
                     }
                 }
-                
+
                 // Preserve any children components
                 for (Component child : textComponent.children())
                 {
                     result = result.append(replaceComponentPlaceholder(child, placeholder, replacement));
                 }
-                
+
                 return result;
             }
         }
-        
+
         // If no placeholder found in this component, check children
-        Component result = component.children().isEmpty() 
-            ? component 
+        return component.children().isEmpty()
+            ? component
             : component.children(component.children().stream()
                 .map(child -> replaceComponentPlaceholder(child, placeholder, replacement))
                 .collect(Collectors.toList()));
-        
-        return result;
     }
 }

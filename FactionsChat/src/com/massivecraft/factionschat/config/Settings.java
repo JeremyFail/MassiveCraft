@@ -3,6 +3,7 @@ package com.massivecraft.factionschat.config;
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factionschat.ChatMode;
 
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -16,7 +17,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 public class Settings 
 {
     // Configuration file constants
-    public static final int DEFAULT_CONFIG_VERSION = 2;
+    public static final int DEFAULT_CONFIG_VERSION = 3;
     public static final String CONFIG_FILE_NAME = "config.yml";
     public static final String BACKUP_CONFIG_FILE_NAME = "config.yml.bak";
     public static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%&r> %factions_chat_color%%MESSAGE%";
@@ -27,6 +28,8 @@ public class Settings
     public static boolean allowUrl;
     public static boolean allowUrlUnderline;
     public static int localChatRange;
+    /** When true, Paper uses cancelled-chat delivery; when false, Paper uses a custom chat renderer (signed path). Ignored on Spigot. */
+    public static boolean disableChatReporting;
 
     /**
      * Chat prefixes for each chat mode
@@ -50,20 +53,15 @@ public class Settings
         {
             if (config != null)
             {
-                ALLY = config.getString("Ally", "§e[<fcolor>ALLY§e]§r")
-                        .replace("<fcolor>", MConf.get().colorAlly.toString());
-                TRUCE = config.getString("Truce", "§e[<fcolor>TRUCE§e]§r")
-                        .replace("<fcolor>", MConf.get().colorTruce.toString());
-                FACTION = config.getString("Faction", "§e[<fcolor>FACTION§e]§r")
-                        .replace("<fcolor>", MConf.get().colorMember.toString());
-                ENEMY = config.getString("Enemy", "§e[<fcolor>ENEMY§e]§r")
-                        .replace("<fcolor>", MConf.get().colorEnemy.toString());
-                NEUTRAL = config.getString("Neutral", "§e[<fcolor>NEUTRAL§e]§r")
-                        .replace("<fcolor>", MConf.get().colorNeutral.toString());
-                LOCAL = config.getString("Local", "§e[§rLOCAL§e]§r");
-                GLOBAL = config.getString("Global", "§e[§6GLOBAL§e]§r");
-                STAFF = config.getString("Staff", "§e[§4STAFF§e]§r");
-                WORLD = config.getString("World", "§e[§3WORLD§e]§r");
+                ALLY = normalizePrefixOrColorString(config.getString("Ally", "§e[<fcolor>ALLY§e]§r"), MConf.get().colorAlly.toString());
+                TRUCE = normalizePrefixOrColorString(config.getString("Truce", "§e[<fcolor>TRUCE§e]§r"), MConf.get().colorTruce.toString());
+                FACTION = normalizePrefixOrColorString(config.getString("Faction", "§e[<fcolor>FACTION§e]§r"), MConf.get().colorMember.toString());
+                ENEMY = normalizePrefixOrColorString(config.getString("Enemy", "§e[<fcolor>ENEMY§e]§r"), MConf.get().colorEnemy.toString());
+                NEUTRAL = normalizePrefixOrColorString(config.getString("Neutral", "§e[<fcolor>NEUTRAL§e]§r"), MConf.get().colorNeutral.toString());
+                LOCAL = normalizePrefixOrColorString(config.getString("Local", "§e[§rLOCAL§e]§r"), null);
+                GLOBAL = normalizePrefixOrColorString(config.getString("Global", "§e[§6GLOBAL§e]§r"), null);
+                STAFF = normalizePrefixOrColorString(config.getString("Staff", "§e[§4STAFF§e]§r"), null);
+                WORLD = normalizePrefixOrColorString(config.getString("World", "§e[§3WORLD§e]§r"), null);
             }
         }
 
@@ -112,15 +110,15 @@ public class Settings
         {
             if (config != null)
             {
-                ALLY = config.getString("Ally", "<fcolor>").replace("<fcolor>", MConf.get().colorAlly.toString());
-                TRUCE = config.getString("Truce", "<fcolor>").replace("<fcolor>", MConf.get().colorTruce.toString());
-                FACTION = config.getString("Faction", "<fcolor>").replace("<fcolor>", MConf.get().colorMember.toString());
-                NEUTRAL = config.getString("Neutral", "<fcolor>").replace("<fcolor>", MConf.get().colorNeutral.toString());
-                ENEMY = config.getString("Enemy", "<fcolor>").replace("<fcolor>", MConf.get().colorEnemy.toString());
-                LOCAL = config.getString("Local", "§r");
-                GLOBAL = config.getString("Global", "§6");
-                STAFF = config.getString("Staff", "§4");
-                WORLD = config.getString("World", "§3");
+                ALLY = normalizePrefixOrColorString(config.getString("Ally", "<fcolor>"), MConf.get().colorAlly.toString());
+                TRUCE = normalizePrefixOrColorString(config.getString("Truce", "<fcolor>"), MConf.get().colorTruce.toString());
+                FACTION = normalizePrefixOrColorString(config.getString("Faction", "<fcolor>"), MConf.get().colorMember.toString());
+                NEUTRAL = normalizePrefixOrColorString(config.getString("Neutral", "<fcolor>"), MConf.get().colorNeutral.toString());
+                ENEMY = normalizePrefixOrColorString(config.getString("Enemy", "<fcolor>"), MConf.get().colorEnemy.toString());
+                LOCAL = normalizePrefixOrColorString(config.getString("Local", "§r"), null);
+                GLOBAL = normalizePrefixOrColorString(config.getString("Global", "§6"), null);
+                STAFF = normalizePrefixOrColorString(config.getString("Staff", "§4"), null);
+                WORLD = normalizePrefixOrColorString(config.getString("World", "§3"), null);
             }
         }
 
@@ -162,9 +160,32 @@ public class Settings
         allowUrl = config.getBoolean("ChatSettings.AllowClickableLinks", true);
         allowUrlUnderline = config.getBoolean("ChatSettings.AllowClickableLinksUnderline", true);
         localChatRange = config.getInt("ChatSettings.LocalChatRange", 1000);
+        disableChatReporting = config.getBoolean("ChatSettings.DisableChatReporting", false);
 
         // Initialize nested settings
         ChatPrefixes.initialize(config.getConfigurationSection("ChatPrefixes"));
         TextColors.initialize(config.getConfigurationSection("TextColors"));
+    }
+
+    /**
+     * Replaces {@code <fcolor>} when {@code fcolorReplacement} is non-null, then translates {@code &} color codes to section signs
+     * (same as player chat). MiniMessage tags are left as-is for Paper's unified legacy + MiniMessage parse.
+     * 
+     * @param raw The raw string to normalize.
+     * @param fcolorReplacement The replacement for {@code <fcolor>}.
+     * @return The normalized string.
+     */
+    private static String normalizePrefixOrColorString(String raw, String fcolorReplacement)
+    {
+        if (raw == null)
+        {
+            return "";
+        }
+        String s = raw;
+        if (fcolorReplacement != null)
+        {
+            s = s.replace("<fcolor>", fcolorReplacement);
+        }
+        return ChatColor.translateAlternateColorCodes('&', s);
     }
 }

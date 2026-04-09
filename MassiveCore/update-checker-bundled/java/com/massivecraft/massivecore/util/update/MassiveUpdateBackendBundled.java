@@ -146,7 +146,7 @@ public final class MassiveUpdateBackendBundled implements MassiveUpdateBackend, 
 
 		MassiveCore core = MassiveCore.get();
 		String border = repeat('*', 60);
-		// Same path as Integration (MassivePlugin#log → MixinMessage) so prefix and colors match other MassiveCore lines.
+		// Same path as Integration (MassivePlugin#log -> MixinMessage) so prefix and colors match other MassiveCore lines.
 		core.log(Txt.parse("<i>%s", border));
 		core.log(Txt.parse("<pink>[MassiveCraft]<i> Newer release <g>%s<i> is available on GitHub.", remote));
 		core.log(Txt.parse("<n>The following installed plugins are older than the latest release:"));

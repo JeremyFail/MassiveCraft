@@ -157,7 +157,7 @@ public final class MassiveUpdateVersions
 	 * Normalizes a Git {@code tag_name} for comparison to {@code plugin.yml} {@code version} strings.
 	 * <p>
 	 * Strips a leading {@code refs/tags/} prefix and a leading {@code v} when followed by a digit
-	 * (e.g. {@code v3.4.0} → {@code 3.4.0}).
+	 * (e.g. {@code v3.4.0} -> {@code 3.4.0}).
 	 *
 	 * @param tag raw tag from the GitHub API or similar; may be {@code null}
 	 * @return normalized string, or empty if {@code tag} is null/blank after trim

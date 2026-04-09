@@ -57,6 +57,10 @@
         <!-- https://hub.spigotmc.org/nexus/content/groups/public/org/spigotmc/spigot-api/ -->
         <massiveSpigotVersion>1.21.4-R0.1-SNAPSHOT</massiveSpigotVersion>
         <massivePaperVersion>1.21.4-R0.1-SNAPSHOT</massivePaperVersion>
+        <!-- Adventure MiniMessage for compile (match paper-api transitive BOM; run mvn dependency:tree on paper-api when bumping Paper).
+             PaperMC format docs: https://docs.papermc.io/adventure/minimessage/format - sprite/head tags require MiniMessage 4.25+;
+             at 4.20.0 those tags are absent from this artifact; newer Paper builds may ship a newer Adventure at runtime. -->
+        <massiveAdventureMiniMessageVersion>4.20.0</massiveAdventureMiniMessageVersion>
 
         <!-- http://nexus.hc.to/content/repositories/pub_releases/net/milkbowl/vault/Vault/ -->
         <massiveVaultVersion>1.5.6</massiveVaultVersion>
@@ -337,6 +341,12 @@
                 <groupId>io.papermc.paper</groupId>
                 <artifactId>paper-api</artifactId>
                 <version>${massivePaperVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.kyori</groupId>
+                <artifactId>adventure-text-minimessage</artifactId>
+                <version>${massiveAdventureMiniMessageVersion}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

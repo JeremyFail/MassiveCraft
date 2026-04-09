@@ -777,7 +777,7 @@ public class BookUtil
 		if (item.getType() == Material.WRITTEN_BOOK) return;
 
 		BookMeta meta = getBookMeta(item);
-		// Keep previous title and author when locking (e.g. after unlock → edit → lock). Writable books store them in PDC.
+		// Keep previous title and author when locking (e.g. after unlock -> edit -> lock). Writable books store them in PDC.
 		String savedTitle = (meta != null && meta.hasTitle()) ? meta.getTitle() : getUnlockTitle(item);
 		String savedAuthor = (meta != null && meta.hasAuthor()) ? meta.getAuthor() : getUnlockAuthor(item);
 		List<String> pages = getPages(item);

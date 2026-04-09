@@ -93,17 +93,21 @@ public enum ChatMode
 
     /**
      * Retrieves the {@link ChatMode} for the specified player.
-     * Checks the quick chat modes first, then falls back to the player's stored chat mode.
+     * 
+     * While a colon-prefixed quick message is being formatted, {@link FactionsChat} may supply a
+     * temporary override so placeholders match that channel; otherwise the stored mode is used.
      * 
      * @param player The player to get the chat mode for.
      * @return The {@link ChatMode} for the player, or the default chat mode if none is set.
      */
     public static ChatMode getChatModeForPlayer(Player player)
     {
-        if (player == null) return ChatMode.GLOBAL; // Default to GLOBAL if player is null
-        return FactionsChat.qmPlayers.containsKey(player.getUniqueId())
-            ? FactionsChat.qmPlayers.get(player.getUniqueId())
-            : FactionsChat.instance.getPlayerChatModes().getOrDefault(player.getUniqueId(), ChatMode.GLOBAL);
+        if (player == null) return ChatMode.GLOBAL;
+
+        ChatMode override = FactionsChat.getChatModePlaceholderOverride();
+        if (override != null) return override;
+        
+        return FactionsChat.instance.getPlayerChatModes().getOrDefault(player.getUniqueId(), ChatMode.GLOBAL);
     }
 
     /**

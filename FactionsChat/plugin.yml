@@ -51,6 +51,51 @@ permissions:
   factions.chat.url:
     description: Send clickable URLs in chat messages
     default: op
+  factions.chat.hover:
+    description: MiniMessage hover tags (show_text, show_item, show_entity, …) in chat
+    default: op
+  factions.chat.click:
+    description: MiniMessage non-URL click actions (run_command, suggest_command, copy_to_clipboard, …) in chat
+    default: op
+  factions.chat.insert:
+    description: 'MiniMessage <insert> - shift-click pastes text into the chat box (message not sent until the player sends it)'
+    default: op
+  factions.chat.keybind:
+    description: MiniMessage keybind tag (e.g. key.jump) in chat
+    default: op
+  factions.chat.translatable:
+    description: MiniMessage lang / translate / tr (and *_or fallback) tags in chat
+    default: op
+  factions.chat.rainbow:
+    description: MiniMessage rainbow tag in chat (requires color permission in practice)
+    default: op
+  factions.chat.gradient:
+    description: MiniMessage gradient tag in chat
+    default: op
+  factions.chat.transition:
+    description: MiniMessage transition tag in chat
+    default: op
+  factions.chat.font:
+    description: MiniMessage font tag in chat
+    default: op
+  factions.chat.selector:
+    description: MiniMessage selector / sel tag in chat
+    default: op
+  factions.chat.score:
+    description: MiniMessage score tag in chat
+    default: op
+  factions.chat.nbt:
+    description: MiniMessage NBT / data tag in chat
+    default: op
+  factions.chat.pride:
+    description: MiniMessage pride tag in chat
+    default: op
+  factions.chat.sprite:
+    description: MiniMessage sprite tag in chat (MiniMessage 4.25+ when supported by the server Adventure build)
+    default: op
+  factions.chat.head:
+    description: MiniMessage head tag in chat (MiniMessage 4.25+ when supported by the server Adventure build)
+    default: op
   factions.chat.reload:
     description: Reload the plugin configuration file
     default: op
@@ -75,7 +120,41 @@ permissions:
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
+  # All permissions (except admin/staff permissions)
   factions.chat.*:
+    children:
+      factions.chat.ally: true
+      factions.chat.truce: true
+      factions.chat.faction: true
+      factions.chat.local: true
+      factions.chat.global: true
+      factions.chat.enemy: true
+      factions.chat.neutral: true
+      factions.chat.world: true
+      factions.chat.color: true
+      factions.chat.format: true
+      factions.chat.magic: true
+      factions.chat.rgb: true
+      factions.chat.url: true
+      factions.chat.hover: true
+      factions.chat.click: true
+      factions.chat.insert: true
+      factions.chat.keybind: true
+      factions.chat.translatable: true
+      factions.chat.rainbow: true
+      factions.chat.gradient: true
+      factions.chat.transition: true
+      factions.chat.font: true
+      factions.chat.selector: true
+      factions.chat.score: true
+      factions.chat.nbt: true
+      factions.chat.pride: true
+      factions.chat.sprite: true
+      factions.chat.head: true
+      factions.chat.ignore: true
+      factions.chat.toggle: true
+  # Player-specific permissions - no formatting/color, no admin/staff
+  factions.chat.player.*:
     children:
       factions.chat.ally: true
       factions.chat.truce: true
@@ -87,3 +166,10 @@ permissions:
       factions.chat.world: true
       factions.chat.ignore: true
       factions.chat.toggle: true
+  # Staff-only permissions
+  factions.chat.admin.*:
+    children:
+      factions.chat.staff: true
+      factions.chat.reload: true
+      factions.chat.ignore.admin: true
+      factions.chat.toggle.admin: true

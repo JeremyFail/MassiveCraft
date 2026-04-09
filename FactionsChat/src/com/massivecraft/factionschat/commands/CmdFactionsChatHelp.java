@@ -84,8 +84,10 @@ public class CmdFactionsChatHelp extends FactionsCommand
         // Chat Modes Section
         lines.add(ChatColor.AQUA + "Chat Modes:");
         lines.add(ChatColor.GRAY + "Use " + ChatColor.DARK_AQUA + "/f c <mode>" + ChatColor.GRAY 
-            + " to switch modes or " + ChatColor.DARK_AQUA + "/f c <mode> <message>" + ChatColor.GRAY 
-            + " for quick messages.");
+            + " to switch modes, or type " + ChatColor.DARK_AQUA + ":<mode> <message>" + ChatColor.GRAY 
+            + " / " + ChatColor.DARK_AQUA + ":<letter> <message>" + ChatColor.GRAY + " in chat for a one-off message.");
+        lines.add(ChatColor.GRAY + "Use " + ChatColor.DARK_AQUA + ":<mode>" + ChatColor.GRAY + " alone (e.g. " 
+            + ChatColor.DARK_AQUA + ":f" + ChatColor.GRAY + ") to switch modes as well.");
         
         // Display available chat modes
         List<ChatMode> availableModes = ChatMode.getAvailableChatModes(player);
