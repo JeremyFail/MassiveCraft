@@ -4,6 +4,7 @@ import com.massivecraft.factionschat.adventure.PaperAdventureChatCodec.LegacyRgb
 import com.massivecraft.factionschat.chat.ChatPermissions;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.Locale;
@@ -14,9 +15,8 @@ import java.util.Set;
  * string: legacy-only runs become {@link Component}s via the RGB pipeline, are serialized back to MiniMessage, and
  * are concatenated with literal tag chunks unchanged.
  *
- * <p>Companion: {@link #escapeDisallowedMiniMessageTags(String, ChatPermissions)} prepends {@code \} to tags the
- * sender must not use so {@link MiniMessage#deserialize(String)} treats them as plain text and
- * {@link #isMiniMessageTagStart(String, int)} does not treat the opening {@code <} as a tag boundary.</p>
+ * <p>Player chat with {@link ChatPermissions}: use {@link #mergeAndDeserializeWithLiteralDisallowedTags(String, TextColor, LegacyRgbPipeline, MiniMessage, ChatPermissions)}
+ * so tags the sender cannot use become plain-text {@link Component} slices (no backslash injection into MiniMessage).</p>
  *
  * @see <a href="https://docs.papermc.io/adventure/minimessage/format">Paper MiniMessage format</a>
  */
@@ -40,45 +40,92 @@ public final class LegacyMiniMessageMerger
     }
 
     /**
-     * Walks {@code s} and inserts MiniMessage’s escape character ({@code \}) before whole tags that the sender
-     * is not allowed to use. Escaped tags are not treated as tag starts by {@link #isMiniMessageTagStart(String, int)},
-     * so {@link #mergeLegacySegmentsIntoMiniMessage} keeps them inside legacy text segments; deserialize then shows
-     * literal {@code <…>} in chat.
+     * Same walk as {@link #mergeLegacySegmentsIntoMiniMessage} but tags forbidden by {@code p} are appended as
+     * literal {@link Component#text(String)} (optionally with {@code baseColor}) instead of being parsed, so players
+     * see {@code <red>test} with no visible escape character.
      *
-     * @param s normalized input (typically after {@code &} -> {@code §}); may be empty
-     * @param p permissions for the chat sender
-     * @return the same text with disallowed tags escaped, or {@code null} / unchanged empty input
+     * @param normalized         string with {@code &} already translated to {@code §}
+     * @param baseColor          applied to deserialized chunks via {@code colorIfAbsent}, and to literal tag text
+     * @param legacyRgbPipeline  legacy + hex pipeline for non-tag segments
+     * @param miniMessage        serializer + parser (e.g. {@link MiniMessage#miniMessage()})
+     * @param p                  sender permissions
+     * @return concatenation of parsed and literal parts
      */
-    public static String escapeDisallowedMiniMessageTags(String s, ChatPermissions p)
+    public static Component mergeAndDeserializeWithLiteralDisallowedTags(
+        String normalized,
+        TextColor baseColor,
+        LegacyRgbPipeline legacyRgbPipeline,
+        MiniMessage miniMessage,
+        ChatPermissions p)
     {
-        if (s == null || s.isEmpty())
+        if (normalized == null || normalized.isEmpty())
         {
-            return s;
+            return Component.empty();
         }
-        StringBuilder out = new StringBuilder(s.length() + 8);
-        final int n = s.length();
+        Component result = Component.empty();
+        StringBuilder mmBuffer = new StringBuilder();
         int i = 0;
+        final int n = normalized.length();
         while (i < n)
         {
-            if (isMiniMessageTagStart(s, i))
+            if (isMiniMessageTagStart(normalized, i))
             {
-                int end = indexOfClosingAngleBracket(s, i);
+                int end = indexOfClosingAngleBracket(normalized, i);
                 if (end > i)
                 {
-                    String fullTag = s.substring(i, end + 1);
+                    String fullTag = normalized.substring(i, end + 1);
                     if (shouldEscapeMiniMessageTag(fullTag, p))
                     {
-                        out.append('\\');
+                        result = appendDeserializedMmBuffer(result, mmBuffer, miniMessage, baseColor);
+                        result = result.append(literalTagComponent(fullTag, baseColor));
+                        i = end + 1;
+                        continue;
                     }
-                    out.append(fullTag);
+                    mmBuffer.append(fullTag);
                     i = end + 1;
                     continue;
                 }
             }
-            out.append(s.charAt(i));
-            i++;
+            int nextTag = nextPotentialTagIndex(normalized, i + 1);
+            String textSeg = normalized.substring(i, nextTag);
+            if (!textSeg.isEmpty())
+            {
+                Component legacyPart = legacyRgbPipeline.toComponent(textSeg, null);
+                mmBuffer.append(miniMessage.serialize(legacyPart));
+            }
+            i = nextTag;
         }
-        return out.toString();
+        result = appendDeserializedMmBuffer(result, mmBuffer, miniMessage, baseColor);
+        return result;
+    }
+
+    private static Component literalTagComponent(String fullTag, TextColor baseColor)
+    {
+        return baseColor != null ? Component.text(fullTag, baseColor) : Component.text(fullTag);
+    }
+
+    private static Component appendDeserializedMmBuffer(
+        Component result,
+        StringBuilder mmBuffer,
+        MiniMessage miniMessage,
+        TextColor baseColor)
+    {
+        if (mmBuffer.length() == 0)
+        {
+            return result;
+        }
+        Component parsed = miniMessage.deserialize(mmBuffer.toString());
+        mmBuffer.setLength(0);
+        return result.append(applyRootDefaultColor(parsed, baseColor));
+    }
+
+    private static Component applyRootDefaultColor(Component component, TextColor baseColor)
+    {
+        if (baseColor == null)
+        {
+            return component;
+        }
+        return component.colorIfAbsent(baseColor);
     }
 
     /**
@@ -111,7 +158,7 @@ public final class LegacyMiniMessageMerger
                 int end = indexOfClosingAngleBracket(normalized, i);
                 if (end > i)
                 {
-                    // Pass through existing MM markup unchanged - escaping was applied earlier if needed.
+                    // Verbatim MiniMessage source; used for trusted / config paths without permission filtering.
                     out.append(normalized, i, end + 1);
                     i = end + 1;
                     continue;
@@ -187,7 +234,7 @@ public final class LegacyMiniMessageMerger
      *
      * @param fullTag opening or self-closing tag including {@code <} and {@code >}, e.g. {@code <gradient:red:blue>}
      * @param p       sender permissions
-     * @return {@code true} if a backslash should be prepended before this tag in {@link #escapeDisallowedMiniMessageTags}
+     * @return {@code true} if this tag must not be parsed and should appear as literal angle-bracket text
      */
     private static boolean shouldEscapeMiniMessageTag(String fullTag, ChatPermissions p)
     {

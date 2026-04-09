@@ -39,9 +39,8 @@ public final class PaperAdventureChatCodec
      * @param expanded The expanded string to convert to a component.
      * @param rootDefaultColor The default color to apply to the component.
      * @param legacyRgbPipeline The legacy RGB pipeline to use.
-     * @param playerChatPermissions The player chat permissions to use. When non-null, MiniMessage 
-     * tags that the sender cannot use are escaped so they appear as plain {@code <…>} text instead 
-     * of being parsed.
+     * @param playerChatPermissions when non-null, MiniMessage tags the sender cannot use are appended as literal
+     *                              text (no MiniMessage parse, no visible escape character)
      */
     public static Component toComponent(
         String expanded,
@@ -57,7 +56,12 @@ public final class PaperAdventureChatCodec
         String normalized = ChatColor.translateAlternateColorCodes('&', expanded);
         if (playerChatPermissions != null)
         {
-            normalized = LegacyMiniMessageMerger.escapeDisallowedMiniMessageTags(normalized, playerChatPermissions);
+            return LegacyMiniMessageMerger.mergeAndDeserializeWithLiteralDisallowedTags(
+                normalized,
+                rootDefaultColor,
+                legacyRgbPipeline,
+                LENIENT_MINI_MESSAGE,
+                playerChatPermissions);
         }
         String merged = LegacyMiniMessageMerger.mergeLegacySegmentsIntoMiniMessage(
             normalized, legacyRgbPipeline, LENIENT_MINI_MESSAGE);

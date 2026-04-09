@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  *
  * <p>Literal spans use the message base {@link TextColor} on Paper so they match the rest of the body; on Spigot
  * they are prefixed with the format base {@link ChatColor}. Disallowed MiniMessage tags are escaped inside
- * {@link PaperAdventureChatCodec} before parsing so they render as plain {@code <…>} text where applicable.</p>
+ * {@link PaperAdventureChatCodec} as literal text components (not parsed) where applicable.</p>
  */
 public final class PermissionAwareChatMessage
 {
