@@ -42,6 +42,54 @@ ChatSettings:
   # want this behavior, you should not give players permission to use color codes or formatting.
   # NOTE: This setting only applies to Paper servers. For Spigot servers, chat reporting is always disabled.
   DisableChatReporting: false
+  # On Paper (MiniMessage), block chat lines that contain <click:run_command:…> or <click:suggest_command:…> whose
+  # command matches any entry below. Leading slashes are ignored.
+  # Set to [] to disable. If this key is omitted entirely, a built-in default list is used.
+  # Players with the permission factions.chat.click.bypass are not checked.
+  BlacklistedMiniMessageCommands:
+    - '/minecraft:op'
+    - '/minecraft:deop'
+    - '/minecraft:ban'
+    - '/minecraft:ban-ip'
+    - '/minecraft:pardon'
+    - '/minecraft:pardon-ip'
+    - '/minecraft:kick'
+    - '/minecraft:mute'
+    - '/minecraft:unmute'
+    - '/minecraft:whitelist'
+    - '/minecraft:gamemode'
+    - '/minecraft:gm'
+    - '/minecraft:give'
+    - '/minecraft:clear'
+    - '/minecraft:effect'
+    - '/minecraft:stop'
+    - '/minecraft:restart'
+    - '/minecraft:reload'
+    - '/minecraft:rl'
+    - '/op'
+    - '/deop'
+    - '/ban'
+    - '/ban-ip'
+    - '/pardon'
+    - '/pardon-ip'
+    - '/kick'
+    - '/mute'
+    - '/unmute'
+    - '/whitelist'
+    - '/gamemode'
+    - '/gm'
+    - '/give'
+    - '/clear'
+    - '/effect'
+    - '/stop'
+    - '/restart'
+    - '/reload'
+    - '/rl'
+    - '/sudo'
+    - '/lp'
+    - '/luckperms'
+    - '/pex'
+    - '/permissions'
 
 
 

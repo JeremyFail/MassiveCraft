@@ -57,8 +57,11 @@ permissions:
   factions.chat.click:
     description: MiniMessage non-URL click actions (run_command, suggest_command, copy_to_clipboard, …) in chat
     default: op
+  factions.chat.click.bypass:
+    description: Bypass blacklisted MiniMessage commands for run/suggest click payloads in chat
+    default: false
   factions.chat.insert:
-    description: 'MiniMessage <insert> - shift-click pastes text into the chat box (message not sent until the player sends it)'
+    description: MiniMessage <insert> - shift-click pastes text into the chat box (message not sent until the player sends it)
     default: op
   factions.chat.keybind:
     description: MiniMessage keybind tag (e.g. key.jump) in chat

@@ -7,6 +7,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Static settings class that caches configuration values in memory
  * for better performance instead of parsing YAML on every access.
@@ -22,6 +27,59 @@ public class Settings
     public static final String BACKUP_CONFIG_FILE_NAME = "config.yml.bak";
     public static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%&r> %factions_chat_color%%MESSAGE%";
 
+    /**
+     * Default entries when {@code ChatSettings.BlacklistedMiniMessageCommands} is absent from config.
+     * Matching uses the first token of the click payload (after quotes), ignores leading slashes, and treats
+     * {@code minecraft:op} the same as {@code op} when the list contains {@code /op}.
+     */
+    public static final List<String> DEFAULT_BLACKLISTED_MINIMESSAGE_COMMANDS = Collections.unmodifiableList(Arrays.asList(
+        "/minecraft:op",
+        "/minecraft:deop",
+        "/minecraft:ban",
+        "/minecraft:ban-ip",
+        "/minecraft:pardon",
+        "/minecraft:pardon-ip",
+        "/minecraft:kick",
+        "/minecraft:mute",
+        "/minecraft:unmute",
+        "/minecraft:whitelist",
+        "/minecraft:gamemode",
+        "/minecraft:gm",
+        "/minecraft:give",
+        "/minecraft:clear",
+        "/minecraft:effect",
+        "/minecraft:stop",
+        "/minecraft:reload",
+        "/minecraft:rl",
+        "/op",
+        "/deop",
+        "/ban",
+        "/ban-ip",
+        "/pardon",
+        "/pardon-ip",
+        "/kick",
+        "/mute",
+        "/unmute",
+        "/whitelist",
+        "/gamemode",
+        "/gm",
+        "/give",
+        "/clear",
+        "/effect",
+        "/stop",
+        "/restart",
+        "/reload",
+        "/rl",
+        "/sudo",
+        "/lp",
+        "/luckperms",
+        "/pex",
+        "/permissions"
+    ));
+
+    public static final String MINIMESSAGE_CLICK_BLACKLIST_DENY_MESSAGE =
+        ChatColor.RED + "That command is not allowed in chat.";
+
     // Chat settings
     public static String chatFormat;
     public static boolean allowColorCodes;
@@ -30,6 +88,12 @@ public class Settings
     public static int localChatRange;
     /** When true, Paper uses cancelled-chat delivery; when false, Paper uses a custom chat renderer (signed path). Ignored on Spigot. */
     public static boolean disableChatReporting;
+
+    /**
+     * First-token command roots to block inside MiniMessage {@code <click:run_command:…>} / {@code suggest_command} tags.
+     * When the config key is missing, {@link #DEFAULT_BLACKLISTED_MINIMESSAGE_COMMANDS} is used.
+     */
+    public static List<String> blacklistedMiniMessageCommands = new ArrayList<>(DEFAULT_BLACKLISTED_MINIMESSAGE_COMMANDS);
 
     /**
      * Chat prefixes for each chat mode
@@ -161,6 +225,15 @@ public class Settings
         allowUrlUnderline = config.getBoolean("ChatSettings.AllowClickableLinksUnderline", true);
         localChatRange = config.getInt("ChatSettings.LocalChatRange", 1000);
         disableChatReporting = config.getBoolean("ChatSettings.DisableChatReporting", false);
+
+        if (!config.contains("ChatSettings.BlacklistedMiniMessageCommands"))
+        {
+            blacklistedMiniMessageCommands = new ArrayList<>(DEFAULT_BLACKLISTED_MINIMESSAGE_COMMANDS);
+        }
+        else
+        {
+            blacklistedMiniMessageCommands = new ArrayList<>(config.getStringList("ChatSettings.BlacklistedMiniMessageCommands"));
+        }
 
         // Initialize nested settings
         ChatPrefixes.initialize(config.getConfigurationSection("ChatPrefixes"));

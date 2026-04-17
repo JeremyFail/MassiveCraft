@@ -5,6 +5,7 @@ import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.chat.ChatPermissions;
+import com.massivecraft.factionschat.chat.MiniMessageClickCommandBlacklist;
 import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.util.InternalPlaceholders;
 
@@ -254,6 +255,39 @@ public abstract class FactionChatListenerBase
      * @param sender The player to check permissions for.
      * @return ChatPermissions object containing all permission flags.
      */
+    /**
+     * When the message contains a MiniMessage {@code <click:run_command:…>} / {@code suggest_command:…>} payload
+     * matching {@link Settings#blacklistedMiniMessageCommands}, cancels processing and notifies the sender on the main thread.
+     *
+     * @param sender       chat sender
+     * @param messageBody  text that will be parsed as the chat body (after {@code :channel} quick prefix handling)
+     * @return {@code true} if the message must not be sent
+     */
+    protected boolean denyIfBlacklistedMiniMessageClick(Player sender, String messageBody)
+    {
+        if (messageBody == null || messageBody.isEmpty()
+            || Settings.blacklistedMiniMessageCommands == null
+            || Settings.blacklistedMiniMessageCommands.isEmpty())
+        {
+            return false;
+        }
+        if (sender.hasPermission("factions.chat.click.bypass"))
+        {
+            return false;
+        }
+        String blockedPayload = MiniMessageClickCommandBlacklist.findFirstBlockedPayload(
+            messageBody, Settings.blacklistedMiniMessageCommands);
+        if (blockedPayload == null)
+        {
+            return false;
+        }
+        FactionsChat.instance.getLogger().warning(
+            "[FactionsChat] " + sender.getName() + " (" + sender.getUniqueId()
+                + ") attempted chat with a blacklisted MiniMessage click command. Payload: " + blockedPayload);
+        runSync(() -> sender.sendMessage(Settings.MINIMESSAGE_CLICK_BLACKLIST_DENY_MESSAGE));
+        return true;
+    }
+
     protected ChatPermissions getPlayerChatPermissions(Player sender)
     {
         boolean settingAllowColorCodes = Settings.allowColorCodes;

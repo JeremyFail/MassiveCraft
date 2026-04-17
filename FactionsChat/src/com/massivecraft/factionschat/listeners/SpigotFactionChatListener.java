@@ -85,6 +85,12 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
             colonQuick = false;
         }
 
+        if (denyIfBlacklistedMiniMessageClick(sender, messageText))
+        {
+            event.setCancelled(true);
+            return;
+        }
+
         // Filter out recipients who should not receive the message
         Set<Player> notReceiving = new HashSet<>();
         for (Player recipient : event.getRecipients())

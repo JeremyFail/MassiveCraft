@@ -110,6 +110,12 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             colonQuick = false;
         }
 
+        if (denyIfBlacklistedMiniMessageClick(sender, messagePlain))
+        {
+            event.setCancelled(true);
+            return;
+        }
+
         final ChatPermissions senderPerms = getPlayerChatPermissions(sender);
 
         // If chat reporting is disabled, deliver the message as plugin messages
