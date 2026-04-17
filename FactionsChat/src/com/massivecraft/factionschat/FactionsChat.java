@@ -8,7 +8,8 @@ import com.massivecraft.factionschat.commands.CmdFactionsChat;
 import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.integrations.PlaceholderFactionsChat;
 import com.massivecraft.factionschat.listeners.ConnectionListener;
-import com.massivecraft.factionschat.listeners.DiscordSRVListener;
+import com.massivecraft.factionschat.listeners.DiscordSRVPaperListener;
+import com.massivecraft.factionschat.listeners.DiscordSRVSpigotListener;
 import com.massivecraft.factionschat.listeners.PaperFactionChatListener;
 import com.massivecraft.factionschat.listeners.SpigotFactionChatListener;
 import com.massivecraft.factionschat.util.DisabledChatManager;
@@ -516,7 +517,7 @@ public class FactionsChat extends JavaPlugin
         if (discordSrv != null && discordSrv.isEnabled()) 
         {
             this.discordSrvPlugin = (DiscordSRV) discordSrv;
-            DiscordSRV.api.subscribe(new DiscordSRVListener());
+            DiscordSRV.api.subscribe(MUtil.isPaper() ? new DiscordSRVPaperListener() : new DiscordSRVSpigotListener());
             logger.info("DiscordSRV detected - integration enabled.");
         }
 

@@ -57,4 +57,16 @@ final class DiscordSRVChatRelayFormatter
             RGB_CODEC);
         return LEGACY.serialize(c);
     }
+
+    /**
+     * Trusted config snippet (e.g. staff prefix) -> Adventure for {@link org.bukkit.Server#broadcast(net.kyori.adventure.text.Component, String)}.
+     */
+    static Component trustedConfigSnippetToComponent(String snippet)
+    {
+        if (snippet == null || snippet.isEmpty())
+        {
+            return Component.empty();
+        }
+        return PaperAdventureChatCodec.toComponent(snippet, null, RGB_CODEC);
+    }
 }

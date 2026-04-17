@@ -2,31 +2,28 @@ package com.massivecraft.factionschat.listeners;
 
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
-import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.util.ColonChannelChatParser;
 import com.massivecraft.factionschat.util.ColonChannelChatParser.ParseType;
 
 import github.scarsz.discordsrv.DiscordSRV;
+import github.scarsz.discordsrv.api.Subscribe;
 import github.scarsz.discordsrv.api.events.DiscordGuildMessagePostProcessEvent;
 import github.scarsz.discordsrv.api.events.DiscordReadyEvent;
 import github.scarsz.discordsrv.api.events.GameChatMessagePreProcessEvent;
-import github.scarsz.discordsrv.api.Subscribe;
-
-import org.bukkit.Bukkit;
 
 /**
- * An event listener that hooks into the DiscordSRV plugin to send staff
- * chats to a discord server channel. Requires the server have DiscordSRV
- * installed and the config file to be setup with the Discord channel ID.
+ * Shared DiscordSRV API subscription: game chat routing, staff channel registration, and staff Discord→Minecraft relay.
+ * Subclasses implement {@link #deliverStaffDiscordToMinecraft} for Paper (Adventure) vs Spigot (legacy string) servers.
  */
-public class DiscordSRVListener extends FactionChatListenerBase
+public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
 {
     /**
-     * Handles game chat messages and redirects them to the appropriate Discord channel
-     * based on the player's chat mode.
+     * Sends a staff-channel Discord message to Minecraft using the platform-appropriate pipeline.
      *
-     * @param event The game chat message pre-process event.
+     * @param event Post-process event; already matched to the configured staff channel and cancelled for DiscordSRV.
      */
+    protected abstract void deliverStaffDiscordToMinecraft(DiscordGuildMessagePostProcessEvent event);
+
     @Subscribe
     public void onGameChatMessage(GameChatMessagePreProcessEvent event)
     {
@@ -49,29 +46,19 @@ public class DiscordSRVListener extends FactionChatListenerBase
             cm = FactionsChat.instance.getPlayerChatModes().getOrDefault(event.getPlayer().getUniqueId(), ChatMode.GLOBAL);
         }
 
-        // Send global messages to default Discord channel
         if (cm == ChatMode.GLOBAL)
         {
             return;
-        } 
-        // Send staff messages to the staff channel
+        }
         else if (cm == ChatMode.STAFF)
         {
             event.setChannel("staff");
             return;
         }
 
-        // Ignore all other chat modes
         event.setCancelled(true);
     }
 
-    // TODO: Look into deprecation of getProcessedMessage() in DiscordSRV
-    /**
-     * Handles messages sent in the Discord staff channel and broadcasts them
-     * to the server's staff chat.
-     *
-     * @param event The Discord message post-process event.
-     */
     @Subscribe
     public void onMessageReceive(DiscordGuildMessagePostProcessEvent event)
     {
@@ -82,20 +69,10 @@ public class DiscordSRVListener extends FactionChatListenerBase
             return;
         }
 
-        // Cancel event
         event.setCancelled(true);
-
-        // Broadcast message in staff channel
-        Bukkit.broadcast(
-            DiscordSRVChatRelayFormatter.trustedConfigSnippetToLegacy(Settings.ChatPrefixes.STAFF) + event.getProcessedMessage(),
-            "factions.chat.staff");
+        deliverStaffDiscordToMinecraft(event);
     }
 
-    /**
-     * Handles the DiscordSRV plugin being ready and registers the staff channel ID.
-     *
-     * @param event The Discord ready event.
-     */
     @Subscribe
     public void onDiscordReady(DiscordReadyEvent event)
     {
