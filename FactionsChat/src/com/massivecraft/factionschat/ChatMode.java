@@ -44,6 +44,8 @@ public enum ChatMode
     }
 
     // TODO: This works fine for now, until we have chat modes that start with the same letter
+    // TODO: Global technically has aliases of "public" and "p" but they are handled in the TypeChatMode class
+    // TODO: This should be changed to a list of aliases
     /**
      * Get the single-character alias for this chat mode
      * 
