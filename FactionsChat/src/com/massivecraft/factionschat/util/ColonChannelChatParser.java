@@ -3,8 +3,7 @@ package com.massivecraft.factionschat.util;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.TypeChatMode;
-
-import org.bukkit.ChatColor;
+import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.entity.Player;
 
 /**
@@ -131,14 +130,14 @@ public final class ColonChannelChatParser
         // Lone ":" is not a valid channel token.
         if (plainText.length() == 1)
         {
-            return invalid(ChatColor.RED + "Invalid channel prefix.");
+            return invalid(Txt.parse("<b>Invalid channel prefix."));
         }
 
         // Everything after the first colon is either "token", "token rest", or whitespace issues.
         String rest = plainText.substring(1);
         if (rest.isEmpty())
         {
-            return invalid(ChatColor.RED + "Invalid channel prefix.");
+            return invalid(Txt.parse("<b>Invalid channel prefix."));
         }
 
         // First run of non-whitespace characters after ":" is the mode token; the rest is the optional message body.
@@ -168,14 +167,14 @@ public final class ColonChannelChatParser
 
         if (token.isEmpty())
         {
-            return invalid(ChatColor.RED + "Invalid channel prefix.");
+            return invalid(Txt.parse("<b>Invalid channel prefix."));
         }
 
         ChatMode mode = TypeChatMode.getInstance().read(token, player);
         if (mode == null)
         {
-            return invalid(ChatColor.RED + "Invalid chat mode or command: " + ChatColor.LIGHT_PURPLE + token
-                + ChatColor.GRAY + " Use " + ChatColor.AQUA + "/f c help" + ChatColor.GRAY + " for modes.");
+            return invalid(Txt.parse("<b>Invalid chat mode or command: <v>") + token
+                + Txt.parse("<n> Use <k>/f c help<n> for modes."));
         }
 
         String validationError = validateModeForPlayer(player, mode);
@@ -217,11 +216,11 @@ public final class ColonChannelChatParser
             && (mode == ChatMode.FACTION || mode == ChatMode.ALLY || mode == ChatMode.TRUCE
                 || mode == ChatMode.ENEMY || mode == ChatMode.NEUTRAL))
         {
-            return ChatColor.RED + "Cannot use that chat mode as you are not in a faction.";
+            return Txt.parse("<b>Cannot use that chat mode as you are not in a faction.");
         }
         if (!player.hasPermission("factions.chat." + mode.name().toLowerCase()))
         {
-            return ChatColor.RED + "Invalid chat mode or command: " + ChatColor.LIGHT_PURPLE + mode.name().toLowerCase();
+            return Txt.parse("<b>Invalid chat mode or command: <v>") + mode.name().toLowerCase();
         }
         return null;
     }

@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
  * they are prefixed with the format base {@link ChatColor}. Disallowed MiniMessage tags are escaped inside
  * {@link PaperAdventureChatCodec} as literal text components (not parsed) where applicable.</p>
  */
+@SuppressWarnings("deprecation")
 public final class PermissionAwareChatMessage
 {
     /** Modern and Bukkit-legacy RGB forms; see {@link FactionChatListenerBase#RGB_REGEX}. */

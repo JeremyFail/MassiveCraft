@@ -2,8 +2,7 @@ package com.massivecraft.factionschat.commands;
 
 import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.FactionsChat;
-
-import org.bukkit.ChatColor;
+import com.massivecraft.massivecore.util.Txt;
 
 /**
  * Represents the /f c reload command.
@@ -24,13 +23,13 @@ public class CmdFactionsChatReload extends FactionsCommand
         // Check permission
         if (!msender.getPlayer().hasPermission("factions.chat.reload"))
         {
-            msender.message(ChatColor.RED + "You don't have permission to reload FactionsChat configuration.");
+            msender.message(Txt.parse("<b>You don't have permission to reload FactionsChat configuration."));
             return;
         }
         
         // Reload the configuration
         FactionsChat.instance.reloadConfig();
-        msender.message(ChatColor.GREEN + "FactionsChat configuration reloaded successfully.");
+        msender.message(Txt.parse("<g>FactionsChat configuration reloaded successfully."));
     }
     
 }

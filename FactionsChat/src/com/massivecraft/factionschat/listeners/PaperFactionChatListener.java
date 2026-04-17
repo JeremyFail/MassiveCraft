@@ -10,6 +10,7 @@ import com.massivecraft.factionschat.chat.PermissionAwareChatMessage;
 import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.util.ColonChannelChatParser;
 import com.massivecraft.factionschat.util.ColonChannelChatParser.ParseType;
+import com.massivecraft.massivecore.util.Txt;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
@@ -87,8 +88,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             runSync(() ->
             {
                 FactionsChat.instance.getPlayerChatModes().put(sender.getUniqueId(), mode);
-                sender.sendMessage(org.bukkit.ChatColor.YELLOW + "Chat mode set to: "
-                    + org.bukkit.ChatColor.AQUA + mode.name().toLowerCase());
+                sender.sendMessage(Txt.parse("<i>Chat mode set to: <k>" + mode.name().toLowerCase()));
             });
             return;
         }
@@ -385,7 +385,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             }
         }
 
-        // Convert legacy ChatColor to TextColor
+        // Convert legacy Bukkit named color (see BaseColorResult#legacyColor) to TextColor
         Color awtColor = result.legacyColor.asBungee().getColor();
         return TextColor.color(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue());
     }

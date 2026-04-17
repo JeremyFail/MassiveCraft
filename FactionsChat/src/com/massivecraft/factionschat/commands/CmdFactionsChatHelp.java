@@ -5,8 +5,8 @@ import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.massivecore.command.Parameter;
 import com.massivecraft.massivecore.pager.Pager;
 import com.massivecraft.massivecore.pager.Stringifier;
+import com.massivecraft.massivecore.util.Txt;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -43,7 +43,7 @@ public class CmdFactionsChatHelp extends FactionsCommand
             }
             catch (NumberFormatException e)
             {
-                msender.message(ChatColor.RED + "\"" + ChatColor.LIGHT_PURPLE + pageArg + ChatColor.RED + "\" is not a number.");
+                msender.message(Txt.parse("<b>\"<v>" + pageArg + "<b>\" is not a number."));
                 return;
             }
         }
@@ -82,12 +82,9 @@ public class CmdFactionsChatHelp extends FactionsCommand
         Player player = msender.getPlayer();
         
         // Chat Modes Section
-        lines.add(ChatColor.AQUA + "Chat Modes:");
-        lines.add(ChatColor.GRAY + "Use " + ChatColor.DARK_AQUA + "/f c <mode>" + ChatColor.GRAY 
-            + " to switch modes, or type " + ChatColor.DARK_AQUA + ":<mode> <message>" + ChatColor.GRAY 
-            + " / " + ChatColor.DARK_AQUA + ":<letter> <message>" + ChatColor.GRAY + " in chat for a one-off message.");
-        lines.add(ChatColor.GRAY + "Use " + ChatColor.DARK_AQUA + ":<mode>" + ChatColor.GRAY + " alone (e.g. " 
-            + ChatColor.DARK_AQUA + ":f" + ChatColor.GRAY + ") to switch modes as well.");
+        lines.add(Txt.parse("<k>Chat Modes:"));
+        lines.add(Txt.parse("<n>Use <k>/f c <mode><n> to switch modes, or type <k>:<mode> <message><n> / <k>:<letter> <message><n> in chat for a one-off message."));
+        lines.add(Txt.parse("<n>Use <k>:<mode><n> alone (e.g. <k>:f<n>) to switch modes as well."));
         
         // Display available chat modes
         List<ChatMode> availableModes = ChatMode.getAvailableChatModes(player);
@@ -96,8 +93,7 @@ public class CmdFactionsChatHelp extends FactionsCommand
             String modeName = mode.name().toLowerCase();
             String alias = mode.getAlias();
             String description = mode.getDescription();
-            lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + modeName + ChatColor.GRAY + 
-                " (or " + ChatColor.LIGHT_PURPLE + alias + ChatColor.GRAY + ")" + ChatColor.WHITE + " - " + ChatColor.YELLOW + description);
+            lines.add(Txt.parse("<i>  - <v>" + modeName + "<i> (or <v>" + alias + "<i>)<white> - <i>" + description));
         }
         
         // Add subcommands if player has any permissions
@@ -108,44 +104,34 @@ public class CmdFactionsChatHelp extends FactionsCommand
                 || player.hasPermission("factions.chat.reload"))
         {
             lines.add(""); // Empty line
-            lines.add(ChatColor.AQUA + "Subcommands:");
-            lines.add(ChatColor.GRAY + "Use " + ChatColor.DARK_AQUA + "/f c <subcommand>" 
-                    + ChatColor.GRAY + " to run other chat commands.");
+            lines.add(Txt.parse("<k>Subcommands:"));
+            lines.add(Txt.parse("<n>Use <k>/f c <subcommand><n> to run other chat commands."));
             
             if (player.hasPermission("factions.chat.ignore.admin"))
             {
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignore [playerToUpdate] <player>"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Add players to the ignore list for yourself or another player");
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "unignore [playerToUpdate] <player>"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Remove players from the ignore list for yourself or another player");
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignorelist [player]"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "View the ignore list for yourself or another player");
+                lines.add(Txt.parse("<i>  - <v>ignore [playerToUpdate] <player><i> - <i>Add players to the ignore list for yourself or another player"));
+                lines.add(Txt.parse("<i>  - <v>unignore [playerToUpdate] <player><i> - <i>Remove players from the ignore list for yourself or another player"));
+                lines.add(Txt.parse("<i>  - <v>ignorelist [player]<i> - <i>View the ignore list for yourself or another player"));
             }
             else if (player.hasPermission("factions.chat.ignore"))
             {
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignore <player>"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Add a player to your ignore list");
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "unignore <player>"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Remove a player from your ignore list");
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "ignorelist"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "View your ignore list");
+                lines.add(Txt.parse("<i>  - <v>ignore <player><i> - <i>Add a player to your ignore list"));
+                lines.add(Txt.parse("<i>  - <v>unignore <player><i> - <i>Remove a player from your ignore list"));
+                lines.add(Txt.parse("<i>  - <v>ignorelist<i> - <i>View your ignore list"));
             }
             
             if (player.hasPermission("factions.chat.toggle.admin"))
             {
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "toggle [player] <chatMode>"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Toggle (disable/enable) chat modes for yourself or another player");
+                lines.add(Txt.parse("<i>  - <v>toggle [player] <chatMode><i> - <i>Toggle (disable/enable) chat modes for yourself or another player"));
             }
             else if (player.hasPermission("factions.chat.toggle"))
             {
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "toggle <chatMode>"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Toggle (disable/enable) specific chat modes");
+                lines.add(Txt.parse("<i>  - <v>toggle <chatMode><i> - <i>Toggle (disable/enable) specific chat modes"));
             }
 
             if (player.hasPermission("factions.chat.reload"))
             {
-                lines.add(ChatColor.YELLOW + "  - " + ChatColor.LIGHT_PURPLE + "reload"
-                        + ChatColor.WHITE + " - " + ChatColor.YELLOW + "Reload FactionsChat configuration");
+                lines.add(Txt.parse("<i>  - <v>reload<i> - <i>Reload FactionsChat configuration"));
             }
         }
         

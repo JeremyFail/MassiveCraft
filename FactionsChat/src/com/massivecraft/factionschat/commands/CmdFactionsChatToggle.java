@@ -4,9 +4,9 @@ import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.TypeChatMode;
+import com.massivecraft.massivecore.util.Txt;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -34,7 +34,7 @@ public class CmdFactionsChatToggle extends FactionsCommand
         // Check basic permission
         if (!msender.getPlayer().hasPermission("factions.chat.toggle"))
         {
-            msender.message(ChatColor.RED + "You don't have permission to use chat toggle commands.");
+            msender.message(Txt.parse("<b>You don't have permission to use chat toggle commands."));
             return;
         }
         
@@ -45,7 +45,7 @@ public class CmdFactionsChatToggle extends FactionsCommand
         // At least one argument is required
         if (firstArg == null)
         {
-            msender.message(ChatColor.RED + "You must specify a chat mode to toggle.");
+            msender.message(Txt.parse("<b>You must specify a chat mode to toggle."));
             return;
         }
         
@@ -60,14 +60,14 @@ public class CmdFactionsChatToggle extends FactionsCommand
             // Admin command: /f c toggle {player} {chatMode}
             if (!msender.getPlayer().hasPermission("factions.chat.toggle.admin"))
             {
-                msender.message(ChatColor.RED + "You don't have permission to manage disabled chat modes of other players.");
+                msender.message(Txt.parse("<b>You don't have permission to manage disabled chat modes of other players."));
                 return;
             }
             
             OfflinePlayer targetPlayer = FactionsChat.instance.getDisabledChatManager().getPlayerByNameOrUuid(firstArg);
             if (targetPlayer == null || (!targetPlayer.hasPlayedBefore() && !targetPlayer.isOnline()))
             {
-                msender.message(ChatColor.RED + "Player not found: " + ChatColor.LIGHT_PURPLE + firstArg);
+                msender.message(Txt.parse("<b>Player not found: <v>" + firstArg));
                 return;
             }
             
@@ -88,7 +88,7 @@ public class CmdFactionsChatToggle extends FactionsCommand
         ChatMode chatMode = TypeChatMode.getInstance().read(chatModeArg, msender.getPlayer());
         if (chatMode == null)
         {
-            msender.message(ChatColor.RED + "Invalid chat mode: " + ChatColor.LIGHT_PURPLE + chatModeArg);
+            msender.message(Txt.parse("<b>Invalid chat mode: <v>" + chatModeArg));
             return;
         }
         
@@ -102,28 +102,24 @@ public class CmdFactionsChatToggle extends FactionsCommand
         {
             if (isNowDisabled)
             {
-                msender.message(ChatColor.RED + "Disabled " + ChatColor.AQUA + chatModeName + ChatColor.YELLOW 
-                        + " chat for " + ChatColor.LIGHT_PURPLE + targetPlayerName + ChatColor.YELLOW + ".");
+                msender.message(Txt.parse("<b>Disabled <k>" + chatModeName + "<i> chat for <v>" + targetPlayerName + "<i>."));
                 
                 // Notify target player if online
                 Player targetPlayer = Bukkit.getPlayer(targetPlayerUuid);
                 if (targetPlayer != null && targetPlayer.isOnline())
                 {
-                    targetPlayer.sendMessage(ChatColor.YELLOW + "An admin has" + ChatColor.RED + " disabled " 
-                            + ChatColor.AQUA + chatModeName + ChatColor.YELLOW + " chat for you.");
+                    targetPlayer.sendMessage(Txt.parse("<yellow>An admin has<b> disabled <k>" + chatModeName + "<i> chat for you."));
                 }
             }
             else
             {
-                msender.message(ChatColor.GREEN + "Enabled " + ChatColor.AQUA + chatModeName + ChatColor.YELLOW 
-                        + " chat for " + ChatColor.LIGHT_PURPLE + targetPlayerName + ChatColor.YELLOW + ".");
+                msender.message(Txt.parse("<g>Enabled <k>" + chatModeName + "<i> chat for <v>" + targetPlayerName + "<i>."));
                 
                 // Notify target player if online
                 Player targetPlayer = Bukkit.getPlayer(targetPlayerUuid);
                 if (targetPlayer != null && targetPlayer.isOnline())
                 {
-                    targetPlayer.sendMessage(ChatColor.YELLOW + "An admin has" + ChatColor.GREEN + " enabled " 
-                            + ChatColor.AQUA + chatModeName + ChatColor.YELLOW + " chat for you.");
+                    targetPlayer.sendMessage(Txt.parse("<i>An admin has<g> enabled <k>" + chatModeName + "<i> chat for you."));
                 }
             }
         }
@@ -131,13 +127,11 @@ public class CmdFactionsChatToggle extends FactionsCommand
         {
             if (isNowDisabled)
             {
-                msender.message(ChatColor.RED + "Disabled " + ChatColor.AQUA + chatModeName + ChatColor.YELLOW + 
-                        " chat. You will no longer see messages from this channel.");
+                msender.message(Txt.parse("<b>Disabled <k>" + chatModeName + "<i> chat. You will no longer see messages from this channel."));
             }
             else
             {
-                msender.message(ChatColor.GREEN + "Enabled " + ChatColor.AQUA + chatModeName + ChatColor.YELLOW + 
-                        " chat. You will now see messages from this channel.");
+                msender.message(Txt.parse("<g>Enabled <k>" + chatModeName + "<i> chat. You will now see messages from this channel."));
             }
         }
     }

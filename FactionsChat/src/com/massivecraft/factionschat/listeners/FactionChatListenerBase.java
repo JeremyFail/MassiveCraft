@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
  * Base class for FactionsChat listeners that provides common functionality
  * for chat processing, color handling, and placeholder management.
  */
+@SuppressWarnings("deprecation")
 public abstract class FactionChatListenerBase
 {
     protected static void runSync(Runnable task)

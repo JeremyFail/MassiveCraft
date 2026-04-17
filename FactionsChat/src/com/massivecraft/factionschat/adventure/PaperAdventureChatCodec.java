@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
  * Converts expanded chat strings (after placeholders) into {@link Component}s using one pipeline:
  * legacy {@code §} / hex runs merged with MiniMessage {@code <tags>}, then lenient MiniMessage parse.
  */
+@SuppressWarnings("deprecation")
 public final class PaperAdventureChatCodec
 {
     private static final MiniMessage LENIENT_MINI_MESSAGE = MiniMessage.miniMessage();

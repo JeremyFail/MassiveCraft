@@ -7,6 +7,7 @@ import com.massivecraft.factionschat.chat.PermissionAwareChatMessage;
 import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.util.ColonChannelChatParser;
 import com.massivecraft.factionschat.util.ColonChannelChatParser.ParseType;
+import com.massivecraft.massivecore.util.Txt;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -32,6 +33,7 @@ import java.util.regex.Pattern;
  * 
  * This listener is only registered if the server is running Spigot (not Paper).
  */
+@SuppressWarnings("deprecation")
 public class SpigotFactionChatListener extends FactionChatListenerBase implements Listener
 {
     /**
@@ -63,7 +65,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
             runSync(() ->
             {
                 FactionsChat.instance.getPlayerChatModes().put(sender.getUniqueId(), mode);
-                sender.sendMessage(ChatColor.YELLOW + "Chat mode set to: " + ChatColor.AQUA + mode.name().toLowerCase());
+                sender.sendMessage(Txt.parse("<i>Chat mode set to: <k>" + mode.name().toLowerCase()));
             });
             return;
         }

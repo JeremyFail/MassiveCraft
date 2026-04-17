@@ -2,6 +2,7 @@ package com.massivecraft.factionschat.config;
 
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factionschat.ChatMode;
+import com.massivecraft.massivecore.util.Txt;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -19,6 +20,7 @@ import java.util.List;
  * This class should never be instantiated directly - it is meant
  * to be used as a static utility for accessing configuration values.
  */
+@SuppressWarnings("deprecation")
 public class Settings 
 {
     // Configuration file constants
@@ -78,7 +80,7 @@ public class Settings
     ));
 
     public static final String MINIMESSAGE_CLICK_BLACKLIST_DENY_MESSAGE =
-        ChatColor.RED + "That command is not allowed in chat.";
+        Txt.parse("<b>That command is not allowed in chat.");
 
     // Chat settings
     public static String chatFormat;
