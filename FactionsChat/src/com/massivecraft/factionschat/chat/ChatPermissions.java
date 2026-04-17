@@ -6,11 +6,17 @@ package com.massivecraft.factionschat.chat;
  */
 public final class ChatPermissions
 {
+    /** Allow color codes in chat messages. Includes legacy color codes and MiniMessage color codes. */
     public final boolean allowColor;
+    /** Allow formatting codes in chat messages. Includes legacy formatting codes and MiniMessage formatting codes. */
     public final boolean allowFormat;
+    /** Allow magic codes in chat messages. Includes legacy magic codes and MiniMessage <obfuscated> tags. */
     public final boolean allowMagic;
+    /** Allow RGB color codes in chat messages. Includes legacy RGB color codes and MiniMessage RGB <color> tags. */
     public final boolean allowRgb;
+    /** Allow automatically parsed, clickable URLs in chat messages (without <click:open_url:…> tags - this is automatic handling). */
     public final boolean allowUrl;
+    /** Allow underlining clickable URLs in chat messages. */
     public final boolean underlineUrl;
 
     /** MiniMessage {@code <hover>} (show_text, show_item, show_entity, …). */
@@ -20,23 +26,34 @@ public final class ChatPermissions
     /** MiniMessage {@code <insert>} (shift-click paste into chat box). */
     public final boolean allowInsert;
 
+    /** MiniMessage {@code <key>} (key.jump, key.sneak, etc.). */
     public final boolean allowKeybind;
-    /** {@code <lang>}, {@code <tr>}, {@code <translate>}, {@code <lang_or>}, {@code <tr_or>}, {@code <translate_or>}. */
+    /** MiniMessage {@code <lang>}, {@code <tr>}, {@code <translate>}, {@code <lang_or>}, {@code <tr_or>}, {@code <translate_or>}. */
     public final boolean allowTranslatable;
 
+    /** MiniMessage {@code <rainbow>} (requires color permission in practice). */
     public final boolean allowRainbow;
+    /** MiniMessage {@code <gradient>} (requires color permission in practice). */
     public final boolean allowGradient;
+    /** MiniMessage {@code <transition>} (requires color permission in practice). */
     public final boolean allowTransition;
+    /** MiniMessage {@code <font>} (requires color permission in practice). */
     public final boolean allowFont;
 
+    /** MiniMessage {@code <selector>} (requires color permission in practice). */
     public final boolean allowSelector;
+    /** MiniMessage {@code <score>} (requires color permission in practice). */
     public final boolean allowScore;
+    /** MiniMessage {@code <nbt>} (requires color permission in practice). */
     public final boolean allowNbt;
 
+    /** MiniMessage {@code <pride>} (requires color permission in practice). */
     public final boolean allowPride;
+    /** MiniMessage {@code <sprite>} (requires color permission in practice). */
     public final boolean allowSprite;
+    /** MiniMessage {@code <head>} (requires color permission in practice). */
     public final boolean allowHead;
-
+    
     public ChatPermissions(
         boolean allowColor,
         boolean allowFormat,
