@@ -38,6 +38,9 @@ public class Txt
 	public static final int PAGEHEIGHT_PLAYER = 9;
 	public static final int PAGEHEIGHT_CONSOLE = 50;
 	
+	public static final char LEGACY_COLOR_CHAR = '\u00A7';
+	private static final Pattern LEGACY_STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + String.valueOf(LEGACY_COLOR_CHAR) + "[0-9A-FK-ORX]");
+	
 	public static final Map<String, String> parseReplacements;
 	public static final Pattern parsePattern;
 	
@@ -168,7 +171,76 @@ public class Txt
 	// -------------------------------------------- //
 	// PARSE
 	// -------------------------------------------- //
+
+	/**
+	 * Parses a string with legacy color/formatting characters into
+	 * a string that uses the internal color code character (section symbol). 
+	 * The color/format code character will only be replaced if
+	 * it is immediately followed by 0-9, A-F, a-f, K-O, k-o, R or r.
+	 * 
+	 * <p>Assumes the color/format code character is the ampersand (&) character.</p>
+	 * 
+	 * <p>This method was taken from the Bukkit API - see ChatColor#translateAlternateColorCodes(char, String).
+	 * This was implemented to avoid using deprecated methods.</p>
+	 * 
+	 * @param textToParse Text containing the color/format code character to parse.
+	 * @return Text containing the formatted string.
+	 */
+	public static String parseLegacy(String textToParse)
+	{
+		return parseLegacy('&', textToParse);
+	}
+
+	/**
+     * Parses a string with legacy color/formatting characters into
+     * a string that uses the internal color code character (section symbol). 
+	 * The color/format code character will only be replaced if
+     * it is immediately followed by 0-9, A-F, a-f, K-O, k-o, R or r.
+	 * 
+	 * <p>This method was taken from the Bukkit API - see ChatColor#translateAlternateColorCodes(char, String).
+	 * This was implemented to avoid using deprecated methods.</p>
+     *
+     * @param altColorChar The color/format code character to replace. Ex: &
+     * @param textToParse Text containing the color/format code character to parse.
+     * @return Text containing the formatted string.
+     */
+    public static String parseLegacy(char altColorChar, String textToParse)
+	{
+		if (textToParse == null || textToParse.isEmpty()) return textToParse;
+
+        char[] b = textToParse.toCharArray();
+        for (int i = 0; i < b.length - 1; i++)
+		{
+            if (b[i] == altColorChar && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i+1]) > -1)
+			{
+                b[i] = LEGACY_COLOR_CHAR;
+                b[i+1] = Character.toLowerCase(b[i+1]);
+            }
+        }
+        return new String(b);
+    }
+
+	/**
+     * Strips the given message of all legacy color/format codes.
+	 * 
+	 * <p>This method was taken from the Bukkit API - see ChatColor#stripColor(String).
+	 * This was implemented to avoid using deprecated methods.</p>
+     *
+     * @param input String to strip of legacy color/format codes.
+     * @return A copy of the input string, without any legacy color/format codes.
+     */
+	public static String stripColorLegacy(String input)
+	{
+		if (input == null || input.isEmpty()) return input;
+		return LEGACY_STRIP_COLOR_PATTERN.matcher(input).replaceAll("");
+	}
 	
+	/**
+	 * Parses the given string using the parse replacements map.
+	 * 
+	 * @param string The string to parse.
+	 * @return The parsed string.
+	 */
 	public static String parse(String string)
 	{
 		if (string == null) throw new NullPointerException("string");
@@ -463,14 +535,14 @@ public class Txt
 	{
 		if (InventoryUtil.isNothing(itemStack)) return Txt.parse("<silver><em>Nothing");
 		
-		ChatColor color = (itemStack.getEnchantments().size() > 0) ? ChatColor.AQUA : ChatColor.WHITE;
+		String color = (itemStack.getEnchantments().size() > 0) ? "<aqua>" : "<white>";
 		
 		if (itemStack.hasItemMeta())
 		{
 			ItemMeta itemMeta = itemStack.getItemMeta();
 			if (itemMeta.hasDisplayName())
 			{
-				return color.toString() + ChatColor.ITALIC.toString() + itemMeta.getDisplayName();
+				return Txt.parse(color + "<em>") + itemMeta.getDisplayName();
 			}
 		}
 		
