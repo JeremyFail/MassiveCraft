@@ -183,7 +183,7 @@ public final class MassiveUpdateBackendBundled implements MassiveUpdateBackend, 
 
 		player.sendMessage(Txt.parse("<pink>[MassiveCraft]<b> Updates available<b>: release <aqua>" 
 			+ lastRemoteNormalized + "<b> is newer than one or more installed plugins. See console "
-			+ "for details. Go to <lime>" + MassiveUpdateVersions.DEFAULT_RELEASES_URL + "<pink> to "
+			+ "for details. Go to <g>" + MassiveUpdateVersions.DEFAULT_RELEASES_URL + "<b> to "
 			+ "download now."));
 	}
 
