@@ -24,6 +24,10 @@ public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
      */
     protected abstract void deliverStaffDiscordToMinecraft(DiscordGuildMessagePostProcessEvent event);
 
+    /**
+     * Runs after the chat message is displayed to the player in-game.
+     * @param event The event containing the chat message.
+     */
     @Subscribe
     public void onGameChatMessage(GameChatMessagePreProcessEvent event)
     {
@@ -38,13 +42,14 @@ public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
         if (colon.getType() == ParseType.QUICK_MESSAGE)
         {
             cm = colon.getTargetMode();
-            // Legacy § string so DiscordSRV's shaded Adventure can re-parse via MessageUtil (setMessageComponent(net.kyori) is not compatible).
-            event.setMessage(DiscordSRVChatRelayFormatter.playerBodyToDiscordLegacy(event.getPlayer(), colon.getMessageBody(), this));
         }
         else
         {
             cm = FactionsChat.instance.getPlayerChatModes().getOrDefault(event.getPlayer().getUniqueId(), ChatMode.GLOBAL);
         }
+
+        // Strip all formatting from the message before we send it to Discord
+        event.setMessage(DiscordSRVChatRelayFormatter.playerBodyToDiscordLegacy(event.getPlayer(), colon.getMessageBody(), this));
 
         if (cm == ChatMode.GLOBAL)
         {

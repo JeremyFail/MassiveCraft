@@ -1,17 +1,16 @@
 package com.massivecraft.factionschat.adventure;
 
 import com.massivecraft.factionschat.chat.ChatPermissions;
+import com.massivecraft.massivecore.util.Txt;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.ChatColor;
 
 /**
  * Converts expanded chat strings (after placeholders) into {@link Component}s using one pipeline:
  * legacy {@code §} / hex runs merged with MiniMessage {@code <tags>}, then lenient MiniMessage parse.
  */
-@SuppressWarnings("deprecation")
 public final class PaperAdventureChatCodec
 {
     private static final MiniMessage LENIENT_MINI_MESSAGE = MiniMessage.miniMessage();
@@ -54,7 +53,7 @@ public final class PaperAdventureChatCodec
             return Component.empty();
         }
 
-        String normalized = ChatColor.translateAlternateColorCodes('&', expanded);
+        String normalized = Txt.parseLegacy('&', expanded);
         if (playerChatPermissions != null)
         {
             return LegacyMiniMessageMerger.mergeAndDeserializeWithLiteralDisallowedTags(

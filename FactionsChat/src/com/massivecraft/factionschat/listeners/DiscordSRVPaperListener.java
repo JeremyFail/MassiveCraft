@@ -32,7 +32,7 @@ public final class DiscordSRVPaperListener extends DiscordSRVListenerBase
                 .serialize(shadedBody);
             bodyNetKyori = GsonComponentSerializer.gson().deserialize(asJson);
         }
-        Component out = DiscordSRVChatRelayFormatter.trustedConfigSnippetToComponent(Settings.ChatPrefixes.STAFF).append(bodyNetKyori);
+        Component out = DiscordSRVChatRelayFormatter.trustedConfigSnippetToComponent(Settings.ChatPrefixes.STAFF).append(Component.text(" ")).append(bodyNetKyori);
         runSync(() -> Bukkit.getServer().broadcast(out, "factions.chat.staff"));
     }
 }

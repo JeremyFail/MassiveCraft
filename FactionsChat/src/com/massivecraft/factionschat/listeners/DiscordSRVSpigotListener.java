@@ -24,7 +24,7 @@ public final class DiscordSRVSpigotListener extends DiscordSRVListenerBase
         {
             body = "";
         }
-        String line = DiscordSRVChatRelayFormatter.trustedConfigSnippetToLegacy(Settings.ChatPrefixes.STAFF) + body;
+        String line = DiscordSRVChatRelayFormatter.trustedConfigSnippetToLegacy(Settings.ChatPrefixes.STAFF) + " " + body;
         runSync(() -> Bukkit.broadcast(line, "factions.chat.staff"));
     }
 }
