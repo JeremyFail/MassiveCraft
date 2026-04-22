@@ -159,6 +159,14 @@ public final class MassiveUpdateBackendBundled implements MassiveUpdateBackend, 
 		core.log(Txt.parse("<i>%s", border));
 	}
 
+	/**
+	 * Repeats a character a given number of times.
+	 * Used for the border in the console output.
+	 * 
+	 * @param ch The character to repeat.
+	 * @param count The number of times to repeat the character.
+	 * @return A string with the character repeated the given number of times.
+	 */
 	private static String repeat(char ch, int count)
 	{
 		char[] buf = new char[count];
