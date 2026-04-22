@@ -1,7 +1,7 @@
 package com.massivecraft.massivebooks.entity;
 
 import com.massivecraft.massivecore.store.Coll;
-import org.bukkit.ChatColor;
+import com.massivecraft.massivecore.util.Txt;
 
 import java.util.UUID;
 
@@ -45,7 +45,7 @@ public class MBookColl extends Coll<MBook>
 	{
 		String ret = super.fixId(oid);
 		if (ret == null) return null;
-		return ChatColor.stripColor(ret.trim().toLowerCase());
+		return Txt.stripColorLegacy(ret.trim().toLowerCase());
 	}
 	
 }

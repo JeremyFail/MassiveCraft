@@ -4,7 +4,6 @@ import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.massivecore.util.Txt;
 
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -20,7 +19,6 @@ import java.util.List;
  * This class should never be instantiated directly - it is meant
  * to be used as a static utility for accessing configuration values.
  */
-@SuppressWarnings("deprecation")
 public class Settings 
 {
     // Configuration file constants
@@ -261,6 +259,6 @@ public class Settings
         {
             s = s.replace("<fcolor>", fcolorReplacement);
         }
-        return ChatColor.translateAlternateColorCodes('&', s);
+        return Txt.parseLegacy('&', s);
     }
 }

@@ -7,8 +7,9 @@ import com.massivecraft.massivebooks.entity.MConf;
 import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.InventoryUtil;
 import com.massivecraft.massivecore.util.MUtil;
+import com.massivecraft.massivecore.util.Txt;
+
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
@@ -136,7 +137,7 @@ public class BookUtil
 		
 		String friendlyName = type.getFriendlyName();
 		lore = new ArrayList<>(lore);
-		lore.removeIf(line -> line != null && ChatColor.stripColor(line).trim().equals(friendlyName));
+		lore.removeIf(line -> line != null && Txt.stripColorLegacy(line).trim().equals(friendlyName));
 		if (lore.isEmpty())
 		{
 			InventoryUtil.setLore(item, (Collection<String>) null);
@@ -239,13 +240,13 @@ public class BookUtil
 		if (lore != null)
 		{
 			lore = new ArrayList<>(lore);
-			lore.removeIf(line -> line != null && ChatColor.stripColor(line).trim().equals(friendlyName));
+			lore.removeIf(line -> line != null && Txt.stripColorLegacy(line).trim().equals(friendlyName));
 		}
 		else
 		{
 			lore = new ArrayList<>();
 		}
-		lore.add(ChatColor.GOLD + friendlyName);
+		lore.add(Txt.parse("<gold>") + friendlyName);
 		InventoryUtil.setLore(item, lore);
 	}
 
@@ -554,7 +555,7 @@ public class BookUtil
 	// -------------------------------------------- //
 
 	/**
-	 * Translate alternate color codes ({@code &}) to ChatColor in the given text.
+	 * Translate alternate color codes ({@code &}) to color codes in the given text.
 	 * Safe to call with null or when PAPI is not installed.
 	 *
 	 * @param text Text that may contain {@code &} color codes.
@@ -564,7 +565,7 @@ public class BookUtil
 	{
 		if (text == null || text.isEmpty()) return text;
 		if (!text.contains("&")) return text;
-		return ChatColor.translateAlternateColorCodes('&', text);
+		return Txt.parseLegacy('&', text);
 	}
 
 	/**
@@ -577,7 +578,7 @@ public class BookUtil
 	public static String stripColorCodes(String text)
 	{
 		text = translateColorCodes(text);
-		return ChatColor.stripColor(text);
+		return Txt.stripColorLegacy(text);
 	}
 
 	/**

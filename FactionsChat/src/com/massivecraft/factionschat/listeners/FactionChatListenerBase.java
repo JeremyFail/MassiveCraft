@@ -8,6 +8,7 @@ import com.massivecraft.factionschat.chat.ChatPermissions;
 import com.massivecraft.factionschat.chat.MiniMessageClickCommandBlacklist;
 import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.util.InternalPlaceholders;
+import com.massivecraft.massivecore.util.Txt;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 
@@ -22,7 +23,6 @@ import java.util.regex.Pattern;
  * Base class for FactionsChat listeners that provides common functionality
  * for chat processing, color handling, and placeholder management.
  */
-@SuppressWarnings("deprecation")
 public abstract class FactionChatListenerBase
 {
     protected static void runSync(Runnable task)
@@ -79,7 +79,7 @@ public abstract class FactionChatListenerBase
         format = format.replace(PLACEHOLDER_DISPLAY_NAME, sender.getDisplayName());
         
         // Replace legacy ampersand color codes with section sign
-        format = ChatColor.translateAlternateColorCodes('&', format);
+        format = Txt.parseLegacy('&', format);
         
         return format;
     }
@@ -106,7 +106,7 @@ public abstract class FactionChatListenerBase
         // Translate any new ampersand codes that might have been introduced
         if (format.contains("&"))
         {
-            format = ChatColor.translateAlternateColorCodes('&', format);
+            format = Txt.parseLegacy('&', format);
         }
         
         return format;
@@ -247,7 +247,7 @@ public abstract class FactionChatListenerBase
         }
         
         // Final translation step
-        return ChatColor.translateAlternateColorCodes('&', message);
+        return Txt.parseLegacy('&', message);
     }
 
     /**

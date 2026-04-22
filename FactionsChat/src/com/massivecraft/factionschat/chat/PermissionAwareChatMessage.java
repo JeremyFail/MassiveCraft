@@ -2,6 +2,7 @@ package com.massivecraft.factionschat.chat;
 
 import com.massivecraft.factionschat.adventure.PaperAdventureChatCodec;
 import com.massivecraft.factionschat.listeners.FactionChatListenerBase;
+import com.massivecraft.massivecore.util.Txt;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
@@ -20,7 +21,6 @@ import java.util.regex.Pattern;
  * they are prefixed with the format base {@link ChatColor}. Disallowed MiniMessage tags are escaped inside
  * {@link PaperAdventureChatCodec} as literal text components (not parsed) where applicable.</p>
  */
-@SuppressWarnings("deprecation")
 public final class PermissionAwareChatMessage
 {
     /** Modern and Bukkit-legacy RGB forms; see {@link FactionChatListenerBase#RGB_REGEX}. */
@@ -128,7 +128,7 @@ public final class PermissionAwareChatMessage
             if (next > i)
             {
                 String parseable = raw.substring(i, next);
-                String translated = ChatColor.translateAlternateColorCodes('&', parseable);
+                String translated = Txt.parseLegacy('&', parseable);
                 sb.append(applyRgbForSpigot(translated, permissions.allowRgb));
             }
             i = next;

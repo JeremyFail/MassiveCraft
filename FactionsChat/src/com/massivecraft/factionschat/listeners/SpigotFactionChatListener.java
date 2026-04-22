@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
  * 
  * This listener is only registered if the server is running Spigot (not Paper).
  */
-@SuppressWarnings("deprecation")
 public class SpigotFactionChatListener extends FactionChatListenerBase implements Listener
 {
     /**
