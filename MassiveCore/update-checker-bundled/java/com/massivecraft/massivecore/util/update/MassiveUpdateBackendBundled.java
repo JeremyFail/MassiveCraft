@@ -154,7 +154,7 @@ public final class MassiveUpdateBackendBundled implements MassiveUpdateBackend, 
 		{
 			core.log(Txt.parse("<n>  - <h>%s", line));
 		}
-		core.log(Txt.parse("<g>Download:<n> %s", MassiveUpdateVersions.DEFAULT_RELEASES_URL));
+		core.log(Txt.parse("<g>Download:<a> %s", MassiveUpdateVersions.DEFAULT_RELEASES_URL));
 		core.log(Txt.parse("<g>Update all plugins to the latest version."));
 		core.log(Txt.parse("<i>%s", border));
 	}
