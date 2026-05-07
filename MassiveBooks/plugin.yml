@@ -5,6 +5,7 @@ website: ${project.url}
 description: ${project.description}
 authors: [Ymerejliaf, Cayorion]
 depend: [MassiveCore]
+softdepend: [PlaceholderAPI]
 api-version: 1.21
 permissions:
 # -------------------------------------------- #
