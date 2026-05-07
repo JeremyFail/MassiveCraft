@@ -1,7 +1,7 @@
 package com.massivecraft.factions.entity.migrator;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonObject;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.massivecore.store.migrator.MigratorFieldConvert;
 import com.massivecraft.massivecore.store.migrator.MigratorFieldRename;

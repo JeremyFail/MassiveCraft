@@ -3,9 +3,9 @@ package com.massivecraft.factionschat.commands;
 import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.massivecore.command.type.primitive.TypeString;
+import com.massivecraft.massivecore.util.Txt;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -37,7 +37,7 @@ public class CmdFactionsChatUnignore extends FactionsCommand
         // Check basic permission
         if (!msender.getPlayer().hasPermission("factions.chat.ignore"))
         {
-            msender.message(ChatColor.RED + "You don't have permission to use chat ignore commands.");
+            msender.message(Txt.parse("<b>You don't have permission to use chat ignore commands."));
             return;
         }
         
@@ -48,7 +48,7 @@ public class CmdFactionsChatUnignore extends FactionsCommand
         // At least one argument is required
         if (firstArg == null)
         {
-            msender.message(ChatColor.RED + "You must specify a player to unignore.");
+            msender.message(Txt.parse("<b>You must specify a player to unignore."));
             return;
         }
         
@@ -62,14 +62,14 @@ public class CmdFactionsChatUnignore extends FactionsCommand
             // Admin command: /f c unignore {playerToManage} {playerToUnignore}
             if (!msender.getPlayer().hasPermission("factions.chat.ignore.admin"))
             {
-                msender.message(ChatColor.RED + "You don't have permission to manage the ignore list of other players.");
+                msender.message(Txt.parse("<b>You don't have permission to manage the ignore list of other players."));
                 return;
             }
             
             OfflinePlayer managedPlayer = FactionsChat.instance.getIgnoreManager().getPlayerByNameOrUuid(firstArg);
             if (managedPlayer == null || (!managedPlayer.hasPlayedBefore() && !managedPlayer.isOnline()))
             {
-                msender.message(ChatColor.RED + "Player not found: " + ChatColor.LIGHT_PURPLE + firstArg);
+                msender.message(Txt.parse("<b>Player not found: <v>" + firstArg));
                 return;
             }
 
@@ -88,7 +88,7 @@ public class CmdFactionsChatUnignore extends FactionsCommand
         OfflinePlayer targetPlayer = FactionsChat.instance.getIgnoreManager().getPlayerByNameOrUuid(targetPlayerName);
         if (targetPlayer == null || (!targetPlayer.hasPlayedBefore() && !targetPlayer.isOnline()))
         {
-            msender.message(ChatColor.RED + "Player not found: " + ChatColor.LIGHT_PURPLE + targetPlayerName);
+            msender.message(Txt.parse("<b>Player not found: <v>" + targetPlayerName));
             return;
         }
         
@@ -97,11 +97,11 @@ public class CmdFactionsChatUnignore extends FactionsCommand
         {
             if (isAdminCommand)
             {
-                msender.message(ChatColor.YELLOW + firstArg + " is not ignoring " + targetPlayer.getName() + ".");
+                msender.message(Txt.parse("<i>") + firstArg + Txt.parse("<i> is not ignoring ") + targetPlayer.getName() + Txt.parse("<i>."));
             }
             else
             {
-                msender.message(ChatColor.YELLOW + "You are not ignoring " + targetPlayer.getName() + ".");
+                msender.message(Txt.parse("<i>You are not ignoring ") + targetPlayer.getName() + Txt.parse("<i>."));
             }
             return;
         }
@@ -113,16 +113,16 @@ public class CmdFactionsChatUnignore extends FactionsCommand
         {
             if (isAdminCommand)
             {
-                msender.message(ChatColor.GREEN + "Removed " + targetPlayer.getName() + " from " + firstArg + "'s ignore list.");
+                msender.message(Txt.parse("<g>Removed ") + targetPlayer.getName() + Txt.parse("<g> from ") + firstArg + Txt.parse("<g>'s ignore list."));
             }
             else
             {
-                msender.message(ChatColor.GREEN + "You are no longer ignoring " + targetPlayer.getName() + ".");
+                msender.message(Txt.parse("<g>You are no longer ignoring ") + targetPlayer.getName() + Txt.parse("<g>."));
             }
         }
         else
         {
-            msender.message(ChatColor.RED + "Failed to remove player from ignore list.");
+            msender.message(Txt.parse("<b>Failed to remove player from ignore list."));
         }
     }
     

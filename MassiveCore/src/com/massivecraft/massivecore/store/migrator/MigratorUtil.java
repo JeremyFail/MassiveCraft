@@ -1,10 +1,10 @@
 package com.massivecraft.massivecore.store.migrator;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonArray;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonObject;
+import com.massivecraft.massivecore.gson.reflect.TypeToken;
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.reflect.TypeToken;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.store.EntityInternalMap;

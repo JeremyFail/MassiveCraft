@@ -9,7 +9,6 @@ import com.massivecraft.massivecore.pager.Stringifier;
 import com.massivecraft.massivecore.util.Txt;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -40,7 +39,7 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
     {
         // Check basic permission
         if (!msender.getPlayer().hasPermission("factions.chat.ignore")) {
-            msender.message(ChatColor.RED + "You don't have permission to use chat ignore commands.");
+            msender.message(Txt.parse("<b>You don't have permission to use chat ignore commands."));
             return;
         }
         
@@ -78,7 +77,7 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             }
             catch (NumberFormatException e)
             {
-                msender.message(ChatColor.RED + "\"" + ChatColor.LIGHT_PURPLE + pageToParse + ChatColor.RED + "\" is not a number.");
+                msender.message(Txt.parse("<b>\"<v>" + pageToParse + "<b>\" is not a number."));
                 return;
             }
         }
@@ -134,7 +133,7 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             // Validate admin permission
             if (!msender.getPlayer().hasPermission("factions.chat.ignore.admin"))
             {
-                msender.message(ChatColor.RED + "You don't have permission to view the ignore list of other players.");
+                msender.message(Txt.parse("<b>You don't have permission to view the ignore list of other players."));
                 return;
             }
 
@@ -142,7 +141,7 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             OfflinePlayer targetPlayer = FactionsChat.instance.getIgnoreManager().getPlayerByNameOrUuid(otherPlayerName);
             if (targetPlayer == null || (!targetPlayer.hasPlayedBefore() && !targetPlayer.isOnline()))
             {
-                msender.message(ChatColor.RED + "Player not found: " + ChatColor.LIGHT_PURPLE + otherPlayerName);
+                msender.message(Txt.parse("<b>Player not found: <v>" + otherPlayerName));
                 return;
             }
 
@@ -173,7 +172,7 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
                 playerName = ignoredUuid.toString(); // Fallback to UUID if name is null
             }
             
-            String status = ignoredPlayer.isOnline() ? ChatColor.GREEN + "Online" : ChatColor.GRAY + "Offline";
+            String status = ignoredPlayer.isOnline() ? Txt.parse("<g>Online") : Txt.parse("<n>Offline");
             return Txt.parse("<i>%s <i>- %s", playerName, status);
         });
         
@@ -187,11 +186,11 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
                 Bukkit.getScheduler().runTask(FactionsChat.instance, () -> {
                     if (finalIsAdminCommand)
                     {
-                        sender.sendMessage(ChatColor.YELLOW + finalTargetName + " is not ignoring anyone.");
+                        sender.sendMessage(Txt.parse("<i>") + finalTargetName + Txt.parse("<i> is not ignoring anyone."));
                     }
                     else
                     {
-                        sender.sendMessage(ChatColor.YELLOW + "You are not ignoring anyone.");
+                        sender.sendMessage(Txt.parse("<i>You are not ignoring anyone."));
                     }
                 });
                 return;

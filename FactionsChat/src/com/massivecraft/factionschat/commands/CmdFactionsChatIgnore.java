@@ -3,9 +3,9 @@ package com.massivecraft.factionschat.commands;
 import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.massivecore.command.type.primitive.TypeString;
+import com.massivecraft.massivecore.util.Txt;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -36,7 +36,7 @@ public class CmdFactionsChatIgnore extends FactionsCommand
         // Check basic permission
         if (!msender.getPlayer().hasPermission("factions.chat.ignore"))
         {
-            msender.message(ChatColor.RED + "You don't have permission to use chat ignore commands.");
+            msender.message(Txt.parse("<b>You don't have permission to use chat ignore commands."));
             return;
         }
         
@@ -47,7 +47,7 @@ public class CmdFactionsChatIgnore extends FactionsCommand
         // At least one argument is required
         if (firstArg == null)
         {
-            msender.message(ChatColor.RED + "You must specify a player to ignore.");
+            msender.message(Txt.parse("<b>You must specify a player to ignore."));
             return;
         }
         
@@ -61,14 +61,14 @@ public class CmdFactionsChatIgnore extends FactionsCommand
             // Admin command: /f c ignore {playerToManage} {playerToIgnore}
             if (!msender.getPlayer().hasPermission("factions.chat.ignore.admin"))
             {
-                msender.message(ChatColor.RED + "You don't have permission to manage the ignore list of other players.");
+                msender.message(Txt.parse("<b>You don't have permission to manage the ignore list of other players."));
                 return;
             }
             
             OfflinePlayer managedPlayer = FactionsChat.instance.getIgnoreManager().getPlayerByNameOrUuid(firstArg);
             if (managedPlayer == null || (!managedPlayer.hasPlayedBefore() && !managedPlayer.isOnline()))
             {
-                msender.message(ChatColor.RED + "Player not found: " + ChatColor.LIGHT_PURPLE + firstArg);
+                msender.message(Txt.parse("<b>Player not found: <v>" + firstArg));
                 return;
             }
             
@@ -87,7 +87,7 @@ public class CmdFactionsChatIgnore extends FactionsCommand
         OfflinePlayer targetPlayer = FactionsChat.instance.getIgnoreManager().getPlayerByNameOrUuid(targetPlayerName);
         if (targetPlayer == null || (!targetPlayer.hasPlayedBefore() && !targetPlayer.isOnline()))
         {
-            msender.message(ChatColor.RED + "Player not found: " + ChatColor.LIGHT_PURPLE + targetPlayerName);
+            msender.message(Txt.parse("<b>Player not found: <v>" + targetPlayerName));
             return;
         }
         
@@ -96,11 +96,11 @@ public class CmdFactionsChatIgnore extends FactionsCommand
         {
             if (isAdminCommand)
             {
-                msender.message(ChatColor.RED + "A player cannot ignore themselves.");
+                msender.message(Txt.parse("<b>A player cannot ignore themselves."));
             }
             else
             {
-                msender.message(ChatColor.RED + "You cannot ignore yourself.");
+                msender.message(Txt.parse("<b>You cannot ignore yourself."));
             }
             return;
         }
@@ -110,11 +110,11 @@ public class CmdFactionsChatIgnore extends FactionsCommand
         {
             if (isAdminCommand)
             {
-                msender.message(ChatColor.RED + "You cannot add " + targetPlayer.getName() + " to the ignore list because they have ignore bypass permission.");
+                msender.message(Txt.parse("<b>You cannot add ") + targetPlayer.getName() + Txt.parse("<b> to the ignore list because they have ignore bypass permission."));
             }
             else
             {
-                msender.message(ChatColor.RED + "You cannot ignore " + targetPlayer.getName() + ".");
+                msender.message(Txt.parse("<b>You cannot ignore ") + targetPlayer.getName() + Txt.parse("<b>."));
             }
             return;
         }
@@ -124,11 +124,11 @@ public class CmdFactionsChatIgnore extends FactionsCommand
         {
             if (isAdminCommand)
             {
-                msender.message(ChatColor.YELLOW + firstArg + " is already ignoring " + targetPlayer.getName() + ".");
+                msender.message(Txt.parse("<b>") + firstArg + Txt.parse("<b> is already ignoring ") + targetPlayer.getName() + Txt.parse("<b>."));
             }
             else
             {
-                msender.message(ChatColor.YELLOW + "You are already ignoring " + targetPlayer.getName() + ".");
+                msender.message(Txt.parse("<b>You are already ignoring ") + targetPlayer.getName() + Txt.parse("<b>."));
             }
             return;
         }
@@ -138,11 +138,11 @@ public class CmdFactionsChatIgnore extends FactionsCommand
         
         if (isAdminCommand)
         {
-            msender.message(ChatColor.GREEN + "Added " + targetPlayer.getName() + " to " + firstArg + "'s ignore list.");
+            msender.message(Txt.parse("<g>Added ") + targetPlayer.getName() + Txt.parse("<g> to ") + firstArg + Txt.parse("<g>'s ignore list."));
         }
         else
         {
-            msender.message(ChatColor.GREEN + "You are now ignoring " + targetPlayer.getName() + ".");
+            msender.message(Txt.parse("<g>You are now ignoring ") + targetPlayer.getName() + Txt.parse("<g>."));
         }
     }
     

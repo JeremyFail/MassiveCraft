@@ -1,6 +1,6 @@
 package com.massivecraft.factions.entity;
 
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonObject;
 import com.massivecraft.massivecore.store.Coll;
 import com.massivecraft.massivecore.store.Modification;
 

@@ -59,6 +59,7 @@ public class PlaceholderFactionsChat implements PlaceholderExpander
     // -------------------------------------------- //
     
     @Override
+    @SuppressWarnings("deprecation")
     public String getExpanderVersion()
     {
         return FactionsChat.instance.getName() + " " + FactionsChat.instance.getDescription().getVersion();

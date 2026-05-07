@@ -1,6 +1,6 @@
 package com.massivecraft.massivecore.store;
 
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonObject;
 import com.massivecraft.massivecore.Active;
 import com.massivecraft.massivecore.Identified;
 import com.massivecraft.massivecore.MassivePlugin;

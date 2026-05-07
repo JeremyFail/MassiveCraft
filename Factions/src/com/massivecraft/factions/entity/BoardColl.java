@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+import org.bukkit.Location;
+
 public class BoardColl extends Coll<Board> implements BoardInterface
 {
 	// -------------------------------------------- //
@@ -82,6 +84,14 @@ public class BoardColl extends Coll<Board> implements BoardInterface
 		if (board == null) return null;
 		return board.getFactionAt(ps);
 	}
+
+	@Override
+	public Faction getFactionAt(Location location)
+	{
+		if (location == null) throw new NullPointerException("location");
+		PS ps = PS.valueOf(location);
+		return this.getFactionAt(ps);
+	}
 	
 	// SET
 
@@ -102,6 +112,14 @@ public class BoardColl extends Coll<Board> implements BoardInterface
 		if (board == null) return;
 		board.setFactionAt(ps, faction);
 	}
+
+	@Override
+	public void setFactionAt(Location location, Faction faction)
+	{
+		if (location == null) throw new NullPointerException("location");
+		PS ps = PS.valueOf(location);
+		this.setFactionAt(ps, faction);
+	}
 	
 	// REMOVE
 	
@@ -112,6 +130,14 @@ public class BoardColl extends Coll<Board> implements BoardInterface
 		Board board = this.get(ps.getWorld());
 		if (board == null) return;
 		board.removeAt(ps);
+	}
+
+	@Override
+	public void removeAt(Location location)
+	{
+		if (location == null) throw new NullPointerException("location");
+		PS ps = PS.valueOf(location);
+		this.removeAt(ps);
 	}
 	
 	@Override

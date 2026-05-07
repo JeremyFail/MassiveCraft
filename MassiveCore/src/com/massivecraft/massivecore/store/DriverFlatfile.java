@@ -1,9 +1,9 @@
 package com.massivecraft.massivecore.store;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonParser;
+import com.massivecraft.massivecore.gson.JsonSyntaxException;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.util.DiscUtil;

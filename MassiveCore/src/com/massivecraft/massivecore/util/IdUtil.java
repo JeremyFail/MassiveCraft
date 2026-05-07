@@ -1,6 +1,6 @@
 package com.massivecraft.massivecore.util;
 
-import com.google.gson.reflect.TypeToken;
+import com.massivecraft.massivecore.gson.reflect.TypeToken;
 import com.massivecraft.massivecore.MassiveCore;
 import com.massivecraft.massivecore.SenderPresence;
 import com.massivecraft.massivecore.SenderType;
@@ -937,7 +937,7 @@ public class IdUtil implements Listener, Runnable
 			content = content.trim();
 			if (content.length() == 0) return new HashSet<>();
 			
-			Set<IdData> ret = MassiveCore.gson.fromJson(content, CACHEFILE_TYPE);
+			Set<IdData> ret = MassiveCore.gson.fromJsonType(content, CACHEFILE_TYPE);
 			return ret;
 		}
 	}

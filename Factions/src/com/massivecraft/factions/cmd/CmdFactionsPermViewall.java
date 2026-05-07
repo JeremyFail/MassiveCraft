@@ -1,18 +1,13 @@
 package com.massivecraft.factions.cmd;
 
 import com.massivecraft.factions.cmd.type.TypeFaction;
+import com.massivecraft.factions.cmd.type.TypeManageTarget;
 import com.massivecraft.factions.cmd.type.TypeMPermable;
 import com.massivecraft.factions.entity.Faction;
-import com.massivecraft.factions.entity.MPerm;
 import com.massivecraft.factions.entity.MPerm.MPermable;
-import com.massivecraft.factions.entity.MPlayer;
-import com.massivecraft.factions.entity.Rank;
+import com.massivecraft.factions.util.PermTableUtil;
 import com.massivecraft.massivecore.MassiveException;
-import com.massivecraft.massivecore.collections.MassiveList;
-import com.massivecraft.massivecore.util.Txt;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import com.massivecraft.massivecore.command.Parameter;
 
 public class CmdFactionsPermViewall extends FactionsCommand
 {
@@ -22,9 +17,9 @@ public class CmdFactionsPermViewall extends FactionsCommand
 
 	public CmdFactionsPermViewall()
 	{
-		// Parameters
-		this.addParameter(TypeMPermable.get(), "rank/rel/player/faction");
+		this.addParameter(TypeManageTarget.get(), "rank/relation/faction/player").setDesc("ranks, relationships, or a specific rank/relation/faction/player");
 		this.addParameter(TypeFaction.get(), "faction", "you");
+		this.addParameter(Parameter.getPage());
 	}
 
 	// -------------------------------------------- //
@@ -34,71 +29,51 @@ public class CmdFactionsPermViewall extends FactionsCommand
 	@Override
 	public void perform() throws MassiveException
 	{
-		// Arg: Faction
-		Faction faction = this.readArgAt(1, msenderFaction);
-		TypeMPermable permableType = TypeMPermable.get(faction);
-		MPerm.MPermable permable = permableType.read(this.argAt(0), sender);
+		// With 2 args, the second can be a faction or a page (depending on if faction is implied)
+		Faction faction;
+		int page;
+		int n = this.getArgs().size();
+		if (n >= 3)
+		{
+			faction = this.readArgAt(1, msenderFaction);
+			page = this.readArgAt(2, 1);
+		}
+		else if (n == 2)
+		{
+			String arg1 = this.argAt(1);
+			try
+			{
+				page = Math.max(1, Integer.parseInt(arg1));
+				faction = msenderFaction;
+			}
+			catch (NumberFormatException e)
+			{
+				faction = this.readArgAt(1, msenderFaction);
+				page = 1;
+			}
+		}
+		else
+		{
+			faction = msenderFaction;
+			page = 1;
+		}
 
-		// Self check
+		String targetArg = this.readArgAt(0);
+		if (PermTableUtil.isBulkRanksOrRelationshipsTarget(targetArg))
+		{
+			PermTableUtil.displayTable(sender, targetArg, faction, page, false, null, this);
+			return;
+		}
+
+		TypeMPermable permableType = TypeMPermable.get(faction);
+		MPermable permable = permableType.read(targetArg, sender);
+
 		if (permable == faction)
 		{
 			throw new MassiveException().addMsg("<b>A faction can't have perms for itself.");
 		}
 
-		// Create list of all applicable permables
-		List<MPermable> permables = new MassiveList<>();
-		permables.add(permable);
-
-		if (permable instanceof MPlayer)
-		{
-			MPlayer mplayer = (MPlayer) permable;
-			permables.add(mplayer.getFaction());
-			permables.add(mplayer.getRank());
-			permables.add(faction.getRelationTo(mplayer));
-		}
-		if (permable instanceof Faction)
-		{
-			Faction faction1 = (Faction) permable;
-			permables.add(faction.getRelationTo(faction1));
-		}
-		if (permable instanceof Rank && !faction.hasRank((Rank) permable))
-		{
-			Rank rank = (Rank) permable;
-			Faction faction1 = rank.getFaction();
-			permables.add(faction1);
-			permables.add(faction.getRelationTo(faction1));
-		}
-
-		// Find the perms they have
-		List<MPerm> perms = new MassiveList<>();
-
-		perm:
-		for (MPerm mperm : MPerm.getAll())
-		{
-			String mpermId = mperm.getId();
-			permable:
-			for (MPermable mpa : permables)
-			{
-				if (!faction.isPermitted(mpa.getId(), mperm.getId())) continue permable;
-				perms.add(mperm);
-				continue perm;
-			}
-
-		}
-
-		if (perms.isEmpty())
-		{
-			msg("<i>In <reset>%s <reset>%s <i>has <b>no permissions<i>.", faction.describeTo(msender), permable.getDisplayName(sender));
-		}
-		else
-		{
-			List<String> permNames = perms.stream().map(perm -> Txt.parse("<h>") + perm.getName()).collect(Collectors.toList());
-			String names = Txt.implodeCommaAnd(permNames, Txt.parse("<i>"));
-
-			// Create messages
-			String permissionSingularPlural = permNames.size() == 1 ? "permission" : "permissions";
-			msg("<i>In <reset>%s <reset>%s <i>has the %s: <reset>%s<i> either specifically granted to them or through rank, relation or faction membership.", faction.describeTo(msender), permable.getDisplayName(sender), permissionSingularPlural, names);
-		}
+		PermTableUtil.displayTable(sender, permable, faction, page, false, null, this);
 	}
 	
 }

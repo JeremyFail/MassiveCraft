@@ -4,10 +4,9 @@ import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.TypeChatMode;
-import com.massivecraft.massivecore.command.type.primitive.TypeString;
 import com.massivecraft.massivecore.pager.Pager;
+import com.massivecraft.massivecore.util.Txt;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -16,7 +15,7 @@ import java.util.List;
 
 /**
  * Represents the <code>/f c {channel}</code> command.
- * Supports switching chat channels, as well as sending a single message to a channel.
+ * Switches chat channels and subcommands; quick one-off messages use {@code :channel} in chat.
  */
 public class CmdFactionsChat extends FactionsCommand
 {
@@ -31,8 +30,7 @@ public class CmdFactionsChat extends FactionsCommand
     public CmdFactionsChat()
     {
         addParameter(TypeChatMode.getInstance(), false, "chat mode");
-        addParameter(TypeString.get(), false, "message", "message", true);
-        setDesc("Switches chat modes, sends a quick message to a channel, or manages other faction chat settings");
+        setDesc("Switches chat modes or manages other faction chat settings");
         addAliases("chat", "c");
         
         // Subcommands will be handled manually through the perform() method custom routing system
@@ -48,9 +46,9 @@ public class CmdFactionsChat extends FactionsCommand
         if (firstArg == null)
         {
             ChatMode currentMode = ChatMode.getChatModeForPlayer(msender.getPlayer());
-            msender.message(ChatColor.YELLOW + "Current chat mode: " + ChatColor.AQUA + currentMode.name().toLowerCase());
-            msender.message(ChatColor.GRAY + "Use " + ChatColor.LIGHT_PURPLE + "/f c <mode>" + ChatColor.GRAY + " to switch modes.");
-            msender.message(ChatColor.GRAY + "Use " + ChatColor.AQUA + "/f c help" + ChatColor.GRAY + " to see all available commands and modes.");
+            msender.message(Txt.parse("<n>Current chat mode: <k>" + currentMode.name().toLowerCase()));
+            msender.message(Txt.parse("<n>Use <k>/f c <mode><n> to switch modes, or <k>:<mode><n> / <k>:<letter><n> in chat for a one-off message or toggle."));
+            msender.message(Txt.parse("<n>Use <k>/f c help<n> to see all available commands and modes."));
             return;
         }
 
@@ -65,8 +63,8 @@ public class CmdFactionsChat extends FactionsCommand
         ChatMode chatMode = TypeChatMode.getInstance().read(firstArg, msender.getPlayer());
         if (chatMode == null)
         {
-            msender.message(ChatColor.RED + "Invalid chat mode or command: " + ChatColor.LIGHT_PURPLE + firstArg);
-            msender.message(ChatColor.GRAY + "Use " + ChatColor.AQUA + "/f c help" + ChatColor.GRAY + " to see available commands and modes.");
+            msender.message(Txt.parse("<b>Invalid chat mode or command: <v>" + firstArg));
+            msender.message(Txt.parse("<n>Use <k>/f c help<n> to see available commands and modes."));
             return;
         }
 
@@ -74,30 +72,19 @@ public class CmdFactionsChat extends FactionsCommand
         if (msender.getFaction().isNone() && 
             (chatMode == ChatMode.FACTION || chatMode == ChatMode.ALLY || chatMode == ChatMode.TRUCE || chatMode == ChatMode.ENEMY)) 
         {
-            msender.message(ChatColor.RED + "Cannot switch to that chat mode as you are not in a faction");
+            msender.message(Txt.parse("<b>Cannot switch to that chat mode as you are not in a faction"));
             return;
         }
 
         // Validate permissions for the chat mode
         if (!msender.getPlayer().hasPermission("factions.chat." + chatMode.name().toLowerCase())) 
         {
-            msender.message(ChatColor.RED + "Invalid chat mode or command: " + ChatColor.LIGHT_PURPLE + firstArg);
+            msender.message(Txt.parse("<b>Invalid chat mode or command: <v>" + firstArg));
             return;
         }
         
-        // If the player is sending a quick message (not switching to the channel)
-        String msg = arg();
-        if (msg != null)
-        {
-            FactionsChat.qmPlayers.put(msender.getPlayer().getUniqueId(), chatMode);
-            msender.getPlayer().chat(msg);
-        }
-        // Otherwise, switch the chat mode
-        else
-        {
-            FactionsChat.instance.getPlayerChatModes().put(msender.getUuid(), chatMode);
-            msender.message(ChatColor.YELLOW + "Chat mode set to: " + ChatColor.AQUA + chatMode.name().toLowerCase());
-        }
+        FactionsChat.instance.getPlayerChatModes().put(msender.getUuid(), chatMode);
+        msender.message(Txt.parse("<i>Chat mode set to: <k>" + chatMode.name().toLowerCase()));
     }
     
     /**
@@ -141,7 +128,7 @@ public class CmdFactionsChat extends FactionsCommand
                     }
                     catch (NumberFormatException e)
                     {
-                        msender.message(ChatColor.RED + "\"" + ChatColor.LIGHT_PURPLE + pageArg + ChatColor.RED + "\" is not a number.");
+                        msender.message(Txt.parse("<b>\"<v>" + pageArg + "<b>\" is not a number."));
                         return;
                     }
                 }
@@ -195,13 +182,13 @@ public class CmdFactionsChat extends FactionsCommand
             }
             else
             {
-                msender.message(ChatColor.RED + "Invalid subcommand \"" + ChatColor.LIGHT_PURPLE + subcommand + ChatColor.RED + "\".");
-                msender.message(ChatColor.GRAY + "Use " + ChatColor.AQUA + "/f c help" + ChatColor.GRAY + " to see all available subcommands and modes.");
+                msender.message(Txt.parse("<b>Invalid subcommand \"<v>" + subcommand + "<b>\"."));
+                msender.message(Txt.parse("<n>Use <k>/f c help<n> to see all available subcommands and modes."));
             }
         }
         catch (Exception e)
         {
-            msender.message(ChatColor.RED + "An unexpected error occurred executing subcommand \"" + ChatColor.LIGHT_PURPLE + subcommand + ChatColor.RED + "\".");
+            msender.message(Txt.parse("<b>An unexpected error occurred executing subcommand \"<v>" + subcommand + "<b>\"."));
             e.printStackTrace();
         }
     }

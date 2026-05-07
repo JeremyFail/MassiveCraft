@@ -26,13 +26,13 @@ public class AdapterMson implements JsonDeserializer<Mson>, JsonSerializer<Mson>
 	@Override
 	public JsonElement serialize(Mson src, Type typeOfSrc, JsonSerializationContext context)
 	{
-		return Mson.toJson(src);
+		return Mson.toJson(src).unwrapNative();
 	}
 
 	@Override
 	public Mson deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
 	{
-		return Mson.fromJson(json);
+		return Mson.fromJson(com.massivecraft.massivecore.gson.JsonElement.wrap(json));
 	}
 
 }

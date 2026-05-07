@@ -1,6 +1,6 @@
 package com.massivecraft.massivecore.cmd;
 
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonObject;
 import com.massivecraft.massivecore.MassiveCore;
 import com.massivecraft.massivecore.MassiveException;
 import com.massivecraft.massivecore.command.type.primitive.TypeString;

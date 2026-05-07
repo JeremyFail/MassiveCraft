@@ -1,11 +1,11 @@
 package com.massivecraft.massivecore.mson;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonPrimitive;
+import com.massivecraft.massivecore.gson.Gson;
+import com.massivecraft.massivecore.gson.GsonBuilder;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonNull;
+import com.massivecraft.massivecore.gson.JsonPrimitive;
 import com.massivecraft.massivecore.adapter.AdapterLowercaseEnum;
 import com.massivecraft.massivecore.adapter.AdapterMsonEventFix;
 import com.massivecraft.massivecore.apachecommons.MutableInt;

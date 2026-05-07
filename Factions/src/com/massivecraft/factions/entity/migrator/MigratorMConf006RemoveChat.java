@@ -1,6 +1,6 @@
 package com.massivecraft.factions.entity.migrator;
 
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonObject;
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.massivecore.store.migrator.MigratorRoot;
 

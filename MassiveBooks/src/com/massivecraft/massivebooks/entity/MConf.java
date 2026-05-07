@@ -140,7 +140,7 @@ public class MConf extends Entity<MConf>
 	public boolean autoupdatingDisplayNames = true;
 	public boolean usingAuthorDisplayName = false;
 
-	/** When true, server books (and other typed books) show their type as an extra lore line when updated. */
+	// When true, server books (and other typed books) show their type as an extra lore line when updated.
 	public boolean showBookTypeAsLore = true;
 	
 	// ItemFrame Load
@@ -154,6 +154,16 @@ public class MConf extends Entity<MConf>
 	// ItemFrame Rotate
 	public boolean itemFrameRotateIfSneakTrue = true;
 	public boolean itemFrameRotateIfSneakFalse = true;
+
+	// Book colors - translate ampersand color codes in book titles, authors, and pages if true
+	public boolean translateColorCodesInBookTitles = true;
+	public boolean translateColorCodesInBookAuthors = true;
+	public boolean translateColorCodesInBookPages = true;
+	
+	// Removes all color codes from book titles, authors, and pages if true.
+	// Applied after translateColorCodesInBook* options, so color codes will be 
+	// stripped even if translation is enabled.
+	public boolean stripColorFromBooks = false;
 
 	// When true, /book give from console does not send "@console gave you ..." to the player.
 	private boolean suppressGiveMessageFromConsole = false;

@@ -359,7 +359,6 @@ public class IgnoreManager
      * @param nameOrUuid Player name or UUID string
      * @return OfflinePlayer instance, or null if not found
      */
-    @SuppressWarnings("deprecation")
     public OfflinePlayer getPlayerByNameOrUuid(String nameOrUuid)
     {
         // Try UUID first

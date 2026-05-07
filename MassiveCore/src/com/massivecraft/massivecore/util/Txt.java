@@ -38,6 +38,9 @@ public class Txt
 	public static final int PAGEHEIGHT_PLAYER = 9;
 	public static final int PAGEHEIGHT_CONSOLE = 50;
 	
+	public static final char LEGACY_COLOR_CHAR = '\u00A7';
+	private static final Pattern LEGACY_STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + String.valueOf(LEGACY_COLOR_CHAR) + "[0-9A-FK-ORX]");
+	
 	public static final Map<String, String> parseReplacements;
 	public static final Pattern parsePattern;
 	
@@ -73,66 +76,66 @@ public class Txt
 	{
 		// Create the parse replacements map
 		parseReplacements = new HashMap<>();
-		
-		// Color by name
+
+		// Color by name (Minecraft color code in parentheses: §0-§f, §k, §l, §m, §n, §o, §r)
 		parseReplacements.put("<empty>", "");
-		parseReplacements.put("<black>", "\u00A70");
-		parseReplacements.put("<navy>", "\u00A71");
-		parseReplacements.put("<green>", "\u00A72");
-		parseReplacements.put("<teal>", "\u00A73");
-		parseReplacements.put("<red>", "\u00A74");
-		parseReplacements.put("<purple>", "\u00A75");
-		parseReplacements.put("<gold>", "\u00A76");
-		parseReplacements.put("<orange>", "\u00A76");
-		parseReplacements.put("<silver>", "\u00A77");
-		parseReplacements.put("<gray>", "\u00A78");
-		parseReplacements.put("<grey>", "\u00A78");
-		parseReplacements.put("<blue>", "\u00A79");
-		parseReplacements.put("<lime>", "\u00A7a");
-		parseReplacements.put("<aqua>", "\u00A7b");
-		parseReplacements.put("<rose>", "\u00A7c");
-		parseReplacements.put("<pink>", "\u00A7d");
-		parseReplacements.put("<yellow>", "\u00A7e");
-		parseReplacements.put("<white>", "\u00A7f");
-		parseReplacements.put("<magic>", "\u00A7k");
-		parseReplacements.put("<bold>", "\u00A7l");
-		parseReplacements.put("<strong>", "\u00A7l");
-		parseReplacements.put("<strike>", "\u00A7m");
-		parseReplacements.put("<strikethrough>", "\u00A7m");
-		parseReplacements.put("<under>", "\u00A7n");
-		parseReplacements.put("<underline>", "\u00A7n");
-		parseReplacements.put("<italic>", "\u00A7o");
-		parseReplacements.put("<em>", "\u00A7o");
-		parseReplacements.put("<reset>", "\u00A7r");
-		
-		// Color by semantic functionality
-		parseReplacements.put("<l>", "\u00A72");
+		parseReplacements.put("<black>", "\u00A70");         // §0 black
+		parseReplacements.put("<navy>", "\u00A71");          // §1 dark blue
+		parseReplacements.put("<green>", "\u00A72");         // §2 dark green
+		parseReplacements.put("<teal>", "\u00A73");          // §3 dark aqua
+		parseReplacements.put("<red>", "\u00A74");           // §4 dark red
+		parseReplacements.put("<purple>", "\u00A75");        // §5 dark purple
+		parseReplacements.put("<gold>", "\u00A76");          // §6 gold
+		parseReplacements.put("<orange>", "\u00A76");        // §6 gold (alias)
+		parseReplacements.put("<silver>", "\u00A77");        // §7 gray (light gray)
+		parseReplacements.put("<gray>", "\u00A78");          // §8 dark gray
+		parseReplacements.put("<grey>", "\u00A78");          // §8 dark gray (alias)
+		parseReplacements.put("<blue>", "\u00A79");          // §9 blue
+		parseReplacements.put("<lime>", "\u00A7a");          // §a green (bright green)
+		parseReplacements.put("<aqua>", "\u00A7b");          // §b aqua (cyan)
+		parseReplacements.put("<rose>", "\u00A7c");          // §c red (bright red)
+		parseReplacements.put("<pink>", "\u00A7d");          // §d light purple (magenta)
+		parseReplacements.put("<yellow>", "\u00A7e");        // §e yellow
+		parseReplacements.put("<white>", "\u00A7f");         // §f white
+		parseReplacements.put("<magic>", "\u00A7k");         // §k obfuscated (random chars)
+		parseReplacements.put("<bold>", "\u00A7l");          // §l bold
+		parseReplacements.put("<strong>", "\u00A7l");        // §l bold (alias)
+		parseReplacements.put("<strike>", "\u00A7m");        // §m strikethrough
+		parseReplacements.put("<strikethrough>", "\u00A7m"); // §m strikethrough
+		parseReplacements.put("<under>", "\u00A7n");         // §n underline
+		parseReplacements.put("<underline>", "\u00A7n");     // §n underline (alias)
+		parseReplacements.put("<italic>", "\u00A7o");        // §o italic
+		parseReplacements.put("<em>", "\u00A7o");            // §o italic (alias)
+		parseReplacements.put("<reset>", "\u00A7r");         // §r reset
+
+		// Color by semantic functionality (reuse §2, §6, §7, §e, §a, §c, §b, §d, §3)
+		parseReplacements.put("<l>", "\u00A72");             // §2 dark green (logo)
 		parseReplacements.put("<logo>", "\u00A72");
-		parseReplacements.put("<a>", "\u00A76");
+		parseReplacements.put("<a>", "\u00A76");             // §6 gold (art)
 		parseReplacements.put("<art>", "\u00A76");
-		parseReplacements.put("<n>", "\u00A77");
+		parseReplacements.put("<n>", "\u00A77");             // §7 gray (notice)
 		parseReplacements.put("<notice>", "\u00A77");
-		parseReplacements.put("<i>", "\u00A7e");
+		parseReplacements.put("<i>", "\u00A7e");             // §e yellow (info)
 		parseReplacements.put("<info>", "\u00A7e");
-		parseReplacements.put("<g>", "\u00A7a");
+		parseReplacements.put("<g>", "\u00A7a");             // §a green (good)
 		parseReplacements.put("<good>", "\u00A7a");
-		parseReplacements.put("<b>", "\u00A7c");
+		parseReplacements.put("<b>", "\u00A7c");             // §c red (bad)
 		parseReplacements.put("<bad>", "\u00A7c");
-		
-		parseReplacements.put("<k>", "\u00A7b");
+
+		parseReplacements.put("<k>", "\u00A7b");             // §b aqua (key)
 		parseReplacements.put("<key>", "\u00A7b");
-		
-		parseReplacements.put("<v>", "\u00A7d");
+
+		parseReplacements.put("<v>", "\u00A7d");             // §d light purple (value/highlight)
 		parseReplacements.put("<value>", "\u00A7d");
 		parseReplacements.put("<h>", "\u00A7d");
 		parseReplacements.put("<highlight>", "\u00A7d");
-		
-		parseReplacements.put("<c>", "\u00A7b");
+
+		parseReplacements.put("<c>", "\u00A7b");             // §b aqua (command)
 		parseReplacements.put("<command>", "\u00A7b");
-		parseReplacements.put("<p>", "\u00A73");
+		parseReplacements.put("<p>", "\u00A73");             // §3 dark aqua (parameter)
 		parseReplacements.put("<parameter>", "\u00A73");
-		parseReplacements.put("&&", "&");
-		parseReplacements.put("§§", "§");
+		parseReplacements.put("&&", "&");                    // escape ampersand
+		parseReplacements.put("§§", "§");                    // escape section sign
 		
 		// Color by number/char
 		for (int i = 48; i <= 122; i++)
@@ -168,7 +171,76 @@ public class Txt
 	// -------------------------------------------- //
 	// PARSE
 	// -------------------------------------------- //
+
+	/**
+	 * Parses a string with legacy color/formatting characters into
+	 * a string that uses the internal color code character (section symbol). 
+	 * The color/format code character will only be replaced if
+	 * it is immediately followed by 0-9, A-F, a-f, K-O, k-o, R or r.
+	 * 
+	 * <p>Assumes the color/format code character is the ampersand (&) character.</p>
+	 * 
+	 * <p>This method was taken from the Bukkit API - see ChatColor#translateAlternateColorCodes(char, String).
+	 * This was implemented to avoid using deprecated methods.</p>
+	 * 
+	 * @param textToParse Text containing the color/format code character to parse.
+	 * @return Text containing the formatted string.
+	 */
+	public static String parseLegacy(String textToParse)
+	{
+		return parseLegacy('&', textToParse);
+	}
+
+	/**
+     * Parses a string with legacy color/formatting characters into
+     * a string that uses the internal color code character (section symbol). 
+	 * The color/format code character will only be replaced if
+     * it is immediately followed by 0-9, A-F, a-f, K-O, k-o, R or r.
+	 * 
+	 * <p>This method was taken from the Bukkit API - see ChatColor#translateAlternateColorCodes(char, String).
+	 * This was implemented to avoid using deprecated methods.</p>
+     *
+     * @param altColorChar The color/format code character to replace. Ex: &
+     * @param textToParse Text containing the color/format code character to parse.
+     * @return Text containing the formatted string.
+     */
+    public static String parseLegacy(char altColorChar, String textToParse)
+	{
+		if (textToParse == null || textToParse.isEmpty()) return textToParse;
+
+        char[] b = textToParse.toCharArray();
+        for (int i = 0; i < b.length - 1; i++)
+		{
+            if (b[i] == altColorChar && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i+1]) > -1)
+			{
+                b[i] = LEGACY_COLOR_CHAR;
+                b[i+1] = Character.toLowerCase(b[i+1]);
+            }
+        }
+        return new String(b);
+    }
+
+	/**
+     * Strips the given message of all legacy color/format codes.
+	 * 
+	 * <p>This method was taken from the Bukkit API - see ChatColor#stripColor(String).
+	 * This was implemented to avoid using deprecated methods.</p>
+     *
+     * @param input String to strip of legacy color/format codes.
+     * @return A copy of the input string, without any legacy color/format codes.
+     */
+	public static String stripColorLegacy(String input)
+	{
+		if (input == null || input.isEmpty()) return input;
+		return LEGACY_STRIP_COLOR_PATTERN.matcher(input).replaceAll("");
+	}
 	
+	/**
+	 * Parses the given string using the parse replacements map.
+	 * 
+	 * @param string The string to parse.
+	 * @return The parsed string.
+	 */
 	public static String parse(String string)
 	{
 		if (string == null) throw new NullPointerException("string");
@@ -463,14 +535,14 @@ public class Txt
 	{
 		if (InventoryUtil.isNothing(itemStack)) return Txt.parse("<silver><em>Nothing");
 		
-		ChatColor color = (itemStack.getEnchantments().size() > 0) ? ChatColor.AQUA : ChatColor.WHITE;
+		String color = (itemStack.getEnchantments().size() > 0) ? "<aqua>" : "<white>";
 		
 		if (itemStack.hasItemMeta())
 		{
 			ItemMeta itemMeta = itemStack.getItemMeta();
 			if (itemMeta.hasDisplayName())
 			{
-				return color.toString() + ChatColor.ITALIC.toString() + itemMeta.getDisplayName();
+				return Txt.parse(color + "<em>") + itemMeta.getDisplayName();
 			}
 		}
 		

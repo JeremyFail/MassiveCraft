@@ -1,6 +1,6 @@
 package com.massivecraft.massivecore.mson;
 
-import com.google.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonElement;
 import com.massivecraft.massivecore.command.MassiveCommand;
 import com.massivecraft.massivecore.nms.NmsItemStackTooltip;
 import com.massivecraft.massivecore.util.MUtil;

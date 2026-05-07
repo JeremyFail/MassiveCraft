@@ -1,6 +1,5 @@
 package com.massivecraft.massivecore.entity;
 
-import com.massivecraft.massivecore.SoundEffect;
 import com.massivecraft.massivecore.collections.MassiveMap;
 import com.massivecraft.massivecore.command.editor.annotation.EditorName;
 import com.massivecraft.massivecore.command.editor.annotation.EditorType;
@@ -54,6 +53,18 @@ public class MassiveCoreMConf extends Entity<MassiveCoreMConf>
 	public int tabCompletionLimit = 100;
 	public boolean recipientChatEventEnabled = true;
 	public boolean consoleColorsEnabled = true;
+
+	// -------------------------------------------- //
+	// UPDATE CHECKER
+	// -------------------------------------------- //
+	// Update checker configuration options.
+	
+	public boolean updateCheckEnabled = true;
+	/** 0 disables repeating checks; first run still happens once after startup. */
+	public long updateCheckRepeatHours = 24L;
+	public boolean updateCheckNotifyOperatorsOnJoin = true;
+	/** When false, players who only have {@code massivecore.update.notify} (non-ops) do not get join chat notices. */
+	public boolean updateCheckNotifyPermissionHoldersOnJoin = true;
 	
 	// -------------------------------------------- //
 	// PERMISSIONS FORMATS
@@ -111,13 +122,6 @@ public class MassiveCoreMConf extends Entity<MassiveCoreMConf>
 	
 	public String variableBufferName = "***buffer***";
 	public boolean variableBufferEnabled = true;
-	
-	// -------------------------------------------- //
-	// CLICK
-	// -------------------------------------------- //
-	// Button click sound configuration.
-	
-	public SoundEffect clickSound = SoundEffect.valueOf("UI_BUTTON_CLICK", 0.75f, 1.0f);
 	
 	// -------------------------------------------- //
 	// MSTORE

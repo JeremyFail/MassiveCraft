@@ -34,18 +34,49 @@ public class TypeChatMode extends TypeAbstract<ChatMode>
         
         for (ChatMode chatMode : ChatMode.getAvailableChatModes(player))
         {
-            String arg = chatMode.name().toLowerCase();
-            if (input == null || !arg.startsWith(input)) 
+            // Add the full mode name and the alias to the tab list
+            if (input != null && input.length() > 0)
             {
-                continue;
+                String arg = chatMode.name().toLowerCase();
+                if (arg.startsWith(input))
+                {
+                    args.add(arg);
+                }
+                String alias = chatMode.getAlias();
+                if (alias.startsWith(input))
+                {
+                    args.add(alias);
+                }
             }
-            args.add(arg);
-        }
-        
-        // Add the public chat mode option
-        args.add("public");
-        args.add("p");
+            else
+            {
+                args.add(chatMode.name().toLowerCase());
+                args.add(chatMode.getAlias());
+            }
 
+            // Add the "public" alias for global chat
+            if (ChatMode.GLOBAL.equals(chatMode))
+            {
+                if (input != null && input.length() > 0)
+                {
+                    String arg = "public";
+                    if (arg.startsWith(input))
+                    {
+                        args.add(arg);
+                    }
+                    String alias = "p";
+                    if (alias.startsWith(input))
+                    {
+                        args.add(alias);
+                    }
+                }
+                else
+                {
+                    args.add("public");
+                    args.add("p");
+                }
+            }
+        }
         return args;
     }
 

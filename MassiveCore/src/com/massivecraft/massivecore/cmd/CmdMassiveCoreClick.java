@@ -1,6 +1,5 @@
 package com.massivecraft.massivecore.cmd;
 
-import com.massivecraft.massivecore.entity.MassiveCoreMConf;
 import com.massivecraft.massivecore.MassiveException;
 import com.massivecraft.massivecore.command.type.TypeStringCommand;
 import com.massivecraft.massivecore.mixin.MixinCommand;
@@ -31,7 +30,6 @@ public class CmdMassiveCoreClick extends MassiveCoreCommand
 	@Override
 	public void perform() throws MassiveException
 	{
-		MassiveCoreMConf.get().clickSound.run(me);
 		String command = this.readArg();
 		if (command == null) return;
 		MixinCommand.get().dispatchCommand(sender, command);

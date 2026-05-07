@@ -78,7 +78,7 @@ public class CmdFactionsInviteAdd extends FactionsCommand
 				String tooltip = Txt.parse("<i>Click to <c>%s<i>.", command);
 				
 				Mson remove = Mson.mson(
-					mson("You might want to remove him. ").color(ChatColor.YELLOW), 
+					mson("You might want to remove them. ").color(ChatColor.YELLOW), 
 					mson("Click to " + command).color(ChatColor.RED).tooltip(tooltip).suggest(command)
 				);
 				

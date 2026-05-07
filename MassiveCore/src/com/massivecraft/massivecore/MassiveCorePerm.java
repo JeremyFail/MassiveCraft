@@ -13,7 +13,6 @@ public enum MassiveCorePerm implements Identified
 	TEST,
 	ID,
 
-	HEARSOUND,
 	STORE,
 	STORE_STATS,
 	STORE_LISTCOLLS,

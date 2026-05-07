@@ -5,7 +5,7 @@
     <groupId>com.massivecraft.massivesuper</groupId>
     <artifactId>MassiveSuper</artifactId>
     <!-- Change this release version when making updates to the code - update in all pom files -->
-    <version>3.4.0-alpha-13</version>
+    <version>3.4.0-alpha-14</version>
     <packaging>pom</packaging>
 
     <!-- Info -->
@@ -22,10 +22,16 @@
         <massiveColorBold>${massiveColorSign}a</massiveColorBold>
         <massiveColorLink>${massiveColorSign}b</massiveColorLink>
         <massiveBaseUrl>https://factions.wiki</massiveBaseUrl>
+        <!-- Public releases / downloads page (update checker + filtered into MassiveCore massivecraft.properties) -->
+        <massiveReleasesUrl>https://github.com/JeremyFail/MassiveCraft/releases</massiveReleasesUrl>
+        <!-- GitHub repository web URL (no /releases); used to derive API owner/repo for PluginUpdateChecker -->
+        <massiveRepositoryUrl>https://github.com/JeremyFail/MassiveCraft</massiveRepositoryUrl>
         <massiveDescriptionSuffix></massiveDescriptionSuffix>
 
-        <!-- Core Versions -->
-        <massiveJavaVersion>1.8</massiveJavaVersion>
+        <!-- Core Versions (Paper 1.21.x requires a Java 17+ runtime) -->
+        <massiveJavaVersion>17</massiveJavaVersion>
+        <!-- requireJavaVersion range; kept as a property so the POM element stays simple XML -->
+        <massiveJavaEnforcerMinVersion>[${massiveJavaVersion},)</massiveJavaEnforcerMinVersion>
         <!-- Maven - As of writing the version bundled with latest IntelliJ. -->
         <massiveMavenVersion>3.6.0</massiveMavenVersion>
 
@@ -33,7 +39,7 @@
         <massiveMavenEnforcerPluginVersion>3.0.0-M2</massiveMavenEnforcerPluginVersion>
         <massiveMavenCompilerPluginVersion>3.8.0</massiveMavenCompilerPluginVersion>
         <massiveMavenJarPluginVersion>3.1.1</massiveMavenJarPluginVersion>
-        <massiveMavenShadePluginVersion>3.2.1</massiveMavenShadePluginVersion>
+        <massiveMavenShadePluginVersion>3.6.0</massiveMavenShadePluginVersion>
         <massiveMavenProGuardPluginVersion>2.0.14</massiveMavenProGuardPluginVersion>
         <massiveMavenProGuardVersion>5.3.3</massiveMavenProGuardVersion>
 
@@ -51,6 +57,10 @@
         <!-- https://hub.spigotmc.org/nexus/content/groups/public/org/spigotmc/spigot-api/ -->
         <massiveSpigotVersion>1.21.4-R0.1-SNAPSHOT</massiveSpigotVersion>
         <massivePaperVersion>1.21.4-R0.1-SNAPSHOT</massivePaperVersion>
+        <!-- Adventure MiniMessage for compile (match paper-api transitive BOM; run mvn dependency:tree on paper-api when bumping Paper).
+             PaperMC format docs: https://docs.papermc.io/adventure/minimessage/format - sprite/head tags require MiniMessage 4.25+;
+             at 4.20.0 those tags are absent from this artifact; newer Paper builds may ship a newer Adventure at runtime. -->
+        <massiveAdventureMiniMessageVersion>4.20.0</massiveAdventureMiniMessageVersion>
 
         <!-- http://nexus.hc.to/content/repositories/pub_releases/net/milkbowl/vault/Vault/ -->
         <massiveVaultVersion>1.5.6</massiveVaultVersion>
@@ -86,6 +96,11 @@
 
         <!-- https://modrinth.com/project/pl3xmap -->
         <massivePl3xMapVersion>1.21.5-527</massivePl3xMapVersion>
+
+        <!-- https://github.com/JeremyFail/PluginUpdateChecker (optional: mvn install locally for MassiveCore bundle profile).
+             When bumping this version, update MassiveCore/pom.xml profile bundle-update-checker <file><exists> path too
+             (Maven does not expand POM properties there). -->
+        <massivePluginUpdateCheckerVersion>1.0.0</massivePluginUpdateCheckerVersion>
 
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <!-- MANUAL DOWNLOADS REQUIRED -->
@@ -202,7 +217,7 @@
                                         <version>${massiveMavenVersion}</version>
                                     </requireMavenVersion>
                                     <requireJavaVersion>
-                                        <version>${massiveJavaVersion}</version>
+                                        <version>${massiveJavaEnforcerMinVersion}</version>
                                     </requireJavaVersion>
                                 </rules>
                             </configuration>
@@ -215,8 +230,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${massiveMavenCompilerPluginVersion}</version>
                     <configuration>
-                        <source>${massiveJavaVersion}</source>
-                        <target>${massiveJavaVersion}</target>
+                        <release>${massiveJavaVersion}</release>
                     </configuration>
                 </plugin>
                 <!-- Jar -->
@@ -292,6 +306,11 @@
                 <artifactId>gson</artifactId>
                 <version>${massiveGsonVersion}</version>
             </dependency>
+            <dependency>
+                <groupId>com.failprooftech</groupId>
+                <artifactId>plugin-update-checker</artifactId>
+                <version>${massivePluginUpdateCheckerVersion}</version>
+            </dependency>
 			<dependency>
 			    <groupId>com.googlecode.json-simple</groupId>
 			    <artifactId>json-simple</artifactId>
@@ -322,6 +341,12 @@
                 <groupId>io.papermc.paper</groupId>
                 <artifactId>paper-api</artifactId>
                 <version>${massivePaperVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.kyori</groupId>
+                <artifactId>adventure-text-minimessage</artifactId>
+                <version>${massiveAdventureMiniMessageVersion}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

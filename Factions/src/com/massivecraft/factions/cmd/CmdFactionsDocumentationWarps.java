@@ -68,7 +68,7 @@ public class CmdFactionsDocumentationWarps extends FactionsCommandDocumentation
 		if (msenderFaction.isNormal())
 		{
 			Set<MPermable> set = msenderFaction.getPermittedPermables(MPerm.getPermWarp());
-			String permables = CmdFactionsPermShow.permablesToDisplayString(set, msender);
+			String permables = CmdFactionsPermInspect.permablesToDisplayString(set, msender);
 			msgDoc("In your faction warps can be used by: %s<i>.", permables);
 		}
 	}

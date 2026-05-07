@@ -1,6 +1,6 @@
 package com.massivecraft.massivecore.store;
 
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonObject;
 
 import java.util.Map;
 import java.util.Map.Entry;

@@ -1,6 +1,6 @@
 package com.massivecraft.massivecore.engine;
 
-import com.google.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonObject;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.MassiveCore;
 import com.massivecraft.massivecore.collections.MassiveMap;

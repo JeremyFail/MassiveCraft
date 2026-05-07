@@ -70,7 +70,7 @@ public class CmdFactionsInviteRemove extends FactionsCommand
 				String tooltip = Txt.parse("Click to <c>%s<i>.", command);
 				
 				Mson kick = Mson.mson(
-					mson("You might want to kick him. ").color(ChatColor.YELLOW), 
+					mson("You might want to kick them. ").color(ChatColor.YELLOW), 
 					mson(ChatColor.RED.toString() + tooltip).tooltip(ChatColor.YELLOW.toString() + tooltip).suggest(command)
 				);
 				
@@ -113,7 +113,7 @@ public class CmdFactionsInviteRemove extends FactionsCommand
 				String tooltip = Txt.parse("Click to <c>%s<i>.", command);
 				
 				Mson invite = Mson.mson(
-					mson("You might want to invite him. ").color(ChatColor.YELLOW), 
+					mson("You might want to invite them. ").color(ChatColor.YELLOW), 
 					mson(ChatColor.GREEN.toString() + tooltip).tooltip(ChatColor.YELLOW.toString() + tooltip).suggest(command)
 				);
 				

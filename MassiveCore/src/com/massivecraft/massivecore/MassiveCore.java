@@ -1,7 +1,7 @@
 package com.massivecraft.massivecore;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.massivecraft.massivecore.gson.Gson;
+import com.massivecraft.massivecore.gson.GsonBuilder;
 //import com.google.gson.JsonArray;
 //import com.google.gson.JsonNull;
 //import com.google.gson.JsonObject;
@@ -19,7 +19,6 @@ import com.massivecraft.massivecore.adapter.AdapterMassiveTreeSet;
 import com.massivecraft.massivecore.adapter.AdapterModdedEnumType;
 import com.massivecraft.massivecore.adapter.AdapterMson;
 import com.massivecraft.massivecore.adapter.AdapterMsonEvent;
-import com.massivecraft.massivecore.adapter.AdapterSound;
 import com.massivecraft.massivecore.adapter.AdapterUUID;
 import com.massivecraft.massivecore.cmd.CmdMassiveCore;
 import com.massivecraft.massivecore.cmd.CmdMassiveCoreBuffer;
@@ -97,13 +96,13 @@ import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.PeriodUtil;
 import com.massivecraft.massivecore.util.PlayerUtil;
 import com.massivecraft.massivecore.util.ReflectionUtil;
+import com.massivecraft.massivecore.util.MassiveUpdate;
 import com.massivecraft.massivecore.util.SignUtil;
 import com.massivecraft.massivecore.util.SmokeUtil;
 import com.massivecraft.massivecore.util.TimeDiffUtil;
 import com.massivecraft.massivecore.util.TimeUnit;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Modifier;
@@ -179,7 +178,6 @@ public class MassiveCore extends MassivePlugin
 		// Assorted Custom
 		ret.registerTypeAdapter(BackstringSet.class, AdapterBackstringSet.get());
 		ret.registerTypeAdapter(PS.class, PSAdapter.get());
-		ret.registerTypeAdapter(Sound.class, AdapterSound.get());
 		ret.registerTypeAdapter(UUID.class, AdapterUUID.get());
 
 		// Mson
@@ -274,6 +272,13 @@ public class MassiveCore extends MassivePlugin
 		// Delete Files (at once and additionally after all plugins loaded)
 		MassiveCoreTaskDeleteFiles.get().run();
 		Bukkit.getScheduler().scheduleSyncDelayedTask(this, MassiveCoreTaskDeleteFiles.get());
+	}
+
+	@Override
+	public void onEnablePost()
+	{
+		super.onEnablePost();
+		MassiveUpdate.scheduleAfterPluginsEnabled(this);
 	}
 
 	// These are overriden because the reflection trick was buggy and didn't work on all systems
@@ -385,6 +390,7 @@ public class MassiveCore extends MassivePlugin
 	@Override
 	public void onDisable()
 	{
+		MassiveUpdate.shutdown();
 		super.onDisable();
 		ModificationPollerLocal.get().interrupt();
 		ModificationPollerRemote.get().interrupt();

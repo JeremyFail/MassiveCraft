@@ -1,7 +1,7 @@
 package com.massivecraft.massivecore;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.massivecraft.massivecore.gson.Gson;
+import com.massivecraft.massivecore.gson.GsonBuilder;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommand;
 import com.massivecraft.massivecore.engine.EngineMassiveCoreCommandRegistration;

@@ -204,7 +204,7 @@ public class EngineBlueMap extends Engine
 	{
 		if (blueMapWorldId == null || territoryByWorld == null) return blueMapWorldId;
 		if (territoryByWorld.containsKey(blueMapWorldId)) return blueMapWorldId;
-		// BlueMap world id is often "worldName#minecraft:dimension" — try the world name part
+		// BlueMap world id is often "worldName#minecraft:dimension" - try the world name part
 		String worldNamePart = blueMapWorldId.contains("#") ? blueMapWorldId.substring(0, blueMapWorldId.indexOf('#')) : blueMapWorldId;
 		if (territoryByWorld.containsKey(worldNamePart)) return worldNamePart;
 		for (String key : territoryByWorld.keySet())

@@ -1,8 +1,8 @@
 package com.massivecraft.factions.entity.migrator;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.massivecraft.massivecore.gson.JsonElement;
+import com.massivecraft.massivecore.gson.JsonObject;
+import com.massivecraft.massivecore.gson.JsonPrimitive;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.factions.entity.MConf;

@@ -12,7 +12,6 @@ import com.massivecraft.massivecore.command.requirement.RequirementIsPlayer;
 import com.massivecraft.massivecore.command.type.primitive.TypeString;
 import com.massivecraft.massivecore.util.InventoryUtil;
 import com.massivecraft.massivecore.util.Txt;
-import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -50,7 +49,7 @@ public class CmdBookTitle extends MassiveBooksCommand
 		
 		String target = this.readArg();
 		String targetParsed = Txt.parse(target);
-		boolean usingColor = (!ChatColor.stripColor(targetParsed).equals(targetParsed));
+		boolean usingColor = (!Txt.stripColorLegacy(targetParsed).equals(targetParsed));
 		
 		if (usingColor)
 		{
