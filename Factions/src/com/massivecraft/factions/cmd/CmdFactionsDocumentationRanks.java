@@ -37,16 +37,16 @@ public class CmdFactionsDocumentationRanks extends FactionsCommandDocumentation
 		msgDoc("Ranks can have a prefix that will be prepended before any player name. Prefixes can be coloured.");
 		msgDoc("All ranks have a priority showed in parentheses after the name.");
 
-		Mson msonLeader = mson("The rank with the highest priority is deemed the “leader rank”" +
+		Mson msonLeader = mson("The rank with the highest priority is deemed the \"leader rank\"" +
 										 "(can be renamed) and only one person can have that rank")
 		.tooltip("For yor faction the leader rank is" + rankDesc.get(0))
 		.color(ChatColor.YELLOW);
 		messageDoc(msonLeader);
 		msgDoc("Whenever a new person joins the faction they will be assigned the rank with the lowest priority.");
 		msgDoc("Priorities are important because they determine who can do what." +
-				"For example: you can’t kick someone with the same or higher rank than yourself." +
+				"For example: you can't kick someone with the same or higher rank than yourself." +
 				"So if you have both Officers, and Co-leaders, do not fear officers kicking co-leaders or the co-leaders kicking each other." +
-				"They can’t. The same goes for changing ranks, titles and other similar things.");
+				"They can't. The same goes for changing ranks, titles and other similar things.");
 
 		msgDoc("To show, set or edit ranks do:");
 		message(CmdFactions.get().cmdFactionsRank.getTemplate(false, true, sender));
