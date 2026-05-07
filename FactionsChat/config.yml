@@ -115,7 +115,7 @@ ChatPrefixes:
 #-------------- Text Color Settings --------------#
 # Text colors for each chat mode - controls what is returned from the %factions_chat_color% placeholder.
 # <fcolor> is a placeholder that is replaced with the faction relation color from Factions.
-# Use § or & for legacy codes; on Paper, MiniMessage snippets (e.g. <gradient:...>) are also supported (on Paper).
+# Use § or & for legacy codes; on Paper, MiniMessage snippets (e.g. <gradient:...>) are also supported.
 # NOTE: These colors are NOT used unless the %factions_chat_color% placeholder appears in ChatFormat.
 TextColors:
   Ally: '<fcolor>'
