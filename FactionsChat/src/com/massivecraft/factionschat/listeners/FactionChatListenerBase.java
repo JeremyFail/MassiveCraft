@@ -33,16 +33,20 @@ public abstract class FactionChatListenerBase
     /**
      * Regex pattern for message parsing of RGB Codes. 
      * 
+     * <p>
      * Supports three formats:
      * 1. Modern format: &#RRGGBB or §#RRGGBB (6-digit or 3-digit hex)
      * 2. Legacy Bukkit format: §x§R§R§G§G§B§B
+     * </p>
      */
     public static final String RGB_REGEX = "(?:(?:&|§)#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})|§x((?:§[A-Fa-f0-9]){6}))";
     /**
      * Regex pattern for URL parsing.
      * 
+     * <p>
      * Supports http and https protocols, allows for non-ASCII characters in the URL,
      * and supports subdomains, paths, and query parameters.
+     * </p>
      */
     public static final String URL_REGEX = "(https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[\\p{L}0-9+&@#/%=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|!:,.;]*\\.[a-zA-Z]{2,6}(?:/[-a-zA-Z0-9+&@#/%=~_|!:,.;]*[\\p{L}0-9+&@#/%=~_|!:,.;]*)*)";
     /**
@@ -115,7 +119,13 @@ public abstract class FactionChatListenerBase
     /**
      * Extracts the base color from the chat format string by finding the last color code before %MESSAGE%.
      * Supports legacy color codes, modern RGB, and legacy Bukkit RGB formats.
-     * 
+     *
+     * <p>If the segment before {@link #PLACEHOLDER_MESSAGE} ends (ignoring trailing spaces) with {@code &r} or
+     * {@code §r}, the body base is always white (e.g. {@code %factions_chat_color%} = reset for local). That runs
+     * before RGB/legacy so an earlier {@code §d} (relation) or a hex false positive in the display name does not win.
+     * Otherwise, a reverse scan treats trailing {@code §r} as white and can pick an earlier relation color if no
+     * reset at the end.</p>
+     *
      * @param format The chat format string.
      * @return BaseColorResult containing both legacy and RGB color information.
      */
@@ -128,6 +138,14 @@ public abstract class FactionChatListenerBase
         }
         
         String beforeMsg = format.substring(0, msgIdx);
+
+        // If the line ends with &r/§r immediately before %MESSAGE% (e.g. %factions_chat_color% = reset for local
+        // chat), the body should read as default/white - do not use an earlier §d from relation color, or an RGB
+        // match in the player name, as the effective base.
+        if (endsWithResetBeforeMessagePlaceholder(beforeMsg))
+        {
+            return new BaseColorResult(ChatColor.WHITE);
+        }
         
         // Find all RGB color codes (both modern and legacy formats)
         Pattern rgbPattern = Pattern.compile(RGB_REGEX);
@@ -159,7 +177,7 @@ public abstract class FactionChatListenerBase
             }
         }
         
-        // Also look for legacy color codes (§[0-9a-fA-F])
+        // Last § + qualifier before MESSAGE (scan backward). §r RESET must win over earlier §d etc. from relation color.
         int lastLegacyColorIdx = -1;
         ChatColor legacyColor = null;
         for (int i = beforeMsg.length() - 2; i >= 0; i--)
@@ -168,9 +186,15 @@ public abstract class FactionChatListenerBase
             {
                 char colorChar = beforeMsg.charAt(i + 1);
                 ChatColor chatColor = ChatColor.getByChar(colorChar);
+                if (chatColor == ChatColor.RESET)
+                {
+                    lastLegacyColorIdx = i + 2;
+                    legacyColor = ChatColor.WHITE;
+                    break;
+                }
                 if (chatColor != null && chatColor.isColor())
                 {
-                    lastLegacyColorIdx = i + 2; // Position after the color code
+                    lastLegacyColorIdx = i + 2;
                     legacyColor = chatColor;
                     break;
                 }
@@ -205,57 +229,30 @@ public abstract class FactionChatListenerBase
     }
 
     /**
-     * Strips disallowed color and formatting codes from a message (and translates remaining {@code &}).
-     * Player chat on Paper/Spigot should use {@link com.massivecraft.factionschat.chat.PermissionAwareChatMessage}
-     * instead so disallowed codes stay visible as plain text and signed content is not altered by stripping.
-     *
-     * @param message The message to process.
-     * @param permissions The ChatPermissions object containing permission flags.
-     * @return The processed message with disallowed codes removed.
+     * True if {@code beforeMsg} (text before {@link #PLACEHOLDER_MESSAGE}) ends with a legacy reset code, ignoring
+     * only trailing whitespace - i.e. the last code unit before the body is {@code &r}/{@code §r}.
      */
-    protected String stripColorFormatCodes(String message, ChatPermissions permissions)
+    private static boolean endsWithResetBeforeMessagePlaceholder(String beforeMsg)
     {
-        // Strip RGB codes if not allowed
-        if (!permissions.allowRgb)
+        if (beforeMsg == null)
         {
-            // Strip all RGB formats: modern (&#RRGGBB) and legacy Bukkit (§x§R§R§G§G§B§B)
-            message = message.replaceAll(RGB_REGEX, "");
+            return false;
         }
-
-        if (!permissions.allowColor)
+        String t = beforeMsg.stripTrailing();
+        int n = t.length();
+        if (n < 2)
         {
-            // Strip legacy color codes, but avoid touching RGB hex codes if they're allowed
-            if (permissions.allowRgb)
-            {
-                message = message.replaceAll("&(?!#)([0-9a-fA-F])", "");
-            }
-            else
-            {
-                // RGB already stripped above, safe to use simple regex
-                message = message.replaceAll("&([0-9a-fA-F])", "");
-            }
+            return false;
         }
-
-        if (!permissions.allowFormat)
+        char b = t.charAt(n - 1);
+        if (b != 'r' && b != 'R')
         {
-            message = message.replaceAll("&([lmnorLMNOR])", "");
+            return false;
         }
-
-        if (!permissions.allowMagic)
-        {
-            message = message.replaceAll("&([kK])", "");
-        }
-        
-        // Final translation step
-        return Txt.parseLegacy('&', message);
+        char a = t.charAt(n - 2);
+        return a == '§' || a == '&';
     }
-
-    /**
-     * Gets permission settings for a player's chat capabilities.
-     * 
-     * @param sender The player to check permissions for.
-     * @return ChatPermissions object containing all permission flags.
-     */
+    
     /**
      * When the message contains a MiniMessage {@code <click:run_command:…>} / {@code suggest_command:…>} payload
      * matching {@link Settings#blacklistedMiniMessageCommands}, cancels processing and notifies the sender on the main thread.
@@ -412,19 +409,48 @@ public abstract class FactionChatListenerBase
         public final ChatColor legacyColor;
         public final String hexCode; // 6-digit hex without #
         public final boolean isRgb;
-        
+
         public BaseColorResult(ChatColor legacyColor)
         {
             this.legacyColor = legacyColor;
             this.hexCode = null;
             this.isRgb = false;
         }
-        
+
         public BaseColorResult(String hexCode)
         {
             this.legacyColor = ChatColor.WHITE; // fallback
             this.hexCode = hexCode;
             this.isRgb = true;
+        }
+
+        /**
+         * § prefix to prepend before literal/disallowed spans so they match the effective base color before
+         * {@link FactionChatListenerBase#PLACEHOLDER_MESSAGE} (including {@code §x} RGB when applicable).
+         */
+        public String toLegacyPrefixString()
+        {
+            if (isRgb && hexCode != null && !hexCode.isEmpty())
+            {
+                String hex = hexCode;
+                if (hex.length() == 3)
+                {
+                    hex = "" + hex.charAt(0) + hex.charAt(0)
+                        + hex.charAt(1) + hex.charAt(1)
+                        + hex.charAt(2) + hex.charAt(2);
+                }
+                if (hex.length() != 6)
+                {
+                    return legacyColor != null ? legacyColor.toString() : "";
+                }
+                StringBuilder sb = new StringBuilder("§x");
+                for (char c : hex.toCharArray())
+                {
+                    sb.append('§').append(Character.toLowerCase(c));
+                }
+                return sb.toString();
+            }
+            return legacyColor != null ? legacyColor.toString() : "";
         }
     }
 

@@ -3,7 +3,7 @@ package com.massivecraft.factionschat.listeners;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.chat.ChatPermissions;
-import com.massivecraft.factionschat.chat.PermissionAwareChatMessage;
+import com.massivecraft.factionschat.chat.BukkitLegacyPermissionChatMessage;
 import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.factionschat.util.ColonChannelChatParser;
 import com.massivecraft.factionschat.util.ColonChannelChatParser.ParseType;
@@ -130,30 +130,30 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
 
             ChatPermissions permissions = getPlayerChatPermissions(sender);
 
-            // Apply non-relational placeholders to the format
-            String format = applyNonRelationalPlaceholders(sender, Settings.chatFormat, chatMode);
+            // Template still contains %MESSAGE% - relational placeholders and legacy & parsing must run before
+            // injecting the body, or applyRelationalPlaceholders() would run Txt.parseLegacy() on the full line and
+            // reinterpret literal &… sequences from permission-aware processing as color codes.
+            String formatTemplate = applyNonRelationalPlaceholders(sender, Settings.chatFormat, chatMode);
 
-            // Extract base color from format
-            BaseColorResult baseColorResult = extractBaseColorFromFormat(format);
-            ChatColor baseColor = baseColorResult.legacyColor;
+            BaseColorResult messageBase = extractBaseColorFromFormat(formatTemplate);
+            ChatColor baseColorForLinks = messageBase.legacyColor;
 
-            // Disallowed codes stay literal; allowed spans get & -> § and RGB expansion like before.
-            String processedMessage = PermissionAwareChatMessage.toBukkitLegacyString(message, permissions, baseColor);
-            processedMessage = processLinks(processedMessage, permissions, baseColor);
+            String processedMessage = BukkitLegacyPermissionChatMessage.toBukkitLegacyString(
+                message, permissions, messageBase.toLegacyPrefixString());
+            processedMessage = processLinks(processedMessage, permissions, baseColorForLinks);
 
-            // Replace %MESSAGE% placeholder
-            format = format.replace(PLACEHOLDER_MESSAGE, processedMessage);
-
-            // Send to each recipient with relational placeholders
             for (Player recipient : recipients)
             {
-                String personalizedFormat = applyRelationalPlaceholders(sender, recipient, format);
+                String personalizedFormat = applyRelationalPlaceholders(sender, recipient, formatTemplate);
+                personalizedFormat = personalizedFormat.replace(PLACEHOLDER_MESSAGE, processedMessage);
                 recipient.sendMessage(personalizedFormat);
             }
 
             // Always send to console (console should see all chat messages)
-            String consoleFormat = applyRelationalPlaceholders(sender, null, format);
-            Bukkit.getConsoleSender().sendMessage(consoleFormat);
+            // Strip to plain text; keep literal & if present.
+            String consoleLine = applyRelationalPlaceholders(sender, null, formatTemplate).replace(PLACEHOLDER_MESSAGE, processedMessage);
+            String consolePlain = stripAllLegacyForConsoleLog(consoleLine);
+            Bukkit.getConsoleSender().sendMessage(consolePlain);
         }
         finally
         {
@@ -329,5 +329,26 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
         // Build the final result: color code + formatting codes
         String finalColorCode = lastColorCode != null ? lastColorCode : baseColor.toString();
         return finalColorCode + activeFormattingCodes.toString();
+    }
+
+    /**
+     * Spigot console output: remove all legacy {@code §} color/format codes so logs are plain text (no intended
+     * mis-parsed color for environments that strip vs. ANSI); {@link Txt#stripColorLegacy} is applied until stable.
+     */
+    private static String stripAllLegacyForConsoleLog(String line)
+    {
+        if (line == null || line.isEmpty())
+        {
+            return line;
+        }
+        String cur = line;
+        String prev;
+        do
+        {
+            prev = cur;
+            cur = Txt.stripColorLegacy(cur);
+        }
+        while (!cur.equals(prev));
+        return cur;
     }
 }

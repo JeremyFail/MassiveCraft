@@ -123,7 +123,7 @@ TextColors:
   Faction: '<fcolor>'
   Enemy: '<fcolor>'
   Neutral: '<fcolor>'
-  Local: '§r'
+  Local: '§f'
   Global: '§6'
   Staff: '§4'
   World: '§3'

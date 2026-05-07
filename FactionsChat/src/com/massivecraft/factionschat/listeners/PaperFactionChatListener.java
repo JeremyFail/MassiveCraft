@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  *
  * <p>The message body is always run through {@link #processMessageForSender} (legacy + MiniMessage + permissions)
  * so typed content parses the same way whether or not signed chat is enabled. Secure chat compares the displayed
- * message to what the client signed; re-encoding on the server can make some clients show a “message modified”
+ * message to what the client signed; re-encoding on the server can make some clients show a "message modified"
  * indicator-that tradeoff is expected if you want full formatting on the line.</p>
  *
  * <p>Format strings (prefix, channel color before {@code %MESSAGE%}) use the same unified codec.</p>
@@ -419,6 +419,13 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
      * Processes the message content for the sender (color codes, permissions, etc.).
      * This is done once per chat message and reused for all recipients since 
      * the message content itself doesn't change per recipient.
+     * 
+     * <p><b>NOTE:</b>Reset ({@code &r}, {@code §r}, {@code <reset>}) - Legacy runs use {@link com.massivecraft.factionschat.adventure.LegacyRgbMessageCodec}
+     * and Adventure's legacy deserializer, where section reset is vanilla reset (following text is not the same as
+     * the channel "base" {@code TextColor}; it is not force-tinted back to {@code baseColor} on each span). MiniMessage
+     * {@code <r>}/{@code <reset>} segments are then merged; {@link com.massivecraft.factionschat.adventure.LegacyMiniMessageMerger} may apply
+     * {@code colorIfAbsent(baseColor)} to deserialized roots. Spigot's string path therefore does not 1:1 match Paper's
+     * tree here for every reset case.</p>
      * 
      * @param sender The player sending the message.
      * @param originalMessage The original message content from the player.
