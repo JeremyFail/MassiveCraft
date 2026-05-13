@@ -4,6 +4,7 @@ import com.massivecraft.factions.cmd.FactionsCommand;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.TypeChatMode;
+import com.massivecraft.factionschat.config.Settings;
 import com.massivecraft.massivecore.pager.Pager;
 import com.massivecraft.massivecore.util.Txt;
 
@@ -15,7 +16,7 @@ import java.util.List;
 
 /**
  * Represents the <code>/f c {channel}</code> command.
- * Switches chat channels and subcommands; quick one-off messages use {@code :channel} in chat.
+ * Switches chat channels and subcommands; quick one-off messages use {@link Settings.QuickChat#prefix} in chat.
  */
 public class CmdFactionsChat extends FactionsCommand
 {
@@ -32,8 +33,10 @@ public class CmdFactionsChat extends FactionsCommand
         addParameter(TypeChatMode.getInstance(), false, "chat mode");
         setDesc("Switches chat modes or manages other faction chat settings");
         addAliases("chat", "c");
-        
+        // Subcommands (toggle, ignore, etc.) supply extra tokens; validation would otherwise reject
+        // some subcommands before perform() because only one declared parameter slot exists.
         // Subcommands will be handled manually through the perform() method custom routing system
+        setOverflowSensitive(false);
     }
 
     @Override
@@ -41,21 +44,29 @@ public class CmdFactionsChat extends FactionsCommand
     {
         // Get the first argument, which should be a chat mode
         String firstArg = arg();
-        
+
+        // Check if it's a subcommand first
+        if (firstArg != null && isSubcommand(firstArg))
+        {
+            routeToSubcommand(firstArg);
+            return;
+        }
+
+        // Not a subcommand - Console cannot switch chat modes, display error indicating as such
+        if (msender.isConsole())
+        {
+            msender.message(Txt.parse("<b>You cannot switch chat modes as the console, only players can do that."));
+            return;
+        }
+
         // If no arguments provided, show current chat mode and help info
         if (firstArg == null)
         {
             ChatMode currentMode = ChatMode.getChatModeForPlayer(msender.getPlayer());
             msender.message(Txt.parse("<n>Current chat mode: <k>" + currentMode.name().toLowerCase()));
-            msender.message(Txt.parse("<n>Use <k>/f c <mode><n> to switch modes, or <k>:<mode><n> / <k>:<letter><n> in chat for a one-off message or toggle."));
+            msender.message(Txt.parse("<n>Use <k>/f c <mode><n> to switch modes, or <k>%s<mode><n> / <k>%s<letter><n> in chat for a one-off message or toggle.",
+                Settings.QuickChat.prefix, Settings.QuickChat.prefix));
             msender.message(Txt.parse("<n>Use <k>/f c help<n> to see all available commands and modes."));
-            return;
-        }
-
-        // Check if it's a subcommand first
-        if (isSubcommand(firstArg))
-        {
-            routeToSubcommand(firstArg);
             return;
         }
 
@@ -202,13 +213,12 @@ public class CmdFactionsChat extends FactionsCommand
         List<String> allArgs = this.getArgs();
         List<String> childArgs = new ArrayList<>();
 
-        // Split args for child command and add to list
-        if (allArgs.size() >= 2 && allArgs.get(1) != null)
+        // Everything after the subcommand keyword (first token) belongs to the child.
+        if (allArgs.size() >= 2)
         {
-            String[] splitArgs = allArgs.get(1).split("\\s+");
-            for (String arg : splitArgs)
+            for (int i = 1; i < allArgs.size(); i++)
             {
-                childArgs.add(arg);
+                childArgs.add(allArgs.get(i));
             }
         }
         
