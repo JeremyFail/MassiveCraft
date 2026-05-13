@@ -35,7 +35,7 @@ public class CmdFactionsChatUnignore extends FactionsCommand
     public void perform()
     {
         // Check basic permission
-        if (!msender.getPlayer().hasPermission("factions.chat.ignore"))
+        if (msender.isPlayer() && !msender.getPlayer().hasPermission("factions.chat.ignore"))
         {
             msender.message(Txt.parse("<b>You don't have permission to use chat ignore commands."));
             return;
@@ -77,9 +77,16 @@ public class CmdFactionsChatUnignore extends FactionsCommand
             ignoringPlayerUuid = managedPlayer.getUniqueId();
             targetPlayerName = secondArg;
         }
+        // Regular command: /f c unignore {player}
         else
         {
-            // Regular command: /f c unignore {player}
+            // Console cannot unignore players, only manage other players' ignore lists
+            if (msender.isConsole())
+            {
+                msender.message(Txt.parse("<b>You cannot unignore players as the console, only manage other players' ignore lists."));
+                return;
+            }
+
             ignoringPlayerUuid = msender.getPlayer().getUniqueId();
             targetPlayerName = firstArg;
         }

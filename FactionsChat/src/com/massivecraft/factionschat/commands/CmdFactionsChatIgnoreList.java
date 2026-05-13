@@ -131,7 +131,7 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
         if (otherPlayerName != null)
         {
             // Validate admin permission
-            if (!msender.getPlayer().hasPermission("factions.chat.ignore.admin"))
+            if (msender.isPlayer() && !msender.getPlayer().hasPermission("factions.chat.ignore.admin"))
             {
                 msender.message(Txt.parse("<b>You don't have permission to view the ignore list of other players."));
                 return;
@@ -149,9 +149,16 @@ public class CmdFactionsChatIgnoreList extends FactionsCommand
             targetPlayerUuid = targetPlayer.getUniqueId();
             targetPlayerName = targetPlayer.getName();
         }
+        // Regular command: /f c ignorelist [page]
         else
         {
-            // Regular command: /f c ignorelist [page]
+            // Console cannot manage their own ignore list, only other players' ignore lists
+            if (msender.isConsole())
+            {
+                msender.message(Txt.parse("<b>You cannot manage your own ignore list as the console, only other players' ignore lists."));
+                return;
+            }
+
             targetPlayerUuid = msender.getPlayer().getUniqueId();
             targetPlayerName = msender.getPlayer().getName();
         }

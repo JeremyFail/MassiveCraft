@@ -21,7 +21,7 @@ public class CmdFactionsChatReload extends FactionsCommand
     public void perform()
     {
         // Check permission
-        if (!msender.getPlayer().hasPermission("factions.chat.reload"))
+        if (msender.isPlayer() && !msender.getPlayer().hasPermission("factions.chat.reload"))
         {
             msender.message(Txt.parse("<b>You don't have permission to reload FactionsChat configuration."));
             return;

@@ -32,7 +32,7 @@ public class CmdFactionsChatToggle extends FactionsCommand
     public void perform()
     {
         // Check basic permission
-        if (!msender.getPlayer().hasPermission("factions.chat.toggle"))
+        if (msender.isPlayer() && !msender.getPlayer().hasPermission("factions.chat.toggle"))
         {
             msender.message(Txt.parse("<b>You don't have permission to use chat toggle commands."));
             return;
@@ -58,7 +58,7 @@ public class CmdFactionsChatToggle extends FactionsCommand
         if (secondArg != null)
         {
             // Admin command: /f c toggle {player} {chatMode}
-            if (!msender.getPlayer().hasPermission("factions.chat.toggle.admin"))
+            if (msender.isPlayer() && !msender.getPlayer().hasPermission("factions.chat.toggle.admin"))
             {
                 msender.message(Txt.parse("<b>You don't have permission to manage disabled chat modes of other players."));
                 return;
@@ -76,9 +76,16 @@ public class CmdFactionsChatToggle extends FactionsCommand
             targetPlayerName = targetPlayer.getName();
             chatModeArg = secondArg;
         }
+        // Regular command: /f c toggle {chatMode}
         else
         {
-            // Regular command: /f c toggle {chatMode}
+            // Console cannot toggle chat modes for themself, only for other players
+            if (msender.isConsole())
+            {
+                msender.message(Txt.parse("<b>You cannot toggle chat modes for the console, only for other players."));
+                return;
+            }
+
             targetPlayerUuid = msender.getPlayer().getUniqueId();
             targetPlayerName = msender.getPlayer().getName();
             chatModeArg = firstArg;
