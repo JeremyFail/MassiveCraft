@@ -22,7 +22,7 @@ import java.util.List;
 public class Settings 
 {
     // Configuration file constants
-    public static final int DEFAULT_CONFIG_VERSION = 3;
+    public static final int DEFAULT_CONFIG_VERSION = 4;
     public static final String CONFIG_FILE_NAME = "config.yml";
     public static final String BACKUP_CONFIG_FILE_NAME = "config.yml.bak";
     public static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%&r> %factions_chat_color%%MESSAGE%";
@@ -88,6 +88,38 @@ public class Settings
     public static int localChatRange;
     /** When true, Paper uses cancelled-chat delivery; when false, Paper uses a custom chat renderer (signed path). Ignored on Spigot. */
     public static boolean disableChatReporting;
+
+    /**
+     * Paper only: keep Adventure components from upstream plugins while routing on plain text; parse markup in text leaves.
+     * When false, the chat body is rebuilt only from plain text (legacy behavior).
+     */
+    public static boolean preserveUpstreamChatComponents;
+
+    /**
+     * Leading prefix + channel token for one-off or toggle messages (configured under {@code ChatSettings.QuickChat}).
+     */
+    public static class QuickChat
+    {
+        /** Plain-text prefix that starts a quick channel token (default {@code :}). Must be non-empty ASCII-ish; no whitespace. */
+        public static String prefix = ":";
+        /**
+         * When true, unknown/disallowed quick-chat modes show {@code Invalid chat mode or command.} and cancel the line.
+         * When false, those lines are sent as normal chat on the player's current channel (full text preserved).
+         */
+        public static boolean errorOnInvalidMode;
+
+        /**
+         * @param chatSettings {@code ChatSettings} section from config.yml
+         */
+        public static void initialize(ConfigurationSection chatSettings)
+        {
+            ConfigurationSection section = chatSettings == null
+                ? null
+                : chatSettings.getConfigurationSection("QuickChat");
+            prefix = normalizeQuickChatPrefix(section == null ? null : section.getString("Prefix"));
+            errorOnInvalidMode = section != null && section.getBoolean("ErrorOnInvalidMode", false);
+        }
+    }
 
     /**
      * First-token command roots to block inside MiniMessage {@code <click:run_command:…>} / {@code suggest_command} tags.
@@ -225,6 +257,9 @@ public class Settings
         allowUrlUnderline = config.getBoolean("ChatSettings.AllowClickableLinksUnderline", true);
         localChatRange = config.getInt("ChatSettings.LocalChatRange", 1000);
         disableChatReporting = config.getBoolean("ChatSettings.DisableChatReporting", false);
+        preserveUpstreamChatComponents = config.getBoolean("ChatSettings.PreserveUpstreamChatComponents", true);
+
+        QuickChat.initialize(config.getConfigurationSection("ChatSettings"));
 
         if (!config.contains("ChatSettings.BlacklistedMiniMessageCommands"))
         {
@@ -260,5 +295,34 @@ public class Settings
             s = s.replace("<fcolor>", fcolorReplacement);
         }
         return Txt.parseLegacy('&', s);
+    }
+
+    /**
+     * Sanitizes {@link QuickChat#prefix}: empty, null, or whitespace-containing values fall back to {@code ":"}.
+     */
+    private static String normalizeQuickChatPrefix(String raw)
+    {
+        if (raw == null)
+        {
+            return ":";
+        }
+        String t = raw.trim();
+        if (t.isEmpty())
+        {
+            return ":";
+        }
+        for (int i = 0; i < t.length(); i++)
+        {
+            if (Character.isWhitespace(t.charAt(i)))
+            {
+                return ":";
+            }
+        }
+        final int maxLen = 32;
+        if (t.length() > maxLen)
+        {
+            return t.substring(0, maxLen);
+        }
+        return t;
     }
 }

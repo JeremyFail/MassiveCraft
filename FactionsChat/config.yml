@@ -5,7 +5,7 @@
 #           Main Configuration File          #
 #                                            #
 ##############################################
-version: 3
+version: 4
 
 
 
@@ -17,7 +17,7 @@ ChatSettings:
   # On Paper: §, &, hex, and MiniMessage tags are parsed. 
   # On Spigot: legacy §, &, and hex tags are parsed. Minimessage is not supported.
   #
-  # Supports PlaceholderAPI placeholders if PAPI is installed.
+  # Supports PlaceholderAPI (PAPI) placeholders if PAPI is installed.
   # Also supports modifiers such as |rp (right padding) or |lp (left padding), which 
   # conditionally add right/left padding (a space) if the placeholder is not empty.
   # See the wiki for more details on the PAPI integration:
@@ -30,10 +30,13 @@ ChatSettings:
   # If true, allows color codes/formatting in chat messages (if players also have permission to use them)
   AllowColorCodes: true
   # If true, allows clickable links in chat messages (if players also have permission to send them)
+  # This is separate from specific MiniMessage link parsing - this is a general setting for all chat messages
+  # where if a link is detected, it will be allowed to be clicked.
   AllowClickableLinks: true
-  # If true, will underline clickable links in chat messages
+  # If true, will underline clickable links in chat messages (from links detected via the AllowClickableLinks setting)
   AllowClickableLinksUnderline: true
-  # Determines the range (in blocks) for local chat visibility
+  # Determines the range (in blocks) for local chat visibility. 
+  # Players within this range will see the chat message.
   LocalChatRange: 1000
   # If true, chat reporting for messages sent by players is completely disabled.
   # If false, chat reporting will be enabled, however, if you allow players to use color codes or formatting,
@@ -42,6 +45,20 @@ ChatSettings:
   # want this behavior, you should not give players permission to use color codes or formatting.
   # NOTE: This setting only applies to Paper servers. For Spigot servers, chat reporting is always disabled.
   DisableChatReporting: false
+  # Paper only: keep Adventure components already on the chat message (from plugins that ran earlier), while routing
+  # (quick-chat prefix + channel token, etc.) still uses plain text. This allows for greater compatibility with other chat plugins, but
+  # may cause issues if that plugin is also parsing text in a similar way to FactionsChat.
+  # When false, the chat body is rebuilt only from plain text, meaning any processing/parsing that occurred from other
+  # plugins that ran prior to FactionsChat's parsing will effectively be discarded.
+  PreserveUpstreamChatComponents: true
+  # Quick chat: start a message with Prefix + channel token (+ optional body) for a one-off send or mode toggle.
+  # Prefix must not contain whitespace; empty or invalid values fall back to ":".
+  QuickChat:
+    # Plain-text prefix (default ":"). Example alternatives: "#" or ">>"
+    Prefix: ':'
+    # When false (default), unknown modes, no permission, or malformed quick-chat lines are sent as normal chat (full line, current channel).
+    # When true, those cases cancel the message and show "Invalid chat mode or command."
+    ErrorOnInvalidMode: false
   # On Paper (MiniMessage), block chat lines that contain <click:run_command:…> or <click:suggest_command:…> whose
   # command matches any entry below. Leading slashes are ignored.
   # Set to [] to disable. If this key is omitted entirely, a built-in default list is used.
