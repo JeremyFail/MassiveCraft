@@ -3,6 +3,8 @@ package com.massivecraft.factionschat.listeners;
 import com.massivecraft.factionschat.ChatMode;
 import com.massivecraft.factionschat.FactionsChat;
 import com.massivecraft.factionschat.adventure.AdventureChatPermissionSanitizer;
+import com.massivecraft.factionschat.adventure.ChatMarkupLeafExpander;
+import com.massivecraft.factionschat.adventure.ComponentLeadingPlainStripper;
 import com.massivecraft.factionschat.adventure.LegacyRgbMessageCodec;
 import com.massivecraft.factionschat.adventure.PaperAdventureChatCodec;
 import com.massivecraft.factionschat.chat.ChatPermissions;
@@ -28,6 +30,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 import java.awt.Color;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -45,8 +48,10 @@ import java.util.stream.Collectors;
  * (no {@code chat.type.text} wrapper - that key is {@code <%s> %s} in en_us and adds unwanted outer
  * brackets around an already-decorated header).</p>
  *
- * <p>The message body is always run through {@link #processMessageForSender} (legacy + MiniMessage + permissions)
- * so typed content parses the same way whether or not signed chat is enabled. Secure chat compares the displayed
+ * <p>The message body uses upstream Adventure components when {@link Settings#preserveUpstreamChatComponents} is true:
+ * plain text is still used for routing (colon channels); literal markup in text leaves is parsed like flat chat.
+ * When that setting is false, the body is rebuilt only from plain text via {@link #processMessageForSender}.
+ * Secure chat compares the displayed
  * message to what the client signed; re-encoding on the server can make some clients show a "message modified"
  * indicator-that tradeoff is expected if you want full formatting on the line.</p>
  *
@@ -145,8 +150,9 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             String preParsedFormat = applyNonRelationalPlaceholders(sender, Settings.chatFormat, chatMode);
             TextColor baseColor = getBaseColorFromFormat(preParsedFormat);
 
-            // Process the message to apply any formatting (this is the same for all recipients)
-            Component processedMessageComponent = processMessageForSender(sender, messagePlain, baseColor, chatMode, senderPerms);
+            final String plainFullLine = plainSerializer.serialize(event.message());
+            Component processedMessageComponent = resolveProcessedMessageBody(
+                sender, event.message(), plainFullLine, messagePlain, colonQuick, baseColor, chatMode, senderPerms);
 
             // Filter and send to viewers
             for (Audience audience : event.viewers())
@@ -235,7 +241,9 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         final TextColor baseColor = getBaseColorFromFormat(
             preBeforeNonRel + PLACEHOLDER_MESSAGE + formatAfterMessage);
 
-        final Component messageBodyFinal = processMessageForSender(sender, messagePlain, baseColor, chatMode, senderPerms);
+        final String plainFullLine = plainSerializer.serialize(event.message());
+        final Component messageBodyFinal = resolveProcessedMessageBody(
+            sender, event.message(), plainFullLine, messagePlain, colonQuick, baseColor, chatMode, senderPerms);
 
         // Remove recipients who should not receive the message
         event.viewers().removeIf(audience ->
@@ -291,7 +299,9 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
 
         // Extract the base color from the chat format
         final TextColor baseColor = getBaseColorFromFormat(preParsedFormat);
-        final Component messageBodyFinal = processMessageForSender(sender, messagePlain, baseColor, chatMode, senderPerms);
+        final String plainFullLine = plainSerializer.serialize(event.message());
+        final Component messageBodyFinal = resolveProcessedMessageBody(
+            sender, event.message(), plainFullLine, messagePlain, colonQuick, baseColor, chatMode, senderPerms);
 
         // Remove recipients who should not receive the message
         event.viewers().removeIf(audience ->
@@ -449,6 +459,84 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         }
 
         return AdventureChatPermissionSanitizer.sanitize(messageComponent, permissions, baseColor);
+    }
+
+    /**
+     * Builds the per-line message body: either preserves {@code paperMessage} (minus a colon-prefix when {@code colonQuick})
+     * and parses markup in text leaves, or flattens to plain text only when {@link Settings#preserveUpstreamChatComponents}
+     * is false or the component prefix strip fails.
+     *
+     * <p>After leaf expansion, {@link #applyChannelBaseColorWhereAbsent(Component, TextColor)} reapplies the format-derived
+     * channel {@code baseColor} on nodes that have no explicit color — matching the old all-string path where
+     * {@link PermissionAwareChatMessage} always passed {@code baseColor} into the codec.</p>
+     */
+    private Component resolveProcessedMessageBody(
+        Player sender,
+        Component paperMessage,
+        String plainFullLine,
+        String bodyPlain,
+        boolean colonQuick,
+        TextColor baseColor,
+        ChatMode chatMode,
+        ChatPermissions senderPerms)
+    {
+        if (!Settings.preserveUpstreamChatComponents)
+        {
+            return processMessageForSender(sender, bodyPlain, baseColor, chatMode, senderPerms);
+        }
+        if (bodyPlain == null)
+        {
+            return Component.empty();
+        }
+        Component body = paperMessage;
+        if (colonQuick)
+        {
+            if (!plainFullLine.endsWith(bodyPlain))
+            {
+                body = null;
+            }
+            else
+            {
+                String prefix = plainFullLine.substring(0, plainFullLine.length() - bodyPlain.length());
+                body = ComponentLeadingPlainStripper.stripPrefix(paperMessage, prefix);
+            }
+        }
+        if (body == null)
+        {
+            return processMessageForSender(sender, bodyPlain, baseColor, chatMode, senderPerms);
+        }
+        body = ChatMarkupLeafExpander.expand(body, baseColor, senderPerms, legacyRgbCodec);
+        body = applyChannelBaseColorWhereAbsent(body, baseColor);
+        if (senderPerms.allowUrl)
+        {
+            body = processLinksInComponent(body, senderPerms.underlineUrl);
+        }
+        return AdventureChatPermissionSanitizer.sanitize(body, senderPerms, baseColor);
+    }
+
+    /**
+     * Applies {@link Component#colorIfAbsent(TextColor)} depth-first so unchanged upstream leaves (no markup)
+     * pick up the chat-format channel tint. Parsed spans that already resolved an explicit color are left unchanged.
+     *
+     * @param component subtree after {@link ChatMarkupLeafExpander#expand}
+     * @param baseColor color taken from the segment before {@code %MESSAGE%} in the format string; may be {@code null}
+     * @return tree with default tint filled in where Adventure had no color set
+     */
+    private Component applyChannelBaseColorWhereAbsent(Component component, TextColor baseColor)
+    {
+        if (baseColor == null)
+        {
+            return component;
+        }
+        Component self = component.colorIfAbsent(baseColor);
+        if (self.children().isEmpty())
+        {
+            return self;
+        }
+        List<Component> mapped = self.children().stream()
+            .map(c -> applyChannelBaseColorWhereAbsent(c, baseColor))
+            .collect(Collectors.toList());
+        return self.children(mapped);
     }
 
     /**
