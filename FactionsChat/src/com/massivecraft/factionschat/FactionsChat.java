@@ -45,7 +45,7 @@ public class FactionsChat extends JavaPlugin
 
     /**
      * While handling a single outgoing chat message, placeholders resolve against this channel when set
-     * (e.g. {@code :faction hello} should show faction prefix for that send only).
+     * (e.g. quick-chat {@code :faction hello} with default prefix should show faction prefix for that send only).
      */
     private static final ThreadLocal<ChatMode> CHAT_MODE_PLACEHOLDER_OVERRIDE = new ThreadLocal<>();
 
