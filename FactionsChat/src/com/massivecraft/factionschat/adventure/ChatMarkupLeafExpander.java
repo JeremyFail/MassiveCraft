@@ -62,7 +62,7 @@ public final class ChatMarkupLeafExpander
 
             if (!content.isEmpty() && mightContainParsableMarkup(content))
             {
-                // Leaf still has typed codes or tags as raw characters — fold through the unified chat codec.
+                // Leaf still has typed codes or tags as raw characters - fold through the unified chat codec.
                 Component parsed = PermissionAwareChatMessage.toAdventureComponent(content, baseColor, permissions, legacyRgb);
                 Component merged = parsed;
                 // Plain iteration order is text content then children; parsed replaces content only.

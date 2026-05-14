@@ -467,7 +467,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
      * is false or the component prefix strip fails.
      *
      * <p>After leaf expansion, {@link #applyChannelBaseColorWhereAbsent(Component, TextColor)} reapplies the format-derived
-     * channel {@code baseColor} on nodes that have no explicit color — matching the old all-string path where
+     * channel {@code baseColor} on nodes that have no explicit color - matching the old all-string path where
      * {@link PermissionAwareChatMessage} always passed {@code baseColor} into the codec.</p>
      */
     private Component resolveProcessedMessageBody(

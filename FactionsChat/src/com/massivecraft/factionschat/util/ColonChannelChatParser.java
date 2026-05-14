@@ -18,13 +18,13 @@ public final class ColonChannelChatParser
 
     public enum ParseType
     {
-        /** No quick-chat prefix — use the player's stored chat mode and the full message text. */
+        /** No quick-chat prefix - use the player's stored chat mode and the full message text. */
         NONE,
-        /** {@code prefix + mode + body} — send {@link #getMessageBody()} on {@link #getTargetMode()}. */
+        /** {@code prefix + mode + body} - send {@link #getMessageBody()} on {@link #getTargetMode()}. */
         QUICK_MESSAGE,
-        /** {@code prefix + mode} with no body — switch stored mode, do not send chat. */
+        /** {@code prefix + mode} with no body - switch stored mode, do not send chat. */
         TOGGLE,
-        /** Quick-chat rejected — cancel chat and show {@link ParseResult#getInvalidReason()}. */
+        /** Quick-chat rejected - cancel chat and show {@link ParseResult#getInvalidReason()}. */
         INVALID
     }
 
@@ -69,12 +69,12 @@ public final class ColonChannelChatParser
      *
      * <p>Syntax (default prefix {@code :}):</p>
      * <ul>
-     *   <li>No leading prefix — {@link ParseType#NONE}; body is the full line.</li>
-     *   <li>{@code prefix + token} only — {@link ParseType#TOGGLE}.</li>
-     *   <li>{@code prefix + token + remainder} — {@link ParseType#QUICK_MESSAGE}.</li>
-     *   <li>Malformed quick-chat or unknown/disallowed token — {@link ParseType#INVALID} if
+     *   <li>No leading prefix - {@link ParseType#NONE}; body is the full line.</li>
+     *   <li>{@code prefix + token} only - {@link ParseType#TOGGLE}.</li>
+     *   <li>{@code prefix + token + remainder} - {@link ParseType#QUICK_MESSAGE}.</li>
+     *   <li>Malformed quick-chat or unknown/disallowed token - {@link ParseType#INVALID} if
      *       {@link Settings.QuickChat#errorOnInvalidMode}; else {@link ParseType#NONE} with the full line.</li>
-     *   <li>Token that is not letter/digit/underscore (e.g. emoticons with {@code :}) — always {@link ParseType#NONE}.</li>
+     *   <li>Token that is not letter/digit/underscore (e.g. emoticons with {@code :}) - always {@link ParseType#NONE}.</li>
      * </ul>
      */
     public static ParseResult parse(Player player, String plainText)
