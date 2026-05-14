@@ -88,6 +88,9 @@
         <!-- https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI -->
         <massivePlaceholderAPIVersion>2.11.7</massivePlaceholderAPIVersion>
 
+        <!-- https://github.com/ez-plugins/teams-api -->
+        <massiveTeamsApiVersion>1.4.1</massiveTeamsApiVersion>
+
         <!-- https://repo.bluecolored.de/ -->
         <massiveBlueMapVersion>2.7.7</massiveBlueMapVersion>
 
@@ -172,6 +175,11 @@
         <repository>
             <id>Modrinth</id>
             <url>https://api.modrinth.com/maven</url>
+        </repository>
+        <!-- TeamsAPI (Jitpack) -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
@@ -567,6 +575,12 @@
               <groupId>me.clip</groupId>
               <artifactId>placeholderapi</artifactId>
               <version>${massivePlaceholderAPIVersion}</version>
+              <scope>provided</scope>
+            </dependency>
+            <dependency>
+              <groupId>com.github.ez-plugins</groupId>
+              <artifactId>teams-api</artifactId>
+              <version>${massiveTeamsApiVersion}</version>
               <scope>provided</scope>
             </dependency>
 
