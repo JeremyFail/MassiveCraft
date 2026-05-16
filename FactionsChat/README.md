@@ -12,8 +12,10 @@ FactionsChat is a Minecraft Spigot/Paper server plugin that integrates with Mass
   Supports Ally, Truce, Faction, Enemy, Neutral, Local, Global, Staff, and World chat channels.
 - **Channel Permissions:**  
   Access to each chat channel is controlled by permissions (e.g. `factionschat.ally`, `factionschat.faction`, etc).
-- **Channel Switching and Quick Messaging:**  
-  Use `/f c <channel>` to switch your active chat mode, or `/f c <channel> <message>` to send a one-off message.
+- **Channel Switching:**  
+  Use `/f c <channel>` or `:<channel>` to switch your active chat mode (colon prefix configurable).
+- **Quick Messaging:**  
+  Use `:<channel> <message>` to send a one-off message without switching your active chat mode (colon prefix configurable).
 - **Customizable Prefixes and Colors:**  
   Prefixes and text colors for each channel are configurable in `config.yml`.
 - **Integration with Essentials and DiscordSRV:**  
@@ -33,17 +35,24 @@ Please read the [Wiki](https://factions.wiki/FactionsChat) for details about sup
 
 ## Requirements
 
-As a Factions add-on, this plugin requires both MassiveCore and Factions, and has optional requirements if you wish to use other integration features that this plugin supports.
+As a Factions add-on, this plugin requires a supported version of Factions, and has optional requirements if you wish to use other integration features that this plugin supports.
 
-- MassiveCore
-- Factions
+- Factions - we recommend [Factions3 Renewed]()
 - (Optional) [EssentialsX](https://essentialsx.net/)
 - (Optional) [DiscordSRV](https://modrinth.com/plugin/discordsrv)
 - (Optional) [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) for advanced chat formatting and placeholder support
 
+## How do I download FactionsChat?
+
+Please visit the [Releases Page](https://github.com/JeremyFail/MassiveCraft/releases) and download the latest version. Ensure you have a supported version of Factions installed, then drop it in your plugins folder and restart your server.
+
+## I found a bug or have a feature suggestion - where do I report it?
+
+Please visit the [Issues Page](https://github.com/JeremyFail/MassiveCraft/issues) and fill out a new issue.
+
 ## Compilation
 
-See the [main README](../README.md) for instructions on compiling the plugin.
+Please read the guide contained in the root [MassiveCraft Repository](https://github.com/JeremyFail/MassiveCraft) if you want to compile the source of this plugin.
 
 ## About
 This plugin is based on the plugin `Factions3Chat`, created in 2020 by eirikh1996 for the original Factions3 by Madus. It has been rewritten in Java (from the original's Kotlin) and updated/extended/modified to be part of the MassiveCraft projects that are part of this repository.
