@@ -63,6 +63,7 @@ import com.massivecraft.factions.integration.map.dynmap.IntegrationDynmap;
 import com.massivecraft.factions.integration.map.pl3xmap.IntegrationPl3xMap;
 import com.massivecraft.factions.integration.map.squaremap.IntegrationSquareMap;
 import com.massivecraft.factions.integration.placeholderapi.IntegrationPlaceholderAPI;
+import com.massivecraft.factions.integration.teamsapi.IntegrationTeamsApi;
 import com.massivecraft.factions.integration.worldguard.IntegrationWorldGuard;
 import com.massivecraft.factions.mixin.PowerMixin;
 import com.massivecraft.factions.task.TaskFlagPermCreate;
@@ -197,7 +198,8 @@ public class Factions extends MassivePlugin
 			IntegrationDynmap.class,
 			IntegrationBlueMap.class,
 			IntegrationSquareMap.class,
-			IntegrationPl3xMap.class
+			IntegrationPl3xMap.class,
+			IntegrationTeamsApi.class
 		);
 	}
 
