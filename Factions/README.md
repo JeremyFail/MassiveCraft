@@ -6,6 +6,8 @@
 
 Factions is a comprehensive land claiming and faction warfare plugin for Minecraft Spigot/Paper servers. It provides players with the ability to create factions, claim territory, manage relationships with other factions, and engage in strategic gameplay.
 
+This version is a fork of [Factions3](https://github.com/magnusulf/Factions), updated and expanded for modern Minecraft versions.
+
 For more details, configuration instructions, permissions, and more, please [Visit the Wiki](https://factions.wiki/Factions).
 
 ## How do I download Factions?

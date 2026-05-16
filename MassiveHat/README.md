@@ -6,6 +6,8 @@
 
 MassiveHat is a block-hat plugin for Minecraft Spigot/Paper servers. It lets players wear blocks (and optionally other items like banners) on their heads as hats, and you equip the block like a regular helmet.
 
+This version is a fork of [MassiveHat](https://github.com/MassiveCraft/MassiveHat), updated and expanded for modern Minecraft versions.
+
 For more details, configuration instructions, permissions, and more, please [Visit the Wiki](https://factions.wiki/MassiveHat).
 
 ## How do I download MassiveHat?

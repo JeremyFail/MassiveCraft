@@ -5,6 +5,9 @@
 ## What is MassiveCore?
 
 MassiveCore is a dependency library that is required to run various MassiveCraft plugins contained in this project.
+
+This version is a fork of [MassiveCore3](https://github.com/magnusulf/MassiveCore), updated and expanded for modern Minecraft versions.
+
 For more details, configuration instructions, permissions, and more, please [Visit the Wiki](https://factions.wiki/MassiveCore).
 
 ## How do I download MassiveCore?

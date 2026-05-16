@@ -6,6 +6,8 @@
 
 MassiveBooks is a book-focused plugin for Minecraft Spigot/Paper servers. It adds better display names for books, copying and unlocking books, server-saved books, in-game libraries using item frames, and powertools (books that run commands or say messages when used).
 
+This version is a fork of [MassiveBooks](https://github.com/MassiveCraft/MassiveBooks), updated and expanded for modern Minecraft versions.
+
 For more details, configuration instructions, permissions, and more, please [Visit the Wiki](https://factions.wiki/MassiveBooks).
 
 ## How do I download MassiveBooks?

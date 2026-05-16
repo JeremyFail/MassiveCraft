@@ -6,6 +6,8 @@
 
 CreativeGates is a simple, powerful portal plugin for Minecraft Spigot/Paper servers. It allows players to create teleportation gates and build gate networks without running a single command.
 
+This version is a fork of [CreativeGates3](https://github.com/magnusulf/CreativeGates), updated and expanded for modern Minecraft versions.
+
 For more details, configuration instructions, permissions, and more, please [Visit the Wiki](https://factions.wiki/CreativeGates).
 
 ## How do I download CreativeGates?
