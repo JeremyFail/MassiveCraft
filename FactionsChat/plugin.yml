@@ -5,8 +5,7 @@ website: ${project.url}
 description: ${project.description}
 authors: [eirikh1996, Ymerejliaf]
 api-version: 1.21
-depend: [MassiveCore, Factions]
-softdepend: [DiscordSRV, Essentials, PlaceholderAPI]
+softdepend: [Factions, MassiveCore, DiscordSRV, Essentials, PlaceholderAPI]
 
 permissions:
   # -------------------------------------------- #

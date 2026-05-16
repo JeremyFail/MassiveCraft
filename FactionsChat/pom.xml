@@ -10,7 +10,7 @@
     </parent>
 
     <!-- Basics -->
-    <groupId>com.massivecraft.factionschat</groupId>
+    <groupId>com.failprooftech.factionschat</groupId>
     <artifactId>FactionsChat</artifactId>
     <packaging>jar</packaging>
 
