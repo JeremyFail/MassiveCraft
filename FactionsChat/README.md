@@ -44,11 +44,11 @@ As a Factions add-on, this plugin requires a supported version of Factions, and 
 
 ## How do I download FactionsChat?
 
-Please visit the [Releases Page](https://github.com/JeremyFail/MassiveCraft/releases) and download the latest version. Ensure you have a supported version of Factions installed, then drop it in your plugins folder and restart your server.
+Please visit the [MassiveCraft Releases Page](https://github.com/JeremyFail/MassiveCraft/releases) and download the latest version. Ensure you have a supported version of Factions installed, then drop it in your plugins folder and restart your server.
 
 ## I found a bug or have a feature suggestion - where do I report it?
 
-Please visit the [Issues Page](https://github.com/JeremyFail/MassiveCraft/issues) and fill out a new issue.
+Please visit the [MassiveCraft Issues Page](https://github.com/JeremyFail/MassiveCraft/issues) and fill out a new issue.
 
 ## Compilation
 
