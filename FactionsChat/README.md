@@ -37,7 +37,10 @@ Please read the [Wiki](https://factions.wiki/FactionsChat) for details about sup
 
 As a Factions add-on, this plugin requires a supported version of Factions, and has optional requirements if you wish to use other integration features that this plugin supports.
 
-- Factions - we recommend [Factions3 Renewed]()
+- Factions - we recommend [Factions3 Renewed](https://github.com/JeremyFail/MassiveCraft/releases)
+  
+  Other supported Factions plugins are:
+    - [PvPIndex-Factions](https://github.com/PVP-Index/pvpindex-factions)
 - (Optional) [EssentialsX](https://essentialsx.net/)
 - (Optional) [DiscordSRV](https://modrinth.com/plugin/discordsrv)
 - (Optional) [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) for advanced chat formatting and placeholder support

@@ -43,7 +43,7 @@ public class GenericFactionsCommandRegistrar implements FactionsCommandRegistrar
         if (fCmd == null)
         {
             plugin.getLogger().warning(
-                "[FactionsChat] Could not find a /factions or /f PluginCommand to hook into. " +
+                "Could not find a /factions or /f PluginCommand to hook into. " +
                 "The /f c subcommand will not be available. " +
                 "If your Factions plugin uses a non-standard command name, please report this.");
             return;
@@ -83,7 +83,7 @@ public class GenericFactionsCommandRegistrar implements FactionsCommandRegistrar
             return null;
         });
 
-        plugin.getLogger().info("[FactionsChat] Hooked into /" + fCmd.getName() + " for /f c subcommand.");
+        plugin.getLogger().info("Hooked into /" + fCmd.getName() + " for /f c subcommand.");
     }
 
     @Override

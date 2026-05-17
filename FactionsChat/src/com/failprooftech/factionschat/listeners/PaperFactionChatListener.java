@@ -242,6 +242,21 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             preBeforeNonRel + PLACEHOLDER_MESSAGE + formatAfterMessage);
 
         final String plainFullLine = plainSerializer.serialize(event.message());
+
+        // Check if event.message() was modified by an upstream plugin (e.g. EssentialsChat parsing &codes).
+        // A plain message from the client would be a single TextComponent with the full text.
+        // If it has children or color, another plugin already modified it.
+        final boolean upstreamModified = event.message().children().size() > 0
+            || event.message().style().color() != null;
+
+        // Determine whether the message body needs to be rebuilt from scratch (markup codes present,
+        // or preserveUpstreamChatComponents is disabled). When false (plain text, upstream path), we
+        // use the signed messageComponent argument from the renderer callback so Paper can preserve
+        // the player's chat-signing / reporting status. When true the body is rebuilt from plain text
+        // and is inherently unsigned — that's an acceptable tradeoff for colour-formatted messages.
+        final boolean messageBodyTransformed = !Settings.preserveUpstreamChatComponents
+            || ChatMarkupLeafExpander.mightContainParsableMarkup(messagePlain);
+
         final Component messageBodyFinal = resolveProcessedMessageBody(
             sender, event.message(), plainFullLine, messagePlain, colonQuick, baseColor, chatMode, senderPerms);
 
@@ -262,11 +277,20 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
 
         final String preBeforeFinal = preBeforeNonRel;
         final String preAfterFinal = preAfterNonRel;
+        final TextColor baseColorFinal = baseColor;
 
         event.renderer((source, sourceDisplayName, messageComponent, viewer) ->
         {
             Player recipientPlayer = viewer instanceof Player ? (Player) viewer : null;
-            return buildFormattedChatLine(source, recipientPlayer, preBeforeFinal, preAfterFinal, messageBodyFinal);
+            // Plain text: wrap the signed messageComponent with baseColor so the message
+            // inherits the channel tint while keeping the signed reference intact for Paper.
+            // Markup messages: use the pre-processed body (signed ref is lost, but colours work).
+            Component body = messageBodyTransformed
+                ? messageBodyFinal
+                : (baseColorFinal != null
+                    ? Component.empty().color(baseColorFinal).append(messageComponent)
+                    : messageComponent);
+            return buildFormattedChatLine(source, recipientPlayer, preBeforeFinal, preAfterFinal, body);
         });
 
         // Console receives the same line via the renderer (Console is usually a viewer); do not log again.
@@ -525,6 +549,14 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
     private Component applyChannelBaseColorWhereAbsent(Component component, TextColor baseColor)
     {
         if (baseColor == null)
+        {
+            return component;
+        }
+        // If this node already has an explicit color, its children inherit from it —
+        // stop here. Recursing would force baseColor onto colorless children that should
+        // inherit their parent's color (e.g. a TextComponent inside <yellow>…</yellow>),
+        // which would visually override the yellow with baseColor.
+        if (component.color() != null)
         {
             return component;
         }

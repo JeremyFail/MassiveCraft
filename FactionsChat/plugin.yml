@@ -3,9 +3,9 @@ name: ${project.name}
 version: ${project.version}
 website: ${project.url}
 description: ${project.description}
-authors: [eirikh1996, Ymerejliaf]
+authors: [Ymerejliaf, eirikh1996]
 api-version: 1.21
-softdepend: [Factions, MassiveCore, DiscordSRV, Essentials, PlaceholderAPI]
+softdepend: [Factions, MassiveCore, PvPIndexFactions, DiscordSRV, Essentials, PlaceholderAPI]
 
 permissions:
   # -------------------------------------------- #

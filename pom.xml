@@ -45,6 +45,7 @@
                                 <resource>
                                     <directory>${project.basedir}/FactionsChat/target</directory>
                                     <includes><include>*.jar</include></includes>
+                                    <excludes><exclude>original-*.jar</exclude></excludes>
                                     <targetPath>.</targetPath>
                                 </resource>
                                 <resource>

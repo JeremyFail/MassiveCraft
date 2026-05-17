@@ -74,16 +74,23 @@ public final class LegacyMiniMessageMerger
                 if (end > i)
                 {
                     String fullTag = normalized.substring(i, end + 1);
-                    if (shouldEscapeMiniMessageTag(fullTag, p))
+                    // A real MiniMessage tag never contains § - if it does, the < came from plain
+                    // text (e.g. a display name wrapped in format brackets like <§bNick>).
+                    // Fall through to the legacy pipeline so the § codes are converted properly
+                    // instead of landing raw in the MiniMessage buffer and causing ParsingExceptionImpl.
+                    if (fullTag.indexOf('§') < 0)
                     {
-                        result = appendDeserializedMmBuffer(result, mmBuffer, miniMessage, baseColor);
-                        result = result.append(literalTagComponent(fullTag, baseColor));
+                        if (shouldEscapeMiniMessageTag(fullTag, p))
+                        {
+                            result = appendDeserializedMmBuffer(result, mmBuffer, miniMessage, baseColor);
+                            result = result.append(literalTagComponent(fullTag, baseColor));
+                            i = end + 1;
+                            continue;
+                        }
+                        mmBuffer.append(fullTag);
                         i = end + 1;
                         continue;
                     }
-                    mmBuffer.append(fullTag);
-                    i = end + 1;
-                    continue;
                 }
             }
             int nextTag = nextPotentialTagIndex(normalized, i + 1);
@@ -158,10 +165,18 @@ public final class LegacyMiniMessageMerger
                 int end = indexOfClosingAngleBracket(normalized, i);
                 if (end > i)
                 {
-                    // Verbatim MiniMessage source; used for trusted / config paths without permission filtering.
-                    out.append(normalized, i, end + 1);
-                    i = end + 1;
-                    continue;
+                    String candidate = normalized.substring(i, end + 1);
+                    // A real MiniMessage tag never contains § - if it does, the < came from plain
+                    // text (e.g. a display name wrapped in format brackets like <§bNick>).
+                    // Fall through to the legacy pipeline so the § codes are converted properly
+                    // instead of landing raw in the MiniMessage buffer and causing ParsingExceptionImpl.
+                    if (candidate.indexOf('§') < 0)
+                    {
+                        // Verbatim MiniMessage source; used for trusted / config paths without permission filtering.
+                        out.append(candidate);
+                        i = end + 1;
+                        continue;
+                    }
                 }
             }
             int nextTag = nextPotentialTagIndex(normalized, i + 1);

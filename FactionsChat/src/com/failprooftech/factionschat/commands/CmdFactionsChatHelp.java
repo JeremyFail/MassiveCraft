@@ -1,9 +1,11 @@
 package com.failprooftech.factionschat.commands;
 
+import com.failprooftech.factionschat.ChatMode;
 import com.failprooftech.factionschat.config.Settings;
 import com.failprooftech.factionschat.util.ChatTxt;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,20 +40,81 @@ public final class CmdFactionsChatHelp implements FactionsChatSubcommand
             }
         }
 
-        List<String> lines = new ArrayList<>();
-        lines.add(ChatTxt.parse("<k>/f c                <n>Show current chat mode and usage"));
-        lines.add(ChatTxt.parse("<k>/f c <mode>         <n>Switch to a chat mode"));
-        lines.add(ChatTxt.parse("<k>/f c help           <n>Show this help page"));
-        lines.add(ChatTxt.parse("<k>/f c toggle <mode>  <n>Toggle a chat mode on/off"));
-        lines.add(ChatTxt.parse("<k>/f c ignore <player><n>Ignore a player's chat messages"));
-        lines.add(ChatTxt.parse("<k>/f c unignore <player><n>Unignore a player"));
-        lines.add(ChatTxt.parse("<k>/f c ignorelist     <n>View your ignore list"));
-        lines.add(ChatTxt.parse("<k>/f c reload         <n>Reload configuration (admin)"));
-        lines.add(ChatTxt.parse("<i>Modes: <k>global<i>, <k>local<i>, <k>faction<i>, <k>ally<i>, <k>truce<i>, <k>enemy<i>, <k>staff"));
-        lines.add(ChatTxt.parse("<i>Quick-chat: prefix a message with <k>"
-                + Settings.QuickChat.prefix + "<mode><i> to send without switching."));
+        FactionsChatDispatcher.sendPage(sender, buildHelpContent(sender), page, "Help for /f c", "/f c help");
+    }
 
-        FactionsChatDispatcher.sendPage(sender, lines, page, "Help for /f c", "/f c help");
+    private List<String> buildHelpContent(CommandSender sender)
+    {
+        List<String> lines = new ArrayList<>();
+        boolean isConsole = !(sender instanceof Player);
+        Player player = isConsole ? null : (Player) sender;
+
+        // ---- Modes + Quick-chat (players only) ----
+        if (!isConsole)
+        {
+            lines.add(ChatTxt.parse("<k>Chat Modes:"));
+            lines.add(ChatTxt.parse("<n>Use <k>/f c <mode><n> to switch modes, or type <k>"
+                    + Settings.QuickChat.prefix + "<mode><n> / <k>"
+                    + Settings.QuickChat.prefix + "<letter><n> in chat for a one-off message."));
+            lines.add(ChatTxt.parse("<n>Use <k>" + Settings.QuickChat.prefix + "<mode><n> alone to switch modes as well."));
+            lines.add(""); // spacer
+            List<ChatMode> availableModes = ChatMode.getAvailableChatModes(player);
+            for (ChatMode mode : availableModes)
+            {
+                lines.add(ChatTxt.parse("<i>  - <v>" + mode.name().toLowerCase()
+                        + "<i> (or <v>" + mode.getAlias() + "<i>)<white> - <i>" + mode.getDescription()));
+            }
+            lines.add(""); // spacer before commands
+        }
+
+        // ---- Subcommands (permission-filtered) ----
+        boolean hasIgnore      = isConsole || player.hasPermission("factions.chat.ignore");
+        boolean hasIgnoreAdmin = isConsole || player.hasPermission("factions.chat.ignore.admin");
+        boolean hasToggle      = isConsole || player.hasPermission("factions.chat.toggle");
+        boolean hasToggleAdmin = isConsole || player.hasPermission("factions.chat.toggle.admin");
+        boolean hasReload      = isConsole || player.hasPermission("factions.chat.reload");
+
+        if (hasIgnore || hasIgnoreAdmin || hasToggle || hasToggleAdmin || hasReload)
+        {
+            lines.add(ChatTxt.parse("<k>Subcommands:"));
+            lines.add(ChatTxt.parse("<n>Use <k>/f c <subcommand><n> to run other chat commands."));
+
+            if (hasIgnoreAdmin)
+            {
+                lines.add(ChatTxt.parse("<i>  - <v>ignore [playerToUpdate] <player><i> - <i>Add players to the ignore list for "
+                        + (!isConsole ? "yourself or " : "") + "another player"));
+                lines.add(ChatTxt.parse("<i>  - <v>unignore [playerToUpdate] <player><i> - <i>Remove players from the ignore list for "
+                        + (!isConsole ? "yourself or " : "") + "another player"));
+                lines.add(ChatTxt.parse("<i>  - <v>ignorelist [player]<i> - <i>View the ignore list for "
+                        + (!isConsole ? "yourself or " : "") + "another player"));
+            }
+            else if (hasIgnore)
+            {
+                lines.add(ChatTxt.parse("<i>  - <v>ignore <player><i> - <i>Add a player to "
+                        + (!isConsole ? "your" : "") + " ignore list"));
+                lines.add(ChatTxt.parse("<i>  - <v>unignore <player><i> - <i>Remove a player from "
+                        + (!isConsole ? "your" : "") + " ignore list"));
+                lines.add(ChatTxt.parse("<i>  - <v>ignorelist<i> - <i>View "
+                        + (!isConsole ? "your" : "") + " ignore list"));
+            }
+
+            if (hasToggleAdmin)
+            {
+                lines.add(ChatTxt.parse("<i>  - <v>toggle [player] <chatMode><i> - <i>Toggle (disable/enable) chat modes for "
+                        + (!isConsole ? "yourself or " : "") + "another player"));
+            }
+            else if (hasToggle)
+            {
+                lines.add(ChatTxt.parse("<i>  - <v>toggle <chatMode><i> - <i>Toggle (disable/enable) specific chat modes"));
+            }
+
+            if (hasReload)
+            {
+                lines.add(ChatTxt.parse("<i>  - <v>reload<i> - <i>Reload FactionsChat configuration"));
+            }
+        }
+
+        return lines;
     }
 
     @Override

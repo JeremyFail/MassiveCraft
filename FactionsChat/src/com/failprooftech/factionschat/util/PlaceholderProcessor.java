@@ -97,7 +97,13 @@ public final class PlaceholderProcessor
         if (lower.startsWith("rp"))      { rightPad = true;  widthStr = lower.substring(2); }
         else if (lower.startsWith("lp")) { rightPad = false; widthStr = lower.substring(2); }
         else                             { return value; } // Unknown modifier - ignore
-        if (widthStr.isEmpty()) return value;
+        if (widthStr.isEmpty())
+        {
+            // No width given - conditionally add a single space if the value is non-empty.
+            // This matches the |rp / |lp modifier documented in config.yml.
+            if (value.isEmpty()) return value;
+            return rightPad ? value + " " : " " + value;
+        }
         try
         {
             int width = Integer.parseInt(widthStr);

@@ -147,7 +147,7 @@ public class MassiveFactionsBridge implements FactionsBridge
     }
 
     // --------------------------------------------------------------------- //
-    // Default relation colours
+    // Default relation colors
     // --------------------------------------------------------------------- //
 
     @Override

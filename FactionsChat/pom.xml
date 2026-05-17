@@ -61,6 +61,13 @@
           <groupId>me.clip</groupId>
           <artifactId>placeholderapi</artifactId>
         </dependency>
+        <!-- PvPIndex Factions (soft integration) -->
+        <dependency>
+            <groupId>com.github.PVP-Index</groupId>
+            <artifactId>pvpindex-factions</artifactId>
+            <version>v1.0.3</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     
     <!-- Build -->
@@ -85,4 +92,118 @@
             </resource>
         </resources>
     </build>
+
+    <!--
+         Bundle PluginUpdateChecker when the artifact is already in your local repo (e.g. after: mvn install in that project).
+         Maven cannot "try download and continue if missing" for a compile dependency - if the profile is on and the
+         artifact is absent, the build fails. So activation is file-based on the installed JAR.
+
+         Auto activation caveat: Maven does NOT interpolate custom POM properties (e.g. ${massivePluginUpdateCheckerVersion})
+         inside <activation><file><exists> - those stay literal, so the path never matched disk. The version segment in
+         <exists> is therefore spelled out and must be kept in sync with MassiveSuper property massivePluginUpdateCheckerVersion.
+
+         - Auto-on: JAR exists at the path below (uses ${user.home}; custom localRepository needs mvn -P bundle-update-checker).
+         - Force-on: mvn -P bundle-update-checker (e.g. if file activation fails in an edge-case Maven build).
+         - Force-off: remove/rename that JAR so the path no longer exists.
+
+         Sources: update-checker-bundled/java (outside src/) so the parent sourceDirectory does not compile them unless this profile runs.
+    -->
+    <profiles>
+        <profile>
+            <id>bundle-update-checker</id>
+            <activation>
+                <file>
+                    <!-- Sync directory + filename with MassiveSuper massivePluginUpdateCheckerVersion (not expandable here). -->
+                    <exists>${user.home}/.m2/repository/com/failprooftech/plugin-update-checker/1.0.0/plugin-update-checker-1.0.0.jar</exists>
+                </file>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.failprooftech</groupId>
+                    <artifactId>plugin-update-checker</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.maven</groupId>
+                    <artifactId>maven-artifact</artifactId>
+                    <version>3.9.6</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.codehaus.plexus</groupId>
+                    <artifactId>plexus-utils</artifactId>
+                    <version>3.5.1</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                    <version>3.12.0</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>add-update-checker-bundled-sources</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>${project.basedir}/update-checker-bundled/java</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>shade-factionschat-update-checker</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                                    <artifactSet>
+                                        <includes>
+                                            <include>com.failprooftech:plugin-update-checker</include>
+                                            <include>org.apache.maven:maven-artifact</include>
+                                            <include>org.codehaus.plexus:plexus-utils</include>
+                                            <include>org.apache.commons:commons-lang3</include>
+                                        </includes>
+                                    </artifactSet>
+                                    <relocations>
+                                        <relocation>
+                                            <pattern>com.failprooftech.pluginupdatechecker</pattern>
+                                            <shadedPattern>com.failprooftech.factionschat.lib.pluginupdatechecker</shadedPattern>
+                                        </relocation>
+                                        <relocation>
+                                            <pattern>org.apache.maven</pattern>
+                                            <shadedPattern>com.failprooftech.factionschat.lib.maven</shadedPattern>
+                                        </relocation>
+                                        <relocation>
+                                            <pattern>org.codehaus.plexus</pattern>
+                                            <shadedPattern>com.failprooftech.factionschat.lib.plexus</shadedPattern>
+                                        </relocation>
+                                        <relocation>
+                                            <pattern>org.apache.commons.lang3</pattern>
+                                            <shadedPattern>com.failprooftech.factionschat.lib.commons.lang3</shadedPattern>
+                                        </relocation>
+                                    </relocations>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

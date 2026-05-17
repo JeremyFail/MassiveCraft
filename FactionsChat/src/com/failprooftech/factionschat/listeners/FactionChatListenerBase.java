@@ -96,6 +96,11 @@ public abstract class FactionChatListenerBase
      */
     protected String applyRelationalPlaceholders(Player sender, Player recipient, String format)
     {
+        if (recipient == null)
+        {
+            // Strip relational placeholders - there is no relation to show for console/null viewers.
+            return format.replaceAll("%rel_[^%\\s]+%", "");
+        }
         if (FactionsChat.instance.isPapiEnabled())
         {
             format = PlaceholderAPI.setRelationalPlaceholders(sender, recipient, format);
@@ -278,7 +283,7 @@ public abstract class FactionChatListenerBase
             return false;
         }
         FactionsChat.instance.getLogger().warning(
-            "[FactionsChat] " + sender.getName() + " (" + sender.getUniqueId()
+            sender.getName() + " (" + sender.getUniqueId()
                 + ") attempted chat with a blacklisted MiniMessage click command. Payload: " + blockedPayload);
         runSync(() -> sender.sendMessage(Settings.MINIMESSAGE_CLICK_BLACKLIST_DENY_MESSAGE));
         return true;
