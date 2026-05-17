@@ -243,12 +243,6 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
 
         final String plainFullLine = plainSerializer.serialize(event.message());
 
-        // Check if event.message() was modified by an upstream plugin (e.g. EssentialsChat parsing &codes).
-        // A plain message from the client would be a single TextComponent with the full text.
-        // If it has children or color, another plugin already modified it.
-        final boolean upstreamModified = event.message().children().size() > 0
-            || event.message().style().color() != null;
-
         // Determine whether the message body needs to be rebuilt from scratch (markup codes present,
         // or preserveUpstreamChatComponents is disabled). When false (plain text, upstream path), we
         // use the signed messageComponent argument from the renderer callback so Paper can preserve
@@ -284,8 +278,9 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             Player recipientPlayer = viewer instanceof Player ? (Player) viewer : null;
             // Plain text: wrap the signed messageComponent with baseColor so the message
             // inherits the channel tint while keeping the signed reference intact for Paper.
-            // Markup messages: use the pre-processed body (signed ref is lost, but colours work).
-            Component body = messageBodyTransformed
+            // Markup and quick-chat messages: use the pre-processed body so quick-chat
+            // channel tokens (e.g. :f) are stripped from the visible message.
+            Component body = (colonQuick || messageBodyTransformed)
                 ? messageBodyFinal
                 : (baseColorFinal != null
                     ? Component.empty().color(baseColorFinal).append(messageComponent)
