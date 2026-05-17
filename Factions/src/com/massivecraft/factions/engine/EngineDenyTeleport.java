@@ -41,7 +41,11 @@ public class EngineDenyTeleport extends Engine
 		OTHER
 	}
 	
-	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+	/**
+	 * NORMAL so it runs after {@link EngineExploit#enderPearlClipping} (LOW): pearl destinations adjusted there
+	 * must be permission-checked on the corrected {@link PlayerTeleportEvent#getTo()}, not only the raw vanilla target.
+	 */
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void canTeleportHappen(PlayerTeleportEvent event)
 	{
 		Entry<TeleportCause, TerritoryType> entry = shouldBeCancelled(event);
