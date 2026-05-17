@@ -40,7 +40,7 @@ public final class CmdFactionsChatHelp implements FactionsChatSubcommand
             }
         }
 
-        FactionsChatDispatcher.sendPage(sender, buildHelpContent(sender), page, "Help for /f c", "/f c help");
+        FactionsChatDispatcher.sendPage(sender, buildHelpContent(sender), page, "Help for command \"chat\"", "/f c help");
     }
 
     private List<String> buildHelpContent(CommandSender sender)
@@ -57,7 +57,6 @@ public final class CmdFactionsChatHelp implements FactionsChatSubcommand
                     + Settings.QuickChat.prefix + "<mode><n> / <k>"
                     + Settings.QuickChat.prefix + "<letter><n> in chat for a one-off message."));
             lines.add(ChatTxt.parse("<n>Use <k>" + Settings.QuickChat.prefix + "<mode><n> alone to switch modes as well."));
-            lines.add(""); // spacer
             List<ChatMode> availableModes = ChatMode.getAvailableChatModes(player);
             for (ChatMode mode : availableModes)
             {

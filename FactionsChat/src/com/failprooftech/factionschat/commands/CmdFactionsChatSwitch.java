@@ -99,6 +99,16 @@ public final class CmdFactionsChatSwitch implements FactionsChatSubcommand
             String alias = mode.getAlias();
             if (name.startsWith(input))                           completions.add(name);
             if (!name.equals(alias) && alias.startsWith(input))  completions.add(alias);
+
+            // Additional aliases for global mode.
+            // TODO: We should have a way to support multiple aliases for chat modes
+            if (mode == ChatMode.GLOBAL)
+            {
+                if ("public".startsWith(input) && !completions.contains("public"))
+                    completions.add("public");
+                if ("p".startsWith(input) && !completions.contains("p"))
+                    completions.add("p");
+            }
         }
         return completions;
     }
