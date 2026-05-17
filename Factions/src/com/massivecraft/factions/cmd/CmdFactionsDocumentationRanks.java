@@ -34,7 +34,7 @@ public class CmdFactionsDocumentationRanks extends FactionsCommandDocumentation
 		List<String> rankDesc = ranks.stream().map(r -> r.getDisplayName(msender)).collect(Collectors.toList());
 		msgDoc("Your faction has: <reset>%s", Txt.implodeCommaAndDot(rankDesc, Txt.parse("<i>")));
 
-		msgDoc("Ranks can have a prefix that will be prepended before any player name. Prefixes can be coloured.");
+		msgDoc("Ranks can have a prefix that will be prepended before any player name. Prefixes can be colored.");
 		msgDoc("All ranks have a priority showed in parentheses after the name.");
 
 		Mson msonLeader = mson("The rank with the highest priority is deemed the \"leader rank\"" +
