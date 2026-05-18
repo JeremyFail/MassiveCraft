@@ -4,7 +4,8 @@ import com.massivecraft.factions.Factions;
 import com.massivecraft.massivecore.Integration;
 
 /**
- * MassiveCraft {@link Integration} that wires Factions as the TeamsAPI provider set.
+ * MassiveCraft {@link Integration} that wires Factions as the TeamsAPI provider set (teams, invites, warps,
+ * claims, power, and directional relations).
  * <p>
  * Activation mirrors other optional integrations: runs only while the TeamsAPI plugin is loaded and enabled
  * (via {@link com.massivecraft.massivecore.predicate.PredicateIntegration}).

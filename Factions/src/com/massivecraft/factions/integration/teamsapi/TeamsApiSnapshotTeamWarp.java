@@ -21,6 +21,15 @@ public final class TeamsApiSnapshotTeamWarp implements TeamWarp
 	private final UUID creatorUUID;
 	private final Instant createdAt;
 
+	/**
+	 * Creates a new TeamsApiSnapshotTeamWarp instance.
+	 * 
+	 * @param teamId The team ID.
+	 * @param name The warp name.
+	 * @param location The warp location.
+	 * @param creatorUUID The creator UUID.
+	 * @param createdAt The creation timestamp.
+	 */
 	public TeamsApiSnapshotTeamWarp(final UUID teamId, final String name, final Location location, final UUID creatorUUID,
 		final Instant createdAt)
 	{
