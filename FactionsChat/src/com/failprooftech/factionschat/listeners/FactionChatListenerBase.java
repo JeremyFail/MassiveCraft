@@ -348,8 +348,7 @@ public abstract class FactionChatListenerBase
         }
         
         // Essentials social-spy recipients always see the message
-        if (FactionsChat.instance.getEssentialsPlugin() != null &&
-                FactionsChat.instance.getEssentialsPlugin().getUser(recipient).isSocialSpyEnabled())
+        if (FactionsChat.instance.getEssentialsIntegration().isSocialSpy(recipient))
         {
             return false;
         }

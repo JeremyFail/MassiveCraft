@@ -1,11 +1,6 @@
 package com.failprooftech.factionschat;
 
-import com.earth2me.essentials.Essentials;
-import github.scarsz.discordsrv.DiscordSRV;
 
-import com.massivecraft.factions.Factions;
-import com.pvpindex.factions.PvPIndexFactions;
-import com.pvpindex.factions.service.FactionService;
 import com.failprooftech.factionschat.commands.registrar.FactionsCommandRegistrar;
 import com.failprooftech.factionschat.commands.registrar.GenericFactionsCommandRegistrar;
 import com.failprooftech.factionschat.commands.registrar.MassiveFactionsCommandRegistrar;
@@ -14,15 +9,22 @@ import com.failprooftech.factionschat.config.Settings;
 import com.failprooftech.factionschat.factions.FactionsBridge;
 import com.failprooftech.factionschat.factions.MassiveFactionsBridge;
 import com.failprooftech.factionschat.factions.PvPIndexFactionsBridge;
+import com.failprooftech.factionschat.integrations.discordsrv.DiscordSRVIntegration;
+import com.failprooftech.factionschat.integrations.discordsrv.DiscordSRVIntegrationNoop;
+import com.failprooftech.factionschat.integrations.discordsrv.DiscordSRVIntegrations;
+import com.failprooftech.factionschat.integrations.essentials.EssentialsIntegration;
+import com.failprooftech.factionschat.integrations.essentials.EssentialsIntegrationNoop;
+import com.failprooftech.factionschat.integrations.essentials.EssentialsIntegrations;
 import com.failprooftech.factionschat.integrations.placeholderapi.GenericPlaceholderBridge;
 import com.failprooftech.factionschat.integrations.placeholderapi.MassivePlaceholderBridge;
 import com.failprooftech.factionschat.integrations.placeholderapi.PlaceholderBridge;
+import com.failprooftech.factionschat.integrations.teamsapi.TeamsIntegrationLive;
+import com.failprooftech.factionschat.integrations.teamsapi.TeamsIntegrationNoop;
+import com.failprooftech.factionschat.integrations.teamsapi.TeamsIntegrationRegistry;
 import com.failprooftech.factionschat.listeners.ConnectionListener;
-import com.failprooftech.factionschat.update.FactionsChatUpdate;
-import com.failprooftech.factionschat.listeners.DiscordSRVPaperListener;
-import com.failprooftech.factionschat.listeners.DiscordSRVSpigotListener;
 import com.failprooftech.factionschat.listeners.PaperFactionChatListener;
 import com.failprooftech.factionschat.listeners.SpigotFactionChatListener;
+import com.failprooftech.factionschat.update.FactionsChatUpdate;
 import com.failprooftech.factionschat.util.DisabledChatManager;
 import com.failprooftech.factionschat.util.IgnoreManager;
 
@@ -38,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -69,16 +72,24 @@ public class FactionsChat extends JavaPlugin
      */
     private final Map<UUID, ChatMode> chatModes = new HashMap<>();
 
-    
     // Active Factions bridge and command registrar (swappable per Factions implementation)
     private FactionsBridge factionsBridge;
     private FactionsCommandRegistrar commandRegistrar;
 
     // Plugin instances for optional integrations
-    private DiscordSRV discordSrvPlugin;
-    private Factions factionsPlugin;
-    private Essentials essentialsPlugin;
-    
+    /**
+     * {@code true} when MassiveCraft Factions + MassiveCore are detected at startup.
+     * <p>
+     * Drives PlaceholderAPI ({@link MassivePlaceholderBridge}, {@code %factions_*}) and related config migration only.
+     * This is intentionally <em>not</em> the same as {@code factionsBridge instanceof MassiveFactionsBridge}: chat may use
+     * Teams API ({@link #factionsBridge}) while Massive Factions is still installed and owns the shared PAPI expansion.</p>
+     */
+    private boolean massiveCraftFactionsEnvironment;
+    /** Typed Essentials wiring ({@link EssentialsIntegrationNoop} when Essentials is absent or cast fails). */
+    private EssentialsIntegration essentialsIntegration = EssentialsIntegrationNoop.INSTANCE;
+    /** DiscordSRV wiring ({@link DiscordSRVIntegrationNoop} when DiscordSRV is absent or bootstrap fails). */
+    private DiscordSRVIntegration discordSRVIntegration = DiscordSRVIntegrationNoop.INSTANCE;
+
     private PlaceholderBridge placeholderBridge = null;
     
     // Ignore system
@@ -86,6 +97,20 @@ public class FactionsChat extends JavaPlugin
     
     // Disabled chat system
     private DisabledChatManager disabledChatManager;
+
+    @Override
+    public void onLoad()
+    {
+        instance = this;
+        try
+        {
+            TeamsIntegrationRegistry.register(new TeamsIntegrationLive());
+        }
+        catch (final Throwable ignored)
+        {
+            TeamsIntegrationRegistry.register(TeamsIntegrationNoop.INSTANCE);
+        }
+    }
 
     @Override
     public void onEnable() 
@@ -145,18 +170,12 @@ public class FactionsChat extends JavaPlugin
         // getServer().getPluginManager().registerEvents(updateManager, this);
         // updateManager.run();
 
-        // Schedule standalone update check only when not integrated with MassiveCraft Factions + MassiveCore
+        // Schedule standalone update check only when not running MassiveCraft Factions + MassiveCore
         // (in that case MassiveCore's suite checker already covers FactionsChat).
-        if (!(factionsBridge instanceof MassiveFactionsBridge))
+        if (!this.massiveCraftFactionsEnvironment)
         {
             FactionsChatUpdate.scheduleAfterPluginsEnabled(this);
         }
-    }
-    
-    @Override
-    public void onLoad() 
-    {
-        instance = this;
     }
 
     @Override
@@ -191,6 +210,8 @@ public class FactionsChat extends JavaPlugin
             disabledChatManager.shutdown();
         }
 
+        this.discordSRVIntegration = DiscordSRVIntegrationNoop.INSTANCE;
+
         // Stop standalone update check tasks.
         FactionsChatUpdate.shutdown();
     }
@@ -219,33 +240,28 @@ public class FactionsChat extends JavaPlugin
     }
 
     /**
-     * Retrieves the DiscordSRV plugin instance if it is available.
-     *
-     * @return The DiscordSRV plugin instance, or null if not found.
+     * DiscordSRV integration for staff chat relay ({@link DiscordSRVIntegrationNoop} when DiscordSRV is absent).
      */
-    public DiscordSRV getDiscordSrvPlugin()
+    public DiscordSRVIntegration getDiscordSRVIntegration()
     {
-        return this.discordSrvPlugin;
+        return this.discordSRVIntegration;
     }
 
     /**
-     * Retrieves the Factions plugin instance.
-     *
-     * @return The Factions plugin instance.
+     * Whether MassiveCraft Factions + MassiveCore were detected (PlaceholderAPI namespace / Massive expansion).
+     * Does not imply {@link #factionsBridge} is {@link MassiveFactionsBridge}.
      */
-    public Factions getFactionsPlugin() 
+    public boolean isMassiveCraftFactionsEnvironment()
     {
-        return this.factionsPlugin;
+        return this.massiveCraftFactionsEnvironment;
     }
     
     /**
-     * Retrieves the Essentials plugin instance if it is available.
-     *
-     * @return The Essentials plugin instance, or null if not found.
+     * Essentials integration for SocialSpy and related behaviour ({@link EssentialsIntegrationNoop} when Essentials is absent).
      */
-    public Essentials getEssentialsPlugin()
+    public EssentialsIntegration getEssentialsIntegration()
     {
-        return this.essentialsPlugin;
+        return this.essentialsIntegration;
     }
 
     /**
@@ -317,7 +333,7 @@ public class FactionsChat extends JavaPlugin
     /**
      * Retrieves the active {@link FactionsBridge} used to access Factions data.
      *
-     * @return the current bridge, or {@code null} if no MassiveCraft bridge is available
+     * @return the current bridge, or {@code null} when no teams/direct bridge could be wired (for example generic factions with no Teams API)
      */
     public FactionsBridge getFactionsBridge()
     {
@@ -570,9 +586,9 @@ public class FactionsChat extends JavaPlugin
         // - - - - - - - - - REQUIRED PLUGINS - - - - - - - - -
         // Accept either "Factions" (MassiveCraft / other forks) or "PvPIndexFactions".
         Plugin factions       = pm.getPlugin("Factions");
-        Plugin pvpIndexPlugin = pm.getPlugin("PvPIndexFactions");
+        Plugin pvpIndexFactions = pm.getPlugin("PvPIndexFactions");
 
-        if ((factions == null || !factions.isEnabled()) && (pvpIndexPlugin == null || !pvpIndexPlugin.isEnabled()))
+        if ((factions == null || !factions.isEnabled()) && (pvpIndexFactions == null || !pvpIndexFactions.isEnabled()))
         {
             logger.severe("A Factions plugin is required, but none was found or enabled. "
                     + "Supported: MassiveCraft Factions, PvPIndex Factions, or any plugin registering /f.");
@@ -580,40 +596,18 @@ public class FactionsChat extends JavaPlugin
             return false;
         }
 
-        // --- PvPIndex Factions ---
-        if (pvpIndexPlugin != null && pvpIndexPlugin.isEnabled())
+        this.massiveCraftFactionsEnvironment = false;
+
+        final boolean factionsEnabled = factions != null && factions.isEnabled();
+        final boolean pvpIndexReady   = pvpIndexFactions != null && pvpIndexFactions.isEnabled();
+
+        boolean massiveCraft = false;
+        if (factionsEnabled)
         {
             try
             {
-                FactionService svc = ((PvPIndexFactions) pvpIndexPlugin)
-                        .getBootstrap()
-                        .getServiceRegistry()
-                        .getFactionService();
-                this.factionsBridge   = PvPIndexFactionsBridge.create(svc);
-                this.commandRegistrar = new PvPIndexFactionsCommandRegistrar();
-                logger.info("PvPIndex Factions detected. Enabling integration via PvPIndex API bridge.");
-            }
-            catch (Exception e)
-            {
-                logger.severe("Failed to initialise PvPIndex Factions bridge: " + e.getMessage());
-                pm.disablePlugin(this);
-                return false;
-            }
-        }
-        // --- MassiveCraft Factions (or other /f plugin) ---
-        else
-        {
-            // Detect which Factions implementation is installed and wire the appropriate
-            // bridge + command registrar. Class loading is lazy in HotSpot, so
-            // MassiveFactionsCommandRegistrar (which references FactionsCommand) is only
-            // loaded when we actually instantiate it inside the try block.
-            try
-            {
-                // If this class loads without ClassNotFoundException, MassiveCraft Factions
-                // classes are on the classpath and this is a MassiveCraft Factions server.
                 Class.forName("com.massivecraft.factions.entity.Faction");
 
-                // MassiveCraft Factions - also needs MassiveCore
                 Plugin massiveCorePlugin = pm.getPlugin("MassiveCore");
                 if (massiveCorePlugin == null || !massiveCorePlugin.isEnabled())
                 {
@@ -621,51 +615,87 @@ public class FactionsChat extends JavaPlugin
                     pm.disablePlugin(this);
                     return false;
                 }
-                this.factionsPlugin   = (Factions) factions;
-                this.factionsBridge   = MassiveFactionsBridge.get();
-                this.commandRegistrar = new MassiveFactionsCommandRegistrar();
-                logger.info("MassiveCraft Factions + MassiveCore detected. Enabling full integration.");
+                massiveCraft = true;
+                this.massiveCraftFactionsEnvironment = true;
+                logger.info("MassiveCraft Factions + MassiveCore detected.");
             }
-            catch (ClassNotFoundException e)
+            catch (ClassNotFoundException ignored)
             {
-                // MassiveCraft Factions classes not on classpath - use generic bridge
-                this.factionsBridge   = null;
-                this.commandRegistrar = new GenericFactionsCommandRegistrar();
-                logger.warning("Non-MassiveCraft Factions plugin detected. Using generic command integration - some features may be limited. " 
-                        + "If you want full command support, please use MassiveCraft Factions or submit an issue requesting support for your "
-                        + "Factions fork.");
+                massiveCraft = false;
             }
         }
 
-        // - - - - - - - - - OPTIONAL PLUGINS - - - - - - - - -
-        Plugin discordSrv = pm.getPlugin("DiscordSRV");
-        if (discordSrv != null && discordSrv.isEnabled()) 
+        // Command routing follows the factions plugin implementation (independent of Teams API).
+        if (massiveCraft)
         {
-            this.discordSrvPlugin = (DiscordSRV) discordSrv;
-            DiscordSRV.api.subscribe(isPaper() ? new DiscordSRVPaperListener() : new DiscordSRVSpigotListener());
-            // Register the staff channel immediately in case DiscordSRV already fired
-            // DiscordReadyEvent before FactionsChat enabled (common when DiscordSRV loads first).
-            // onDiscordReady will re-register if DiscordSRV connects after us, which is harmless.
-            String staffChannelId = getConfig().getString("DiscordSRV.StaffChannel", "000000000000000000");
-            DiscordSRV.getPlugin().getChannels().put("staff", staffChannelId);
-            logger.info("DiscordSRV detected - integration enabled. Registered staff channel: " + staffChannelId);
+            this.commandRegistrar = new MassiveFactionsCommandRegistrar();
+            logger.info("Command integration: MassiveCraft registrar (/f …).");
+        }
+        else if (pvpIndexReady)
+        {
+            this.commandRegistrar = new PvPIndexFactionsCommandRegistrar();
+            logger.info("Command integration: PvPIndex Factions registrar (/f …).");
+        }
+        else
+        {
+            this.commandRegistrar = new GenericFactionsCommandRegistrar();
+            if (factionsEnabled)
+            {
+                logger.warning("Generic /f command hook (non-MassiveCraft Factions). This is not fully supported; some command features may be limited." 
+                + "If you want full support, please use MassiveCraft Factions or submit an issue requesting support for your "
+                + "Factions fork.");
+            }
         }
 
-        Plugin essentials = pm.getPlugin("Essentials");
-        if (essentials != null && essentials.isEnabled()) 
+        // Chat membership / relations: prefer Teams API whenever any provider is registered.
+        final Optional<FactionsBridge> teamsApiBridgeOpt = TeamsIntegrationRegistry.get().createBridge(logger);
+        if (teamsApiBridgeOpt.isPresent())
         {
-            this.essentialsPlugin = (Essentials) essentials;
-            logger.info("Essentials detected.");
+            this.factionsBridge = teamsApiBridgeOpt.get();
+            logger.info("Faction chat data: Teams API (preferred).");
+        }
+        else if (massiveCraft)
+        {
+            this.factionsBridge = MassiveFactionsBridge.get();
+            logger.info("Faction chat data: MassiveCraft direct integration.");
+        }
+        else if (pvpIndexReady)
+        {
+            final Optional<FactionsBridge> pvpBridgeOpt = PvPIndexFactionsBridge.tryCreateBridge(pvpIndexFactions);
+            if (pvpBridgeOpt.isEmpty())
+            {
+                logger.severe("Failed to initialise PvPIndex Factions bridge: plugin enabled but FactionService could not be wired.");
+                pm.disablePlugin(this);
+                return false;
+            }
+            this.factionsBridge = pvpBridgeOpt.get();
+            logger.info("Faction chat data: PvPIndex-Factions direct integration.");
+        }
+        else
+        {
+            this.factionsBridge = null;
+            logger.warning("Faction chat data unavailable (no Teams API provider and no direct integration available).");
+        }
+
+        this.discordSRVIntegration = DiscordSRVIntegrations.bootstrap(
+                pm.getPlugin("DiscordSRV"),
+                isPaper(),
+                getConfig().getString("DiscordSRV.StaffChannel", "000000000000000000"),
+                logger);
+
+        this.essentialsIntegration = EssentialsIntegrations.bootstrap(pm.getPlugin("Essentials"));
+        if (this.essentialsIntegration != EssentialsIntegrationNoop.INSTANCE)
+        {
+            logger.info("Essentials detected. Enabling SocialSpy support.");
         }
 
         // PlaceholderAPI integration
         Plugin papi = pm.getPlugin("PlaceholderAPI");
         if (papi != null && papi.isEnabled())
         {
-            // Use the MassiveCraft expander hook when MassiveFactions is active so chat
-            // placeholders share the existing %factions_* namespace; otherwise register
-            // our own expansion under the %factionschat_* identifier.
-            if (this.factionsBridge instanceof MassiveFactionsBridge)
+            // MassiveCraft Factions + MassiveCore: hook Massive placeholder expansion regardless of whether
+            // chat uses Teams API or direct Massive {@link FactionsBridge}.
+            if (this.massiveCraftFactionsEnvironment)
             {
                 this.placeholderBridge = MassivePlaceholderBridge.get();
                 logger.info("PlaceholderAPI detected. Registering MassiveCraft Factions expansion (%factions_chat_*).");
@@ -691,9 +721,9 @@ public class FactionsChat extends JavaPlugin
      * placeholders from the wrong namespace and migrates them automatically.
      *
      * <ul>
-     *   <li>MassiveCraft Factions active → placeholders should use {@code %factions_*}.
+     *   <li>MassiveCraft Factions + MassiveCore present ({@link #isMassiveCraftFactionsEnvironment()} {@code true}), placeholders should use {@code %factions_*}.
      *       If {@code %factionschat_*} is found, replace and warn.</li>
-     *   <li>Generic / PvPIndex bridge active → placeholders should use {@code %factionschat_*}.
+     *   <li>Otherwise, placeholders should use {@code %factionschat_*}.
      *       If {@code %factions_*} is found, replace and warn.</li>
      * </ul>
      *
@@ -712,7 +742,7 @@ public class FactionsChat extends JavaPlugin
         String fromRel;
         String toRel;
 
-        if (this.factionsBridge instanceof MassiveFactionsBridge)
+        if (this.massiveCraftFactionsEnvironment)
         {
             from = "%factionschat_";
             to   = "%factions_";

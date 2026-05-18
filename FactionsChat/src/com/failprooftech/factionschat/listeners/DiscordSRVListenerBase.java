@@ -2,10 +2,10 @@ package com.failprooftech.factionschat.listeners;
 
 import com.failprooftech.factionschat.ChatMode;
 import com.failprooftech.factionschat.FactionsChat;
+import com.failprooftech.factionschat.integrations.discordsrv.DiscordSRVIntegration;
 import com.failprooftech.factionschat.util.ColonChannelChatParser;
 import com.failprooftech.factionschat.util.ColonChannelChatParser.ParseType;
 
-import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.api.Subscribe;
 import github.scarsz.discordsrv.api.events.DiscordGuildMessagePostProcessEvent;
 import github.scarsz.discordsrv.api.events.DiscordReadyEvent;
@@ -13,7 +13,13 @@ import github.scarsz.discordsrv.api.events.GameChatMessagePreProcessEvent;
 
 /**
  * Shared DiscordSRV API subscription: game chat routing, staff channel registration, and staff Discord→Minecraft relay.
+ * <p>
+ * Staff channel bindings are applied through {@link FactionsChat#getDiscordSRVIntegration()} (see {@link DiscordSRVIntegration}),
+ * same pattern as Essentials SocialSpy via {@link FactionsChat#getEssentialsIntegration()}.</p>
  * Subclasses implement {@link #deliverStaffDiscordToMinecraft} for Paper (Adventure) vs Spigot (legacy string) servers.
+ *
+ * @see DiscordSRVIntegration
+ * @see com.failprooftech.factionschat.integrations.discordsrv.DiscordSRVIntegrations
  */
 public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
 {
@@ -68,7 +74,7 @@ public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
     public void onMessageReceive(DiscordGuildMessagePostProcessEvent event)
     {
         String channelId = event.getChannel().getId();
-        String staffChannelId = DiscordSRV.getPlugin().getChannels().get("staff");
+        String staffChannelId = FactionsChat.instance.getDiscordSRVIntegration().getStaffChannelBinding();
         if (staffChannelId == null || !staffChannelId.equals(channelId))
         {
             return;
@@ -82,7 +88,8 @@ public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
     public void onDiscordReady(DiscordReadyEvent event)
     {
         String staffChannelId = FactionsChat.instance.getConfig().getString("DiscordSRV.StaffChannel", "000000000000000000");
-        DiscordSRV.getPlugin().getChannels().put("staff", staffChannelId);
-        FactionsChat.instance.getLogger().info("Registered channel ID " + DiscordSRV.getPlugin().getChannels().get("staff") + " for staff chat");
+        final DiscordSRVIntegration discord = FactionsChat.instance.getDiscordSRVIntegration();
+        discord.setStaffChannelBinding(staffChannelId);
+        FactionsChat.instance.getLogger().info("Registered channel ID " + discord.getStaffChannelBinding() + " for staff chat");
     }
 }
