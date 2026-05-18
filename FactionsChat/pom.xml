@@ -61,11 +61,17 @@
           <groupId>me.clip</groupId>
           <artifactId>placeholderapi</artifactId>
         </dependency>
+        <!-- Teams API (library module; not com.github.ez-plugins:teams-api aggregator) -->
+        <dependency>
+            <groupId>com.github.ez-plugins.teams-api</groupId>
+            <artifactId>teams-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- PvPIndex Factions (soft integration) -->
         <dependency>
             <groupId>com.github.PVP-Index</groupId>
             <artifactId>pvpindex-factions</artifactId>
-            <version>v1.0.3</version>
+            <version>v1.0.5</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
