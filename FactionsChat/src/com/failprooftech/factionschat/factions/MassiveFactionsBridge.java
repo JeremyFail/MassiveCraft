@@ -7,7 +7,10 @@ import com.failprooftech.factionschat.ChatMode;
 import org.bukkit.entity.Player;
 
 /**
- * {@link FactionsBridge} implementation backed by MassiveCraft Factions + MassiveCore.
+ * Creates a bridge between MassiveCraft Factions and FactionsChat.
+ * 
+ * @see FactionsBridge
+ * @see MassiveFactionsBridge
  */
 public class MassiveFactionsBridge implements FactionsBridge
 {
@@ -15,7 +18,15 @@ public class MassiveFactionsBridge implements FactionsBridge
 
     private MassiveFactionsBridge() {}
 
-    public static MassiveFactionsBridge get() { return INSTANCE; }
+    /**
+     * Gets the MassiveFactionsBridge instance.
+     * 
+     * @return The MassiveFactionsBridge instance.
+     */
+    public static MassiveFactionsBridge get() 
+    { 
+        return INSTANCE; 
+    }
 
     // --------------------------------------------------------------------- //
     // Faction membership

@@ -1,6 +1,7 @@
 package com.failprooftech.factionschat.factions;
 
 import com.failprooftech.factionschat.ChatMode;
+import com.pvpindex.factions.PvPIndexFactions;
 import com.pvpindex.factions.Relation;
 import com.pvpindex.factions.data.model.FactionModel;
 import com.pvpindex.factions.data.model.RankModel;
@@ -8,6 +9,7 @@ import com.pvpindex.factions.service.FactionService;
 import com.pvpindex.factions.service.FactionServiceImpl;
 
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +18,8 @@ import java.util.Optional;
 /**
  * {@link FactionsBridge} implementation backed by PvPIndex Factions.
  *
- * <p>Construct via {@link #create(FactionService)} once {@code PvPIndexFactions}
+ * <p>For wiring from {@code FactionsChat} without importing PvPIndex types, use {@link #tryCreateBridge(Plugin)}.
+ * Alternatively construct via {@link #create(FactionService)} once {@code PvPIndexFactions}
  * has been confirmed present and enabled. The bridge reads relations directly
  * from the faction model's stored JSON, mirroring the logic in
  * {@code FactionServiceImpl}.</p>
@@ -32,16 +35,58 @@ public class PvPIndexFactionsBridge implements FactionsBridge
      */
     private final FactionServiceImpl factionServiceImpl;
 
-    private PvPIndexFactionsBridge(FactionService factionService)
+    /**
+     * Creates a new PvPIndexFactionsBridge instance.
+     * 
+     * @param factionService The PvPIndex faction service instance. 
+     */
+    private PvPIndexFactionsBridge(final FactionService factionService)
     {
         this.factionService = factionService;
-        this.factionServiceImpl = (factionService instanceof FactionServiceImpl impl) ? impl : null;
+        this.factionServiceImpl = (factionService instanceof final FactionServiceImpl impl) ? impl : null;
     }
 
+    /**
+     * Creates a new PvPIndexFactionsBridge instance.
+     * 
+     * @param factionService The PvPIndex faction service instance.
+     * @return The PvPIndexFactionsBridge instance.
+     */
     public static PvPIndexFactionsBridge create(FactionService factionService)
     {
         if (factionService == null) throw new NullPointerException("factionService");
         return new PvPIndexFactionsBridge(factionService);
+    }
+
+    /**
+     * Wires a {@link FactionsBridge} from the {@code PvPIndexFactions} plugin handle (typed API stays in this class).
+     *
+     * @param pvpIndexPlugin {@link org.bukkit.plugin.PluginManager#getPlugin(String)} for {@code PvPIndexFactions}
+     * @return empty when the plugin is missing, disabled, not a {@link PvPIndexFactions} instance, or the service cannot be resolved
+     */
+    public static Optional<FactionsBridge> tryCreateBridge(final Plugin pvpIndexPlugin)
+    {
+        if (pvpIndexPlugin == null || !pvpIndexPlugin.isEnabled())
+        {
+            return Optional.empty();
+        }
+        try
+        {
+            if (!(pvpIndexPlugin instanceof final PvPIndexFactions pvp))
+            {
+                return Optional.empty();
+            }
+            final FactionService svc = pvp.getBootstrap().getServiceRegistry().getFactionService();
+            if (svc == null)
+            {
+                return Optional.empty();
+            }
+            return Optional.of(create(svc));
+        }
+        catch (final RuntimeException | LinkageError ignored)
+        {
+            return Optional.empty();
+        }
     }
 
     // --------------------------------------------------------------------- //
@@ -270,6 +315,12 @@ public class PvPIndexFactionsBridge implements FactionsBridge
         return out;
     }
 
+    /**
+     * Strips quotes from a string.
+     * 
+     * @param s The string to strip quotes from.
+     * @return The string without quotes.
+     */
     private static String stripQuotes(String s)
     {
         if (s.startsWith("\"")) s = s.substring(1);
