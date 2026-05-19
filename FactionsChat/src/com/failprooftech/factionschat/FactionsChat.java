@@ -110,11 +110,12 @@ public class FactionsChat extends JavaPlugin
     public void onLoad()
     {
         instance = this;
-        try
+        //Check for Teams API and register if present
+        if (teamsApiPresentOnClasspath())
         {
             TeamsIntegrationRegistry.register(new TeamsIntegrationLive());
         }
-        catch (final Throwable ignored)
+        else
         {
             TeamsIntegrationRegistry.register(TeamsIntegrationNoop.INSTANCE);
         }
@@ -173,10 +174,6 @@ public class FactionsChat extends JavaPlugin
         
         // Register player connection listener for ignore data management
         pm.registerEvents(new ConnectionListener(), this);
-
-        // updateManager = new UpdateManager();
-        // getServer().getPluginManager().registerEvents(updateManager, this);
-        // updateManager.run();
 
         // Schedule standalone update check only when not running MassiveCraft Factions + MassiveCore
         // (in that case MassiveCore's suite checker already covers FactionsChat).
