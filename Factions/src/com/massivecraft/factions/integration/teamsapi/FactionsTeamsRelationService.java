@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * Maps MassiveCraft directional relation wishes to TeamsAPI {@link TeamRelation} semantics.
  *
- * <p>{@link #getRelation(UUID, UUID)} reflects {@link Faction#getRelationWish(Faction)} —
+ * <p>{@link #getRelation(UUID, UUID)} reflects {@link Faction#getRelationWish(Faction)} -
  * the relation {@code fromTeamId} declares toward {@code toTeamId}. Clearing to
  * {@link TeamRelation#NEUTRAL} removes the stored wish, matching
  * {@link Faction#setRelationWish(Faction, Rel)} with {@link Rel#NEUTRAL}.</p>
