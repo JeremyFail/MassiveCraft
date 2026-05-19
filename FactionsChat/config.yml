@@ -5,7 +5,7 @@
 #           Main Configuration File          #
 #                                            #
 ##############################################
-version: 4
+version: 5
 
 
 
@@ -149,7 +149,17 @@ TextColors:
 
 #--------------- Discord Settings ----------------#
 # Settings for the DiscordSRV integration (requires DiscordSRV to be installed).
-# The channel ID for the channel in your discord guild to link staff chat to
-# Right click the text channel, select "copy ID" and replace the current value with copied ID
 DiscordSRV:
+  # If false, FactionsChat will not register with DiscordSRV even when the plugin is present.
+  enabled: true
+  # The channel ID for the channel in your discord guild to link staff chat to.
+  # Right click the text channel, select "copy ID" and replace the current value with copied ID.
   StaffChannel: '000000000000000000'
+
+
+
+#-------------- Essentials Settings --------------#
+# Settings for the EssentialsX integration (requires Essentials to be installed).
+Essentials:
+  # If false, FactionsChat will not hook into Essentials even when the plugin is present.
+  enabled: true

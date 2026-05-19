@@ -4,7 +4,7 @@ package com.failprooftech.factionschat.integrations.discordsrv;
  * Contract for integrating with DiscordSRV.
  * <p>
  * Exposes staff-channel bindings and activity state without tying callers to {@code github.scarsz.discordsrv.DiscordSRV}.
- * Default installation uses {@link DiscordSRVIntegrationLive}; servers without DiscordSRV keep {@link DiscordSRVIntegrationNoop}.
+ * Default installation uses {@link DiscordSRVIntegrationLive}; servers without DiscordSRV, or with {@code DiscordSRV.enabled} false, keep {@link DiscordSRVIntegrationNoop}.
  *
  * @see DiscordSRVIntegrationLive
  * @see DiscordSRVIntegrationNoop

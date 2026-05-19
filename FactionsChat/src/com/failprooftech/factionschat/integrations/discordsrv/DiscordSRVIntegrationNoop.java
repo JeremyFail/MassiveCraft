@@ -3,7 +3,7 @@ package com.failprooftech.factionschat.integrations.discordsrv;
 /**
  * Implementation of {@link DiscordSRVIntegration} that does nothing.
  * <p>
- * Used when DiscordSRV is not installed or activation fails.
+ * Used when DiscordSRV is not installed, {@code DiscordSRV.enabled} is false, or activation fails.
  *
  * @see DiscordSRVIntegration
  * @see DiscordSRVIntegrationLive

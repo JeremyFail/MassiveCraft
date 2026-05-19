@@ -3,7 +3,7 @@ package com.failprooftech.factionschat.integrations.essentials;
 import org.bukkit.entity.Player;
 
 /**
- * Optional EssentialsX wiring; default is {@link EssentialsIntegrationNoop}.
+ * Optional EssentialsX wiring; default is {@link EssentialsIntegrationNoop} when Essentials is absent or {@code Essentials.enabled} is false.
  * 
  * <p>
  * This interface provides a contract for integrating with EssentialsX.

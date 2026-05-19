@@ -85,9 +85,9 @@ public class FactionsChat extends JavaPlugin
      * Teams API ({@link #factionsBridge}) while Massive Factions is still installed and owns the shared PAPI expansion.</p>
      */
     private boolean massiveCraftFactionsEnvironment;
-    /** Typed Essentials wiring ({@link EssentialsIntegrationNoop} when Essentials is absent or cast fails). */
+    /** Typed Essentials wiring ({@link EssentialsIntegrationNoop} when disabled in config, Essentials is absent, or cast fails). */
     private EssentialsIntegration essentialsIntegration = EssentialsIntegrationNoop.INSTANCE;
-    /** DiscordSRV wiring ({@link DiscordSRVIntegrationNoop} when DiscordSRV is absent or bootstrap fails). */
+    /** DiscordSRV wiring ({@link DiscordSRVIntegrationNoop} when disabled in config, DiscordSRV is absent, or bootstrap fails). */
     private DiscordSRVIntegration discordSRVIntegration = DiscordSRVIntegrationNoop.INSTANCE;
 
     private PlaceholderBridge placeholderBridge = null;
@@ -240,7 +240,7 @@ public class FactionsChat extends JavaPlugin
     }
 
     /**
-     * DiscordSRV integration for staff chat relay ({@link DiscordSRVIntegrationNoop} when DiscordSRV is absent).
+     * DiscordSRV integration for chat relay ({@link DiscordSRVIntegrationNoop} when disabled in config or DiscordSRV is absent).
      */
     public DiscordSRVIntegration getDiscordSRVIntegration()
     {
@@ -257,7 +257,7 @@ public class FactionsChat extends JavaPlugin
     }
     
     /**
-     * Essentials integration for SocialSpy and related behaviour ({@link EssentialsIntegrationNoop} when Essentials is absent).
+     * Essentials integration for SocialSpy and related behaviour ({@link EssentialsIntegrationNoop} when disabled in config or Essentials is absent).
      */
     public EssentialsIntegration getEssentialsIntegration()
     {
@@ -573,7 +573,25 @@ public class FactionsChat extends JavaPlugin
     }
     
     /**
-     * Checks for required or integrated plugins.
+     * Classpath probe for the Teams API (same approach as MassiveCraft Factions uses via {@code Class.forName} on faction entities).
+     *
+     * @return {@code true} when {@code com.skyblockexp.teamsapi.api.TeamsAPI} can be resolved by this plugin's class loader
+     */
+    private static boolean teamsApiPresentOnClasspath()
+    {
+        try
+        {
+            Class.forName("com.skyblockexp.teamsapi.api.TeamsAPI");
+            return true;
+        }
+        catch (final ClassNotFoundException ignored)
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Checks for integrated plugins and selects command registration / faction bridges.
      *
      * @param pm The plugin manager to check for plugins
      * @return {@code false} if this plugin was disabled and {@link #onEnable()} must stop immediately
@@ -583,18 +601,9 @@ public class FactionsChat extends JavaPlugin
     {
         Logger logger = getLogger();
 
-        // - - - - - - - - - REQUIRED PLUGINS - - - - - - - - -
-        // Accept either "Factions" (MassiveCraft / other forks) or "PvPIndexFactions".
-        Plugin factions       = pm.getPlugin("Factions");
-        Plugin pvpIndexFactions = pm.getPlugin("PvPIndexFactions");
-
-        if ((factions == null || !factions.isEnabled()) && (pvpIndexFactions == null || !pvpIndexFactions.isEnabled()))
-        {
-            logger.severe("A Factions plugin is required, but none was found or enabled. "
-                    + "Supported: MassiveCraft Factions, PvPIndex Factions, or any plugin registering /f.");
-            pm.disablePlugin(this);
-            return false;
-        }
+        // Factions / PvPIndex are optional: chat still runs with global/local/world/staff when no faction bridge exists.
+        Plugin factions           = pm.getPlugin("Factions");
+        Plugin pvpIndexFactions   = pm.getPlugin("PvPIndexFactions");
 
         this.massiveCraftFactionsEnvironment = false;
 
@@ -677,16 +686,22 @@ public class FactionsChat extends JavaPlugin
             logger.warning("Faction chat data unavailable (no Teams API provider and no direct integration available).");
         }
 
-        this.discordSRVIntegration = DiscordSRVIntegrations.bootstrap(
-                pm.getPlugin("DiscordSRV"),
-                isPaper(),
-                getConfig().getString("DiscordSRV.StaffChannel", "000000000000000000"),
-                logger);
-
-        this.essentialsIntegration = EssentialsIntegrations.bootstrap(pm.getPlugin("Essentials"));
-        if (this.essentialsIntegration != EssentialsIntegrationNoop.INSTANCE)
+        if (getConfig().getBoolean("DiscordSRV.enabled", true))
         {
-            logger.info("Essentials detected. Enabling SocialSpy support.");
+            this.discordSRVIntegration = DiscordSRVIntegrations.bootstrap(
+                    pm.getPlugin("DiscordSRV"),
+                    isPaper(),
+                    getConfig().getString("DiscordSRV.StaffChannel", "000000000000000000"),
+                    logger);
+        }
+
+        if (getConfig().getBoolean("Essentials.enabled", true))
+        {
+            this.essentialsIntegration = EssentialsIntegrations.bootstrap(pm.getPlugin("Essentials"));
+            if (this.essentialsIntegration != EssentialsIntegrationNoop.INSTANCE)
+            {
+                logger.info("Essentials detected. Enabling SocialSpy support.");
+            }
         }
 
         // PlaceholderAPI integration

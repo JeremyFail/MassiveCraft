@@ -12,7 +12,8 @@ import java.util.logging.Logger;
 /**
  * Bootstraps the DiscordSRV integration.
  * <p>
- * Subscribes FactionsChat's API listeners when DiscordSRV is present and returns {@link DiscordSRVIntegrationLive};
+ * Subscribes FactionsChat's API listeners when DiscordSRV is present, {@code DiscordSRV.enabled} is true, and wiring succeeds;
+ * returns {@link DiscordSRVIntegrationLive} in that case. The caller skips bootstrap entirely when the config flag is false.
  * otherwise returns {@link DiscordSRVIntegrationNoop}. The caller (typically {@code FactionsChat}) keeps the instance,
  * like {@link com.failprooftech.factionschat.integrations.essentials.EssentialsIntegrations}.
  *

@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 /**
  * Implementation of {@link EssentialsIntegration} that does nothing.
  * <p>
- * This class is used when EssentialsX is not installed.
+ * Used when EssentialsX is not installed, {@code Essentials.enabled} is false, or activation fails.
  * 
  * @see EssentialsIntegration
  * @see EssentialsIntegrationLive

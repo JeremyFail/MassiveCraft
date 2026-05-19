@@ -3,10 +3,10 @@ package com.failprooftech.factionschat.integrations.essentials;
 import org.bukkit.plugin.Plugin;
 
 /**
- * Bootstraps the Essentials integration.
+ * Bootstraps the Essentials integration when {@code Essentials.enabled} is true and EssentialsX is present.
  * <p>
- * This class is used to bootstrap the Essentials integration.
- * It is used to determine if a player is social-spying on another player.
+ * The caller ({@code FactionsChat}) skips bootstrap entirely when the config flag is false.
+ * Used to determine if a player is social-spying on another player.
  * 
  * @see EssentialsIntegration
  * @see EssentialsIntegrationLive
