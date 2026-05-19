@@ -1,6 +1,7 @@
 package com.failprooftech.factionschat.commands;
 
 import com.failprooftech.factionschat.ChatMode;
+import com.failprooftech.factionschat.FactionsChat;
 import com.failprooftech.factionschat.config.Settings;
 import com.failprooftech.factionschat.util.ChatTxt;
 
@@ -40,7 +41,8 @@ public final class CmdFactionsChatHelp implements FactionsChatSubcommand
             }
         }
 
-        FactionsChatDispatcher.sendPage(sender, buildHelpContent(sender), page, "Help for command \"chat\"", "/f c help");
+        FactionsChatDispatcher.sendPage(sender, buildHelpContent(sender), page, "Help for command \"chat\"",
+                FactionsChat.instance.getChatCommandPrefix() + " help");
     }
 
     private List<String> buildHelpContent(CommandSender sender)
@@ -52,8 +54,9 @@ public final class CmdFactionsChatHelp implements FactionsChatSubcommand
         // ---- Modes + Quick-chat (players only) ----
         if (!isConsole)
         {
+            final String cmdPx = FactionsChat.instance.getChatCommandPrefix();
             lines.add(ChatTxt.parse("<k>Chat Modes:"));
-            lines.add(ChatTxt.parse("<n>Use <k>/f c <mode><n> to switch modes, or type <k>"
+            lines.add(ChatTxt.parse("<n>Use <k>" + cmdPx + " <mode><n> to switch modes, or type <k>"
                     + Settings.QuickChat.prefix + "<mode><n> / <k>"
                     + Settings.QuickChat.prefix + "<letter><n> in chat for a one-off message."));
             lines.add(ChatTxt.parse("<n>Use <k>" + Settings.QuickChat.prefix + "<mode><n> alone to switch modes as well."));
@@ -76,7 +79,7 @@ public final class CmdFactionsChatHelp implements FactionsChatSubcommand
         if (hasIgnore || hasIgnoreAdmin || hasToggle || hasToggleAdmin || hasReload)
         {
             lines.add(ChatTxt.parse("<k>Subcommands:"));
-            lines.add(ChatTxt.parse("<n>Use <k>/f c <subcommand><n> to run other chat commands."));
+            lines.add(ChatTxt.parse("<n>Use <k>" + FactionsChat.instance.getChatCommandPrefix() + " <subcommand><n> to run other chat commands."));
 
             if (hasIgnoreAdmin)
             {

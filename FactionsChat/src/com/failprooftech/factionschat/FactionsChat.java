@@ -5,6 +5,9 @@ import com.failprooftech.factionschat.commands.registrar.FactionsCommandRegistra
 import com.failprooftech.factionschat.commands.registrar.GenericFactionsCommandRegistrar;
 import com.failprooftech.factionschat.commands.registrar.MassiveFactionsCommandRegistrar;
 import com.failprooftech.factionschat.commands.registrar.PvPIndexFactionsCommandRegistrar;
+import com.failprooftech.factionschat.commands.registrar.PvPIndexTeamsSubcommandSupport;
+import com.failprooftech.factionschat.commands.registrar.StandaloneChatCommandRegistrar;
+import com.failprooftech.factionschat.commands.registrar.TeamsApiChatCommandRegistrar;
 import com.failprooftech.factionschat.config.Settings;
 import com.failprooftech.factionschat.factions.FactionsBridge;
 import com.failprooftech.factionschat.factions.MassiveFactionsBridge;
@@ -75,6 +78,11 @@ public class FactionsChat extends JavaPlugin
     // Active Factions bridge and command registrar (swappable per Factions implementation)
     private FactionsBridge factionsBridge;
     private FactionsCommandRegistrar commandRegistrar;
+
+    /**
+     * Help text / pager base (e.g. {@code /f c} when hooked into Factions, {@code /chat} in standalone mode).
+     */
+    private String chatCommandPrefix = "/f c";
 
     // Plugin instances for optional integrations
     /**
@@ -328,6 +336,31 @@ public class FactionsChat extends JavaPlugin
     public static ChatMode getChatModePlaceholderOverride()
     {
         return CHAT_MODE_PLACEHOLDER_OVERRIDE.get();
+    }
+
+    /**
+     * If the player is still set to a faction-scoped mode but no {@link FactionsBridge} is wired (e.g. stale {@code chatmodes.yml}),
+     * deliver chat as {@link ChatMode#GLOBAL} instead.
+     */
+    public static ChatMode resolveEffectiveChatMode(ChatMode mode)
+    {
+        if (mode == null)
+        {
+            return ChatMode.GLOBAL;
+        }
+        if (mode.requiresFactionData() && instance != null && instance.getFactionsBridge() == null)
+        {
+            return ChatMode.GLOBAL;
+        }
+        return mode;
+    }
+
+    /**
+     * Base chat command string for help text (not necessarily a registered root command when using {@code /f c}).
+     */
+    public String getChatCommandPrefix()
+    {
+        return chatCommandPrefix;
     }
 
     /**
@@ -606,6 +639,7 @@ public class FactionsChat extends JavaPlugin
         Plugin pvpIndexFactions   = pm.getPlugin("PvPIndexFactions");
 
         this.massiveCraftFactionsEnvironment = false;
+        this.chatCommandPrefix               = "/f c";
 
         final boolean factionsEnabled = factions != null && factions.isEnabled();
         final boolean pvpIndexReady   = pvpIndexFactions != null && pvpIndexFactions.isEnabled();
@@ -634,26 +668,53 @@ public class FactionsChat extends JavaPlugin
             }
         }
 
-        // Command routing follows the factions plugin implementation (independent of Teams API).
+        // Command routing: Massive / PvPIndex / Teams API / generic command hook / standalone
         if (massiveCraft)
         {
             this.commandRegistrar = new MassiveFactionsCommandRegistrar();
-            logger.info("Command integration: MassiveCraft registrar (/f …).");
+            logger.info("Command integration: MassiveCraft Factions (/f chat, /f c).");
         }
         else if (pvpIndexReady)
         {
-            this.commandRegistrar = new PvPIndexFactionsCommandRegistrar();
-            logger.info("Command integration: PvPIndex Factions registrar (/f …).");
+            if (PvPIndexTeamsSubcommandSupport.isTeamsSubcommandDispatchAvailable(logger))
+            {
+                this.commandRegistrar = new TeamsApiChatCommandRegistrar();
+                this.chatCommandPrefix = "/f chat";
+                logger.info("Command integration: PvPIndex Factions via TeamsAPI subcommands (/f chat, /f c).");
+            }
+            else
+            {
+                logger.info("PvPIndex TeamsAPI subcommand dispatch not active; using direct /f command hook for chat.");
+                this.commandRegistrar = new PvPIndexFactionsCommandRegistrar();
+                logger.info("Command integration: PvPIndex Factions (/f chat, /f c).");
+            }
+        }
+        else if (factionsEnabled)
+        {
+            org.bukkit.command.PluginCommand fCmd = getServer().getPluginCommand("factions");
+            if (fCmd == null)
+            {
+                fCmd = getServer().getPluginCommand("f");
+            }
+            if (fCmd != null)
+            {
+                this.commandRegistrar = new GenericFactionsCommandRegistrar();
+                logger.warning("Generic /f command hook (non-MassiveCraft Factions). This is not fully supported; some command features may be limited. "
+                        + "If you want full support, please use MassiveCraft Factions or submit an issue requesting support for your "
+                        + "Factions fork.");
+            }
+            else
+            {
+                this.commandRegistrar = new StandaloneChatCommandRegistrar();
+                this.chatCommandPrefix = "/chat";
+                logger.info("Factions is enabled but no /f or /factions command was found; registering standalone /chat (alias /c).");
+            }
         }
         else
         {
-            this.commandRegistrar = new GenericFactionsCommandRegistrar();
-            if (factionsEnabled)
-            {
-                logger.warning("Generic /f command hook (non-MassiveCraft Factions). This is not fully supported; some command features may be limited." 
-                + "If you want full support, please use MassiveCraft Factions or submit an issue requesting support for your "
-                + "Factions fork.");
-            }
+            this.commandRegistrar = new StandaloneChatCommandRegistrar();
+            this.chatCommandPrefix = "/chat";
+            logger.info("No Factions plugin enabled; registering standalone /chat (alias /c).");
         }
 
         // Chat membership / relations: prefer Teams API whenever any provider is registered.
@@ -661,7 +722,7 @@ public class FactionsChat extends JavaPlugin
         if (teamsApiBridgeOpt.isPresent())
         {
             this.factionsBridge = teamsApiBridgeOpt.get();
-            logger.info("Faction chat data: Teams API (preferred).");
+            logger.info("Faction chat data: Teams API integration.");
         }
         else if (massiveCraft)
         {
@@ -683,7 +744,8 @@ public class FactionsChat extends JavaPlugin
         else
         {
             this.factionsBridge = null;
-            logger.warning("Faction chat data unavailable (no Teams API provider and no direct integration available).");
+            logger.warning("Factions relation channels (faction, ally, truce, neutral, enemy) are disabled - no faction or teams integration. "
+                    + "Global, local, world, and staff chat remain available.");
         }
 
         if (getConfig().getBoolean("DiscordSRV.enabled", true))

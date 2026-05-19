@@ -53,6 +53,7 @@ public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
         {
             cm = FactionsChat.instance.getPlayerChatModes().getOrDefault(event.getPlayer().getUniqueId(), ChatMode.GLOBAL);
         }
+        cm = FactionsChat.resolveEffectiveChatMode(cm);
 
         // Strip all formatting from the message before we send it to Discord
         event.setMessage(DiscordSRVChatRelayFormatter.playerBodyToDiscordLegacy(event.getPlayer(), colon.getMessageBody(), this));

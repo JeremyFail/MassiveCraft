@@ -52,7 +52,6 @@ public class MassiveFactionsCommandRegistrar implements FactionsCommandRegistrar
         };
 
         CmdFactions.get().addChild(registeredCmd);
-        plugin.getLogger().info("Registered /f c via MassiveCore FactionsCommand.");
     }
 
     @Override

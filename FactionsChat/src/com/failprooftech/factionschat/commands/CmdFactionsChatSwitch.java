@@ -48,11 +48,12 @@ public final class CmdFactionsChatSwitch implements FactionsChatSubcommand
         if (modeArg == null)
         {
             ChatMode current = ChatMode.getChatModeForPlayer(player);
+            final String cmdPrefix = FactionsChat.instance.getChatCommandPrefix();
             sender.sendMessage(ChatTxt.parse("<n>Current chat mode: <k>" + current.name().toLowerCase()));
-            sender.sendMessage(ChatTxt.parse("<n>Use <k>/f c <mode><n> to switch modes, or <k>"
+            sender.sendMessage(ChatTxt.parse("<n>Use <k>" + cmdPrefix + " <mode><n> to switch modes, or <k>"
                     + Settings.QuickChat.prefix + "<mode><n> / <k>" + Settings.QuickChat.prefix
                     + "<letter><n> in chat for a one-off message or toggle."));
-            sender.sendMessage(ChatTxt.parse("<n>Use <k>/f c help<n> to see all available commands and modes."));
+            sender.sendMessage(ChatTxt.parse("<n>Use <k>" + cmdPrefix + " help<n> to see all available commands and modes."));
             return;
         }
 
@@ -60,19 +61,22 @@ public final class CmdFactionsChatSwitch implements FactionsChatSubcommand
         if (chatMode == null)
         {
             sender.sendMessage(ChatTxt.parse("<b>Invalid chat mode or command: <v>" + modeArg));
-            sender.sendMessage(ChatTxt.parse("<n>Use <k>/f c help<n> to see available commands and modes."));
+            sender.sendMessage(ChatTxt.parse("<n>Use <k>" + FactionsChat.instance.getChatCommandPrefix() + " help<n> to see available commands and modes."));
             return;
         }
 
-        boolean isFactionMode = chatMode == ChatMode.FACTION || chatMode == ChatMode.ALLY
-                             || chatMode == ChatMode.TRUCE   || chatMode == ChatMode.ENEMY;
-
-        if (isFactionMode
-                && FactionsChat.instance.getFactionsBridge() != null
-                && !FactionsChat.instance.getFactionsBridge().isInFaction(player))
+        if (chatMode.requiresFactionData())
         {
-            sender.sendMessage(ChatTxt.parse("<b>Cannot switch to that chat mode as you are not in a faction."));
-            return;
+            if (FactionsChat.instance.getFactionsBridge() == null)
+            {
+                sender.sendMessage(ChatTxt.parse("<b>Faction chat channels are not available on this server."));
+                return;
+            }
+            if (!FactionsChat.instance.getFactionsBridge().isInFaction(player))
+            {
+                sender.sendMessage(ChatTxt.parse("<b>Cannot switch to that chat mode as you are not in a faction."));
+                return;
+            }
         }
 
         if (!player.hasPermission("factions.chat." + chatMode.name().toLowerCase()))

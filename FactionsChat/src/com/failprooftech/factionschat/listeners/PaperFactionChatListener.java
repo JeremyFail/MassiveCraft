@@ -99,21 +99,22 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         }
 
         // Determine the chat mode and message text
-        final ChatMode chatMode;
+        final ChatMode rawChatMode;
         final String messagePlain;
         final boolean colonQuick;
         if (colon.getType() == ParseType.QUICK_MESSAGE)
         {
-            chatMode = colon.getTargetMode();
+            rawChatMode = colon.getTargetMode();
             messagePlain = colon.getMessageBody();
             colonQuick = true;
         }
         else
         {
-            chatMode = ChatMode.getChatModeForPlayer(sender);
+            rawChatMode = ChatMode.getChatModeForPlayer(sender);
             messagePlain = colon.getMessageBody();
             colonQuick = false;
         }
+        final ChatMode chatMode = FactionsChat.resolveEffectiveChatMode(rawChatMode);
 
         if (denyIfBlacklistedMiniMessageClick(sender, messagePlain))
         {
@@ -247,7 +248,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         // or preserveUpstreamChatComponents is disabled). When false (plain text, upstream path), we
         // use the signed messageComponent argument from the renderer callback so Paper can preserve
         // the player's chat-signing / reporting status. When true the body is rebuilt from plain text
-        // and is inherently unsigned — that's an acceptable tradeoff for colour-formatted messages.
+        // and is inherently unsigned - that's an acceptable tradeoff for colour-formatted messages.
         final boolean messageBodyTransformed = !Settings.preserveUpstreamChatComponents
             || ChatMarkupLeafExpander.mightContainParsableMarkup(messagePlain);
 
@@ -547,7 +548,7 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         {
             return component;
         }
-        // If this node already has an explicit color, its children inherit from it —
+        // If this node already has an explicit color, its children inherit from it -
         // stop here. Recursing would force baseColor onto colorless children that should
         // inherit their parent's color (e.g. a TextComponent inside <yellow>…</yellow>),
         // which would visually override the yellow with baseColor.

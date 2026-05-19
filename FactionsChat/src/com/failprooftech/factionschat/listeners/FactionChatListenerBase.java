@@ -353,6 +353,12 @@ public abstract class FactionChatListenerBase
             return false;
         }
 
+        // Fallback when faction modes leak without a bridge (normally normalized to GLOBAL earlier).
+        if (FactionsChat.instance.getFactionsBridge() == null && chatMode.requiresFactionData())
+        {
+            return true;
+        }
+
         switch (chatMode)
         {
             case LOCAL:
