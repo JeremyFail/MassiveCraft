@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-FactionsChat is a Minecraft Spigot/Paper server plugin that integrates with MassiveCraft Factions to provide advanced chat features and channels for faction-based servers.
+FactionsChat is a Minecraft Spigot/Paper server plugin that integrates with MassiveCraft Factions, PvPIndex-Factions, and other factions or teams-based plugins (using the [Teams API](https://github.com/ez-plugins/teams-api)) to provide advanced chat features and channels for faction-based servers.
 
 ## Features
 
@@ -35,12 +35,13 @@ Please read the [Wiki](https://factions.wiki/FactionsChat) for details about sup
 
 ## Requirements
 
-As a Factions add-on, this plugin requires a supported version of Factions, and has optional requirements if you wish to use other integration features that this plugin supports.
+Designed primarily as a Factions add-on, this plugin operates best with a supported version of Factions, and has optional requirements if you wish to use other integration features that this plugin supports. Note that the plugin will work without a Factions integration, but any factions-specific logic will not function.
 
 - Factions - we recommend [Factions3 Renewed](https://github.com/JeremyFail/MassiveCraft/releases)
   
   Other supported Factions plugins are:
     - [PvPIndex-Factions](https://github.com/PVP-Index/pvpindex-factions)
+    - Any Factions (or other Teams-based) plugin that implements [Teams API](https://github.com/ez-plugins/teams-api) - you will also need to install Teams API alongside said plugin.
 - (Optional) [EssentialsX](https://essentialsx.net/)
 - (Optional) [DiscordSRV](https://modrinth.com/plugin/discordsrv)
 - (Optional) [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) for advanced chat formatting and placeholder support
