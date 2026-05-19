@@ -6,6 +6,7 @@ import com.failprooftech.factionschat.commands.registrar.GenericFactionsCommandR
 import com.failprooftech.factionschat.commands.registrar.MassiveFactionsCommandRegistrar;
 import com.failprooftech.factionschat.commands.registrar.PvPIndexFactionsCommandRegistrar;
 import com.failprooftech.factionschat.commands.registrar.PvPIndexTeamsSubcommandSupport;
+import com.failprooftech.factionschat.commands.registrar.IntegratedModeChatCommandRegistrar;
 import com.failprooftech.factionschat.commands.registrar.StandaloneChatCommandRegistrar;
 import com.failprooftech.factionschat.commands.registrar.TeamsApiChatCommandRegistrar;
 import com.failprooftech.factionschat.config.Settings;
@@ -79,6 +80,8 @@ public class FactionsChat extends JavaPlugin
     // Active Factions bridge and command registrar (swappable per Factions implementation)
     private FactionsBridge factionsBridge;
     private FactionsCommandRegistrar commandRegistrar;
+    /** {@code true} when {@code /chat} is wired to integrated-mode usage redirect (not full dispatcher). */
+    private boolean integratedChatCommandRedirectRegistered;
 
     /**
      * Help text / pager base (e.g. {@code /f c} when hooked into Factions, {@code /chat} in standalone mode).
@@ -152,6 +155,11 @@ public class FactionsChat extends JavaPlugin
         if (commandRegistrar != null)
         {
             commandRegistrar.register(this);
+            if (!(commandRegistrar instanceof StandaloneChatCommandRegistrar))
+            {
+                IntegratedModeChatCommandRegistrar.register(this);
+                this.integratedChatCommandRedirectRegistered = true;
+            }
         }
 
         // Initialise config
@@ -189,6 +197,12 @@ public class FactionsChat extends JavaPlugin
     @Override
     public void onDisable()
     {
+        if (this.integratedChatCommandRedirectRegistered)
+        {
+            IntegratedModeChatCommandRegistrar.unregister(this);
+            this.integratedChatCommandRedirectRegistered = false;
+        }
+
         // Restore any command hooks installed by the registrar
         if (commandRegistrar != null)
         {

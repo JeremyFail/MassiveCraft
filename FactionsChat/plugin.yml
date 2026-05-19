@@ -9,7 +9,7 @@ softdepend: [Factions, MassiveCore, PvPIndexFactions, DiscordSRV, Essentials, Pl
 
 commands:
   chat:
-    description: FactionsChat channels and utilities (standalone mode when /f is not used)
+    description: FactionsChat channels and utilities (standalone) or usage hint (integrated mode)
     usage: /<command> [subcommand|mode] [args]
     aliases: [c]
 
