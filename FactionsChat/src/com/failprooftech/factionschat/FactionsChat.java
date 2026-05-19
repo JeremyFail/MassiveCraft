@@ -27,6 +27,7 @@ import com.failprooftech.factionschat.integrations.teamsapi.TeamsIntegrationRegi
 import com.failprooftech.factionschat.listeners.ConnectionListener;
 import com.failprooftech.factionschat.listeners.PaperFactionChatListener;
 import com.failprooftech.factionschat.listeners.SpigotFactionChatListener;
+import com.failprooftech.factionschat.metrics.FactionsChatBStats;
 import com.failprooftech.factionschat.update.FactionsChatUpdate;
 import com.failprooftech.factionschat.util.DisabledChatManager;
 import com.failprooftech.factionschat.util.IgnoreManager;
@@ -181,6 +182,8 @@ public class FactionsChat extends JavaPlugin
         {
             FactionsChatUpdate.scheduleAfterPluginsEnabled(this);
         }
+
+        new FactionsChatBStats(this).enable();
     }
 
     @Override
