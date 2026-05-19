@@ -89,7 +89,7 @@
         <massivePlaceholderAPIVersion>2.11.7</massivePlaceholderAPIVersion>
 
         <!-- https://github.com/ez-plugins/teams-api -->
-        <massiveTeamsApiVersion>1.6.1</massiveTeamsApiVersion>
+        <massiveTeamsApiVersion>1.7.0</massiveTeamsApiVersion>
 
         <!-- https://repo.bluecolored.de/ -->
         <massiveBlueMapVersion>2.7.7</massiveBlueMapVersion>
