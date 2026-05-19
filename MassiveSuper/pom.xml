@@ -91,6 +91,9 @@
         <!-- https://github.com/ez-plugins/teams-api -->
         <massiveTeamsApiVersion>1.7.0</massiveTeamsApiVersion>
 
+        <!-- https://bstats.org/docs -->
+        <massiveBStatsVersion>3.2.1</massiveBStatsVersion>
+
         <!-- https://repo.bluecolored.de/ -->
         <massiveBlueMapVersion>2.7.7</massiveBlueMapVersion>
 
@@ -121,6 +124,11 @@
 
     <!-- Repositories -->
     <repositories>
+        <!-- Maven Central (bStats, etc.) -->
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
         <!-- Spigot API -->
         <repository>
             <id>spigot-repo</id>
@@ -582,6 +590,11 @@
               <artifactId>teams-api</artifactId>
               <version>${massiveTeamsApiVersion}</version>
               <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.bstats</groupId>
+                <artifactId>bstats-bukkit</artifactId>
+                <version>${massiveBStatsVersion}</version>
             </dependency>
 
             <!-- Custom - Custom artifacts. Manually installed by command. -->
