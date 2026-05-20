@@ -74,6 +74,12 @@
             <version>v1.0.6</version>
             <scope>provided</scope>
         </dependency>
+        <!-- FactionsBridge (standalone plugin; compile-only; ${massiveFactionsBridgeApiVersion} from Failproof Tech repo) -->
+        <dependency>
+            <groupId>cc.javajobs.factionsbridge</groupId>
+            <artifactId>FactionsBridge-API</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- bStats (shaded in and relocated under com.failprooftech.factionschat.lib.bstats) -->
         <dependency>
             <groupId>org.bstats</groupId>

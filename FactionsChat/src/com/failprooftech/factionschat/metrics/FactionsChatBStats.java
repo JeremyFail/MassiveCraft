@@ -3,6 +3,7 @@ package com.failprooftech.factionschat.metrics;
 import com.failprooftech.factionschat.FactionsChat;
 import com.failprooftech.factionschat.factions.FactionsBridge;
 import com.failprooftech.factionschat.factions.MassiveFactionsBridge;
+import com.failprooftech.factionschat.factions.PluginFactionsBridge;
 import com.failprooftech.factionschat.factions.PvPIndexFactionsBridge;
 import com.failprooftech.factionschat.factions.TeamsApiFactionsBridge;
 import com.failprooftech.factionschat.integrations.teamsapi.TeamsApiProviderProbe;
@@ -26,6 +27,7 @@ public final class FactionsChatBStats
 
     private static final String CATEGORY_MASSIVECRAFT = "MassiveCraft Factions";
     private static final String CATEGORY_PVPINDEX = "PvPIndex-Factions";
+    private static final String CATEGORY_FACTIONS_BRIDGE = "FactionsBridge";
     private static final String CATEGORY_TEAMS_API = "Teams API";
     private static final String CATEGORY_STANDALONE = "None/Standalone";
 
@@ -73,6 +75,11 @@ public final class FactionsChatBStats
         {
             category = CATEGORY_TEAMS_API;
             subcategory = TeamsApiProviderProbe.formatIntegrationSubcategory();
+        }
+        else if (bridge instanceof PluginFactionsBridge pluginBridge)
+        {
+            category = CATEGORY_FACTIONS_BRIDGE;
+            subcategory = pluginBridge.getProviderName();
         }
         else if (bridge instanceof MassiveFactionsBridge)
         {

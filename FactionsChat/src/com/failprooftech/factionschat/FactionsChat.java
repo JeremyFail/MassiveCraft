@@ -12,6 +12,7 @@ import com.failprooftech.factionschat.commands.registrar.TeamsApiChatCommandRegi
 import com.failprooftech.factionschat.config.Settings;
 import com.failprooftech.factionschat.factions.FactionsBridge;
 import com.failprooftech.factionschat.factions.MassiveFactionsBridge;
+import com.failprooftech.factionschat.factions.PluginFactionsBridge;
 import com.failprooftech.factionschat.factions.PvPIndexFactionsBridge;
 import com.failprooftech.factionschat.integrations.discordsrv.DiscordSRVIntegration;
 import com.failprooftech.factionschat.integrations.discordsrv.DiscordSRVIntegrationNoop;
@@ -731,35 +732,44 @@ public class FactionsChat extends JavaPlugin
             logger.info("No Factions plugin enabled; registering standalone /chat (alias /c).");
         }
 
-        // Chat membership / relations: prefer Teams API whenever any provider is registered.
+        // Chat membership / relations: Teams API > FactionsBridge plugin > direct Factions (MassiveCraft or PvPIndex)
         final Optional<FactionsBridge> teamsApiBridgeOpt = TeamsIntegrationRegistry.get().createBridge(logger);
         if (teamsApiBridgeOpt.isPresent())
         {
             this.factionsBridge = teamsApiBridgeOpt.get();
             logger.info("Faction chat data: Teams API integration.");
         }
-        else if (massiveCraft)
-        {
-            this.factionsBridge = MassiveFactionsBridge.get();
-            logger.info("Faction chat data: MassiveCraft direct integration.");
-        }
-        else if (pvpIndexReady)
-        {
-            final Optional<FactionsBridge> pvpBridgeOpt = PvPIndexFactionsBridge.tryCreateBridge(pvpIndexFactions);
-            if (pvpBridgeOpt.isEmpty())
-            {
-                logger.severe("Failed to initialise PvPIndex Factions bridge: plugin enabled but FactionService could not be wired.");
-                pm.disablePlugin(this);
-                return false;
-            }
-            this.factionsBridge = pvpBridgeOpt.get();
-            logger.info("Faction chat data: PvPIndex-Factions direct integration.");
-        }
         else
         {
-            this.factionsBridge = null;
-            logger.warning("Factions relation channels (faction, ally, truce, neutral, enemy) are disabled - no faction or teams integration. "
-                    + "Global, local, world, and staff chat remain available.");
+            final Optional<PluginFactionsBridge> pluginBridgeOpt = PluginFactionsBridge.tryCreate(logger);
+            if (pluginBridgeOpt.isPresent())
+            {
+                this.factionsBridge = pluginBridgeOpt.get();
+                logger.info("Faction chat data: FactionsBridge integration (via " + pluginBridgeOpt.get().getProviderName() + ").");
+            }
+            else if (massiveCraft)
+            {
+                this.factionsBridge = MassiveFactionsBridge.get();
+                logger.info("Faction chat data: MassiveCraft Factions direct integration.");
+            }
+            else if (pvpIndexReady)
+            {
+                final Optional<FactionsBridge> pvpBridgeOpt = PvPIndexFactionsBridge.tryCreateBridge(pvpIndexFactions);
+                if (pvpBridgeOpt.isEmpty())
+                {
+                    logger.severe("Failed to initialise PvPIndex Factions bridge: plugin enabled but FactionService could not be wired.");
+                    pm.disablePlugin(this);
+                    return false;
+                }
+                this.factionsBridge = pvpBridgeOpt.get();
+                logger.info("Faction chat data: PvPIndex-Factions direct integration.");
+            }
+            else
+            {
+                this.factionsBridge = null;
+                logger.warning("Factions relation channels (faction, ally, truce, neutral, enemy) are disabled - no faction or teams integration. "
+                        + "Global, local, world, and staff chat remain available.");
+            }
         }
 
         if (getConfig().getBoolean("DiscordSRV.enabled", true))

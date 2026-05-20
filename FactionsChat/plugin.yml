@@ -5,7 +5,7 @@ website: ${project.url}
 description: ${project.description}
 authors: [Ymerejliaf, eirikh1996]
 api-version: 1.21
-softdepend: [Factions, MassiveCore, PvPIndexFactions, DiscordSRV, Essentials, PlaceholderAPI, TeamsAPI]
+softdepend: [Factions, MassiveCore, PvPIndexFactions, FactionsBridge, DiscordSRV, Essentials, PlaceholderAPI, TeamsAPI]
 
 commands:
   chat:

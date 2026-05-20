@@ -42,6 +42,8 @@ Designed primarily as a Factions add-on, this plugin operates best with a suppor
   Other supported Factions plugins are:
     - [PvPIndex-Factions](https://github.com/PVP-Index/pvpindex-factions)
     - Any Factions (or other Teams-based) plugin that implements [Teams API](https://github.com/ez-plugins/teams-api) - you will also need to install Teams API alongside said plugin.
+    - [FactionsBridge](https://github.com/CallumJohnson/FactionsBridge) (standalone plugin) - supports many Factions forks through one API; install the FactionsBridge plugin on the server with your Factions fork and FactionsChat _should_ be able to connect. File an issue if you encounter any problems.
+    
 - (Optional) [EssentialsX](https://essentialsx.net/)
 - (Optional) [DiscordSRV](https://modrinth.com/plugin/discordsrv)
 - (Optional) [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) for advanced chat formatting and placeholder support
@@ -58,8 +60,9 @@ Please visit the [MassiveCraft Issues Page](https://github.com/JeremyFail/Massiv
 
 Please read the guide contained in the root [MassiveCraft Repository](https://github.com/JeremyFail/MassiveCraft) if you want to compile the source of this plugin.
 
-## About
-This plugin is based on the plugin `Factions3Chat`, created in 2020 by eirikh1996 for the original Factions3 by Madus. It has been rewritten in Java (from the original's Kotlin) and updated/extended/modified to be part of the MassiveCraft projects that are part of this repository.
+## Credits
+
+This plugin is originally based on the plugin `Factions3Chat`, created in 2020 by eirikh1996 for the original Factions3 by Madus. It has been rewritten in Java (from the original's Kotlin) and updated/extended/modified greatly.
 
 The original plugin download can be found here: https://dev.bukkit.org/projects/factions3chat
 
