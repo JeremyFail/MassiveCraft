@@ -22,15 +22,19 @@ import java.util.UUID;
 /**
  * Maps MassiveCraft directional relation wishes to TeamsAPI {@link TeamRelation} semantics.
  *
- * <p>{@link #getRelation(UUID, UUID)} reflects {@link Faction#getRelationWish(Faction)} -
+ * <p>For distinct factions, {@link #getRelation(UUID, UUID)} reflects {@link Faction#getRelationWish(Faction)} —
  * the relation {@code fromTeamId} declares toward {@code toTeamId}. Clearing to
  * {@link TeamRelation#NEUTRAL} removes the stored wish, matching
- * {@link Faction#setRelationWish(Faction, Rel)} with {@link Rel#NEUTRAL}.</p>
+ * {@link Faction#setRelationWish(Faction, Rel)} with {@link Rel#NEUTRAL}.
+ * When both team UUIDs are equal, returns {@link TeamRelation#MEMBER} (same faction).</p>
  *
  * <p>Declaring {@link TeamRelation#ENEMY} mirrors {@code /f relation set}: the target faction's
  * wish toward the source is also set to {@link Rel#ENEMY}.</p>
  *
- * <p>{@link #getRelationColor(TeamRelation)} maps {@link MConf} ally/truce/neutral/enemy chat colours to
+ * <p>{@link TeamRelation#MEMBER} is returned only from {@link #getRelation(UUID, UUID)} when both ids match;
+ * it is not persisted as a directional wish toward another team ({@link #setRelation} rejects it).</p>
+ *
+ * <p>{@link #getRelationColor(TeamRelation)} maps {@link MConf} ally/truce/neutral/enemy/member chat colours to
  * {@code #RRGGBB} so consumers match MassiveCraft relation colours instead of {@link TeamRelation} enum defaults.</p>
  */
 public final class FactionsTeamsRelationService implements TeamsRelationService
@@ -92,6 +96,11 @@ public final class FactionsTeamsRelationService implements TeamsRelationService
 		final Optional<Faction> toOpt = TeamsApiFactionFacade.resolveNormal(toTeamId);
 		if (fromOpt.isEmpty() || toOpt.isEmpty()) return TeamRelation.NEUTRAL;
 
+		if (fromTeamId.equals(toTeamId))
+		{
+			return TeamRelation.MEMBER;
+		}
+
 		return relToTeamRelation(fromOpt.get().getRelationWish(toOpt.get()));
 	}
 
@@ -111,7 +120,7 @@ public final class FactionsTeamsRelationService implements TeamsRelationService
 			if (!TeamsApiFactionFacade.isEligible(target)) continue;
 
 			final TeamRelation tr = relToTeamRelation(entry.getValue());
-			if (tr == TeamRelation.NEUTRAL) continue;
+			if (tr == TeamRelation.NEUTRAL || tr == TeamRelation.MEMBER) continue;
 
 			out.put(TeamsApiFactionFacade.teamUuid(target), tr);
 		}
@@ -163,6 +172,7 @@ public final class FactionsTeamsRelationService implements TeamsRelationService
 			final MConf conf = MConf.get();
 			final ChatColor cc = switch (relation)
 			{
+				case MEMBER -> conf.colorMember;
 				case ALLY -> conf.colorAlly;
 				case TRUCE -> conf.colorTruce;
 				case NEUTRAL -> conf.colorNeutral;
@@ -212,6 +222,7 @@ public final class FactionsTeamsRelationService implements TeamsRelationService
 	{
 		return switch (relation)
 		{
+			case MEMBER -> Rel.FACTION;
 			case ALLY -> Rel.ALLY;
 			case TRUCE -> Rel.TRUCE;
 			case ENEMY -> Rel.ENEMY;
@@ -221,7 +232,8 @@ public final class FactionsTeamsRelationService implements TeamsRelationService
 
 	private static TeamRelation relToTeamRelation(final Rel rel)
 	{
-		if (rel == null || rel == Rel.NEUTRAL || rel == Rel.FACTION) return TeamRelation.NEUTRAL;
+		if (rel == null || rel == Rel.NEUTRAL) return TeamRelation.NEUTRAL;
+		if (rel == Rel.FACTION) return TeamRelation.MEMBER;
 
 		return switch (rel)
 		{
