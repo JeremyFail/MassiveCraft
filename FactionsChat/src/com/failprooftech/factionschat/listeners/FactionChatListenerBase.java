@@ -315,6 +315,109 @@ public abstract class FactionChatListenerBase
         char a = t.charAt(n - 2);
         return a == '§' || a == '&';
     }
+
+    /** Trailing MiniMessage color/reset tags (e.g. {@code <reset>}, {@code <gold>}) used as channel tint before {@code %MESSAGE%}. */
+    private static final Pattern TRAILING_MINIMESSAGE_FORMAT_SUFFIX = Pattern.compile(
+        "<(?:reset|r|[a-z_]{2,}|#[0-9a-fA-F]{6}|![^>]+)>\\s*$",
+        Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern TRAILING_MODERN_RGB_SUFFIX = Pattern.compile(
+        "(?:§|&)#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\\s*$");
+
+    private static final Pattern TRAILING_LEGACY_CODE_SUFFIX = Pattern.compile(
+        "(?:§|&)([0-9a-fk-or])\\s*$",
+        Pattern.CASE_INSENSITIVE);
+    
+    /**
+     * Strips trailing legacy/RGB/MiniMessage format codes from the expanded header segment (the format
+     * before {@link #PLACEHOLDER_MESSAGE}) so it can be parsed on its own for display.
+     *
+     * <p>On Paper's signed-chat path the header and message body are parsed separately. When
+     * {@code %factions_chat_color%} sits immediately before {@code %MESSAGE%}, the expanded header ends with a
+     * dangling {@code §} color (e.g. {@code > §r}) with no following text. Deserializing that tail attaches the
+     * active color to the header root and recolors earlier reset spans such as literal {@code <} / {@code >}.</p>
+     *
+     * <p>Whitespace before the stripped channel color (e.g. {@code "> §6"} in {@code "> %factions_chat_color%})
+     * is preserved so a separating space before the message body still appears in chat.</p>
+     *
+     * <p>Channel tint for the message body still comes from {@link #extractBaseColorFromFormat} on the full
+     * pre-message segment; only the visible header parse should omit this suffix.</p>
+     * @param expandedBeforeMessage expanded format before {@code %MESSAGE%} (placeholders resolved, {@code &} → {@code §})
+     * @return header text safe to pass to the format codec without a trailing message-only color tail
+     */
+    protected static String stripTrailingFormatCodesForHeaderParse(String expandedBeforeMessage)
+    {
+        if (expandedBeforeMessage == null || expandedBeforeMessage.isEmpty())
+        {
+            return expandedBeforeMessage;
+        }
+        String s = expandedBeforeMessage;
+        boolean stripped;
+        do
+        {
+            stripped = false;
+            if (s.isEmpty())
+            {
+                return s;
+            }
+
+            Matcher trailingMm = TRAILING_MINIMESSAGE_FORMAT_SUFFIX.matcher(s);
+            if (trailingMm.find())
+            {
+                s = s.substring(0, trailingMm.start());
+                stripped = true;
+                continue;
+            }
+
+            int rgbSuffixLen = trailingLegacyBukkitRgbSuffixLength(s);
+            if (rgbSuffixLen > 0)
+            {
+                s = s.substring(0, s.length() - rgbSuffixLen);
+                stripped = true;
+                continue;
+            }
+
+            Matcher modernRgb = TRAILING_MODERN_RGB_SUFFIX.matcher(s);
+            if (modernRgb.find())
+            {
+                s = s.substring(0, modernRgb.start());
+                stripped = true;
+                continue;
+            }
+
+            Matcher legacyCode = TRAILING_LEGACY_CODE_SUFFIX.matcher(s);
+            if (legacyCode.find())
+            {
+                char code = legacyCode.group(1).charAt(0);
+                if (ChatColor.getByChar(code) != null)
+                {
+                    s = s.substring(0, legacyCode.start());
+                    stripped = true;
+                }
+            }
+        }
+        while (stripped);
+        return s;
+    }
+
+    /**
+     * Calculates the length of a trailing legacy Bukkit RGB format code.
+     * @param text The text to check.
+     * @return The length of the trailing legacy Bukkit RGB format code.
+     */
+    private static int trailingLegacyBukkitRgbSuffixLength(String text)
+    {
+        if (text == null || text.length() < 14)
+        {
+            return 0;
+        }
+        int start = text.length() - 14;
+        if (text.startsWith("\u00A7x", start) && isSectionInLegacyBukkitRgb(text, start))
+        {
+            return 14;
+        }
+        return 0;
+    }
     
     /**
      * When the message contains a MiniMessage {@code <click:run_command:…>} / {@code suggest_command:…>} payload

@@ -412,6 +412,39 @@ public final class LegacyMiniMessageMerger
         return false;
     }
 
+    
+    /**
+     * Checks if the string contains a trusted MiniMessage tag.
+     * @param normalized The string to check.
+     * @return {@code true} if the string contains a trusted MiniMessage tag, {@code false} otherwise.
+     */
+    public static boolean containsTrustedMiniMessageTag(String normalized)
+    {
+        if (normalized == null || normalized.isEmpty())
+        {
+            return false;
+        }
+        // Check for trusted MiniMessage tags
+        for (int i = 0; i < normalized.length(); i++)
+        {
+            if (!isMiniMessageTagStart(normalized, i))
+            {
+                continue;
+            }
+            int end = indexOfClosingAngleBracket(normalized, i);
+            if (end <= i)
+            {
+                continue;
+            }
+            String candidate = normalized.substring(i, end + 1);
+            if (candidate.indexOf('§') < 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Finds the closing {@code >} for a tag starting at {@code openIdx}, ignoring {@code >} inside quoted argument
      * substrings ({@code '} and {@code "} toggled independently so MiniMessage-style arguments are covered).

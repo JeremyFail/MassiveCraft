@@ -366,7 +366,9 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         Component messageBody)
     {
         String headerRaw = applyRelationalPlaceholders(source, recipientOrNull, preBefore);
-        Component header = formatExpandedFormatToComponent(headerRaw);
+        // %factions_chat_color% before %MESSAGE% must not be parsed as part of the header (dangling § tail).
+        Component header = formatExpandedFormatToComponent(
+            stripTrailingFormatCodesForHeaderParse(headerRaw));
         Component line = Component.empty().append(header).append(messageBody);
         if (preAfter != null && !preAfter.isEmpty())
         {
@@ -436,13 +438,25 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         // Replace placeholders based on whether PlaceholderAPI is enabled
         preParsedFormat = applyRelationalPlaceholders(sender, recipient, preParsedFormat);
 
-        // Full format string -> component; root default null so prefix §r and § before %MESSAGE% behave correctly.
-        Component processedFormatComponent = PaperAdventureChatCodec.toComponent(
-            preParsedFormat,
-            null,
-            legacyRgbCodec);
+        // If the format does not contain %MESSAGE%, fall back to the legacy tree
+        final int messageIdx = preParsedFormat.indexOf(PLACEHOLDER_MESSAGE);
+        if (messageIdx < 0)
+        {
+            return PaperAdventureChatCodec.toComponent(preParsedFormat, null, legacyRgbCodec);
+        }
 
-        return replaceComponentPlaceholder(processedFormatComponent, PLACEHOLDER_MESSAGE, processedMessageComponent);
+        // Split the format into before and after the message placeholder
+        final String beforeMessage = preParsedFormat.substring(0, messageIdx);
+        final String afterMessage = preParsedFormat.substring(messageIdx + PLACEHOLDER_MESSAGE.length());
+
+        Component header = formatExpandedFormatToComponent(
+            stripTrailingFormatCodesForHeaderParse(beforeMessage));
+        Component line = Component.empty().append(header).append(processedMessageComponent);
+        if (!afterMessage.isEmpty())
+        {
+            line = line.append(formatExpandedFormatToComponent(afterMessage));
+        }
+        return line;
     }
 
     /**

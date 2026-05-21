@@ -70,6 +70,12 @@ public final class PaperAdventureChatCodec
                 LENIENT_MINI_MESSAGE,
                 playerChatPermissions);
         }
+        // Format / trusted strings with literal "<§…>" brackets: legacy -> MiniMessage -> deserialize can drop §r
+        // resets and recolor "<" ">" with the last active §. Legacy-only avoids that round-trip.
+        if (!LegacyMiniMessageMerger.containsTrustedMiniMessageTag(normalized))
+        {
+            return applyBaseColor(legacyRgbPipeline.toComponent(normalized, rootDefaultColor), rootDefaultColor);
+        }
         String merged = LegacyMiniMessageMerger.mergeLegacySegmentsIntoMiniMessage(
             normalized, legacyRgbPipeline, LENIENT_MINI_MESSAGE);
         try
