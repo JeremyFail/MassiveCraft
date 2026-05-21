@@ -26,7 +26,7 @@ ChatSettings:
   # If you do not have PAPI installed, we support a limited set of built-in placeholders, as well as
   # the same modifiers mentioned above. See the wiki for more details:
   # https://factions.wiki/FactionsChat/admin-guide/integrations/placeholderapi/#built-in-placeholders
-  ChatFormat: '%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%&r> %factions_chat_color%%MESSAGE%'
+  ChatFormat: '%factions_chat_prefix|rp%&f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&f%DISPLAYNAME%&f> %factions_chat_color%%MESSAGE%'
   # If true, allows color codes/formatting in chat messages (if players also have permission to use them)
   AllowColorCodes: true
   # If true, allows clickable links in chat messages (if players also have permission to send them)

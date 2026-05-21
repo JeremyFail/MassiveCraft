@@ -25,7 +25,7 @@ public class Settings
     public static final int DEFAULT_CONFIG_VERSION = 5;
     public static final String CONFIG_FILE_NAME = "config.yml";
     public static final String BACKUP_CONFIG_FILE_NAME = "config.yml.bak";
-    public static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%&r> %factions_chat_color%%MESSAGE%";
+    public static final String DEFAULT_CHAT_FORMAT = "%factions_chat_prefix|rp%&f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&f%DISPLAYNAME%&f> %factions_chat_color%%MESSAGE%";
 
     /**
      * Default entries when {@code ChatSettings.BlacklistedMiniMessageCommands} is absent from config.
