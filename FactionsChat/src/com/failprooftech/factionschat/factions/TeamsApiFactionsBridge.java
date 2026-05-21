@@ -149,39 +149,60 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 	// Relations
 	// --------------------------------------------------------------------- //
 
-	private boolean sameTeam(final Player a, final Player b)
+	private TeamRelation relationBetweenPlayers(final Player from, final Player toward)
 	{
-		final Optional<Team> ta = teamOf(a);
-		final Optional<Team> tb = teamOf(b);
-		return ta.isPresent() && tb.isPresent() && ta.get().getId().equals(tb.get().getId());
-	}
-
-	private TeamRelation declaredRelation(final Player from, final Player toward)
-	{
-		if (this.relationService == null) return TeamRelation.NEUTRAL;
-
 		final Optional<Team> fromTeam = teamOf(from);
 		final Optional<Team> towardTeam = teamOf(toward);
-		if (fromTeam.isEmpty() || towardTeam.isEmpty()) return TeamRelation.NEUTRAL;
+		if (fromTeam.isEmpty() || towardTeam.isEmpty())
+		{
+			return TeamRelation.NEUTRAL;
+		}
 
-		return this.relationService.getRelation(fromTeam.get().getId(), towardTeam.get().getId());
+		if (this.relationService != null)
+		{
+			return this.relationService.getRelation(fromTeam.get().getId(), towardTeam.get().getId());
+		}
+
+		return fromTeam.get().getId().equals(towardTeam.get().getId())
+				? TeamRelation.MEMBER
+				: TeamRelation.NEUTRAL;
+	}
+
+	/**
+	 * Converts provider-supplied {@code #RRGGBB} from {@link TeamsRelationService#getRelationColor(TeamRelation)}
+	 * into Mojang RGB legacy codes ({@code §x§R§R§G§G§B§B}) for {@link String}-based chat formatting.
+	 */
+	private static String hexRgbToRgbLegacy(final String hex)
+	{
+		if (hex == null || hex.length() != 7 || hex.charAt(0) != '#') return null;
+		final StringBuilder sb = new StringBuilder("§x");
+		for (int i = 1; i < 7; i++)
+		{
+			sb.append('§').append(hex.charAt(i));
+		}
+		return sb.toString();
+	}
+
+	private String legacyColorForRelation(final TeamRelation relation)
+	{
+		if (this.relationService != null)
+		{
+			final String rgbLegacy = hexRgbToRgbLegacy(this.relationService.getRelationColor(relation));
+			if (rgbLegacy != null) return rgbLegacy;
+		}
+		return "§" + relation.getLegacyColorCode();
 	}
 
 	@Override
 	public String getRelationColor(final Player sender, final Player recipient)
 	{
-		if (sameTeam(sender, recipient)) return getDefaultMemberColor();
-
-		final TeamRelation rel = declaredRelation(sender, recipient);
-		return "§" + rel.getLegacyColorCode();
+		return legacyColorForRelation(relationBetweenPlayers(sender, recipient));
 	}
 
 	@Override
 	public String getRelationName(final Player sender, final Player recipient)
 	{
-		if (sameTeam(sender, recipient)) return "MEMBER";
-
-		return declaredRelation(sender, recipient).name();
+		return relationBetweenPlayers(sender, recipient).name();
 	}
 
 	@Override
@@ -193,24 +214,15 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 	@Override
 	public boolean shouldExcludeByFactionRelation(final ChatMode chatMode, final Player sender, final Player recipient)
 	{
-		if (sameTeam(sender, recipient))
-		{
-			return switch (chatMode)
-			{
-				case ENEMY -> true;
-				default -> false;
-			};
-		}
-
-		final TeamRelation rel = declaredRelation(sender, recipient);
+		final TeamRelation rel = relationBetweenPlayers(sender, recipient);
 
 		return switch (chatMode)
 		{
-			case FACTION -> true;
+			case FACTION -> rel != TeamRelation.MEMBER;
 
-			case ALLY -> rel != TeamRelation.ALLY;
+			case ALLY -> rel != TeamRelation.MEMBER && rel != TeamRelation.ALLY;
 
-			case TRUCE -> rel != TeamRelation.ALLY && rel != TeamRelation.TRUCE;
+			case TRUCE -> rel != TeamRelation.MEMBER && rel != TeamRelation.ALLY && rel != TeamRelation.TRUCE;
 
 			case ENEMY -> rel != TeamRelation.ENEMY;
 
@@ -221,30 +233,30 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 	@Override
 	public String getDefaultAllyColor()
 	{
-		return "§" + TeamRelation.ALLY.getLegacyColorCode();
+		return legacyColorForRelation(TeamRelation.ALLY);
 	}
 
 	@Override
 	public String getDefaultTruceColor()
 	{
-		return "§" + TeamRelation.TRUCE.getLegacyColorCode();
+		return legacyColorForRelation(TeamRelation.TRUCE);
 	}
 
 	@Override
 	public String getDefaultMemberColor()
 	{
-		return "§a";
+		return legacyColorForRelation(TeamRelation.MEMBER);
 	}
 
 	@Override
 	public String getDefaultEnemyColor()
 	{
-		return "§" + TeamRelation.ENEMY.getLegacyColorCode();
+		return legacyColorForRelation(TeamRelation.ENEMY);
 	}
 
 	@Override
 	public String getDefaultNeutralColor()
 	{
-		return "§" + TeamRelation.NEUTRAL.getLegacyColorCode();
+		return legacyColorForRelation(TeamRelation.NEUTRAL);
 	}
 }

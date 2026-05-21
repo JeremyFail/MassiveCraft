@@ -41,7 +41,7 @@ Designed primarily as a Factions add-on, this plugin operates best with a suppor
   
   Other supported Factions plugins are:
     - [PvPIndex-Factions](https://github.com/PVP-Index/pvpindex-factions)
-    - Any Factions (or other Teams-based) plugin that implements [Teams API](https://github.com/ez-plugins/teams-api) - you will also need to install Teams API alongside said plugin.
+    - Any Factions (or other Teams-based) plugin that implements [Teams API](https://github.com/ez-plugins/teams-api) - install the Teams API plugin alongside it.
     - [FactionsBridge](https://github.com/CallumJohnson/FactionsBridge) (standalone plugin) - supports many Factions forks through one API; install the FactionsBridge plugin on the server with your Factions fork and FactionsChat _should_ be able to connect. File an issue if you encounter any problems.
     
 - (Optional) [EssentialsX](https://essentialsx.net/)
