@@ -85,6 +85,11 @@
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
         </dependency>
+        <!-- Required at package time: shade artifactSet does not always pull bstats-base transitively -->
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-base</artifactId>
+        </dependency>
     </dependencies>
     
     <!-- Build -->
@@ -105,6 +110,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>org.bstats:bstats-bukkit</include>
+                                    <include>org.bstats:bstats-base</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -209,16 +215,15 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
                         <executions>
+                            <!-- Merge into the main shade execution (same id as default build) so only one final JAR is produced. -->
                             <execution>
-                                <id>shade-factionschat-update-checker</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>shade</goal>
-                                </goals>
+                                <id>shade-factionschat-bstats</id>
                                 <configuration>
                                     <createDependencyReducedPom>false</createDependencyReducedPom>
                                     <artifactSet>
                                         <includes>
+                                            <include>org.bstats:bstats-bukkit</include>
+                                            <include>org.bstats:bstats-base</include>
                                             <include>com.failprooftech:plugin-update-checker</include>
                                             <include>org.apache.maven:maven-artifact</include>
                                             <include>org.codehaus.plexus:plexus-utils</include>
@@ -226,6 +231,10 @@
                                         </includes>
                                     </artifactSet>
                                     <relocations>
+                                        <relocation>
+                                            <pattern>org.bstats</pattern>
+                                            <shadedPattern>com.failprooftech.factionschat.lib.bstats</shadedPattern>
+                                        </relocation>
                                         <relocation>
                                             <pattern>com.failprooftech.pluginupdatechecker</pattern>
                                             <shadedPattern>com.failprooftech.factionschat.lib.pluginupdatechecker</shadedPattern>

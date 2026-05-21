@@ -617,6 +617,11 @@
                 <artifactId>bstats-bukkit</artifactId>
                 <version>${massiveBStatsVersion}</version>
             </dependency>
+            <dependency>
+                <groupId>org.bstats</groupId>
+                <artifactId>bstats-base</artifactId>
+                <version>${massiveBStatsVersion}</version>
+            </dependency>
 
             <!-- Custom - Custom artifacts. Manually installed by command. -->
             <!--
