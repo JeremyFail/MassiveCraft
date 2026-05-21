@@ -36,37 +36,72 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.basedir}/target</outputDirectory>
+                            <!-- Final plugin JARs only (no original-*, *-shaded, sources, or javadoc). -->
                             <resources>
                                 <resource>
                                     <directory>${project.basedir}/CreativeGates/target</directory>
                                     <includes><include>*.jar</include></includes>
+                                    <excludes>
+                                        <exclude>original-*.jar</exclude>
+                                        <exclude>*-shaded.jar</exclude>
+                                        <exclude>*-sources.jar</exclude>
+                                        <exclude>*-javadoc.jar</exclude>
+                                    </excludes>
                                     <targetPath>.</targetPath>
                                 </resource>
                                 <resource>
                                     <directory>${project.basedir}/FactionsChat/target</directory>
                                     <includes><include>*.jar</include></includes>
-                                    <excludes><exclude>original-*.jar</exclude></excludes>
+                                    <excludes>
+                                        <exclude>original-*.jar</exclude>
+                                        <exclude>*-shaded.jar</exclude>
+                                        <exclude>*-sources.jar</exclude>
+                                        <exclude>*-javadoc.jar</exclude>
+                                    </excludes>
                                     <targetPath>.</targetPath>
                                 </resource>
                                 <resource>
                                     <directory>${project.basedir}/Factions/target</directory>
                                     <includes><include>*.jar</include></includes>
+                                    <excludes>
+                                        <exclude>original-*.jar</exclude>
+                                        <exclude>*-shaded.jar</exclude>
+                                        <exclude>*-sources.jar</exclude>
+                                        <exclude>*-javadoc.jar</exclude>
+                                    </excludes>
                                     <targetPath>.</targetPath>
                                 </resource>
                                 <resource>
                                     <directory>${project.basedir}/MassiveBooks/target</directory>
                                     <includes><include>*.jar</include></includes>
+                                    <excludes>
+                                        <exclude>original-*.jar</exclude>
+                                        <exclude>*-shaded.jar</exclude>
+                                        <exclude>*-sources.jar</exclude>
+                                        <exclude>*-javadoc.jar</exclude>
+                                    </excludes>
                                     <targetPath>.</targetPath>
                                 </resource>
                                 <resource>
                                     <directory>${project.basedir}/MassiveHat/target</directory>
                                     <includes><include>*.jar</include></includes>
+                                    <excludes>
+                                        <exclude>original-*.jar</exclude>
+                                        <exclude>*-shaded.jar</exclude>
+                                        <exclude>*-sources.jar</exclude>
+                                        <exclude>*-javadoc.jar</exclude>
+                                    </excludes>
                                     <targetPath>.</targetPath>
                                 </resource>
                                 <resource>
                                     <directory>${project.basedir}/MassiveCore/target</directory>
                                     <includes><include>*.jar</include></includes>
-                                    <excludes><exclude>original-*.jar</exclude></excludes>
+                                    <excludes>
+                                        <exclude>original-*.jar</exclude>
+                                        <exclude>*-shaded.jar</exclude>
+                                        <exclude>*-sources.jar</exclude>
+                                        <exclude>*-javadoc.jar</exclude>
+                                    </excludes>
                                     <targetPath>.</targetPath>
                                 </resource>
                             </resources>
