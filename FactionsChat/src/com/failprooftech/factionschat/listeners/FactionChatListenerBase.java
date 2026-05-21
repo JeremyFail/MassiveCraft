@@ -187,6 +187,11 @@ public abstract class FactionChatListenerBase
         {
             if (beforeMsg.charAt(i) == '\u00A7' && i + 1 < beforeMsg.length())
             {
+                // §x§R§R§G§G§B§B uses § before each hex digit; those are not legacy §5 / §a codes.
+                if (isSectionInLegacyBukkitRgb(beforeMsg, i))
+                {
+                    continue;
+                }
                 char colorChar = beforeMsg.charAt(i + 1);
                 ChatColor chatColor = ChatColor.getByChar(colorChar);
                 if (chatColor == ChatColor.RESET)
@@ -204,8 +209,8 @@ public abstract class FactionChatListenerBase
             }
         }
         
-        // Use the color code that appears last in the string
-        if (lastRgbEnd > lastLegacyColorIdx && lastHexCode != null)
+        // Prefer RGB when it ends at or after the last legacy code (§x tail §5 must not win as §5 purple).
+        if (lastRgbEnd >= lastLegacyColorIdx && lastHexCode != null)
         {
             // RGB color code is more recent
             try
@@ -232,8 +237,63 @@ public abstract class FactionChatListenerBase
     }
 
     /**
-     * True if {@code beforeMsg} (text before {@link #PLACEHOLDER_MESSAGE}) ends with a legacy reset code, ignoring
-     * only trailing whitespace - i.e. the last code unit before the body is {@code &r}/{@code §r}.
+     * Checks if the section at the given index is a legacy Bukkit RGB color code.
+     * 
+     * @param text The text to check.
+     * @param sectionIndex The index of the section to check.
+     * @return {@code true} if the section is a legacy Bukkit RGB color code, {@code false} otherwise.
+     */
+    private static boolean isSectionInLegacyBukkitRgb(final String text, final int sectionIndex)
+    {
+        if (sectionIndex < 0 || sectionIndex >= text.length() || text.charAt(sectionIndex) != '\u00A7')
+        {
+            return false;
+        }
+        if (sectionIndex + 1 >= text.length())
+        {
+            return false;
+        }
+        final char digit = text.charAt(sectionIndex + 1);
+        if (!isHexDigit(digit))
+        {
+            return false;
+        }
+        final int xStart = text.lastIndexOf("\u00A7x", sectionIndex);
+        if (xStart < 0)
+        {
+            return false;
+        }
+        final int rgbStart = xStart + 2;
+        final int rgbEnd = rgbStart + 12;
+        if (sectionIndex < rgbStart || sectionIndex >= rgbEnd || rgbEnd > text.length())
+        {
+            return false;
+        }
+        for (int p = rgbStart; p < rgbEnd; p += 2)
+        {
+            if (text.charAt(p) != '\u00A7' || !isHexDigit(text.charAt(p + 1)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Checks if the character is a valid hexadecimal digit.
+     * @param c The character to check.
+     * @return {@code true} if the character is a valid hexadecimal digit, {@code false} otherwise.
+     */
+    private static boolean isHexDigit(final char c)
+    {
+        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
+
+    /**
+     * Checks if the string ends with a legacy reset code.
+     * @param beforeMsg The string to check.
+     * @return {@code true} if the string ends with a legacy reset code, {@code false} otherwise.
+     * @return
      */
     private static boolean endsWithResetBeforeMessagePlaceholder(String beforeMsg)
     {
@@ -289,6 +349,11 @@ public abstract class FactionChatListenerBase
         return true;
     }
 
+    /**
+     * Gets the chat permissions for a player.
+     * @param sender The player to get the chat permissions for.
+     * @return The chat permissions for the player.
+     */
     protected ChatPermissions getPlayerChatPermissions(Player sender)
     {
         boolean settingAllowColorCodes = Settings.allowColorCodes;
@@ -383,15 +448,6 @@ public abstract class FactionChatListenerBase
     }
 
     /**
-     * @deprecated Use {@link #shouldExcludeRecipient(ChatMode, Player, Player)} instead.
-     */
-    @Deprecated
-    protected boolean filterRecipient(ChatMode chatMode, Player sender, Player recipient)
-    {
-        return shouldExcludeRecipient(chatMode, sender, recipient);
-    }
-
-    /**
      * Represents the result of extracting a base color from a format string.
      * Contains both legacy ChatColor and hex string representations.
      */
@@ -401,6 +457,10 @@ public abstract class FactionChatListenerBase
         public final String hexCode; // 6-digit hex without #
         public final boolean isRgb;
 
+        /**
+         * Constructs a new BaseColorResult with a legacy color.
+         * @param legacyColor The legacy color to use.
+         */
         public BaseColorResult(ChatColor legacyColor)
         {
             this.legacyColor = legacyColor;
@@ -408,6 +468,10 @@ public abstract class FactionChatListenerBase
             this.isRgb = false;
         }
 
+        /**
+         * Constructs a new BaseColorResult with a hex code.
+         * @param hexCode The hex code to use.
+         */
         public BaseColorResult(String hexCode)
         {
             this.legacyColor = ChatColor.WHITE; // fallback
@@ -416,8 +480,8 @@ public abstract class FactionChatListenerBase
         }
 
         /**
-         * § prefix to prepend before literal/disallowed spans so they match the effective base color before
-         * {@link FactionChatListenerBase#PLACEHOLDER_MESSAGE} (including {@code §x} RGB when applicable).
+         * Gets the legacy prefix string for the base color.
+         * @return The legacy prefix string for the base color.
          */
         public String toLegacyPrefixString()
         {

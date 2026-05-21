@@ -169,26 +169,44 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 	}
 
 	/**
-	 * Converts provider-supplied {@code #RRGGBB} from {@link TeamsRelationService#getRelationColor(TeamRelation)}
-	 * into Mojang RGB legacy codes ({@code §x§R§R§G§G§B§B}) for {@link String}-based chat formatting.
+	 * Converts provider {@code #RRGGBB} from {@link TeamsRelationService#getRelationColor(TeamRelation)} into
+	 * FactionsChat's supported RGB legacy form ({@code §#RRGGBB}, same family as {@code &#RRGGBB}).
+	 * {@code §x§R§R§G§G§B§B} is not used here — the chat parser expects {@code &#} / {@code §#} hex.
 	 */
-	private static String hexRgbToRgbLegacy(final String hex)
+	private static String hexToChatRgbCode(final String hexFromProvider)
 	{
-		if (hex == null || hex.length() != 7 || hex.charAt(0) != '#') return null;
-		final StringBuilder sb = new StringBuilder("§x");
-		for (int i = 1; i < 7; i++)
+		if (hexFromProvider == null)
 		{
-			sb.append('§').append(hex.charAt(i));
+			return null;
 		}
-		return sb.toString();
+		String hex = hexFromProvider.trim();
+		if (!hex.startsWith("#"))
+		{
+			return null;
+		}
+		hex = hex.substring(1);
+		if (hex.length() == 3)
+		{
+			hex = "" + hex.charAt(0) + hex.charAt(0)
+					+ hex.charAt(1) + hex.charAt(1)
+					+ hex.charAt(2) + hex.charAt(2);
+		}
+		if (hex.length() != 6 || !hex.matches("[A-Fa-f0-9]{6}"))
+		{
+			return null;
+		}
+		return "§#" + hex;
 	}
 
 	private String legacyColorForRelation(final TeamRelation relation)
 	{
 		if (this.relationService != null)
 		{
-			final String rgbLegacy = hexRgbToRgbLegacy(this.relationService.getRelationColor(relation));
-			if (rgbLegacy != null) return rgbLegacy;
+			final String rgb = hexToChatRgbCode(this.relationService.getRelationColor(relation));
+			if (rgb != null)
+			{
+				return rgb;
+			}
 		}
 		return "§" + relation.getLegacyColorCode();
 	}
