@@ -5,7 +5,7 @@
 #           Main Configuration File          #
 #                                            #
 ##############################################
-version: 4
+version: 5
 
 
 
@@ -26,7 +26,7 @@ ChatSettings:
   # If you do not have PAPI installed, we support a limited set of built-in placeholders, as well as
   # the same modifiers mentioned above. See the wiki for more details:
   # https://factions.wiki/FactionsChat/admin-guide/integrations/placeholderapi/#built-in-placeholders
-  ChatFormat: '%factions_chat_prefix|rp%&r<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&r%DISPLAYNAME%&r> %factions_chat_color%%MESSAGE%'
+  ChatFormat: '%factions_chat_prefix|rp%&f<%rel_factions_relation_color%%factions_player_rankprefix%%factions_faction_name|rp%&f%DISPLAYNAME%&f> %factions_chat_color%%MESSAGE%'
   # If true, allows color codes/formatting in chat messages (if players also have permission to use them)
   AllowColorCodes: true
   # If true, allows clickable links in chat messages (if players also have permission to send them)
@@ -149,7 +149,17 @@ TextColors:
 
 #--------------- Discord Settings ----------------#
 # Settings for the DiscordSRV integration (requires DiscordSRV to be installed).
-# The channel ID for the channel in your discord guild to link staff chat to
-# Right click the text channel, select "copy ID" and replace the current value with copied ID
 DiscordSRV:
+  # If false, FactionsChat will not register with DiscordSRV even when the plugin is present.
+  enabled: true
+  # The channel ID for the channel in your discord guild to link staff chat to.
+  # Right click the text channel, select "copy ID" and replace the current value with copied ID.
   StaffChannel: '000000000000000000'
+
+
+
+#-------------- Essentials Settings --------------#
+# Settings for the EssentialsX integration (requires Essentials to be installed).
+Essentials:
+  # If false, FactionsChat will not hook into Essentials even when the plugin is present.
+  enabled: true

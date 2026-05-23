@@ -26,11 +26,11 @@ public class TypeNamespacedKey extends TypeAbstract<NamespacedKey>
 	@Override
 	public String getVisualInner(NamespacedKey value, CommandSender sender)
 	{
-		String namespaceColour = "<blue>";
-		if (value.getNamespace().equals(NamespacedKey.MINECRAFT)) namespaceColour = "<green>";
-		else if (value.getNamespace().equals(NamespacedKey.BUKKIT)) namespaceColour = "<purple>";
+		String namespaceColor = "<blue>";
+		if (value.getNamespace().equals(NamespacedKey.MINECRAFT)) namespaceColor = "<green>";
+		else if (value.getNamespace().equals(NamespacedKey.BUKKIT)) namespaceColor = "<purple>";
 		
-		return Txt.parse(namespaceColour +"%s<n>:<v>%s",value.getNamespace(),value.getKey());
+		return Txt.parse(namespaceColor +"%s<n>:<v>%s",value.getNamespace(),value.getKey());
 	}
 	
 	@Override

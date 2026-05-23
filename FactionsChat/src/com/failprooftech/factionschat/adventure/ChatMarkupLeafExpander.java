@@ -62,8 +62,11 @@ public final class ChatMarkupLeafExpander
 
             if (!content.isEmpty() && mightContainParsableMarkup(content))
             {
-                // Leaf still has typed codes or tags as raw characters - fold through the unified chat codec.
-                Component parsed = PermissionAwareChatMessage.toAdventureComponent(content, baseColor, permissions, legacyRgb);
+                // Use the leaf's own explicit color as the parsing base (e.g. a node colored yellow
+                // from an upstream &e should produce yellow text before any inline tags).
+                // Fall back to the global baseColor only if the leaf has no color of its own.
+                TextColor leafColor = tc.style().color() != null ? tc.style().color() : baseColor;
+                Component parsed = PermissionAwareChatMessage.toAdventureComponent(content, leafColor, permissions, legacyRgb);
                 Component merged = parsed;
                 // Plain iteration order is text content then children; parsed replaces content only.
                 for (Component ch : newChildren)
@@ -123,7 +126,7 @@ public final class ChatMarkupLeafExpander
      * @param s non-null leaf {@linkplain TextComponent#content() content}
      * @return {@code true} if the leaf might contain markup worth parsing
      */
-    static boolean mightContainParsableMarkup(String s)
+    public static boolean mightContainParsableMarkup(String s)
     {
         if (s.isEmpty())
         {

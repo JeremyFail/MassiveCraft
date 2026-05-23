@@ -3,9 +3,15 @@ name: ${project.name}
 version: ${project.version}
 website: ${project.url}
 description: ${project.description}
-authors: [eirikh1996, Ymerejliaf]
+authors: [Ymerejliaf, eirikh1996]
 api-version: 1.21
-softdepend: [Factions, MassiveCore, DiscordSRV, Essentials, PlaceholderAPI]
+softdepend: [Factions, MassiveCore, PvPIndexFactions, FactionsBridge, DiscordSRV, Essentials, PlaceholderAPI, TeamsAPI]
+
+commands:
+  chat:
+    description: FactionsChat channels and utilities (standalone) or usage hint (integrated mode)
+    usage: /<command> [subcommand|mode] [args]
+    aliases: [c]
 
 permissions:
   # -------------------------------------------- #

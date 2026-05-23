@@ -17,9 +17,11 @@ public final class TeamsApiSnapshotTeamMember implements TeamMember
 	private final Instant joinedAt;
 
 	/**
-	 * @param playerUuid player owning this roster row - non-null enforced
-	 * @param role       projected Teams coarse role mapped from faction rank ladders
-	 * @param joinedAt   persisted join timestamp if known; otherwise {@link Instant#EPOCH} replacement
+	 * Creates a new TeamsApiSnapshotTeamMember instance.
+	 * 
+	 * @param playerUuid The player UUID.
+	 * @param role The team role.
+	 * @param joinedAt The joined at timestamp.
 	 */
 	public TeamsApiSnapshotTeamMember(final UUID playerUuid, final TeamRole role, final Instant joinedAt)
 	{

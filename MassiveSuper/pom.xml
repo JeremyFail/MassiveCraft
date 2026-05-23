@@ -5,7 +5,7 @@
     <groupId>com.massivecraft.massivesuper</groupId>
     <artifactId>MassiveSuper</artifactId>
     <!-- Change this release version when making updates to the code - update in all pom files -->
-    <version>3.4.0-alpha-14</version>
+    <version>3.4.0</version>
     <packaging>pom</packaging>
 
     <!-- Info -->
@@ -89,7 +89,13 @@
         <massivePlaceholderAPIVersion>2.11.7</massivePlaceholderAPIVersion>
 
         <!-- https://github.com/ez-plugins/teams-api -->
-        <massiveTeamsApiVersion>1.4.1</massiveTeamsApiVersion>
+        <massiveTeamsApiVersion>2.0.0</massiveTeamsApiVersion>
+
+        <!-- https://repo.failprooftech.com/ - Failproof Tech Maven repository -->
+        <massiveFactionsBridgeApiVersion>1.4.0</massiveFactionsBridgeApiVersion>
+
+        <!-- https://bstats.org/docs -->
+        <massiveBStatsVersion>3.2.1</massiveBStatsVersion>
 
         <!-- https://repo.bluecolored.de/ -->
         <massiveBlueMapVersion>2.7.7</massiveBlueMapVersion>
@@ -121,6 +127,11 @@
 
     <!-- Repositories -->
     <repositories>
+        <!-- Maven Central (bStats, etc.) -->
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
         <!-- Spigot API -->
         <repository>
             <id>spigot-repo</id>
@@ -180,6 +191,18 @@
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
+        </repository>
+        <!-- Failproof Tech (FactionsBridge API, etc.) — https://repo.failprooftech.com/ -->
+        <repository>
+            <id>failprooftech-repo-snapshots</id>
+            <name>Failproof Tech Repository</name>
+            <url>https://repo.failprooftech.com/snapshots</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
@@ -578,10 +601,26 @@
               <scope>provided</scope>
             </dependency>
             <dependency>
-              <groupId>com.github.ez-plugins</groupId>
+              <groupId>com.github.ez-plugins.teams-api</groupId>
               <artifactId>teams-api</artifactId>
               <version>${massiveTeamsApiVersion}</version>
               <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>cc.javajobs.factionsbridge</groupId>
+                <artifactId>FactionsBridge-API</artifactId>
+                <version>${massiveFactionsBridgeApiVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.bstats</groupId>
+                <artifactId>bstats-bukkit</artifactId>
+                <version>${massiveBStatsVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bstats</groupId>
+                <artifactId>bstats-base</artifactId>
+                <version>${massiveBStatsVersion}</version>
             </dependency>
 
             <!-- Custom - Custom artifacts. Manually installed by command. -->

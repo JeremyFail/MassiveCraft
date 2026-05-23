@@ -31,6 +31,17 @@ public final class TeamsApiSnapshotTeam implements Team
 	/** Mirrors {@link com.massivecraft.factions.entity.MConf#factionMemberLimit}; non-positive emits {@link #getMaxSize()} {@code -1}. */
 	private final int maxSize;
 
+	/**
+	 * Creates a new TeamsApiSnapshotTeam instance.
+	 * 
+	 * @param teamId The team ID.
+	 * @param name The team name.
+	 * @param displayName The team display name.
+	 * @param ownerUuid The owner UUID.
+	 * @param members The team members.
+	 * @param memberByUuid The team members by UUID.
+	 * @param maxSize The team max size.
+	 */
 	private TeamsApiSnapshotTeam(
 		final UUID teamId,
 		final String name,

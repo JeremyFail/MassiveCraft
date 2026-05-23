@@ -99,21 +99,22 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         }
 
         // Determine the chat mode and message text
-        final ChatMode chatMode;
+        final ChatMode rawChatMode;
         final String messagePlain;
         final boolean colonQuick;
         if (colon.getType() == ParseType.QUICK_MESSAGE)
         {
-            chatMode = colon.getTargetMode();
+            rawChatMode = colon.getTargetMode();
             messagePlain = colon.getMessageBody();
             colonQuick = true;
         }
         else
         {
-            chatMode = ChatMode.getChatModeForPlayer(sender);
+            rawChatMode = ChatMode.getChatModeForPlayer(sender);
             messagePlain = colon.getMessageBody();
             colonQuick = false;
         }
+        final ChatMode chatMode = FactionsChat.resolveEffectiveChatMode(rawChatMode);
 
         if (denyIfBlacklistedMiniMessageClick(sender, messagePlain))
         {
@@ -242,6 +243,15 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             preBeforeNonRel + PLACEHOLDER_MESSAGE + formatAfterMessage);
 
         final String plainFullLine = plainSerializer.serialize(event.message());
+
+        // Determine whether the message body needs to be rebuilt from scratch (markup codes present,
+        // or preserveUpstreamChatComponents is disabled). When false (plain text, upstream path), we
+        // use the signed messageComponent argument from the renderer callback so Paper can preserve
+        // the player's chat-signing / reporting status. When true the body is rebuilt from plain text
+        // and is inherently unsigned - that's an acceptable tradeoff for colour-formatted messages.
+        final boolean messageBodyTransformed = !Settings.preserveUpstreamChatComponents
+            || ChatMarkupLeafExpander.mightContainParsableMarkup(messagePlain);
+
         final Component messageBodyFinal = resolveProcessedMessageBody(
             sender, event.message(), plainFullLine, messagePlain, colonQuick, baseColor, chatMode, senderPerms);
 
@@ -262,11 +272,21 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
 
         final String preBeforeFinal = preBeforeNonRel;
         final String preAfterFinal = preAfterNonRel;
+        final TextColor baseColorFinal = baseColor;
 
         event.renderer((source, sourceDisplayName, messageComponent, viewer) ->
         {
             Player recipientPlayer = viewer instanceof Player ? (Player) viewer : null;
-            return buildFormattedChatLine(source, recipientPlayer, preBeforeFinal, preAfterFinal, messageBodyFinal);
+            // Plain text: wrap the signed messageComponent with baseColor so the message
+            // inherits the channel tint while keeping the signed reference intact for Paper.
+            // Markup and quick-chat messages: use the pre-processed body so quick-chat
+            // channel tokens (e.g. :f) are stripped from the visible message.
+            Component body = (colonQuick || messageBodyTransformed)
+                ? messageBodyFinal
+                : (baseColorFinal != null
+                    ? Component.empty().color(baseColorFinal).append(messageComponent)
+                    : messageComponent);
+            return buildFormattedChatLine(source, recipientPlayer, preBeforeFinal, preAfterFinal, body);
         });
 
         // Console receives the same line via the renderer (Console is usually a viewer); do not log again.
@@ -346,7 +366,9 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         Component messageBody)
     {
         String headerRaw = applyRelationalPlaceholders(source, recipientOrNull, preBefore);
-        Component header = formatExpandedFormatToComponent(headerRaw);
+        // %factions_chat_color% before %MESSAGE% must not be parsed as part of the header (dangling § tail).
+        Component header = formatExpandedFormatToComponent(
+            stripTrailingFormatCodesForHeaderParse(headerRaw));
         Component line = Component.empty().append(header).append(messageBody);
         if (preAfter != null && !preAfter.isEmpty())
         {
@@ -416,13 +438,25 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         // Replace placeholders based on whether PlaceholderAPI is enabled
         preParsedFormat = applyRelationalPlaceholders(sender, recipient, preParsedFormat);
 
-        // Full format string -> component; root default null so prefix §r and § before %MESSAGE% behave correctly.
-        Component processedFormatComponent = PaperAdventureChatCodec.toComponent(
-            preParsedFormat,
-            null,
-            legacyRgbCodec);
+        // If the format does not contain %MESSAGE%, fall back to the legacy tree
+        final int messageIdx = preParsedFormat.indexOf(PLACEHOLDER_MESSAGE);
+        if (messageIdx < 0)
+        {
+            return PaperAdventureChatCodec.toComponent(preParsedFormat, null, legacyRgbCodec);
+        }
 
-        return replaceComponentPlaceholder(processedFormatComponent, PLACEHOLDER_MESSAGE, processedMessageComponent);
+        // Split the format into before and after the message placeholder
+        final String beforeMessage = preParsedFormat.substring(0, messageIdx);
+        final String afterMessage = preParsedFormat.substring(messageIdx + PLACEHOLDER_MESSAGE.length());
+
+        Component header = formatExpandedFormatToComponent(
+            stripTrailingFormatCodesForHeaderParse(beforeMessage));
+        Component line = Component.empty().append(header).append(processedMessageComponent);
+        if (!afterMessage.isEmpty())
+        {
+            line = line.append(formatExpandedFormatToComponent(afterMessage));
+        }
+        return line;
     }
 
     /**
@@ -525,6 +559,14 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
     private Component applyChannelBaseColorWhereAbsent(Component component, TextColor baseColor)
     {
         if (baseColor == null)
+        {
+            return component;
+        }
+        // If this node already has an explicit color, its children inherit from it -
+        // stop here. Recursing would force baseColor onto colorless children that should
+        // inherit their parent's color (e.g. a TextComponent inside <yellow>…</yellow>),
+        // which would visually override the yellow with baseColor.
+        if (component.color() != null)
         {
             return component;
         }

@@ -134,7 +134,7 @@ public final class CmdFactionsChatIgnoreList implements FactionsChatSubcommand
                 }
 
                 String title = finalAdmin ? finalName + "'s Ignore List" : "Your Ignore List";
-                String pageCmd = "/f c ignorelist" + (finalAdmin ? " " + finalName : "");
+                String pageCmd = FactionsChat.instance.getChatCommandPrefix() + " ignorelist" + (finalAdmin ? " " + finalName : "");
                 FactionsChatDispatcher.sendPage(sender, lines, finalPage, title, pageCmd);
             });
         });

@@ -70,21 +70,22 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
         }
 
         // Determine the chat mode and message text
-        final ChatMode chatMode;
+        final ChatMode rawChatMode;
         final String messageText;
         final boolean colonQuick;
         if (colon.getType() == ParseType.QUICK_MESSAGE)
         {
-            chatMode = colon.getTargetMode();
+            rawChatMode = colon.getTargetMode();
             messageText = colon.getMessageBody();
             colonQuick = true;
         }
         else
         {
-            chatMode = ChatMode.getChatModeForPlayer(sender);
+            rawChatMode = ChatMode.getChatModeForPlayer(sender);
             messageText = colon.getMessageBody();
             colonQuick = false;
         }
+        final ChatMode chatMode = FactionsChat.resolveEffectiveChatMode(rawChatMode);
 
         if (denyIfBlacklistedMiniMessageClick(sender, messageText))
         {

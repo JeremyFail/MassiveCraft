@@ -189,6 +189,11 @@ public final class ColonChannelChatParser
      */
     private static String validateModeForPlayer(Player player, ChatMode mode)
     {
+        if (mode.requiresFactionData() && FactionsChat.instance.getFactionsBridge() == null)
+        {
+            return ChatTxt.parse("<b>Faction chat channels are not available on this server.");
+        }
+
         if (!player.hasPermission("factions.chat." + mode.name().toLowerCase()))
         {
             return ChatTxt.parse("<b>Invalid chat mode or command: <v>") + mode.name().toLowerCase();

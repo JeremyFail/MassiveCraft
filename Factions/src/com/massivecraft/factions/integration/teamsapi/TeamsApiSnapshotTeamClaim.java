@@ -16,6 +16,15 @@ public final class TeamsApiSnapshotTeamClaim implements TeamClaim
 	private final int chunkZ;
 	private final Instant claimedAt;
 
+	/**
+	 * Creates a new TeamsApiSnapshotTeamClaim instance.
+	 * 
+	 * @param teamId The team ID.
+	 * @param worldName The world name.
+	 * @param chunkX The chunk X.
+	 * @param chunkZ The chunk Z.
+	 * @param claimedAt The claimed at timestamp.
+	 */
 	public TeamsApiSnapshotTeamClaim(final UUID teamId, final String worldName, final int chunkX, final int chunkZ,
 		final Instant claimedAt)
 	{

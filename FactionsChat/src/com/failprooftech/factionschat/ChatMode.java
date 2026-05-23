@@ -56,6 +56,15 @@ public enum ChatMode
         return String.valueOf(name().toLowerCase().charAt(0));
     }
 
+    /**
+     * Channels that need faction/teams data ({@link com.failprooftech.factionschat.factions.FactionsBridge}).
+     * When no bridge is installed, these modes are unavailable for switching and chat falls back to {@link #GLOBAL} for delivery.
+     */
+    public boolean requiresFactionData()
+    {
+        return this == FACTION || this == ALLY || this == TRUCE || this == NEUTRAL || this == ENEMY;
+    }
+
     private static HashMap<String, ChatMode> BY_NAME;
     
     static 
@@ -127,8 +136,15 @@ public enum ChatMode
             return availableModes; // Return empty list if player is null
         }
         
+        final boolean hasFactionBridge = FactionsChat.instance != null
+                && FactionsChat.instance.getFactionsBridge() != null;
+
         for (ChatMode mode : values())
         {
+            if (mode.requiresFactionData() && !hasFactionBridge)
+            {
+                continue;
+            }
             String permission = "factions.chat." + mode.name().toLowerCase();
             if (player.hasPermission(permission))
             {

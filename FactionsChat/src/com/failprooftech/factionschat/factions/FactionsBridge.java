@@ -56,7 +56,7 @@ public interface FactionsBridge
     // --------------------------------------------------------------------- //
 
     /**
-     * Returns the colour code string that represents the relationship between
+     * Returns the color code string that represents the relationship between
      * {@code sender} and {@code recipient} (e.g. {@code "§a"} for allies).
      */
     String getRelationColor(Player sender, Player recipient);
@@ -89,7 +89,7 @@ public interface FactionsBridge
     boolean shouldExcludeByFactionRelation(ChatMode chatMode, Player sender, Player recipient);
 
     // --------------------------------------------------------------------- //
-    // Default relation colours
+    // Default relation colors
     // --------------------------------------------------------------------- //
 
     String getDefaultAllyColor();

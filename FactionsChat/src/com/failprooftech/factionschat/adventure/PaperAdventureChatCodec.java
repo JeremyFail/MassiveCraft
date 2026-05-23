@@ -1,11 +1,17 @@
 package com.failprooftech.factionschat.adventure;
 
+import com.failprooftech.factionschat.FactionsChat;
 import com.failprooftech.factionschat.chat.ChatPermissions;
 import com.failprooftech.factionschat.util.ChatTxt;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+
+import org.bukkit.Bukkit;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Converts expanded chat strings (after placeholders) into {@link Component}s using one pipeline:
@@ -14,6 +20,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 public final class PaperAdventureChatCodec
 {
     private static final MiniMessage LENIENT_MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final Logger FALLBACK_LOGGER = Bukkit.getLogger();
 
     /**
      * Parses expanded format or message text into a component.
@@ -63,9 +70,38 @@ public final class PaperAdventureChatCodec
                 LENIENT_MINI_MESSAGE,
                 playerChatPermissions);
         }
+        // Format / trusted strings with literal "<§…>" brackets: legacy -> MiniMessage -> deserialize can drop §r
+        // resets and recolor "<" ">" with the last active §. Legacy-only avoids that round-trip.
+        if (!LegacyMiniMessageMerger.containsTrustedMiniMessageTag(normalized))
+        {
+            return applyBaseColor(legacyRgbPipeline.toComponent(normalized, rootDefaultColor), rootDefaultColor);
+        }
         String merged = LegacyMiniMessageMerger.mergeLegacySegmentsIntoMiniMessage(
             normalized, legacyRgbPipeline, LENIENT_MINI_MESSAGE);
-        return applyBaseColor(LENIENT_MINI_MESSAGE.deserialize(merged), rootDefaultColor);
+        try
+        {
+            return applyBaseColor(LENIENT_MINI_MESSAGE.deserialize(merged), rootDefaultColor);
+        }
+        catch (Exception e)
+        {
+            // A § in the MiniMessage buffer causes ParsingExceptionImpl ("Legacy formatting codes
+            // detected"). Log both the merged MiniMessage and the original input so the merger
+            // path that let § through can be identified and fixed.
+            getLogger().log(Level.SEVERE,
+                "An unexpected error occurred while parsing MiniMessage. Please file a bug report with this error log.");
+            getLogger().log(Level.SEVERE, "MiniMessage deserialize failed. merged=" + merged);
+            getLogger().log(Level.SEVERE, "Original expanded input=" + expanded, e);
+            throw e;
+        }
+    }
+
+    private static Logger getLogger()
+    {
+        if (FactionsChat.instance != null)
+        {
+            return FactionsChat.instance.getLogger();
+        }
+        return FALLBACK_LOGGER;
     }
 
     private static Component applyBaseColor(Component component, TextColor baseColor)

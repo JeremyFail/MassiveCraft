@@ -91,10 +91,12 @@ public final class FactionsChatDispatcher
 
         if (args.length <= 1)
         {
-            // First token: emit all subcommand aliases, then mode names from the switch handler
+            // First token: emit matching subcommand aliases, then mode names from the switch handler
+            String input = args.length == 0 ? "" : args[0].toLowerCase();
             for (FactionsChatSubcommand cmd : SUBCOMMANDS)
                 for (String alias : cmd.getAliases())
-                    completions.add(alias);
+                    if (input.isEmpty() || alias.startsWith(input))
+                        completions.add(alias);
 
             completions.addAll(SWITCH_CMD.tabComplete(sender, args));
             return completions;
@@ -128,9 +130,17 @@ public final class FactionsChatDispatcher
     public static ChatMode parseChatMode(String input)
     {
         if (input == null) return null;
+        String normalized = input.trim().toLowerCase();
+        if (normalized.isEmpty()) return null;
+
+        // Legacy alias support: "public" and "p" map to GLOBAL.
+        // TODO: We should be able to have additional aliases for each chat mode.
+        if ("public".equals(normalized) || "p".equals(normalized))
+            return ChatMode.GLOBAL;
+
         for (ChatMode mode : ChatMode.values())
         {
-            if (mode.name().equalsIgnoreCase(input) || mode.getAlias().equalsIgnoreCase(input))
+            if (mode.name().equalsIgnoreCase(normalized) || mode.getAlias().equalsIgnoreCase(normalized))
                 return mode;
         }
         return null;
