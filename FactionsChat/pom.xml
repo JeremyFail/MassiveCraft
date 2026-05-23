@@ -61,7 +61,7 @@
           <groupId>me.clip</groupId>
           <artifactId>placeholderapi</artifactId>
         </dependency>
-        <!-- Teams API (library module; not com.github.ez-plugins:teams-api aggregator) -->
+        <!-- TeamsAPI (library module; not com.github.ez-plugins:teams-api aggregator) -->
         <dependency>
             <groupId>com.github.ez-plugins.teams-api</groupId>
             <artifactId>teams-api</artifactId>

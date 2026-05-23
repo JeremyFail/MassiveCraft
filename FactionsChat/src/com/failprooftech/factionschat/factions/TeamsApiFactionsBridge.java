@@ -14,10 +14,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * {@link FactionsBridge} backed by the Teams API ({@link TeamsService} + optional {@link TeamsRelationService}).
+ * {@link FactionsBridge} backed by the TeamsAPI ({@link TeamsService} + optional {@link TeamsRelationService}).
  *
  * <p>FactionsChat prefers this bridge whenever a teams plugin has registered {@link TeamsAPI} services,
- * regardless of whether that plugin ships Teams API as an optional dependency (for example PvPIndex Factions
+ * regardless of whether that plugin ships TeamsAPI as an optional dependency (for example PvPIndex Factions
  * may run without it). If no provider is registered, callers fall back to direct MassiveCraft / PvPIndex bridges.</p>
  */
 public final class TeamsApiFactionsBridge implements FactionsBridge
@@ -40,7 +40,7 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 	/**
 	 * Tries to create a new TeamsApiFactionsBridge instance.
 	 * 
-	 * @return The TeamsApiFactionsBridge instance, or empty if the Teams API is not available.
+	 * @return The TeamsApiFactionsBridge instance, or empty if the TeamsAPI is not available.
 	 */
 	public static Optional<TeamsApiFactionsBridge> tryCreate()
 	{

@@ -6,9 +6,9 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * Contract for integrating with the Teams API.
+ * Contract for integrating with the TeamsAPI.
  * <p>
- * This interface is used to create a bridge between the Teams API and the FactionsChat plugin.
+ * This interface is used to create a bridge between the TeamsAPI and the FactionsChat plugin.
  * 
  * @see TeamsIntegrationLive
  * @see TeamsIntegrationNoop

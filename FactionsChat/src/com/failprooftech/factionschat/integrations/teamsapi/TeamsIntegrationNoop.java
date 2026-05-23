@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 /**
  * Implementation of {@link TeamsIntegration} that does nothing.
  * <p>
- * This class is used when the Teams API is not installed.
+ * This class is used when the TeamsAPI is not installed.
  * 
  * @see TeamsIntegration
  * @see TeamsIntegrationLive

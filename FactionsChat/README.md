@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-FactionsChat is a Minecraft Spigot/Paper server plugin that integrates with MassiveCraft Factions, PvPIndex-Factions, and other factions or teams-based plugins (using the [Teams API](https://github.com/ez-plugins/teams-api)) to provide advanced chat features and channels for faction-based servers.
+FactionsChat is a Minecraft Spigot/Paper server plugin that integrates with MassiveCraft Factions, PvPIndex-Factions, and other factions or teams-based plugins (using the [TeamsAPI](https://www.spigotmc.org/resources/teams-api.134803/) or [FactionsBridge](https://www.spigotmc.org/resources/factionsbridge.89716/)) to provide advanced chat features and channels for faction-based servers.
 
 ## Features
 
@@ -40,12 +40,12 @@ Designed primarily as a Factions add-on, this plugin operates best with a suppor
 - Factions - we recommend [Factions3 Renewed](https://github.com/JeremyFail/MassiveCraft/releases)
   
   Other supported Factions plugins are:
-    - [PvPIndex-Factions](https://github.com/PVP-Index/pvpindex-factions)
-    - Any Factions (or other Teams-based) plugin that implements [Teams API](https://github.com/ez-plugins/teams-api) - install the Teams API plugin alongside it.
-    - [FactionsBridge](https://github.com/CallumJohnson/FactionsBridge) (standalone plugin) - supports many Factions forks through one API; install the FactionsBridge plugin on the server with your Factions fork and FactionsChat _should_ be able to connect. File an issue if you encounter any problems.
+    - [PvPIndex-Factions](https://www.spigotmc.org/resources/1-21-26-1-pvpindex-factions-api-faction-power-faction-claims-gui.135322/)
+    - Any Factions (or other Teams-based) plugin that implements [TeamsAPI](https://www.spigotmc.org/resources/teams-api.134803/) - install the TeamsAPI plugin alongside it.
+    - [FactionsBridge](https://www.spigotmc.org/resources/factionsbridge.89716/) (standalone plugin) - supports many Factions forks through one API; install the FactionsBridge plugin on the server with your Factions fork and FactionsChat _should_ be able to connect. File an issue if you encounter any problems.
     
-- (Optional) [EssentialsX](https://essentialsx.net/)
-- (Optional) [DiscordSRV](https://modrinth.com/plugin/discordsrv)
+- (Optional) [EssentialsX](https://www.spigotmc.org/resources/essentialsx.9089/)
+- (Optional) [DiscordSRV](https://www.spigotmc.org/resources/discordsrv.18494/)
 - (Optional) [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) for advanced chat formatting and placeholder support
 
 ## How do I download FactionsChat?
