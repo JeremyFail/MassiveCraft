@@ -63,6 +63,7 @@ public class InternalPlaceholders
             return format
                 .replace("%rel_factions_relation_color%", "")
                 .replace("%rel_factions_relation%", "")
+                .replace("%rel_factions_relation_name%", "")
                 .replace("%rel_factions_relation_lowercase%", "");
         }
 
@@ -74,9 +75,13 @@ public class InternalPlaceholders
             {
                 case "rel_factions_relation_color": 
                     return bridge != null ? bridge.getRelationColor(sender, recipient) : "";
-                case "rel_factions_relation": 
+                case "rel_factions_relation":
+                case "rel_factions_relation_name":
                     return bridge != null ? bridge.getRelationName(sender, recipient) : "";
                 case "rel_factions_relation_lowercase": 
+                case "rel_factions_relation_lower":
+                case "rel_factions_relation_name_lowercase":
+                case "rel_factions_relation_name_lower":
                     return bridge != null ? bridge.getRelationName(sender, recipient).toLowerCase() : "";
                 case "MESSAGE":
                 case "DISPLAYNAME":

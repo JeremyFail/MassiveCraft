@@ -1,5 +1,8 @@
 package com.failprooftech.factionschat.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,104 +16,179 @@ import java.util.regex.Pattern;
  */
 public final class PlaceholderProcessor
 {
-    /** Matches {@code %anything%} tokens, capturing the inner content. */
-    private static final Pattern PATTERN = Pattern.compile("%([^%\\s]+)%");
-
-    private PlaceholderProcessor() {}
-
-    // -------------------------------------------- //
-    // PUBLIC API
-    // -------------------------------------------- //
+    /**
+     * Pattern to match placeholders with optional modifiers.
+     * Matches: %placeholder%, %placeholder|modifier%, %placeholder|mod1|mod2%
+     */
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%([a-zA-Z0-9_]+)((?:\\|[a-z]+)*)%");
 
     /**
-     * Replace all {@code %key%} (or {@code %key|modifier%}) tokens in {@code format}.
+     * Private constructor to prevent instantiation.
+     */
+    private PlaceholderProcessor() {}
+
+    /**
+     * Processes a format string, replacing placeholders with their values and applying modifiers.
      *
      * <p>The {@code resolver} is called with the base key (no modifiers). Returning
      * {@code null} leaves the original token unchanged; any other value replaces it
      * (with any modifier applied).</p>
      *
-     * @param format   the input string; returned as-is when {@code null}
-     * @param resolver maps a base placeholder key to its replacement
-     * @return the processed string
+     * @param format The format string containing placeholders
+     * @param resolver A function that maps placeholder names to their values
+     * @return The processed format string with placeholders replaced and modifiers applied
      */
     public static String processPlaceholders(String format, Function<String, String> resolver)
     {
         if (format == null) return null;
-        Matcher m = PATTERN.matcher(format);
-        StringBuffer sb = new StringBuffer();
-        while (m.find())
+
+        Matcher matcher = PLACEHOLDER_PATTERN.matcher(format);
+        StringBuffer result = new StringBuffer();
+
+        while (matcher.find())
         {
-            String inner    = m.group(1);
-            String[] parts  = inner.split("\\|", 2);
-            String key      = parts[0];
-            String modifier = parts.length > 1 ? parts[1] : null;
-            String resolved = resolver.apply(key);
-            if (resolved == null)
-                m.appendReplacement(sb, Matcher.quoteReplacement(m.group(0)));
-            else
-                m.appendReplacement(sb, Matcher.quoteReplacement(applyModifier(resolved, modifier)));
+            String basePlaceholder = matcher.group(1); // e.g., "factions_faction_name"
+            String modifiersString = matcher.group(2); // e.g., "|rp|lp" or null
+            
+            // Parse modifiers
+            List<String> modifiers = parseModifiers(modifiersString);
+            
+            // Resolve the base placeholder value
+            String value = resolver.apply(basePlaceholder);
+            if (value == null)
+            {
+                // If resolver returns null, leave the placeholder unchanged
+                // This allows other systems to handle it
+                continue;
+            }
+            
+            // Apply modifiers to the value
+            String processedValue = applyModifiers(value, modifiers);
+            
+            // Replace in the result
+            matcher.appendReplacement(result, Matcher.quoteReplacement(processedValue));
         }
-        m.appendTail(sb);
-        return sb.toString();
+
+        matcher.appendTail(result);
+        return result.toString();
     }
 
     /**
-     * Resolve a single placeholder that may include a modifier suffix.
-     *
-     * <p>The {@code resolver} receives only the base key (before any {@code |}).
-     * If it returns {@code null} this method returns {@code null} as well.</p>
-     *
-     * @param placeholder  raw placeholder text, e.g. {@code "chat_prefix|rp10"}
-     * @param resolver     maps a base key to its value
-     * @return the resolved (and modifier-applied) string, or {@code null}
+     * Parses a modifier string like "|rp|lp" into a list of individual modifiers.
+     * 
+     * @param modifiersString The modifier string (may be null or empty)
+     * @return A list of modifier names (e.g., ["rp", "lp"])
+     */
+    private static List<String> parseModifiers(String modifiersString)
+    {
+        List<String> modifiers = new ArrayList<>();
+        
+        if (modifiersString != null && !modifiersString.isEmpty())
+        {
+            // Split by "|" and filter out empty strings
+            String[] parts = modifiersString.split("\\|");
+            for (String part : parts)
+            {
+                part = part.trim();
+                if (!part.isEmpty())
+                {
+                    modifiers.add(part.toLowerCase());
+                }
+            }
+        }
+        
+        return modifiers;
+    }
+
+    /**
+     * Applies a list of modifiers to a placeholder value.
+     * 
+     * @param value The resolved placeholder value
+     * @param modifiers The list of modifiers to apply
+     * @return The value with modifiers applied
+     */
+    private static String applyModifiers(String value, List<String> modifiers)
+    {
+        // If the value is null or empty, don't apply any padding modifiers
+        if (value == null || value.isEmpty())
+        {
+            return "";
+        }
+        
+        String result = value;
+        
+        for (String modifier : modifiers)
+        {
+            switch (modifier)
+            {
+                case "lp": // Left padding - add space to the left
+                    result = " " + result;
+                    break;
+                case "rp": // Right padding - add space to the right
+                    result = result + " ";
+                    break;
+                case "bp": // Both padding - add space to both sides
+                    result = " " + result + " ";
+                    break;
+                case "trim": 
+                    result = result.trim(); 
+                    break;
+                case "upper": 
+                    result = result.toUpperCase(); 
+                    break;
+                case "lower": 
+                    result = result.toLowerCase(); 
+                    break;
+                default:
+                    // Ignore unknown modifiers
+                    break;
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Parses placeholder with modifiers from a external request.
+     * This is used in integrations where the placeholder string
+     * may contain modifiers that need to be parsed and handled.
+     * 
+     * @param placeholder The placeholder string (e.g., "prefix|rp")
+     * @param resolver A function that maps the base placeholder to its value
+     * @return The processed value with modifiers applied, or null if not handled
      */
     public static String parsePlaceholderWithModifiers(String placeholder, Function<String, String> resolver)
     {
         if (placeholder == null) return null;
-        String[] parts  = placeholder.split("\\|", 2);
-        String key      = parts[0];
-        String modifier = parts.length > 1 ? parts[1] : null;
-        String resolved = resolver.apply(key);
-        if (resolved == null) return null;
-        return applyModifier(resolved, modifier);
+        
+        // Split the placeholder and modifiers
+        String[] parts = placeholder.split("\\|", 2);
+        String basePlaceholder = parts[0];
+        String modifiersString = parts.length > 1 ? "|" + parts[1] : "";
+        
+        // Parse modifiers
+        List<String> modifiers = parseModifiers(modifiersString);
+        
+        // Resolve the base placeholder
+        String value = resolver.apply(basePlaceholder);
+        if (value == null)
+        {
+            return null; // Let external plugins handle unknown placeholders
+        }
+        
+        // Apply modifiers and return
+        return applyModifiers(value, modifiers);
     }
 
-    // -------------------------------------------- //
-    // PRIVATE HELPERS
-    // -------------------------------------------- //
-
     /**
-     * Apply padding modifiers to a resolved value.
-     *
-     * <p>Supported modifiers:</p>
-     * <ul>
-     *   <li>{@code lp<n>} – left-pad to {@code n} characters with spaces</li>
-     *   <li>{@code rp<n>} – right-pad to {@code n} characters with spaces</li>
-     * </ul>
+     * Creates a resolver function from a map of placeholder values.
+     * This is a convenience method for simple use cases.
+     * 
+     * @param placeholderMap A map of placeholder names to their values
+     * @return A resolver function that looks up values in the map
      */
-    private static String applyModifier(String value, String modifier)
+    public static Function<String, String> mapResolver(Map<String, String> placeholderMap)
     {
-        if (modifier == null || modifier.isEmpty()) return value;
-        String lower = modifier.toLowerCase();
-        boolean rightPad;
-        String widthStr;
-        if (lower.startsWith("rp"))      { rightPad = true;  widthStr = lower.substring(2); }
-        else if (lower.startsWith("lp")) { rightPad = false; widthStr = lower.substring(2); }
-        else                             { return value; } // Unknown modifier - ignore
-        if (widthStr.isEmpty())
-        {
-            // No width given - conditionally add a single space if the value is non-empty.
-            // This matches the |rp / |lp modifier documented in config.yml.
-            if (value.isEmpty()) return value;
-            return rightPad ? value + " " : " " + value;
-        }
-        try
-        {
-            int width = Integer.parseInt(widthStr);
-            if (value.length() >= width) return value;
-            String padding = " ".repeat(width - value.length());
-            return rightPad ? value + padding : padding + value;
-        }
-        catch (NumberFormatException e) { return value; }
+        return placeholderMap::get;
     }
 }

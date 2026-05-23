@@ -123,8 +123,15 @@ public final class GenericPlaceholderBridge extends PlaceholderExpansion impleme
             switch (key)
             {
                 case "relation_name":
+                case "relation":
                     return player1 != null && player2 != null && bridge != null
                         ? bridge.getRelationName(player1, player2) : "";
+                case "relation_lowercase":
+                case "relation_lower":
+                case "relation_name_lowercase":
+                case "relation_name_lower":
+                    return player1 != null && player2 != null && bridge != null
+                        ? bridge.getRelationName(player1, player2).toLowerCase() : "";
                 case "relation_color":
                     return player1 != null && player2 != null && bridge != null
                         ? bridge.getRelationColor(player1, player2) : "";

@@ -251,9 +251,9 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
         supportedPlaceholders.add("%factions_territory_truces_players%");
         supportedPlaceholders.add("%factions_territory_truces_players_online%");
         supportedPlaceholders.add("%factions_territory_truces_players_offline%");
-        supportedPlaceholders.add("%faction_relation%");
-        supportedPlaceholders.add("%faction_relation_color%");
         supportedPlaceholders.add("%factions_faction_map_row_N%");
+        supportedPlaceholders.add("%rel_factions_relation_name%");
+        supportedPlaceholders.add("%rel_factions_relation_color%");
 
         // Add placeholders from registered expanders
         if (!expanders.isEmpty())
@@ -288,9 +288,12 @@ public class PlaceholderFactions extends PlaceholderExpansion implements Relatio
         return PlaceholderProcessor.parsePlaceholderWithModifiers(placeholder, basePlaceholder -> {
             switch (basePlaceholder)
             {
+                case "relation_name":
                 case "relation":
                     return MPlayer.get(player1).getRelationTo(MPlayer.get(player2)).getName();
 
+                case "relation_name_lowercase":
+                case "relation_name_lower":
                 case "relation_lowercase":
                 case "relation_lower":
                     return MPlayer.get(player1).getRelationTo(MPlayer.get(player2)).getName().toLowerCase();
