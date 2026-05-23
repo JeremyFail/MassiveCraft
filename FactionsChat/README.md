@@ -35,7 +35,7 @@ Please read the [Wiki](https://factions.wiki/FactionsChat) for details about sup
 
 ## Requirements
 
-Designed primarily as a Factions add-on, this plugin operates best with a supported version of Factions, and has optional requirements if you wish to use other integration features that this plugin supports. Note that the plugin will work without a Factions integration, but any factions-specific logic will not function.
+Designed primarily as a Factions add-on, this plugin operates best with a supported version of Factions, and has optional requirements if you wish to use other integration features that this plugin supports. Note that the plugin will work without a Factions integration, but any factions-specific functionality will not work.
 
 - Factions - we recommend [Factions3 Renewed](https://github.com/JeremyFail/MassiveCraft/releases)
   
@@ -50,11 +50,11 @@ Designed primarily as a Factions add-on, this plugin operates best with a suppor
 
 ## How do I download FactionsChat?
 
-Please visit the [MassiveCraft Releases Page](https://github.com/JeremyFail/MassiveCraft/releases) and download the latest version. Ensure you have a supported version of Factions installed, then drop it in your plugins folder and restart your server.
+Please visit the [Releases Page](https://github.com/JeremyFail/FactionsChat/releases) and download the latest version. Ensure you have a supported version of Factions installed, then drop it in your plugins folder and restart your server.
 
 ## I found a bug or have a feature suggestion - where do I report it?
 
-Please visit the [MassiveCraft Issues Page](https://github.com/JeremyFail/MassiveCraft/issues) and fill out a new issue.
+Please visit the [Issues Page](https://github.com/JeremyFail/FactionsChat/issues) and fill out a new issue.
 
 ## Compilation
 
