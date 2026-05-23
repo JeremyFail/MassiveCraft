@@ -12,11 +12,11 @@ For more details, configuration instructions, permissions, and more, please [Vis
 
 ## How do I download MassiveHat?
 
-Please visit the [MassiveCraft Releases Page](https://github.com/JeremyFail/MassiveCraft/releases) and download the latest version, as well as MassiveCore, the dependency library required to run MassiveHat on your Spigot/Paper Minecraft Server. Drop both in your plugins folder and restart your server.
+Please visit the [Main Releases Page](https://github.com/JeremyFail/MassiveCraft/releases) (in my MassiveCraft mono-repository) and download the latest version, as well as MassiveCore, the dependency library required to run MassiveHat on your Spigot/Paper Minecraft Server. Drop both in your plugins folder and restart your server.
 
 ## I found a bug or have a feature suggestion - where do I report it?
 
-Please visit the [MassiveCraft Issues Page](https://github.com/JeremyFail/MassiveCraft/issues) and fill out a new issue.
+Please visit the [Main Issues Page](https://github.com/JeremyFail/MassiveCraft/issues) (in my MassiveCraft mono-repository) and fill out a new issue.
 
 ## Compiling
 

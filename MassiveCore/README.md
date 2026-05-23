@@ -12,11 +12,11 @@ For more details, configuration instructions, permissions, and more, please [Vis
 
 ## How do I download MassiveCore?
 
-Please visit the [MassiveCraft Releases Page](https://github.com/JeremyFail/MassiveCraft/releases) and download the corresponding MassiveCore version for whatever other plugin versions you are downloading/installing on your Spigot/Paper Minecraft server. Drop it along with the other plugins you're installing in your plugins folder and restart your server.
+Please visit the [Main Releases Page](https://github.com/JeremyFail/MassiveCraft/releases) (in my MassiveCraft mono-repository) and download the corresponding MassiveCore version for whatever other plugin versions you are downloading/installing on your Spigot/Paper Minecraft server. Drop it along with the other plugins you're installing in your plugins folder and restart your server.
 
 ## I found a bug or have a feature suggestion - where do I report it?
 
-Please visit the [MassiveCraft Issues Page](https://github.com/JeremyFail/MassiveCraft/issues) and fill out a new issue.
+Please visit the [Main Issues Page](https://github.com/JeremyFail/MassiveCraft/issues) (in my MassiveCraft mono-repository) and fill out a new issue.
 
 ## Compiling
 
