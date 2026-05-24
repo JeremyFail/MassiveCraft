@@ -275,28 +275,167 @@ public class EngineMain extends Engine
 		return UGate.get(location.clone().subtract(0, 1, 0).getBlock());
 	}
 	
+	/**
+	 * Check if a block is part of a gate's content.
+	 * 
+	 * @param block The block to check.
+	 * @return True if the block is part of a gate's content, false otherwise.
+	 */
+	public static boolean isGateContentBlock(Block block)
+	{
+		if (UGate.get(block) == null) return false;
+		Material type = block.getType();
+		return type == Material.NETHER_PORTAL || CreativeGates.isFluidFillMaterial(type);
+	}
+	
+	/**
+	 * Get the gate at the player's location.
+	 * 
+	 * @param player The player to get the gate for.
+	 * @return The gate at the player's location, or null if there is no gate.
+	 */
+	public static UGate getGateAtPlayer(Player player)
+	{
+		Location loc = player.getLocation();
+		BoundingBox box = player.getBoundingBox();
+		
+		int minX = (int) Math.floor(box.getMinX());
+		int maxX = (int) Math.floor(box.getMaxX());
+		int minY = (int) Math.floor(box.getMinY());
+		int maxY = (int) Math.floor(box.getMaxY());
+		int minZ = (int) Math.floor(box.getMinZ());
+		int maxZ = (int) Math.floor(box.getMaxZ());
+		
+		UGate found = null;
+		for (int x = minX; x <= maxX; x++)
+		{
+			for (int y = minY; y <= maxY; y++)
+			{
+				for (int z = minZ; z <= maxZ; z++)
+				{
+					Block block = loc.getWorld().getBlockAt(x, y, z);
+					if (!isGateContentBlock(block)) continue;
+					UGate gate = UGate.get(block);
+					if (found != null && found != gate) continue;
+					found = gate;
+				}
+			}
+		}
+		return found;
+	}
+	
+	private static final Map<UUID, Long> RECENT_GATE_USE_BY_PLAYER = new ConcurrentHashMap<>();
+	private static final long GATE_USE_DEBOUNCE_MILLIS = 250L;
+	private static final long POST_GATE_PORTAL_SUPPRESS_MILLIS = 1000L;
+	
+	/**
+	 * Check if a player has recently used a creative gate.
+	 * 
+	 * @param player The player to check.
+	 * @return True if the player has recently used a creative gate, false otherwise.
+	 */
+	private static boolean wasRecentCreativeGateTransport(Player player)
+	{
+		Long recent = RECENT_GATE_USE_BY_PLAYER.get(player.getUniqueId());
+		if (recent == null) return false;
+		return (System.currentTimeMillis() - recent) < POST_GATE_PORTAL_SUPPRESS_MILLIS;
+	}
+	
+	/**
+	 * Try to use a gate and teleport the player.
+	 * 
+	 * @param player The player to teleport.
+	 * @param ugate The gate to use.
+	 * @return True if the player was teleported, false otherwise.
+	 */
+	public static boolean tryUseGate(Player player, UGate ugate)
+	{
+		if (ugate == null) return false;
+		
+		long now = System.currentTimeMillis();
+		Long recent = RECENT_GATE_USE_BY_PLAYER.get(player.getUniqueId());
+		if (recent != null && (now - recent) < GATE_USE_DEBOUNCE_MILLIS) return false;
+		
+		if (!ugate.isIntact())
+		{
+			ugate.destroy();
+			return false;
+		}
+		
+		if (!MConf.get().isEnabled()) return false;
+		if (!Perm.USE.has(player, MConf.get().verboseUsePermission)) return false;
+		
+		if (!ugate.isEnterEnabled())
+		{
+			String message = Txt.parse("<i>This gate has enter disabled.");
+			MixinMessage.get().messageOne(player, message);
+			return false;
+		}
+		
+		RECENT_GATE_USE_BY_PLAYER.put(player.getUniqueId(), now);
+		ugate.transport(player);
+		player.setPortalCooldown(300);
+		return true;
+	}
+	
 	// -------------------------------------------- //
 	// DISABLE VANILLA PORTAL BEHAVIOR
 	// -------------------------------------------- //
 	
-	public static void disableVanillaGates(Location location, Cancellable cancellable)
+	/**
+	 * Check if a player is in a creative gate.
+	 * 
+	 * @param player The player to check.
+	 * @param location The location to check.
+	 * @return True if the player is in a creative gate, false otherwise.
+	 */
+	public static boolean isInCreativeGate(Player player, Location location)
 	{
-		if (isGateNearby(location.getBlock()))
+		if (!MConf.get().isEnabled()) return false;
+		if (getGateAtPlayer(player) != null) return true;
+		if (getGateAt(location) != null) return true;
+		return isGateNearby(location.getBlock());
+	}
+	
+	/**
+	 * Handle player portal events.
+	 * 
+	 * @param event The player portal event.
+	 */
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onPlayerPortal(PlayerPortalEvent event)
+	{
+		Player player = event.getPlayer();
+		
+		if (wasRecentCreativeGateTransport(player))
 		{
-			cancellable.setCancelled(true);
+			event.setCancelled(true);
+			player.setPortalCooldown(300);
+			return;
 		}
+		
+		if (!isInCreativeGate(player, event.getFrom())) return;
+		
+		event.setCancelled(true);
+		player.setPortalCooldown(300);
+		
+		UGate gate = getGateAtPlayer(player);
+		if (gate == null) gate = getGateAt(event.getFrom());
+		tryUseGate(player, gate);
 	}
 	
-	@EventHandler(priority = EventPriority.NORMAL)
-	public void disableVanillaGates(PlayerPortalEvent event)
-	{
-		disableVanillaGates(event.getFrom(), event);
-	}
-	
-	@EventHandler(priority = EventPriority.NORMAL)
+	/**
+	 * Disable vanilla gate behavior for entities (when using nether portal blocks in creative gates).
+	 * 
+	 * @param event The entity portal event.
+	 */
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void disableVanillaGates(EntityPortalEvent event)
 	{
-		disableVanillaGates(event.getFrom(), event);
+		if (event.getEntity() instanceof Player) return;
+		if (!MConf.get().isEnabled()) return;
+		if (!isGateNearby(event.getFrom().getBlock())) return;
+		event.setCancelled(true);
 	}
 	
 	// -------------------------------------------- //
@@ -327,7 +466,12 @@ public class EngineMain extends Engine
 	// USE GATE
 	// -------------------------------------------- //
 	
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	/**
+	 * Handle player move events. This is used to teleport the player when they move into a gate.
+	 * 
+	 * @param event The player move event.
+	 */
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void useGate(PlayerMoveEvent event)
 	{
 		// If a player ...
@@ -338,38 +482,12 @@ public class EngineMain extends Engine
 		if (MUtil.isSameBlock(event)) return;
 		
 		// ... and there is a gate in the new block ...
-		UGate ugate = UGate.get(event.getTo());
+		UGate ugate = getGateAtPlayer(player);
+		if (ugate == null) ugate = UGate.get(event.getTo());
 		if (ugate == null) return;
 		
-		// ... and if the gate is intact ...
-		if (!ugate.isIntact())
-		{
-			// We try to detect that a gate was destroyed once it happens by listening to a few events.
-			// However there will always be cases we miss and by checking at use we catch those as well.
-			// Examples could be map corruption or use of WorldEdit.
-			ugate.destroy();
-			return;
-		}
-		
-		// ... and gates are enabled here ...
-		if (!MConf.get().isEnabled()) return;
-		
-		// ... and we have permission to use gates ...
-		if (!Perm.USE.has(player, MConf.get().verboseUsePermission)) return;
-		
-		// ... and the gate has enter enabled ...
-		if (!ugate.isEnterEnabled())
-		{
-			String message = Txt.parse("<i>This gate has enter disabled.");
-			MixinMessage.get().messageOne(player, message);
-			return;
-		}
-		
-		// ... and the player is alive ...
-		if (player.isDead()) return;
-		
-		// ... then transport the player.
-		ugate.transport(player);
+		// Try to use the gate and teleport the player
+		tryUseGate(player, ugate);
 	}
 	
 	// -------------------------------------------- //
