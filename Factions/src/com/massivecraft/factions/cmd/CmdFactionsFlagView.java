@@ -1,6 +1,5 @@
 package com.massivecraft.factions.cmd;
 
-import com.massivecraft.factions.cmd.req.ReqFlagViewOrShow;
 import com.massivecraft.factions.cmd.type.TypeFaction;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.util.FlagTableUtil;
@@ -16,7 +15,6 @@ public class CmdFactionsFlagView extends FactionsCommand
 	public CmdFactionsFlagView()
 	{
 		this.setAliases("show");
-		this.addRequirements(ReqFlagViewOrShow.get());
 		this.addParameter(TypeFaction.get(), "faction", "you").setDesc("the faction to view flags for");
 		this.addParameter(Parameter.getPage());
 	}

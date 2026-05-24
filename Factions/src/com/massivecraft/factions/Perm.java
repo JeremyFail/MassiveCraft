@@ -44,12 +44,10 @@ public enum Perm implements Identified
 	VERSION,
 	PERM_MANAGE,
 	PERM_MANAGE_BYPASS,
-	PERM_SHOW,
 	PERM_INSPECT,
 	FLAG_MANAGE,
 	FLAG_MANAGE_BYPASS,
 	FLAG_VIEW,
-	FLAG_SHOW,
 
 	// These are just here to tell the system that it is seechunk rather than see.chunk
 	SEECHUNK,

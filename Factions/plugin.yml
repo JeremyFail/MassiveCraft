@@ -54,7 +54,6 @@ permissions:
   factions.flag.list: {description: list flags, default: false}
   factions.flag.set: {description: set flags, default: false}
   factions.flag.view: {description: view flags for a faction, default: false}
-  factions.flag.show: {description: view flags for a faction (alias for view), default: false}
   factions.flag.manage: {description: open flag manage table for a faction, default: false}
   factions.flag.manage.bypass: {description: manage flags for any faction (bypassing permission requirements), default: false}
   factions.fly: {description: faction fly, default: false}
@@ -84,7 +83,6 @@ permissions:
   factions.perm: {description: change faction permissions, default: false}
   factions.perm.list: {description: list perms, default: false}
   factions.perm.set: {description: set perms, default: false}
-  factions.perm.show: {description: show who has perm (alias for inspect), default: false}
   factions.perm.inspect: {description: inspect who has a perm, default: false}
   factions.perm.view: {description: view perms given to a relation/faction/rank/player, default: false}
   factions.perm.viewall: {description: view all perms held by a relation/faction/rank/player, default: false}
@@ -202,7 +200,6 @@ permissions:
       factions.flag.list: true
       factions.flag.set: true
       factions.flag.view: true
-      factions.flag.show: true
       factions.flag.manage: true
       factions.fly: true
       factions.fly.other: true
@@ -236,7 +233,6 @@ permissions:
       factions.perm: true
       factions.perm.list: true
       factions.perm.set: true
-      factions.perm.show: true
       factions.perm.inspect: true
       factions.perm.view: true
       factions.perm.viewall: true
@@ -390,7 +386,6 @@ permissions:
       factions.flag.list: true
       factions.flag.set: true
       factions.flag.view: true
-      factions.flag.show: true
       factions.flag.manage: true
       factions.fly: true
       factions.home: true
@@ -418,7 +413,6 @@ permissions:
       factions.perm: true
       factions.perm.list: true
       factions.perm.set: true
-      factions.perm.show: true
       factions.perm.inspect: true
       factions.perm.view: true
       factions.perm.viewall: true
