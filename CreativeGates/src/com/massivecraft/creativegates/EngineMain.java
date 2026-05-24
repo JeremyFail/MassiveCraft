@@ -51,6 +51,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EngineMain extends Engine
 {
@@ -65,6 +67,12 @@ public class EngineMain extends Engine
 	// IS X NEARBY (UTIL)
 	// -------------------------------------------- //
 	
+	/**
+	 * Check if a block is near a gate.
+	 * 
+	 * @param block The block to check.
+	 * @return True if the block is near a gate, false otherwise.
+	 */
 	public static boolean isGateNearby(Block block)
 	{
 		if (!MConf.get().isEnabled()) return false;
@@ -89,6 +97,11 @@ public class EngineMain extends Engine
 	
 	// PORTAL & FLUID (NETHER PORTAL / NETHER LAVA)
 	
+	/**
+	 * Handle block physics events. This is used to prevent the portal from disappearing.
+	 * 
+	 * @param event The block physics event.
+	 */
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(BlockPhysicsEvent event)
 	{
@@ -132,6 +145,11 @@ public class EngineMain extends Engine
 	
 	// FLUID FLOW (WATER / NETHER LAVA)
 	
+	/**
+	 * Handle block from to events. This is used to prevent the portal from disappearing.
+	 * 
+	 * @param event The block from to event.
+	 */
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(BlockFromToEvent event)
 	{
@@ -140,24 +158,45 @@ public class EngineMain extends Engine
 		event.setCancelled(true);
 	}
 	
+	/**
+	 * Stabilize the portal content block.
+	 * 
+	 * @param block The block to stabilize.
+	 * @param cancellable The cancellable to set the cancelled state of.
+	 */
 	public static void stabilizePortalContentBlock(Block block, Cancellable cancellable)
 	{
 		if (UGate.get(block) == null) return;
 		cancellable.setCancelled(true);
 	}
 	
+	/**
+	 * Handle block place events. This is used to prevent the portal from disappearing.
+	 * 
+	 * @param event The block place event.
+	 */
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(BlockPlaceEvent event)
 	{
 		stabilizePortalContentBlock(event.getBlock(), event);
 	}
 	
+	/**
+	 * Handle player bucket fill events. This is used to prevent the portal from disappearing.
+	 * 
+	 * @param event The player bucket fill event.
+	 */
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(PlayerBucketFillEvent event)
 	{
 		stabilizePortalContentBlock(event.getBlockClicked(), event);
 	}
 	
+	/**
+	 * Handle player bucket empty events. This is used to prevent the portal from disappearing.
+	 * 
+	 * @param event The player bucket empty event.
+	 */
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(PlayerBucketEmptyEvent event)
 	{
@@ -168,6 +207,12 @@ public class EngineMain extends Engine
 	// PREVENT LAVA GATE HARM
 	// -------------------------------------------- //
 	
+	/**
+	 * Handle entity damage events. This is used to prevent the player from taking damage from lava or fire in a gate.
+	 * Primarily used for lava gates.
+	 * 
+	 * @param event The entity damage event.
+	 */
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void preventGateLavaDamage(EntityDamageEvent event)
 	{
@@ -193,6 +238,12 @@ public class EngineMain extends Engine
 		}
 	}
 	
+	/**
+	 * Handle entity combust events. This is used to prevent the player from taking damage from lava or fire in a gate.
+	 * Primarily used for lava gates.
+	 * 
+	 * @param event The entity combust event.
+	 */
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void preventGateLavaCombust(EntityCombustEvent event)
 	{
@@ -213,6 +264,11 @@ public class EngineMain extends Engine
 		}
 	}
 	
+	/**
+	 * Handle player move events. This is used to clear the player's fire ticks when they are in a gate.
+	 * 
+	 * @param event The player move event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void clearFireInGateFluid(PlayerMoveEvent event)
 	{
@@ -221,6 +277,11 @@ public class EngineMain extends Engine
 		event.getPlayer().setFireTicks(0);
 	}
 	
+	/**
+	 * Handle block ignite events. This is used to prevent the fire from spreading in a gate.
+	 * 
+	 * @param event The block ignite event.
+	 */
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void preventGateLavaFireSpread(BlockIgniteEvent event)
 	{
@@ -233,6 +294,12 @@ public class EngineMain extends Engine
 		}
 	}
 	
+	/**
+	 * Check if a block is protected by a gate.
+	 * 
+	 * @param block The block to check.
+	 * @return True if the block is protected by a gate, false otherwise.
+	 */
 	public static boolean isProtectedGateFluidBlock(Block block)
 	{
 		if (block == null) return false;
@@ -243,6 +310,12 @@ public class EngineMain extends Engine
 		return gate.isIntact();
 	}
 	
+	/**
+	 * Check if a player is in an intact gate.
+	 * 
+	 * @param player The player to check.
+	 * @return True if the player is in an intact gate, false otherwise.
+	 */
 	public static boolean isInIntactGateFluid(Player player)
 	{
 		Location loc = player.getLocation();
@@ -255,6 +328,8 @@ public class EngineMain extends Engine
 		int minZ = (int) Math.floor(box.getMinZ());
 		int maxZ = (int) Math.floor(box.getMaxZ());
 		
+		// Check if the player is in an intact gate by checking if any of the blocks 
+		// in the player's bounding box are protected by a gate
 		for (int x = minX; x <= maxX; x++)
 		{
 			for (int y = minY; y <= maxY; y++)
@@ -268,6 +343,12 @@ public class EngineMain extends Engine
 		return false;
 	}
 	
+	/**
+	 * Get the gate at a location.
+	 * 
+	 * @param location The location to get the gate for.
+	 * @return The gate at the location, or null if there is no gate.
+	 */
 	public static UGate getGateAt(Location location)
 	{
 		UGate gate = UGate.get(location.getBlock());
@@ -442,6 +523,11 @@ public class EngineMain extends Engine
 	// NO ZOMBIE PIGMAN PORTAL SPAWN
 	// -------------------------------------------- //
 	
+	/**
+	 * Prevent zombie pigman portal spawns in creative gates (when using nether portal blocks in creative gates).
+	 * 
+	 * @param event The creature spawn event.
+	 */
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void noZombifiedPiglinPortalSpawn(CreatureSpawnEvent event)
 	{
@@ -494,6 +580,11 @@ public class EngineMain extends Engine
 	// DESTROY GATE
 	// -------------------------------------------- //
 	
+	/**
+	 * Destroy a gate.
+	 * 
+	 * @param block The block to destroy the gate at.
+	 */
 	public static void destroyGate(Block block)
 	{
 		UGate ugate = UGate.get(block);
@@ -501,18 +592,33 @@ public class EngineMain extends Engine
 		ugate.destroy();
 	}
 	
+	/**
+	 * Handle block break events. This is used to destroy the gate when a block is broken.
+	 * 
+	 * @param event The block break event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void destroyGate(BlockBreakEvent event)
 	{
 		destroyGate(event.getBlock());
 	}
 	
+	/**
+	 * Handle entity change block events. This is used to destroy the gate when an entity changes a block.
+	 * 
+	 * @param event The entity change block event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void destroyGate(EntityChangeBlockEvent event)
 	{
 		destroyGate(event.getBlock());
 	}
 	
+	/**
+	 * Handle entity explode events. This is used to destroy the gate when an entity explodes.
+	 * 
+	 * @param event The entity explode event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void destroyGate(EntityExplodeEvent event)
 	{
@@ -525,7 +631,11 @@ public class EngineMain extends Engine
 		}
 	}
 	
-	// This one looks weird since it needs to handle beds as well
+	/**
+	 * Handle block piston extend events. This is used to destroy the gate when a piston extends.
+	 * 
+	 * @param event The block piston extend event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void destroyGate(BlockPistonExtendEvent event)
 	{
@@ -547,6 +657,11 @@ public class EngineMain extends Engine
 		}
 	}
 	
+	/**
+	 * Handle block piston retract events. This is used to destroy the gate when a piston retracts.
+	 * 
+	 * @param event The block piston retract event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void destroyGate(BlockPistonRetractEvent event)
 	{
@@ -557,12 +672,22 @@ public class EngineMain extends Engine
 		}
 	}
 	
+	/**
+	 * Handle block fade events. This is used to destroy the gate when a block fades.
+	 * 
+	 * @param event The block fade event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void destroyGate(BlockFadeEvent event)
 	{
 		destroyGate(event.getBlock());
 	}
 	
+	/**
+	 * Handle block burn events. This is used to destroy the gate when a block burns.
+	 * 
+	 * @param event The block burn event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void destroyGate(BlockBurnEvent event)
 	{
@@ -573,6 +698,11 @@ public class EngineMain extends Engine
 	// TOOLS
 	// -------------------------------------------- //
 	
+	/**
+	 * Handle player interact events. This is used to create or use a gate when a player interacts with a block.
+	 * 
+	 * @param event The player interact event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void tools(PlayerInteractEvent event)
 	{
@@ -828,6 +958,12 @@ public class EngineMain extends Engine
 		
 	}
 	
+	/**
+	 * Decrease the amount of an item by one. This is used to remove one item from the player's inventory.
+	 * Primarily used for the create portal item.
+	 * 
+	 * @param event The player interact event to decrease the item amount in.
+	 */
 	private static void decreaseOne(PlayerInteractEvent event)
 	{
 		ItemStack currentItem = event.getItem();
