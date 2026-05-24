@@ -8,6 +8,7 @@ public class CmdFactionsFlag extends FactionsCommand
 	
 	public CmdFactionsFlagList cmdFactionsFlagList = new CmdFactionsFlagList();
 	public CmdFactionsFlagView cmdFactionsFlagView = new CmdFactionsFlagView();
+	public CmdFactionsFlagManage cmdFactionsFlagManage = new CmdFactionsFlagManage();
 	public CmdFactionsFlagSet cmdFactionsFlagSet = new CmdFactionsFlagSet();
 
 }
