@@ -10,6 +10,7 @@ import com.massivecraft.massivecore.command.type.RegistryType;
 import com.massivecraft.massivecore.command.type.enumeration.TypePermissionDefault;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.permissions.PermissionDefault;
 
@@ -99,6 +100,23 @@ public class CreativeGates extends MassivePlugin
 	public static boolean isVoid(Block block)
 	{
 		return isVoid(block.getType());
+	}
+	
+	public static boolean isFluidFillMaterial(Material material)
+	{
+		return material == Material.WATER || material == Material.LAVA;
+	}
+	
+	/**
+	 * The material used to fill a gate in the given world.
+	 * Water mode uses lava in the nether when {@link MConf#isUseLavaInNether()} is enabled.
+	 */
+	public static Material getFillMaterial(World world)
+	{
+		MConf mconf = MConf.get();
+		if (!mconf.isUsingWater()) return Material.NETHER_PORTAL;
+		if (world.getEnvironment() == World.Environment.NETHER && mconf.isUseLavaInNether()) return Material.LAVA;
+		return Material.WATER;
 	}
 	
 }

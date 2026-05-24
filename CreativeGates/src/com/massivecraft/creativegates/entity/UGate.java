@@ -337,7 +337,7 @@ public class UGate extends Entity<UGate>
 		{
 			Material blockMaterial = block.getType();
 			
-			if (blockMaterial != Material.NETHER_PORTAL && blockMaterial != Material.WATER && !CreativeGates.isVoid(blockMaterial)) continue;
+			if (blockMaterial != Material.NETHER_PORTAL && !CreativeGates.isFluidFillMaterial(blockMaterial) && !CreativeGates.isVoid(blockMaterial)) continue;
 			
 			block.setType(material);
 			
@@ -352,9 +352,11 @@ public class UGate extends Entity<UGate>
 	
 	public void fill()
 	{
-		MConf mconf = MConf.get();
+		List<Block> blocks = this.getBlocks();
+		if (blocks == null || blocks.isEmpty()) return;
+		
 		CreativeGates.get().setFilling(true);
-		this.setContent(mconf.isUsingWater() ? Material.WATER : Material.NETHER_PORTAL);
+		this.setContent(CreativeGates.getFillMaterial(blocks.get(0).getWorld()));
 		CreativeGates.get().setFilling(false);
 	}
 	

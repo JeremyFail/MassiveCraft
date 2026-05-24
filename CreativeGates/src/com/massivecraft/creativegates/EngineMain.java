@@ -23,6 +23,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
@@ -30,6 +31,11 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityCombustByBlockEvent;
+import org.bukkit.event.entity.EntityCombustEvent;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -39,6 +45,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.BoundingBox;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -80,20 +87,29 @@ public class EngineMain extends Engine
 	// STABILIZE PORTAL CONENT
 	// -------------------------------------------- //
 	
-	// PORTAL
+	// PORTAL & FLUID (NETHER PORTAL / NETHER LAVA)
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(BlockPhysicsEvent event)
 	{
-		// If a portal block is running physics ...
 		Block block = event.getBlock();
-		if (block.getType() != Material.NETHER_PORTAL) return;
+		Material type = block.getType();
 		
-		// ... and we are filling or that block is stable according to our algorithm ...
-		if (!(CreativeGates.get().isFilling() || isPortalBlockStable(block))) return;
+		if (type == Material.NETHER_PORTAL)
+		{
+			// If a portal block is running physics ...
+			// ... and we are filling or that block is stable according to our algorithm ...
+			if (!(CreativeGates.get().isFilling() || isPortalBlockStable(block))) return;
+			
+			// ... then block the physics to stop the portal from disappearing.
+			event.setCancelled(true);
+			return;
+		}
 		
-		// ... then block the physics to stop the portal from disappearing.
-		event.setCancelled(true);
+		if (type == Material.LAVA && MConf.get().isUsingWater() && UGate.get(block) != null)
+		{
+			event.setCancelled(true);
+		}
 	}
 	
 	/**
@@ -114,7 +130,7 @@ public class EngineMain extends Engine
 		return false;
 	}
 	
-	// WATER
+	// FLUID FLOW (WATER / NETHER LAVA)
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(BlockFromToEvent event)
@@ -146,6 +162,117 @@ public class EngineMain extends Engine
 	public void stabilizePortalContent(PlayerBucketEmptyEvent event)
 	{
 		stabilizePortalContentBlock(event.getBlockClicked(), event);
+	}
+	
+	// -------------------------------------------- //
+	// PREVENT LAVA GATE HARM
+	// -------------------------------------------- //
+	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void preventGateLavaDamage(EntityDamageEvent event)
+	{
+		if (!(event.getEntity() instanceof Player player)) return;
+		
+		DamageCause cause = event.getCause();
+		if (cause != DamageCause.LAVA && cause != DamageCause.FIRE && cause != DamageCause.FIRE_TICK) return;
+		
+		if (event instanceof EntityDamageByBlockEvent damageByBlock)
+		{
+			if (isProtectedGateFluidBlock(damageByBlock.getDamager()))
+			{
+				player.setFireTicks(0);
+				event.setCancelled(true);
+				return;
+			}
+		}
+		
+		if (isInIntactGateFluid(player))
+		{
+			player.setFireTicks(0);
+			event.setCancelled(true);
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void preventGateLavaCombust(EntityCombustEvent event)
+	{
+		if (!(event.getEntity() instanceof Player player)) return;
+		
+		if (event instanceof EntityCombustByBlockEvent combustByBlock)
+		{
+			if (isProtectedGateFluidBlock(combustByBlock.getCombuster()))
+			{
+				event.setCancelled(true);
+				return;
+			}
+		}
+		
+		if (isInIntactGateFluid(player))
+		{
+			event.setCancelled(true);
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void clearFireInGateFluid(PlayerMoveEvent event)
+	{
+		if (MUtil.isSameBlock(event)) return;
+		if (!isInIntactGateFluid(event.getPlayer())) return;
+		event.getPlayer().setFireTicks(0);
+	}
+	
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void preventGateLavaFireSpread(BlockIgniteEvent event)
+	{
+		if (event.getCause() != BlockIgniteEvent.IgniteCause.LAVA) return;
+		
+		Block ignitingBlock = event.getIgnitingBlock();
+		if (isProtectedGateFluidBlock(ignitingBlock))
+		{
+			event.setCancelled(true);
+		}
+	}
+	
+	public static boolean isProtectedGateFluidBlock(Block block)
+	{
+		if (block == null) return false;
+		if (!CreativeGates.isFluidFillMaterial(block.getType())) return false;
+		
+		UGate gate = UGate.get(block);
+		if (gate == null) return false;
+		return gate.isIntact();
+	}
+	
+	public static boolean isInIntactGateFluid(Player player)
+	{
+		Location loc = player.getLocation();
+		BoundingBox box = player.getBoundingBox();
+		
+		int minX = (int) Math.floor(box.getMinX());
+		int maxX = (int) Math.floor(box.getMaxX());
+		int minY = (int) Math.floor(box.getMinY());
+		int maxY = (int) Math.floor(box.getMaxY());
+		int minZ = (int) Math.floor(box.getMinZ());
+		int maxZ = (int) Math.floor(box.getMaxZ());
+		
+		for (int x = minX; x <= maxX; x++)
+		{
+			for (int y = minY; y <= maxY; y++)
+			{
+				for (int z = minZ; z <= maxZ; z++)
+				{
+					if (isProtectedGateFluidBlock(loc.getWorld().getBlockAt(x, y, z))) return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static UGate getGateAt(Location location)
+	{
+		UGate gate = UGate.get(location.getBlock());
+		if (gate != null) return gate;
+		return UGate.get(location.clone().subtract(0, 1, 0).getBlock());
 	}
 	
 	// -------------------------------------------- //

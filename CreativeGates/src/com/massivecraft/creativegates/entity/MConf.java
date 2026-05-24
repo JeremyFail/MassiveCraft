@@ -95,6 +95,16 @@ public class MConf extends Entity<MConf>
 		this.usingWater = usingWater;
 	}
 
+	// If true, lava will be used in place of water in the nether
+	// Has no effect if usingWater is false
+	private boolean useLavaInNether = true;
+	public boolean isUseLavaInNether() { return this.useLavaInNether; }
+	public void setUseLavaInNether(boolean useLavaInNether)
+	{
+		this.changed(this.useLavaInNether, useLavaInNether);
+		this.useLavaInNether = useLavaInNether;
+	}
+
 	private boolean pigmanPortalSpawnAllowed = true;
 	public boolean isPigmanPortalSpawnAllowed() { return this.pigmanPortalSpawnAllowed; }
 	public void setPigmanPortalSpawnAllowed(boolean pigmanPortalSpawnAllowed)
