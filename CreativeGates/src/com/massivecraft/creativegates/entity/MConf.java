@@ -7,6 +7,7 @@ import com.massivecraft.massivecore.store.Entity;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.PermissionUtil;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.permissions.PermissionDefault;
 
 import java.util.HashMap;
@@ -69,7 +70,27 @@ public class MConf extends Entity<MConf>
 	public void setAliasesCgVersion(Set<String> aliasesCgVersion) { this.aliasesCgVersion = aliasesCgVersion; }
 
 	public boolean teleportationSoundActive = true;
+	public String teleportationSound = "ENTITY_GHAST_SHOOT";
+	public float teleportationSoundVolume = 1.0f;
+	public float teleportationSoundPitch = 1.0f;
 	public boolean teleportationMessageActive = true;
+	
+	public Sound resolveTeleportationSound()
+	{
+		if (this.teleportationSound == null || this.teleportationSound.isEmpty())
+		{
+			return Sound.ENTITY_GHAST_SHOOT;
+		}
+		
+		try
+		{
+			return Sound.valueOf(this.teleportationSound.trim().toUpperCase());
+		}
+		catch (IllegalArgumentException ex)
+		{
+			return Sound.ENTITY_GHAST_SHOOT;
+		}
+	}
 	
 	public PermissionDefault permissionDefaultCreate = PermissionDefault.TRUE;
 	public PermissionDefault permissionDefaultUse = PermissionDefault.TRUE;

@@ -18,6 +18,7 @@ import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Orientable;
@@ -372,23 +373,23 @@ public class UGate extends Entity<UGate>
 	public void fxKitCreate(Player player)
 	{
 		//this.fxSmoke();
-		this.fxShootSound();
+		playConfiguredTeleportSound(player, false);
 	}
 	
 	public void fxKitUse(Player player)
 	{
-		// If teleportation sound is active in the config
-		if (!MConf.get().teleportationSoundActive) return;
-		
-		// If the player is not in spectator
+		playConfiguredTeleportSound(player, true);
+	}
+	
+	private void playConfiguredTeleportSound(Player player, boolean requireActive)
+	{
+		MConf mconf = MConf.get();
+		if (requireActive && !mconf.teleportationSoundActive) return;
 		if (player.getGameMode() == GameMode.SPECTATOR) return;
-		
-		// If the player is not vanished
 		if (!MixinVisibility.get().isVisible(player)) return;
 		
-		// Do sound
-		this.fxShootSound();
-
+		Sound sound = mconf.resolveTeleportationSound();
+		player.playSound(player.getLocation(), sound, mconf.teleportationSoundVolume, mconf.teleportationSoundPitch);
 	}
 	
 	public void fxKitDestroy(Player player)
@@ -429,16 +430,6 @@ public class UGate extends Entity<UGate>
 		Location location = block.getLocation();
 		
 		SmokeUtil.fakeExplosion(location);
-	}
-	
-	public void fxShootSound()
-	{
-		Block block = this.getCenterBlock();
-		if (block == null) return;
-		
-		Location location = block.getLocation();
-		
-		location.getWorld().playEffect(location, Effect.GHAST_SHOOT, 0);
 	}
 	
 }
