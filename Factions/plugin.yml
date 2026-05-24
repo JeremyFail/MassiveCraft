@@ -53,7 +53,8 @@ permissions:
   factions.flag: {description: manage faction flags, default: false}
   factions.flag.list: {description: list flags, default: false}
   factions.flag.set: {description: set flags, default: false}
-  factions.flag.show: {description: show flags for a faction (alias for view), default: false}
+  factions.flag.view: {description: view flags for a faction, default: false}
+  factions.flag.show: {description: view flags for a faction (alias for view), default: false}
   factions.flag.manage: {description: open flag manage table for a faction, default: false}
   factions.flag.manage.bypass: {description: manage flags for any faction (bypassing permission requirements), default: false}
   factions.fly: {description: faction fly, default: false}
@@ -200,6 +201,7 @@ permissions:
       factions.flag: true
       factions.flag.list: true
       factions.flag.set: true
+      factions.flag.view: true
       factions.flag.show: true
       factions.flag.manage: true
       factions.fly: true
@@ -387,6 +389,7 @@ permissions:
       factions.flag: true
       factions.flag.list: true
       factions.flag.set: true
+      factions.flag.view: true
       factions.flag.show: true
       factions.flag.manage: true
       factions.fly: true
