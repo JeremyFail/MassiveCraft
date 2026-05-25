@@ -147,7 +147,7 @@
             <activation>
                 <file>
                     <!-- Sync directory + filename with MassiveSuper massivePluginUpdateCheckerVersion (not expandable here). -->
-                    <exists>${user.home}/.m2/repository/com/failprooftech/plugin-update-checker/1.0.0/plugin-update-checker-1.0.0.jar</exists>
+                    <exists>${user.home}/.m2/repository/com/failprooftech/plugin-update-checker/1.1.0/plugin-update-checker-1.1.0.jar</exists>
                 </file>
             </activation>
             <dependencies>

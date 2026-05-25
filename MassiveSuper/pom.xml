@@ -109,7 +109,7 @@
         <!-- https://github.com/JeremyFail/PluginUpdateChecker (optional: mvn install locally for MassiveCore bundle profile).
              When bumping this version, update MassiveCore/pom.xml profile bundle-update-checker <file><exists> path too
              (Maven does not expand POM properties there). -->
-        <massivePluginUpdateCheckerVersion>1.0.0</massivePluginUpdateCheckerVersion>
+        <massivePluginUpdateCheckerVersion>1.1.0</massivePluginUpdateCheckerVersion>
 
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <!-- MANUAL DOWNLOADS REQUIRED -->
