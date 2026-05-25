@@ -9,18 +9,21 @@ import java.util.regex.Pattern;
 
 /**
  * Shared utility class for processing placeholders with modifiers.
- * Supports dynamic modifiers like |lp (left padding), |rp (right padding), etc.
+ * Supports dynamic modifiers like |lp (left padding), |rp (right padding), |bp (both padding),
+ * and counted variants |lpN, |rpN, |bpN where N is the number of spaces to add.
  * 
  * This class is designed to be used by any MassiveCraft plugin that needs
  * advanced placeholder processing with modifier support.
  */
 public class PlaceholderProcessor
-{    
+{
+    private static final String[] SPACE_CACHE = {"", " ", "  ", "   ", "    ", "     ", "      ", "       "};
+
     /**
      * Pattern to match placeholders with optional modifiers.
      * Matches: %placeholder%, %placeholder|modifier%, %placeholder|mod1|mod2%
      */
-    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%([a-zA-Z0-9_]+)((?:\\|[a-z]+)*)%");
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%([a-zA-Z0-9_]+)((?:\\|[a-z]+[0-9]*)*)%");
     
     /**
      * Processes a format string, replacing placeholders with their values and applying modifiers.
@@ -110,17 +113,30 @@ public class PlaceholderProcessor
         
         for (String modifier : modifiers)
         {
+            int leftPad = parsePaddingCount(modifier, "lp");
+            if (leftPad > 0)
+            {
+                result = spaces(leftPad) + result;
+                continue;
+            }
+
+            int rightPad = parsePaddingCount(modifier, "rp");
+            if (rightPad > 0)
+            {
+                result = result + spaces(rightPad);
+                continue;
+            }
+
+            int bothPad = parsePaddingCount(modifier, "bp");
+            if (bothPad > 0)
+            {
+                String pad = spaces(bothPad);
+                result = pad + result + pad;
+                continue;
+            }
+
             switch (modifier)
             {
-                case "lp": // Left padding - add space to the left
-                    result = " " + result;
-                    break;
-                case "rp": // Right padding - add space to the right
-                    result = result + " ";
-                    break;
-                case "bp": // Both padding - add space to both sides
-                    result = " " + result + " ";
-                    break;
                 case "trim": 
                     result = result.trim(); 
                     break;
@@ -137,6 +153,47 @@ public class PlaceholderProcessor
         }
         
         return result;
+    }
+
+    /**
+     * Parses a padding modifier such as {@code lp}, {@code lp3}, or {@code bp12}.
+     *
+     * @param modifier The full modifier token
+     * @param prefix The padding prefix ({@code lp}, {@code rp}, or {@code bp})
+     * @return The number of spaces to add, {@code 0} for {@code prefix0} or invalid suffixes,
+     *         or {@code -1} if the modifier is not a padding modifier for that prefix
+     */
+    private static int parsePaddingCount(String modifier, String prefix)
+    {
+        if (!modifier.startsWith(prefix)) return -1;
+
+        if (modifier.length() == prefix.length()) return 1;
+
+        try
+        {
+            return Integer.parseInt(modifier.substring(prefix.length()));
+        }
+        catch (NumberFormatException e)
+        {
+            return -1;
+        }
+    }
+
+    /**
+     * Returns a string of {@code count} space characters.
+     * Small counts are served from a cache; larger counts allocate on demand.
+     * 
+     * @param count The number of spaces to return.
+     * @return A string of {@code count} space characters.
+     */
+    private static String spaces(int count)
+    {
+        if (count <= 0) return "";
+        if (count < SPACE_CACHE.length) return SPACE_CACHE[count];
+
+        char[] chars = new char[count];
+        for (int i = 0; i < count; i++) chars[i] = ' ';
+        return new String(chars);
     }
     
     /**
