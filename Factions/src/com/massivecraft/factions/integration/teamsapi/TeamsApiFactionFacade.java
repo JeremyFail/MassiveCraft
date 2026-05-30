@@ -6,6 +6,7 @@ import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factions.entity.MPlayerColl;
 import com.massivecraft.factions.entity.Rank;
 import com.skyblockexp.teamsapi.model.TeamRole;
+import com.skyblockexp.teamsapi.model.TeamRoleDefinition;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -154,11 +155,38 @@ final class TeamsApiFactionFacade
 	}
 
 	/**
+	 * Builds a {@link TeamRoleDefinition} for a MassiveCraft rank: {@link TeamRoleDefinition#getDefaultPrefix()} is the rank
+	 * name; {@link TeamRoleDefinition#getPrefix()} applies the faction rank prefix when configured.
+	 */
+	static TeamRoleDefinition roleDefinitionForFactionRank(final Faction faction, final Rank rank)
+	{
+		if (faction == null || rank == null)
+		{
+			return TeamRoleDefinition.of(TeamRole.MEMBER);
+		}
+
+		final String key = "rank:" + rank.getId();
+		final TeamRoleDefinition definition = new TeamRoleDefinition(key, rank.getPriority(), rank.getName());
+		final String prefix = rank.getPrefix();
+		if (prefix != null && !prefix.isEmpty())
+		{
+			definition.setPrefixOverride(prefix);
+		}
+		return definition;
+	}
+
+	/**
 	 * Builds an immutable TeamsAPI-facing member snapshot; join timestamps are not tracked in faction data ({@link Instant#EPOCH}).
 	 */
 	static TeamsApiSnapshotTeamMember memberOf(final Faction faction, final MPlayer mp)
 	{
-		return new TeamsApiSnapshotTeamMember(UUID.fromString(mp.getId()), rankToRole(faction, mp.getRank()), Instant.EPOCH);
+		final Rank rank = mp.getRank();
+		return new TeamsApiSnapshotTeamMember(
+			UUID.fromString(mp.getId()),
+			rankToRole(faction, rank),
+			roleDefinitionForFactionRank(faction, rank),
+			Instant.EPOCH
+		);
 	}
 
 	/**

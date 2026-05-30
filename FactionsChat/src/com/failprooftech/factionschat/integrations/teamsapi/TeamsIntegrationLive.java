@@ -20,6 +20,11 @@ public final class TeamsIntegrationLive implements TeamsIntegration
 	@Override
 	public Optional<FactionsBridge> createBridge(final Logger logger)
 	{
+		if (!TeamsApiVersion.logAndCheckRuntimeSupported(logger))
+		{
+			return Optional.empty();
+		}
+
 		final Optional<TeamsApiFactionsBridge> bridgeOpt = TeamsApiFactionsBridge.tryCreate();
 		if (bridgeOpt.isEmpty())
 		{

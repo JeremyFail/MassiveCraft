@@ -1,5 +1,6 @@
 package com.failprooftech.factionschat.commands.registrar;
 
+import com.failprooftech.factionschat.integrations.teamsapi.TeamsApiVersion;
 import com.skyblockexp.teamsapi.api.TeamsAPI;
 
 import org.bukkit.Bukkit;
@@ -35,6 +36,11 @@ public final class PvPIndexTeamsSubcommandSupport
         if (!TeamsAPI.isAvailable())
         {
             fine(logger, "TeamsAPI.isAvailable() is false; using direct /f hook for FactionsChat.");
+            return false;
+        }
+        if (!TeamsApiVersion.isRuntimeSupported())
+        {
+            fine(logger, "TeamsAPI is below " + TeamsApiVersion.MINIMUM_API_VERSION + "; using direct /f hook for FactionsChat.");
             return false;
         }
 

@@ -7,12 +7,10 @@ import com.massivecraft.massivecore.Integration;
  * MassiveCraft {@link Integration} that wires Factions as the TeamsAPI provider set (teams, invites, warps,
  * claims, power, and directional relations).
  * <p>
- * Activation mirrors other optional integrations: runs only while the TeamsAPI plugin is loaded and enabled
- * (via {@link com.massivecraft.massivecore.predicate.PredicateIntegration}).
- * <p>
- * TeamsAPI-facing types live in {@link TeamsApiProviderSession} and are loaded only when integration
- * activates, so {@link com.massivecraft.massivecore.util.ReflectionUtil#getSingletonInstance(Class)}
- * can instantiate this class without the TeamsAPI API on the classpath.
+ * Activation mirrors other optional integrations (e.g. PlaceholderAPI): runs only while the TeamsAPI plugin
+ * is loaded and enabled ({@link com.massivecraft.massivecore.predicate.PredicateIntegration}).
+ * {@link TeamsApiProviderSession} is used only from {@link #setIntegrationActiveInner(boolean)}; version checks
+ * run inside {@link TeamsApiProviderSession#register()}.
  */
 public class IntegrationTeamsApi extends Integration
 {
@@ -36,8 +34,7 @@ public class IntegrationTeamsApi extends Integration
 	// STATE
 	// -------------------------------------------- //
 
-	/** Non-null while providers are registered with TeamsAPI; type is {@link TeamsApiProviderSession}. */
-	private Object providerSession;
+	private TeamsApiProviderSession providerSession;
 
 	// -------------------------------------------- //
 	// OVERRIDE
@@ -49,34 +46,19 @@ public class IntegrationTeamsApi extends Integration
 		if (active)
 		{
 			final Factions factions = (Factions) this.getPlugin();
-			try
+			final TeamsApiProviderSession session = new TeamsApiProviderSession(factions);
+			if (session.register())
 			{
-				final Class<?> sessionClass = Class.forName(
-					"com.massivecraft.factions.integration.teamsapi.TeamsApiProviderSession");
-				final Object session = sessionClass.getConstructor(Factions.class).newInstance(factions);
-				sessionClass.getMethod("register").invoke(session);
 				this.providerSession = session;
-			}
-			catch (final ReflectiveOperationException e)
-			{
-				this.providerSession = null;
-				throw new RuntimeException(e);
 			}
 		}
 		else
 		{
-			final Object session = this.providerSession;
+			final TeamsApiProviderSession session = this.providerSession;
 			this.providerSession = null;
 			if (session != null)
 			{
-				try
-				{
-					session.getClass().getMethod("unregister").invoke(session);
-				}
-				catch (final ReflectiveOperationException ignored)
-				{
-
-				}
+				session.unregister();
 			}
 		}
 	}

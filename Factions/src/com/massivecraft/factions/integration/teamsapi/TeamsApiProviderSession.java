@@ -4,12 +4,10 @@ import com.massivecraft.factions.Factions;
 import com.skyblockexp.teamsapi.api.TeamsAPI;
 
 /**
- * Holds TeamsAPI provider instances and registration lifecycle. Loaded only via
- * {@link Class#forName(String)} from {@link IntegrationTeamsApi} after the TeamsAPI plugin is
- * present, so Factions can enable without the TeamsAPI API on the classpath.
- * 
+ * Holds TeamsAPI provider instances and registration lifecycle. Instantiated from
+ * {@link IntegrationTeamsApi} only when that integration activates (TeamsAPI plugin present and enabled).
+ *
  * @see IntegrationTeamsApi
- * @see TeamsApiProviderSession
  */
 public final class TeamsApiProviderSession
 {
@@ -33,10 +31,17 @@ public final class TeamsApiProviderSession
 	}
 
 	/**
-	 * Registers the TeamsAPI provider session.
+	 * Registers TeamsAPI providers when the runtime API meets {@link TeamsApiVersion#MINIMUM_API_VERSION}.
+	 *
+	 * @return {@code true} if all providers were registered; {@code false} if the runtime TeamsAPI is too old
 	 */
-	public void register()
+	public boolean register()
 	{
+		if (!TeamsApiVersion.logAndCheckRuntimeSupported(this.factions.getLogger()))
+		{
+			return false;
+		}
+
 		this.unregisterQuietly();
 
 		this.teamsService = new FactionsTeamsService(this.factions);
@@ -52,6 +57,7 @@ public final class TeamsApiProviderSession
 		TeamsAPI.registerClaimProvider(this.factions, this.claimService);
 		TeamsAPI.registerPowerProvider(this.factions, this.powerService);
 		TeamsAPI.registerRelationProvider(this.factions, this.relationService);
+		return true;
 	}
 
 	/**

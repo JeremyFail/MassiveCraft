@@ -89,7 +89,7 @@
         <massivePlaceholderAPIVersion>2.11.7</massivePlaceholderAPIVersion>
 
         <!-- https://github.com/ez-plugins/teams-api -->
-        <massiveTeamsApiVersion>2.0.0</massiveTeamsApiVersion>
+        <massiveTeamsApiVersion>2.4.0</massiveTeamsApiVersion>
 
         <!-- https://repo.failprooftech.com/ - Failproof Tech Maven repository -->
         <massiveFactionsBridgeApiVersion>1.4.0</massiveFactionsBridgeApiVersion>

@@ -4,9 +4,12 @@ import com.failprooftech.factionschat.ChatMode;
 import com.skyblockexp.teamsapi.api.TeamsAPI;
 import com.skyblockexp.teamsapi.api.TeamsRelationService;
 import com.skyblockexp.teamsapi.api.TeamsService;
+import com.failprooftech.factionschat.integrations.teamsapi.TeamsApiVersion;
 import com.skyblockexp.teamsapi.model.Team;
+import com.skyblockexp.teamsapi.model.TeamMember;
 import com.skyblockexp.teamsapi.model.TeamRelation;
 import com.skyblockexp.teamsapi.model.TeamRole;
+import com.skyblockexp.teamsapi.model.TeamRoleDefinition;
 
 import org.bukkit.entity.Player;
 
@@ -44,6 +47,7 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 	 */
 	public static Optional<TeamsApiFactionsBridge> tryCreate()
 	{
+		if (!TeamsApiVersion.isRuntimeSupported()) return Optional.empty();
 		if (!TeamsAPI.isAvailable()) return Optional.empty();
 
 		final TeamsService svc = TeamsAPI.getService();
@@ -88,6 +92,29 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 			this.teamsService.getMemberRole(team.getId(), playerUuid));
 	}
 
+	/**
+	 * Gets the member info of a player.
+	 * 
+	 * @param playerUuid The UUID of the player to get the member info of.
+	 * @return The member info of the player, or empty if the player is not in a team.
+	 */
+	private Optional<TeamMember> memberOf(final UUID playerUuid)
+	{
+		return svcGetPlayerTeam(playerUuid).flatMap(team ->
+			this.teamsService.getMemberInfo(team.getId(), playerUuid));
+	}
+
+	/**
+	 * Gets the role definition of a player.
+	 * 
+	 * @param playerUuid The UUID of the player to get the role definition of.
+	 * @return The role definition of the player, or empty if the player is not in a team.
+	 */
+	private Optional<TeamRoleDefinition> roleDefinitionOf(final UUID playerUuid)
+	{
+		return memberOf(playerUuid).map(TeamMember::getRoleDefinition);
+	}
+
 	// --------------------------------------------------------------------- //
 	// Membership / names
 	// --------------------------------------------------------------------- //
@@ -118,25 +145,34 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 	public String getPlayerRank(final Player player)
 	{
 		if (!isInFaction(player)) return "";
-		return roleOf(player.getUniqueId()).map(Enum::name).orElse("");
+		return roleDefinitionOf(player.getUniqueId())
+			.map(TeamRoleDefinition::getDefaultPrefix)
+			.orElseGet(() -> roleOf(player.getUniqueId()).map(Enum::name).orElse(""));
 	}
 
 	@Override
 	public String getPlayerRankPrefix(final Player player)
 	{
-		return "";
+		if (!isInFaction(player)) return "";
+		return roleDefinitionOf(player.getUniqueId())
+			.map(TeamRoleDefinition::getPrefix)
+			.orElse("");
 	}
 
 	@Override
 	public String getPlayerRankForce(final Player player)
 	{
-		return roleOf(player.getUniqueId()).map(Enum::name).orElse(TeamRole.MEMBER.name());
+		return roleDefinitionOf(player.getUniqueId())
+			.map(TeamRoleDefinition::getDefaultPrefix)
+			.orElseGet(() -> roleOf(player.getUniqueId()).map(Enum::name).orElse(TeamRole.MEMBER.name()));
 	}
 
 	@Override
 	public String getPlayerRankPrefixForce(final Player player)
 	{
-		return "";
+		return roleDefinitionOf(player.getUniqueId())
+			.map(TeamRoleDefinition::getPrefix)
+			.orElse(TeamRole.MEMBER.getPrefix());
 	}
 
 	@Override
@@ -149,6 +185,13 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 	// Relations
 	// --------------------------------------------------------------------- //
 
+	/**
+	 * Gets the relation between two players.
+	 * 
+	 * @param from The player to get the relation from.
+	 * @param toward The player to get the relation to.
+	 * @return The relation between the two players.
+	 */
 	private TeamRelation relationBetweenPlayers(final Player from, final Player toward)
 	{
 		final Optional<Team> fromTeam = teamOf(from);
@@ -170,8 +213,8 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 
 	/**
 	 * Converts provider {@code #RRGGBB} from {@link TeamsRelationService#getRelationColor(TeamRelation)} into
-	 * FactionsChat's supported RGB legacy form ({@code §#RRGGBB}, same family as {@code &#RRGGBB}).
-	 * {@code §x§R§R§G§G§B§B} is not used here — the chat parser expects {@code &#} / {@code §#} hex.
+	 * FactionsChat's supported RGB legacy form ({@code \u00A7#RRGGBB}, same family as {@code &#RRGGBB}).
+	 * Legacy Bukkit {@code \u00A7x} RGB is not used; the chat parser expects {@code &#} / {@code \u00A7#} hex.
 	 */
 	private static String hexToChatRgbCode(final String hexFromProvider)
 	{
@@ -195,9 +238,15 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 		{
 			return null;
 		}
-		return "§#" + hex;
+		return "\u00A7#" + hex;
 	}
 
+	/**
+	 * Gets the legacy color for a relation.
+	 * 
+	 * @param relation The relation to get the legacy color for.
+	 * @return The legacy color for the relation.
+	 */
 	private String legacyColorForRelation(final TeamRelation relation)
 	{
 		if (this.relationService != null)
@@ -208,7 +257,7 @@ public final class TeamsApiFactionsBridge implements FactionsBridge
 				return rgb;
 			}
 		}
-		return "§" + relation.getLegacyColorCode();
+		return "\u00A7" + relation.getLegacyColorCode();
 	}
 
 	@Override
