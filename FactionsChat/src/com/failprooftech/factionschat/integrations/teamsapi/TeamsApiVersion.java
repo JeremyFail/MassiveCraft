@@ -66,8 +66,8 @@ public final class TeamsApiVersion
 			versionMismatchWarned = true;
 			logger.warning(
 				"TeamsAPI integration requires API version " + MINIMUM_API_VERSION
-					+ " or newer (role prefix support). Found " + readRuntimeApiVersion()
-					+ ". FactionsChat will use direct Factions or FactionsBridge integration instead."
+					+ " or newer. Found " + readRuntimeApiVersion() 
+					+ ". FactionsChat will attempt to use the direct Factions integration instead."
 			);
 		}
 		return false;
