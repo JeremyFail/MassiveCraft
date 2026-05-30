@@ -49,7 +49,6 @@ import org.bukkit.util.BoundingBox;
 
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -771,7 +770,7 @@ public class EngineMain extends Engine
 			// ... perform the flood fill ...
 			Block startBlock = clickedBlock.getRelative(event.getBlockFace());
 			float absYaw = Math.abs(Location.normalizeYaw(player.getLocation().getYaw()));
-			Entry<GateOrientation, Set<Block>> gateFloodInfo = FloodUtil.getGateFloodInfo(startBlock, absYaw);
+			GateFloodInfo gateFloodInfo = FloodUtil.getGateFloodInfo(startBlock, absYaw);
 			if (gateFloodInfo == null)
 			{
 				message = Txt.parse("<b>There is no frame for the gate, or it's too big.", Txt.getMaterialName(material));
@@ -779,8 +778,9 @@ public class EngineMain extends Engine
 				return;
 			}
 			
-			GateOrientation gateOrientation = gateFloodInfo.getKey();
-			Set<Block> blocks = gateFloodInfo.getValue();
+			GateOrientation gateOrientation = gateFloodInfo.orientation;
+			Set<Block> blocks = gateFloodInfo.allBlocks;
+			Set<Block> interiorBlocks = gateFloodInfo.interiorBlocks;
 			
 			// ... ensure the required blocks are present ...
 			Map<Material, Integer> materialCounts = MaterialCountUtil.count(blocks);
@@ -798,9 +798,14 @@ public class EngineMain extends Engine
 			
 			// ... calculate the coords ...
 			Set<PS> coords = new HashSet<>();
+			Set<PS> interiorCoords = new HashSet<>();
 			for (Block block : blocks)
 			{
 				coords.add(PS.valueOf(block).withWorld(null));
+			}
+			for (Block block : interiorBlocks)
+			{
+				interiorCoords.add(PS.valueOf(block).withWorld(null));
 			}
 			
 			// ... create the gate ...
@@ -809,6 +814,7 @@ public class EngineMain extends Engine
 			newGate.setNetworkId(newNetworkId);
 			newGate.setExit(exit);
 			newGate.setCoords(coords);
+			newGate.setInteriorCoords(interiorCoords);
 			newGate.setOrientation(gateOrientation);
 			
 			// ... set the air blocks to portal material ...

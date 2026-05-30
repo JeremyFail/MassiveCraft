@@ -4,14 +4,12 @@ import com.massivecraft.creativegates.entity.MConf;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.Set;
 
 public class FloodUtil
 {
-	public static Entry<GateOrientation, Set<Block>> getGateFloodInfo(Block startBlock, float absYaw)
+	public static GateFloodInfo getGateFloodInfo(Block startBlock, float absYaw)
 	{
 		MConf mconf = MConf.get();
 		
@@ -21,28 +19,28 @@ public class FloodUtil
 		Set<Block> blocksWE = getFloodBlocks(startBlock, new HashSet<>(), GateOrientation.WE.expandFaces, mconf.getMaxarea());
 
 		// Figure out dir and content... or throw no frame fail.
-		Set<Block> blocks;
+		Set<Block> interior;
 		if (blocksNS != null && blocksWE != null)
 		{
 			if (absYaw <= 135 && absYaw > 45)
 			{
-				blocks = blocksNS;
+				interior = blocksNS;
 				gateOrientaion = GateOrientation.NS;
 			}
 			else
 			{
-				blocks = blocksWE;
+				interior = blocksWE;
 				gateOrientaion = GateOrientation.WE;
 			}
 		}
 		else if (blocksNS != null)
 		{
-			blocks = blocksNS;
+			interior = blocksNS;
 			gateOrientaion = GateOrientation.NS;
 		}
 		else if (blocksWE != null)
 		{
-			blocks = blocksWE;
+			interior = blocksWE;
 			gateOrientaion = GateOrientation.WE;
 		}
 		else
@@ -51,9 +49,9 @@ public class FloodUtil
 		}
 		
 		// Add in the frame as well.
-		blocks = expandedByOne(blocks, gateOrientaion.expandFaces);
+		Set<Block> all = expandedByOne(interior, gateOrientaion.expandFaces);
 		
-		return new SimpleEntry<>(gateOrientaion, blocks);
+		return new GateFloodInfo(gateOrientaion, interior, all);
 	}
 	
 	public static Set<Block> getFloodBlocks(Block startBlock, Set<Block> foundBlocks, Set<BlockFace> expandFaces, int maxarea)
