@@ -1,7 +1,12 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.CreativeGates;
+import com.massivecraft.creativegates.EngineMain;
+import com.massivecraft.creativegates.EngineMain.HorizontalEntryContext;
 import com.massivecraft.creativegates.GateOrientation;
+import com.massivecraft.creativegates.GateTeleportSafety;
+import com.massivecraft.creativegates.HorizontalGateLaunchUtil;
+import com.massivecraft.creativegates.HorizontalGateLaunchUtil.LaunchPlan;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.mixin.MixinTeleport;
 import com.massivecraft.massivecore.mixin.MixinVisibility;
@@ -24,6 +29,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -417,11 +423,24 @@ public class UGate extends Entity<UGate>
 	 * 
 	 * @param player The player to transport.
 	 */
-	public void transport(Player player)
+	public boolean transport(Player player)
+	{
+		return this.transport(player, null, null);
+	}
+	
+	/**
+	 * Transports a player through the gate chain, optionally preserving entry momentum for horizontal gates.
+	 * 
+	 * @param player The player to transport.
+	 * @param entryContext Velocity and launch eligibility for horizontal gates, or null.
+	 * @param sourceLocation Where the player entered; used to return them if the exit is blocked.
+	 */
+	public boolean transport(Player player, HorizontalEntryContext entryContext, Location sourceLocation)
 	{
 		List<UGate> gateChain = this.getGateChain();
 		
 		String message;
+		String blockedMessage = Txt.parse("<b>The gate exit is blocked.");
 		
 		for (UGate ugate : gateChain)
 		{
@@ -429,14 +448,43 @@ public class UGate extends Entity<UGate>
 			
 			PS destinationPs = ugate.getExit();
 			String destinationDesc = (MConf.get().teleportationMessageActive ? "the gate destination" : "");
-			Destination destination = new DestinationSimple(destinationPs, destinationDesc);
+			
+			boolean tryLaunch = entryContext != null
+				&& entryContext.launchEligible
+				&& ugate.getOrientation().isHorizontal()
+				&& MConf.get().isHorizontalGatesPreserveVelocity();
+			
+			LaunchPlan launchPlan = tryLaunch ? HorizontalGateLaunchUtil.tryPlan(ugate, entryContext.velocity) : null;
+			
+			if (launchPlan == null && !GateTeleportSafety.isDestinationSafe(player, destinationPs))
+			{
+				MixinMessage.get().messageOne(player, blockedMessage);
+				continue;
+			}
+			
+			Destination destination = new DestinationSimple(
+				launchPlan != null ? launchPlan.getLaunchPs() : destinationPs,
+				destinationDesc
+			);
 			
 			try
 			{
 				MixinTeleport.get().teleport(player, destination, 0);
+				
+				if (launchPlan == null && !GateTeleportSafety.isDestinationSafe(player, destinationPs))
+				{
+					this.returnPlayerToSource(player, sourceLocation);
+					MixinMessage.get().messageOne(player, blockedMessage);
+					continue;
+				}
+				
 				this.setUsedMillis(System.currentTimeMillis());
 				this.fxKitUse(player);
-				return;
+				if (launchPlan != null)
+				{
+					this.applyLaunch(player, launchPlan);
+				}
+				return true;
 			}
 			catch (TeleporterException e)
 			{
@@ -447,6 +495,45 @@ public class UGate extends Entity<UGate>
 		
 		message = Txt.parse("<i>This gate does not seem to lead anywhere.");
 		MixinMessage.get().messageOne(player, message);
+		return false;
+	}
+	
+	private void returnPlayerToSource(Player player, Location sourceLocation)
+	{
+		if (sourceLocation == null) return;
+		try
+		{
+			Destination source = new DestinationSimple(PS.valueOf(sourceLocation), "");
+			MixinTeleport.get().teleport(player, source, 0);
+		}
+		catch (TeleporterException ignored)
+		{
+		}
+	}
+	
+	private void applyLaunch(Player player, LaunchPlan launchPlan)
+	{
+		Vector launchVelocity = launchPlan.getVelocity().clone();
+		Location launchLoc;
+		try
+		{
+			launchLoc = launchPlan.getLaunchPs().asBukkitLocation(true);
+		}
+		catch (IllegalStateException e)
+		{
+			return;
+		}
+		
+		float lookYaw = launchLoc.getYaw();
+		CreativeGates.get().getServer().getScheduler().runTask(CreativeGates.get(), () ->
+		{
+			launchLoc.setYaw(lookYaw);
+			launchLoc.setPitch(0f);
+			player.teleport(launchLoc);
+			player.setVelocity(launchVelocity);
+			player.setFallDistance(0);
+			EngineMain.markHorizontalLaunchAirborne(player);
+		});
 	}
 	
 	/**
@@ -618,7 +705,19 @@ public class UGate extends Entity<UGate>
 	{
 		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return;
-		Axis axis = orientation == GateOrientation.NS ? Axis.Z : Axis.X;
+		Axis axis;
+		if (this.orientation == GateOrientation.NS)
+		{
+			axis = Axis.Z;
+		}
+		else if (this.orientation == GateOrientation.WE)
+		{
+			axis = Axis.X;
+		}
+		else
+		{
+			axis = Axis.Y;
+		}
 		
 		for (Block block : blocks)
 		{
@@ -646,7 +745,7 @@ public class UGate extends Entity<UGate>
 		if (blocks == null || blocks.isEmpty()) return;
 		
 		CreativeGates.get().setFilling(true);
-		this.setContent(CreativeGates.getFillMaterial(blocks.get(0).getWorld()));
+		this.setContent(CreativeGates.getFillMaterial(blocks.get(0).getWorld(), this.orientation));
 		CreativeGates.get().setFilling(false);
 	}
 	

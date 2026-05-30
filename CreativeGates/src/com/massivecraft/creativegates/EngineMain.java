@@ -13,6 +13,7 @@ import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -46,6 +47,7 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -118,9 +120,13 @@ public class EngineMain extends Engine
 			return;
 		}
 		
-		if (type == Material.LAVA && MConf.get().isUsingWater() && UGate.get(block) != null)
+		if (type == Material.LAVA || type == Material.WATER)
 		{
-			event.setCancelled(true);
+			UGate gate = UGate.get(block);
+			if (gate != null && (MConf.get().isUsingWater() || gate.getOrientation().isHorizontal()))
+			{
+				event.setCancelled(true);
+			}
 		}
 	}
 	
@@ -133,6 +139,16 @@ public class EngineMain extends Engine
 	 */
 	public static boolean isPortalBlockStable(Block block)
 	{
+		UGate gate = UGate.get(block);
+		if (gate != null && gate.getOrientation().isHorizontal())
+		{
+			if (CreativeGates.isVoid(block.getRelative(+1, +0, +0))) return false;
+			if (CreativeGates.isVoid(block.getRelative(-1, +0, +0))) return false;
+			if (CreativeGates.isVoid(block.getRelative(+0, +0, +1))) return false;
+			if (CreativeGates.isVoid(block.getRelative(+0, +0, -1))) return false;
+			return true;
+		}
+		
 		if (CreativeGates.isVoid(block.getRelative(+0, +1, +0))) return false;
 		if (CreativeGates.isVoid(block.getRelative(+0, -1, +0))) return false;
 		
@@ -152,9 +168,15 @@ public class EngineMain extends Engine
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(BlockFromToEvent event)
 	{
-		if (!MConf.get().isUsingWater()) return;
-		if (UGate.get(event.getBlock()) == null && UGate.get(event.getToBlock()) == null) return;
-		event.setCancelled(true);
+		UGate fromGate = UGate.get(event.getBlock());
+		UGate toGate = UGate.get(event.getToBlock());
+		if (fromGate == null && toGate == null) return;
+		
+		UGate gate = fromGate != null ? fromGate : toGate;
+		if (gate.getOrientation().isHorizontal() || MConf.get().isUsingWater())
+		{
+			event.setCancelled(true);
+		}
 	}
 	
 	/**
@@ -343,7 +365,7 @@ public class EngineMain extends Engine
 	}
 	
 	/**
-	 * Get the gate at a location.
+	 * Get the gate at a location (includes frame blocks).
 	 * 
 	 * @param location The location to get the gate for.
 	 * @return The gate at the location, or null if there is no gate.
@@ -353,6 +375,24 @@ public class EngineMain extends Engine
 		UGate gate = UGate.get(location.getBlock());
 		if (gate != null) return gate;
 		return UGate.get(location.clone().subtract(0, 1, 0).getBlock());
+	}
+	
+	/**
+	 * Get the gate at a location only when standing in portal content (water/lava/portal blocks).
+	 * Frame blocks do not count.
+	 * 
+	 * @param location The location to get the gate for.
+	 * @return The gate at the location, or null if there is no gate content here.
+	 */
+	public static UGate getGateAtContent(Location location)
+	{
+		Block block = location.getBlock();
+		if (isGateContentBlock(block)) return UGate.get(block);
+		
+		block = location.clone().subtract(0, 1, 0).getBlock();
+		if (isGateContentBlock(block)) return UGate.get(block);
+		
+		return null;
 	}
 	
 	/**
@@ -376,16 +416,28 @@ public class EngineMain extends Engine
 	 */
 	public static UGate getGateAtPlayer(Player player)
 	{
-		Location loc = player.getLocation();
-		BoundingBox box = player.getBoundingBox();
+		return getGateIntersectingPlayer(player, player.getLocation());
+	}
+	
+	/**
+	 * Finds a gate whose portal content intersects the player's hitbox at a specific location.
+	 * Used for move events so entry from below (head first) matches detection at the feet block.
+	 */
+	public static UGate getGateIntersectingPlayer(Player player, Location location)
+	{
+		if (player == null || location == null || location.getWorld() == null) return null;
 		
-		int minX = (int) Math.floor(box.getMinX());
-		int maxX = (int) Math.floor(box.getMaxX());
-		int minY = (int) Math.floor(box.getMinY());
-		int maxY = (int) Math.floor(box.getMaxY());
-		int minZ = (int) Math.floor(box.getMinZ());
-		int maxZ = (int) Math.floor(box.getMaxZ());
+		double halfWidth = player.getWidth() / 2.0;
+		double height = player.getHeight();
 		
+		int minX = (int) Math.floor(location.getX() - halfWidth);
+		int maxX = (int) Math.floor(location.getX() + halfWidth);
+		int minY = (int) Math.floor(location.getY());
+		int maxY = (int) Math.floor(location.getY() + height);
+		int minZ = (int) Math.floor(location.getZ() - halfWidth);
+		int maxZ = (int) Math.floor(location.getZ() + halfWidth);
+		
+		World world = location.getWorld();
 		UGate found = null;
 		for (int x = minX; x <= maxX; x++)
 		{
@@ -393,7 +445,7 @@ public class EngineMain extends Engine
 			{
 				for (int z = minZ; z <= maxZ; z++)
 				{
-					Block block = loc.getWorld().getBlockAt(x, y, z);
+					Block block = world.getBlockAt(x, y, z);
 					if (!isGateContentBlock(block)) continue;
 					UGate gate = UGate.get(block);
 					if (found != null && found != gate) continue;
@@ -405,8 +457,35 @@ public class EngineMain extends Engine
 	}
 	
 	private static final Map<UUID, Long> RECENT_GATE_USE_BY_PLAYER = new ConcurrentHashMap<>();
+	private static final Map<UUID, Vector> PEAK_HORIZONTAL_GATE_VELOCITY = new ConcurrentHashMap<>();
+	private static final Set<UUID> HORIZONTAL_LAUNCH_AIRBORNE = ConcurrentHashMap.newKeySet();
+	private static final Set<UUID> HORIZONTAL_GATE_SUPPRESS_UNTIL_EXIT = ConcurrentHashMap.newKeySet();
+	/** After leaving a horizontal portal, block re-entry briefly (avoids climb-out bobbing re-triggering). */
+	private static final Map<UUID, Long> HORIZONTAL_GATE_EXIT_COOLDOWN_UNTIL = new ConcurrentHashMap<>();
 	private static final long GATE_USE_DEBOUNCE_MILLIS = 250L;
 	private static final long POST_GATE_PORTAL_SUPPRESS_MILLIS = 1000L;
+	private static final long HORIZONTAL_GATE_EXIT_COOLDOWN_MILLIS = 2500L;
+	
+	/** Minimum current speed (blocks/tick) required to launch; below this uses exit teleport. */
+	private static final double MIN_LAUNCH_ENTRY_SPEED = 0.55;
+	
+	/** When current speed is below this, a high peak velocity still counts as a fast entry. */
+	private static final double GROUND_STOMP_CURRENT_SPEED_MAX = 0.2;
+	
+	/**
+	 * Velocity sample and whether a momentum launch is allowed (vs exit-marker teleport).
+	 */
+	public static final class HorizontalEntryContext
+	{
+		public final Vector velocity;
+		public final boolean launchEligible;
+		
+		public HorizontalEntryContext(Vector velocity, boolean launchEligible)
+		{
+			this.velocity = velocity;
+			this.launchEligible = launchEligible;
+		}
+	}
 	
 	/**
 	 * Check if a player has recently used a creative gate.
@@ -432,8 +511,19 @@ public class EngineMain extends Engine
 	{
 		if (ugate == null) return false;
 		
+		UUID playerId = player.getUniqueId();
+		if (HORIZONTAL_GATE_SUPPRESS_UNTIL_EXIT.contains(playerId))
+		{
+			UGate inGate = getGateAtPlayer(player);
+			if (inGate != null && inGate.getOrientation().isHorizontal())
+			{
+				return false;
+			}
+			HORIZONTAL_GATE_SUPPRESS_UNTIL_EXIT.remove(playerId);
+		}
+		
 		long now = System.currentTimeMillis();
-		Long recent = RECENT_GATE_USE_BY_PLAYER.get(player.getUniqueId());
+		Long recent = RECENT_GATE_USE_BY_PLAYER.get(playerId);
 		if (recent != null && (now - recent) < GATE_USE_DEBOUNCE_MILLIS) return false;
 		
 		if (!ugate.isIntact())
@@ -452,10 +542,123 @@ public class EngineMain extends Engine
 			return false;
 		}
 		
-		RECENT_GATE_USE_BY_PLAYER.put(player.getUniqueId(), now);
-		ugate.transport(player);
-		player.setPortalCooldown(300);
-		return true;
+		HorizontalEntryContext entryContext = null;
+		if (ugate.getOrientation().isHorizontal() && MConf.get().isHorizontalGatesPreserveVelocity())
+		{
+			entryContext = resolveHorizontalEntryContext(player);
+		}
+		Location sourceLocation = player.getLocation().clone();
+		boolean transported = ugate.transport(player, entryContext, sourceLocation);
+		if (transported)
+		{
+			RECENT_GATE_USE_BY_PLAYER.put(playerId, System.currentTimeMillis());
+			player.setPortalCooldown(300);
+			if (ugate.getOrientation().isHorizontal())
+			{
+				HORIZONTAL_GATE_SUPPRESS_UNTIL_EXIT.add(playerId);
+			}
+		}
+		return transported;
+	}
+	
+	/**
+	 * Marks a player as airborne from a horizontal gate launch. Fall distance is reset each tick
+	 * until they land, similar to bouncing off a slime block.
+	 *
+	 * @param player The launched player.
+	 */
+	public static void markHorizontalLaunchAirborne(Player player)
+	{
+		HORIZONTAL_LAUNCH_AIRBORNE.add(player.getUniqueId());
+		player.setFallDistance(0);
+	}
+	
+	private static boolean isHorizontalLaunchAirborne(Player player)
+	{
+		return HORIZONTAL_LAUNCH_AIRBORNE.contains(player.getUniqueId());
+	}
+	
+	private static HorizontalEntryContext resolveHorizontalEntryContext(Player player)
+	{
+		Vector current = player.getVelocity().clone();
+		Vector peak = PEAK_HORIZONTAL_GATE_VELOCITY.remove(player.getUniqueId());
+		double currentSpeed = current.length();
+		double peakSpeed = peak != null ? peak.length() : 0;
+		
+		boolean highSpeedGroundStomp = currentSpeed <= GROUND_STOMP_CURRENT_SPEED_MAX && peakSpeed >= MIN_LAUNCH_ENTRY_SPEED;
+		boolean launchEligible = currentSpeed >= MIN_LAUNCH_ENTRY_SPEED || highSpeedGroundStomp;
+		
+		Vector velocity;
+		if (highSpeedGroundStomp)
+		{
+			velocity = peak.clone();
+		}
+		else if (peak != null && peak.lengthSquared() > current.lengthSquared())
+		{
+			velocity = peak.clone();
+		}
+		else
+		{
+			velocity = current;
+		}
+		
+		return new HorizontalEntryContext(velocity, launchEligible);
+	}
+	
+	private static Vector sampleMoveVelocity(PlayerMoveEvent event)
+	{
+		Player player = event.getPlayer();
+		Vector velocity = player.getVelocity().clone();
+		
+		Location to = event.getTo();
+		if (to != null)
+		{
+			Vector delta = to.toVector().subtract(event.getFrom().toVector());
+			if (delta.lengthSquared() > velocity.lengthSquared())
+			{
+				velocity = delta.clone();
+			}
+		}
+		return velocity;
+	}
+	
+	/**
+	 * Finds a gate at the player's position, destination, or anywhere along the movement segment.
+	 * High-speed movement can skip over portal blocks within a single tick.
+	 */
+	private static UGate getGateOnMovePath(PlayerMoveEvent event)
+	{
+		Player player = event.getPlayer();
+		Location to = event.getTo();
+		Location from = event.getFrom();
+		
+		if (to != null)
+		{
+			UGate gate = getGateIntersectingPlayer(player, to);
+			if (gate != null) return gate;
+		}
+		
+		UGate gate = getGateIntersectingPlayer(player, from);
+		if (gate != null) return gate;
+		
+		if (to == null) return null;
+		
+		Vector delta = to.toVector().subtract(from.toVector());
+		double length = delta.length();
+		if (length < 0.001) return null;
+		
+		Vector step = delta.clone().normalize().multiply(0.25);
+		Location cursor = from.clone();
+		int steps = (int) Math.ceil(length / 0.25);
+		for (int i = 0; i <= steps; i++)
+		{
+			gate = getGateIntersectingPlayer(player, cursor);
+			if (gate != null) return gate;
+			gate = getGateAtContent(cursor);
+			if (gate != null) return gate;
+			cursor.add(step);
+		}
+		return null;
 	}
 	
 	// -------------------------------------------- //
@@ -500,7 +703,7 @@ public class EngineMain extends Engine
 		player.setPortalCooldown(300);
 		
 		UGate gate = getGateAtPlayer(player);
-		if (gate == null) gate = getGateAt(event.getFrom());
+		if (gate == null) gate = getGateAtContent(event.getFrom());
 		tryUseGate(player, gate);
 	}
 	
@@ -552,6 +755,34 @@ public class EngineMain extends Engine
 	// -------------------------------------------- //
 	
 	/**
+	 * Tracks peak velocity while a player is inside a horizontal gate so ground contact does not
+	 * erase the momentum used for the launch calculation.
+	 *
+	 * @param event The player move event.
+	 */
+	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+	public void trackHorizontalGateVelocity(PlayerMoveEvent event)
+	{
+		if (!MConf.get().isHorizontalGatesPreserveVelocity()) return;
+		
+		Player player = event.getPlayer();
+		UGate gate = getGateOnMovePath(event);
+		if (gate == null || !gate.getOrientation().isHorizontal())
+		{
+			PEAK_HORIZONTAL_GATE_VELOCITY.remove(player.getUniqueId());
+			return;
+		}
+		
+		Vector sample = sampleMoveVelocity(event);
+		UUID playerId = player.getUniqueId();
+		Vector peak = PEAK_HORIZONTAL_GATE_VELOCITY.get(playerId);
+		if (peak == null || sample.lengthSquared() > peak.lengthSquared())
+		{
+			PEAK_HORIZONTAL_GATE_VELOCITY.put(playerId, sample);
+		}
+	}
+	
+	/**
 	 * Handle player move events. This is used to teleport the player when they move into a gate.
 	 * 
 	 * @param event The player move event.
@@ -559,20 +790,108 @@ public class EngineMain extends Engine
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void useGate(PlayerMoveEvent event)
 	{
-		// If a player ...
 		Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;
 		
-		// ... is moving from one block to another ...
-		if (MUtil.isSameBlock(event)) return;
-		
-		// ... and there is a gate in the new block ...
-		UGate ugate = getGateAtPlayer(player);
-		if (ugate == null) ugate = UGate.get(event.getTo());
+		UGate ugate = getGateOnMovePath(event);
 		if (ugate == null) return;
 		
-		// Try to use the gate and teleport the player
+		if (ugate.getOrientation().isHorizontal())
+		{
+			if (handleHorizontalGateMove(player, event, ugate)) return;
+		}
+		else if (MUtil.isSameBlock(event))
+		{
+			return;
+		}
+		
 		tryUseGate(player, ugate);
+	}
+	
+	/**
+	 * Horizontal gate move handling: detects exit (to start cooldown) and only allows use when the
+	 * player clearly moves from outside the portal into it (not when climbing out and dipping back).
+	 *
+	 * @return {@code true} if this move should not call {@link #tryUseGate}.
+	 */
+	private static boolean handleHorizontalGateMove(Player player, PlayerMoveEvent event, UGate ugate)
+	{
+		UUID playerId = player.getUniqueId();
+		Location to = event.getTo();
+		
+		UGate fromGate = getGateIntersectingPlayer(player, event.getFrom());
+		UGate toGate = to != null ? getGateIntersectingPlayer(player, to) : null;
+		
+		// Leaving portal fluid: start re-entry cooldown so swimming up/out does not immediately re-fire.
+		if (fromGate == ugate && toGate != ugate)
+		{
+			HORIZONTAL_GATE_EXIT_COOLDOWN_UNTIL.put(playerId, System.currentTimeMillis() + HORIZONTAL_GATE_EXIT_COOLDOWN_MILLIS);
+			return true;
+		}
+		
+		if (isHorizontalGateExitCooldownActive(playerId)) return true;
+		
+		if (wasRecentCreativeGateTransport(player)) return true;
+		
+		// Still inside at the start of this move — not a fresh entry.
+		if (fromGate == ugate) return true;
+		
+		// Must end the tick inside this gate (outside → inside), not a grazing path sample.
+		if (toGate != ugate) return true;
+		
+		return false;
+	}
+	
+	private static boolean isHorizontalGateExitCooldownActive(UUID playerId)
+	{
+		Long until = HORIZONTAL_GATE_EXIT_COOLDOWN_UNTIL.get(playerId);
+		if (until == null) return false;
+		if (System.currentTimeMillis() >= until)
+		{
+			HORIZONTAL_GATE_EXIT_COOLDOWN_UNTIL.remove(playerId);
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Backup for the landing tick: fall damage can be evaluated before fall distance is cleared.
+	 * Only applies while the launch-airborne flag is still set (cleared on first ground contact).
+	 *
+	 * @param event The entity damage event.
+	 */
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void preventHorizontalLaunchFallDamage(EntityDamageEvent event)
+	{
+		if (!(event.getEntity() instanceof Player player)) return;
+		if (event.getCause() != DamageCause.FALL) return;
+		if (!isHorizontalLaunchAirborne(player)) return;
+		
+		event.setCancelled(true);
+		player.setFallDistance(0);
+	}
+	
+	/**
+	 * Resets fall distance while airborne from a horizontal launch, like landing on a slime block.
+	 * Protection ends on first ground contact so later falls behave normally.
+	 *
+	 * @param event The player move event.
+	 */
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void handleHorizontalLaunchAirborne(PlayerMoveEvent event)
+	{
+		Player player = event.getPlayer();
+		UUID playerId = player.getUniqueId();
+		if (!HORIZONTAL_LAUNCH_AIRBORNE.contains(playerId)) return;
+		
+		if (player.isOnGround())
+		{
+			HORIZONTAL_LAUNCH_AIRBORNE.remove(playerId);
+			player.setFallDistance(0);
+			return;
+		}
+		
+		player.setFallDistance(0);
 	}
 	
 	// -------------------------------------------- //
@@ -770,10 +1089,25 @@ public class EngineMain extends Engine
 			// ... perform the flood fill ...
 			Block startBlock = clickedBlock.getRelative(event.getBlockFace());
 			float absYaw = Math.abs(Location.normalizeYaw(player.getLocation().getYaw()));
-			GateFloodInfo gateFloodInfo = FloodUtil.getGateFloodInfo(startBlock, absYaw);
+			float pitch = player.getLocation().getPitch();
+			GateFloodInfo gateFloodInfo = FloodUtil.getGateFloodInfo(startBlock, absYaw, pitch);
 			if (gateFloodInfo == null)
 			{
 				message = Txt.parse("<b>There is no frame for the gate, or it's too big.", Txt.getMaterialName(material));
+				MixinMessage.get().messageOne(player, message);
+				return;
+			}
+			
+			if (gateFloodInfo.orientation.isHorizontal() && !MConf.get().isHorizontalGatesEnabled())
+			{
+				message = Txt.parse("<b>Horizontal gates are disabled on this server.");
+				MixinMessage.get().messageOne(player, message);
+				return;
+			}
+			
+			if (!MConf.get().isHorizontalGatesEnabled() && gateFloodInfo.orientation.isVertical() && FloodUtil.isLikelyHorizontalGate(gateFloodInfo.interiorBlocks))
+			{
+				message = Txt.parse("<b>Horizontal gates are disabled on this server. Look horizontally to create a wall gate instead.");
 				MixinMessage.get().messageOne(player, message);
 				return;
 			}

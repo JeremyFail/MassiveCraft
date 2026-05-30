@@ -116,6 +116,24 @@ public class MConf extends Entity<MConf>
 		this.usingWater = usingWater;
 	}
 
+	// Floor/ceiling portals (Portal-style). Always use water/lava fill, not nether portal blocks.
+	private boolean horizontalGatesEnabled = true;
+	public boolean isHorizontalGatesEnabled() { return this.horizontalGatesEnabled; }
+	public void setHorizontalGatesEnabled(boolean horizontalGatesEnabled)
+	{
+		this.changed(this.horizontalGatesEnabled, horizontalGatesEnabled);
+		this.horizontalGatesEnabled = horizontalGatesEnabled;
+	}
+
+	// Keep player momentum when passing through horizontal gates.
+	private boolean horizontalGatesPreserveVelocity = true;
+	public boolean isHorizontalGatesPreserveVelocity() { return this.horizontalGatesPreserveVelocity; }
+	public void setHorizontalGatesPreserveVelocity(boolean horizontalGatesPreserveVelocity)
+	{
+		this.changed(this.horizontalGatesPreserveVelocity, horizontalGatesPreserveVelocity);
+		this.horizontalGatesPreserveVelocity = horizontalGatesPreserveVelocity;
+	}
+
 	// If true, lava will be used in place of water in the nether
 	// Has no effect if usingWater is false
 	private boolean useLavaInNether = true;

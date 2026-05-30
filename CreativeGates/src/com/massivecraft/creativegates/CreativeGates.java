@@ -110,10 +110,21 @@ public class CreativeGates extends MassivePlugin
 	/**
 	 * The material used to fill a gate in the given world.
 	 * Water mode uses lava in the nether when {@link MConf#isUseLavaInNether()} is enabled.
+	 * Horizontal gates always use water/lava because nether portal blocks do not work reliably on floors.
 	 */
 	public static Material getFillMaterial(World world)
 	{
+		return getFillMaterial(world, null);
+	}
+	
+	public static Material getFillMaterial(World world, GateOrientation orientation)
+	{
 		MConf mconf = MConf.get();
+		if (orientation != null && orientation.isHorizontal())
+		{
+			if (world.getEnvironment() == World.Environment.NETHER && mconf.isUseLavaInNether()) return Material.LAVA;
+			return Material.WATER;
+		}
 		if (!mconf.isUsingWater()) return Material.NETHER_PORTAL;
 		if (world.getEnvironment() == World.Environment.NETHER && mconf.isUseLavaInNether()) return Material.LAVA;
 		return Material.WATER;
