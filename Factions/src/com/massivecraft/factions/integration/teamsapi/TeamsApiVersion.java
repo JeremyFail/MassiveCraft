@@ -1,20 +1,24 @@
 package com.massivecraft.factions.integration.teamsapi;
 
-import com.skyblockexp.teamsapi.api.TeamsAPI;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 
-import java.util.logging.Level;
+import java.lang.reflect.Field;
 import java.util.logging.Logger;
 
 /**
  * TeamsAPI semantic-version gate for MassiveCraft Factions provider integration.
  * <p>
- * Factions registers TeamsAPI providers only when the runtime library reports
- * {@link #MINIMUM_API_VERSION} or newer (role prefix and {@link com.skyblockexp.teamsapi.model.TeamRoleDefinition}
- * support). Older API jars load without error, but provider registration is skipped after a single console message.
+ * Compares the runtime {@code TeamsAPI.API_VERSION} constant (see
+ * <a href="https://ez-plugins.github.io/teams-api/api.html#teamsapi-static-facade">TeamsAPI static facade</a>)
+ * against {@link #MINIMUM_API_VERSION}. Provider registration is skipped when the installed TeamsAPI plugin is older.
  */
 public final class TeamsApiVersion
 {
-	/** Minimum TeamsAPI {@link TeamsAPI#API_VERSION} required for provider registration. */
+	private static final String TEAMS_API_CLASS_NAME = "com.skyblockexp.teamsapi.api.TeamsAPI";
+	private static final String API_VERSION_FIELD_NAME = "API_VERSION";
+
+	/** Minimum {@code TeamsAPI.API_VERSION} required for provider registration. */
 	public static final String MINIMUM_API_VERSION = "2.4.0";
 
 	/** Declared to block subclassing and instantiation of this utility holder. */
@@ -24,9 +28,9 @@ public final class TeamsApiVersion
 	}
 
 	/**
-	 * Checks if the runtime TeamsAPI API version is at least the minimum required version.
-	 * 
-	 * @return {@code true} when {@link TeamsAPI#API_VERSION} at runtime is at least {@link #MINIMUM_API_VERSION}
+	 * Checks whether the installed TeamsAPI plugin meets the minimum API version.
+	 *
+	 * @return {@code true} when the TeamsAPI plugin's {@code API_VERSION} is at least {@link #MINIMUM_API_VERSION}
 	 */
 	public static boolean isRuntimeSupported()
 	{
@@ -34,57 +38,102 @@ public final class TeamsApiVersion
 	}
 
 	/**
-	 * Verifies runtime API version and logs a single {@link Level#SEVERE} message when it is too old.
+	 * Verifies runtime API version when the TeamsAPI plugin is loaded.
 	 * <p>
-	 * Callers should treat {@code false} as "do not register TeamsAPI providers"; the Factions plugin itself
-	 * continues to load.
+	 * Logs a single warning only if TeamsAPI is present and enabled but below {@link #MINIMUM_API_VERSION}.
+	 * If TeamsAPI is absent or disabled, returns {@code false} without logging.
 	 *
 	 * @param logger Factions plugin logger; may be {@code null} to suppress logging
 	 * @return {@code true} when the runtime version is supported
 	 */
 	public static boolean logAndCheckRuntimeSupported(final Logger logger)
 	{
-		final String runtime = readRuntimeApiVersion();
-		if (isAtLeast(runtime, MINIMUM_API_VERSION))
+		final Plugin teamsApiPlugin = Bukkit.getPluginManager().getPlugin("TeamsAPI");
+		if (teamsApiPlugin == null || !teamsApiPlugin.isEnabled())
+		{
+			return false;
+		}
+		if (isRuntimeSupported())
 		{
 			return true;
 		}
 		if (logger != null)
 		{
-			logger.log(
-				Level.SEVERE,
+			logger.warning(
 				"TeamsAPI integration requires API version " + MINIMUM_API_VERSION
-					+ " or newer (role prefix support). Found " + runtime
-					+ ". Factions will not register as a TeamsAPI provider until TeamsAPI is updated."
+					+ " or newer. Found " + readRuntimeApiVersion() + ". Factions will not register as "
+					+ "a TeamsAPI provider until TeamsAPI is updated."
 			);
 		}
 		return false;
 	}
 
 	/**
-	 * Reads {@link TeamsAPI#API_VERSION} from the class loader that loaded this utility.
+	 * Reads {@code TeamsAPI.API_VERSION} from the enabled TeamsAPI <em>plugin</em> class loader.
 	 * <p>
-	 * On servers without TeamsAPI, or when the constant cannot be resolved, returns an empty string so
-	 * comparisons fail closed (treated as unsupported).
+	 * This is the value documented on the TeamsAPI facade. A static reference to {@code TeamsAPI.API_VERSION} in
+	 * Factions source is not reliable: the compiler may inline the compile-time {@code provided} teams-api constant
+	 * (e.g. 2.4.0), which can differ from the TeamsAPI plugin jar on the server.
 	 *
-	 * @return trimmed API version string, or {@code ""} when unavailable
+	 * @return trimmed {@code API_VERSION} from the TeamsAPI plugin, or {@code ""} when TeamsAPI is missing or disabled
 	 */
 	static String readRuntimeApiVersion()
 	{
+		final Plugin teamsApiPlugin = Bukkit.getPluginManager().getPlugin("TeamsAPI");
+		if (teamsApiPlugin == null || !teamsApiPlugin.isEnabled())
+		{
+			return "";
+		}
+
+		final String fromApi = readApiVersionField(teamsApiPlugin.getClass().getClassLoader());
+		if (!fromApi.isEmpty())
+		{
+			return fromApi;
+		}
+
+		return readPluginYamlVersion(teamsApiPlugin);
+	}
+
+	/**
+	 * Reads {@code TeamsAPI.API_VERSION} from a specific class loader via the facade type name.
+	 * <p>
+	 * Used to load the constant from the TeamsAPI plugin jar rather than from Factions' compile classpath.
+	 *
+	 * @param loader class loader to resolve {@value #TEAMS_API_CLASS_NAME} from; {@code null} yields {@code ""}
+	 * @return trimmed field value, or {@code ""} when the class or field is unavailable
+	 */
+	private static String readApiVersionField(final ClassLoader loader)
+	{
+		if (loader == null)
+		{
+			return "";
+		}
 		try
 		{
-			final String version = TeamsAPI.API_VERSION;
-			return version != null ? version.trim() : "";
+			final Class<?> teamsApiClass = Class.forName(TEAMS_API_CLASS_NAME, false, loader);
+			final Field field = teamsApiClass.getField(API_VERSION_FIELD_NAME);
+			final Object value = field.get(null);
+			return value != null ? value.toString().trim() : "";
 		}
-		catch (final Throwable ignored)
+		catch (final ReflectiveOperationException ignored)
 		{
 			return "";
 		}
 	}
 
 	/**
-	 * Checks if a version is at least a minimum version.
-	 * 
+	 * Fallback when {@code API_VERSION} cannot be read from the TeamsAPI facade class.
+	 *
+	 * @param teamsApiPlugin enabled TeamsAPI plugin instance
+	 * @return {@code plugin.yml} version string, trimmed; never {@code null}
+	 */
+	private static String readPluginYamlVersion(final Plugin teamsApiPlugin)
+	{
+		final String version = teamsApiPlugin.getDescription().getVersion();
+		return version != null ? version.trim() : "";
+	}
+
+	/**
 	 * @param version version string to test (may be null or empty)
 	 * @param minimum inclusive minimum version
 	 * @return {@code true} when {@code version} is greater than or equal to {@code minimum} by MAJOR.MINOR.PATCH
@@ -125,7 +174,7 @@ public final class TeamsApiVersion
 	 * Non-numeric trailing characters within a segment (e.g. {@code 1rc1}) stop digit accumulation at the first
 	 * non-digit, matching common lenient Maven-style version strings on plugin jars.
 	 *
-	 * @param version raw version from {@link TeamsAPI#API_VERSION} or similar; may be null
+	 * @param version raw version string; may be null
 	 * @return int array of length three; never {@code null}
 	 */
 	private static int[] parseSemver(final String version)
@@ -168,7 +217,6 @@ public final class TeamsApiVersion
 			final char c = segment.charAt(i);
 			if (c < '0' || c > '9')
 			{
-				// e.g. "10b" -> 10; "b10" -> 0
 				break;
 			}
 			value = value * 10 + (c - '0');

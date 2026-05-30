@@ -7,10 +7,10 @@ import com.massivecraft.massivecore.Integration;
  * MassiveCraft {@link Integration} that wires Factions as the TeamsAPI provider set (teams, invites, warps,
  * claims, power, and directional relations).
  * <p>
- * Activation mirrors other optional integrations (e.g. PlaceholderAPI): runs only while the TeamsAPI plugin
- * is loaded and enabled ({@link com.massivecraft.massivecore.predicate.PredicateIntegration}).
- * {@link TeamsApiProviderSession} is used only from {@link #setIntegrationActiveInner(boolean)}; version checks
- * run inside {@link TeamsApiProviderSession#register()}.
+ * Activation mirrors other optional integrations (e.g. PlaceholderAPI): the TeamsAPI plugin must be loaded and
+ * enabled ({@link com.massivecraft.massivecore.predicate.PredicateIntegration}), and {@link TeamsApiVersion} must
+ * accept the plugin's runtime API (see {@link #setIntegrationActive(Boolean)}). Providers register only when both
+ * checks pass; otherwise no "integration activated" wiring or TeamsAPI provider registration occurs.
  */
 public class IntegrationTeamsApi extends Integration
 {
@@ -39,6 +39,26 @@ public class IntegrationTeamsApi extends Integration
 	// -------------------------------------------- //
 	// OVERRIDE
 	// -------------------------------------------- //
+
+	@Override
+	public void setIntegrationActive(final Boolean integrationActive)
+	{
+		Boolean active = integrationActive;
+		if (active == null)
+		{
+			active = this.getPredicate().test(this);
+		}
+		if (active && !TeamsApiVersion.isRuntimeSupported())
+		{
+			TeamsApiVersion.logAndCheckRuntimeSupported(((Factions) this.getPlugin()).getLogger());
+			if (this.isIntegrationActive())
+			{
+				super.setIntegrationActive(false);
+			}
+			return;
+		}
+		super.setIntegrationActive(active);
+	}
 
 	@Override
 	public void setIntegrationActiveInner(final boolean active)
