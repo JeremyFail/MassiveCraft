@@ -21,6 +21,9 @@ public final class TeamsApiVersion
 	/** Minimum {@code TeamsAPI.API_VERSION} required for provider registration. */
 	public static final String MINIMUM_API_VERSION = "2.4.0";
 
+	/** Guards the version-mismatch warning so it is emitted at most once per server run. */
+	private static volatile boolean versionMismatchWarned;
+
 	/** Declared to block subclassing and instantiation of this utility holder. */
 	private TeamsApiVersion()
 	{
@@ -40,7 +43,7 @@ public final class TeamsApiVersion
 	/**
 	 * Verifies runtime API version when the TeamsAPI plugin is loaded.
 	 * <p>
-	 * Logs a single warning only if TeamsAPI is present and enabled but below {@link #MINIMUM_API_VERSION}.
+	 * Logs at most one warning per server run if TeamsAPI is present and enabled but below {@link #MINIMUM_API_VERSION}.
 	 * If TeamsAPI is absent or disabled, returns {@code false} without logging.
 	 *
 	 * @param logger Factions plugin logger; may be {@code null} to suppress logging
@@ -55,10 +58,12 @@ public final class TeamsApiVersion
 		}
 		if (isRuntimeSupported())
 		{
+			versionMismatchWarned = false;
 			return true;
 		}
-		if (logger != null)
+		if (logger != null && !versionMismatchWarned)
 		{
+			versionMismatchWarned = true;
 			logger.warning(
 				"TeamsAPI integration requires API version " + MINIMUM_API_VERSION
 					+ " or newer. Found " + readRuntimeApiVersion() + ". Factions will not register as "

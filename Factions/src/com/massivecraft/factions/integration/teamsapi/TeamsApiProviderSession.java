@@ -37,7 +37,7 @@ public final class TeamsApiProviderSession
 	 */
 	public boolean register()
 	{
-		if (!TeamsApiVersion.logAndCheckRuntimeSupported(this.factions.getLogger()))
+		if (!TeamsApiVersion.isRuntimeSupported())
 		{
 			return false;
 		}

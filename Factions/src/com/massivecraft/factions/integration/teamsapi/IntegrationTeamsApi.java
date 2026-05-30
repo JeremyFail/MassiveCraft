@@ -50,6 +50,7 @@ public class IntegrationTeamsApi extends Integration
 		}
 		if (active && !TeamsApiVersion.isRuntimeSupported())
 		{
+			// Integration.run() and PluginEnableEvent fire often; version helper logs at most once.
 			TeamsApiVersion.logAndCheckRuntimeSupported(((Factions) this.getPlugin()).getLogger());
 			if (this.isIntegrationActive())
 			{
