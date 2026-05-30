@@ -93,9 +93,13 @@ public final class GenericPlaceholderBridge extends PlaceholderExpansion impleme
             "factionschat_faction_name",
             "factionschat_faction_nameforce",
             "factionschat_player_rank",
+            "factionschat_player_role",
             "factionschat_player_rankprefix",
+            "factionschat_player_roleprefix",
             "factionschat_player_rankforce",
+            "factionschat_player_roleforce",
             "factionschat_player_rankprefixforce",
+            "factionschat_player_roleprefixforce",
             "factionschat_player_title",
             "rel_factionschat_relation_name",
             "rel_factionschat_relation_color"
@@ -170,12 +174,16 @@ public final class GenericPlaceholderBridge extends PlaceholderExpansion impleme
                 case "faction_nameforce":
                     return player != null && bridge != null ? bridge.getFactionNameForce(player) : "";
                 case "player_rank":
+                case "player_role":
                     return player != null && bridge != null ? bridge.getPlayerRank(player) : "";
                 case "player_rankprefix":
+                case "player_roleprefix":
                     return player != null && bridge != null ? bridge.getPlayerRankPrefix(player) : "";
                 case "player_rankforce":
+                case "player_roleforce":
                     return player != null && bridge != null ? bridge.getPlayerRankForce(player) : "";
                 case "player_rankprefixforce":
+                case "player_roleprefixforce":
                     return player != null && bridge != null ? bridge.getPlayerRankPrefixForce(player) : "";
                 case "player_title":
                     return player != null && bridge != null ? bridge.getPlayerTitle(player) : "";

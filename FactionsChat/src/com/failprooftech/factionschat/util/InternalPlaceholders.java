@@ -28,13 +28,17 @@ public class InternalPlaceholders
                     return bridge != null ? bridge.getFactionName(player) : "";
                 case "factions_faction_nameforce": 
                     return bridge != null ? bridge.getFactionNameForce(player) : "";
-                case "factions_player_rank": 
+                case "factions_player_rank":
+                case "factions_player_role":
                     return bridge != null ? bridge.getPlayerRank(player) : "";
-                case "factions_player_rankprefix": 
+                case "factions_player_rankprefix":
+                case "factions_player_roleprefix":
                     return bridge != null ? bridge.getPlayerRankPrefix(player) : "";
-                case "factions_player_rankforce": 
+                case "factions_player_rankforce":
+                case "factions_player_roleforce":
                     return bridge != null ? bridge.getPlayerRankForce(player) : "";
-                case "factions_player_rankprefixforce": 
+                case "factions_player_rankprefixforce":
+                case "factions_player_roleprefixforce":
                     return bridge != null ? bridge.getPlayerRankPrefixForce(player) : "";
                 case "factions_player_title": 
                     return bridge != null ? bridge.getPlayerTitle(player) : "";
