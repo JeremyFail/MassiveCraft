@@ -10,12 +10,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Tracks each player's position in the login → join → play → leave cycle ({@link PlayerState}).
+ * <p>
+ * {@code LOGSYNC} and {@code JOINING} (at join) are handled by
+ * {@link com.massivecraft.massivecore.engine.loginpipeline.LoginPipelineSpigotListener} on Spigot only.
+ * On Paper, {@code JOINING} is set from {@link com.massivecraft.massivecore.engine.loginpipeline.LoginPipelinePaperListener}
+ * after store hydration.
+ */
 public class EngineMassiveCorePlayerState extends Engine
 {
 	// -------------------------------------------- //
@@ -136,52 +142,9 @@ public class EngineMassiveCorePlayerState extends Engine
 	}
 	
 	// -------------------------------------------- //
-	// LOGSYNC
-	// -------------------------------------------- //
-	// PlayerLoginEvent: LOWEST and MONITOR DELAYED
-	
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void logsync(PlayerLoginEvent event)
-	{
-		Player player = event.getPlayer();
-		PlayerState state = PlayerState.LOGSYNC;
-		boolean delayed = false;
-		PlayerState replaceable = null;
-		this.setState(player, state, delayed, replaceable);
-	}
-	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void logsyncMonitor(PlayerLoginEvent event)
-	{
-		// If the player was denied entrance they are now offline.
-		if (event.getResult() == PlayerLoginEvent.Result.ALLOWED) return;
-		
-		Player player = event.getPlayer();
-		PlayerState state = PlayerState.LEFT;
-		boolean delayed = true;
-		PlayerState replaceable = PlayerState.LOGSYNC;
-		this.setState(player, state, delayed, replaceable);
-	}
-	
-	// -------------------------------------------- //
-	// JOINING
-	// -------------------------------------------- //
-	// PlayerJoinEvent: LOWEST
-	
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void joining(PlayerJoinEvent event)
-	{
-		Player player = event.getPlayer();
-		PlayerState state = PlayerState.JOINING;
-		boolean delayed = false;
-		PlayerState replaceable = null;
-		this.setState(player, state, delayed, replaceable);
-	}
-	
-	// -------------------------------------------- //
 	// JOINED
 	// -------------------------------------------- //
-	// PlayerJoinEvent: MONITOR DELAYED
+	// PlayerJoinEvent: MONITOR DELAYED (both platforms)
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void joined(PlayerJoinEvent event)

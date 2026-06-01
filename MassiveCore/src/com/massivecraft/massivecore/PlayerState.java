@@ -16,6 +16,9 @@ import java.util.UUID;
  * So for such a "last tp position" system you may want to ignore any teleports other than during player state JOINED.
  * 
  * EngineMassiveCorePlayerState takes care of updating the information.
+ * <p>
+ * Platform note: {@code LOGSYNC} is only set on Spigot ({@code PlayerLoginEvent}). On Paper the cycle
+ * skips directly from {@code LOGASYNC} to {@code JOINING} at early {@code PlayerJoinEvent}.
  */
 public enum PlayerState
 {
@@ -23,9 +26,9 @@ public enum PlayerState
 	// ENUM
 	// -------------------------------------------- //
 	
-	LOGASYNC, // During AsyncPlayerLoginEvent
-	LOGSYNC, // During PlayerLoginEvent
-	JOINING, // During PlayerJoinEvent
+	LOGASYNC, // During AsyncPlayerPreLoginEvent
+	LOGSYNC, // During PlayerLoginEvent on Spigot (skipped on Paper; LOGASYNC proceeds directly to JOINING)
+	JOINING, // During PlayerJoinEvent (LoginPipelineSpigotListener on Spigot; LoginPipelinePaperListener on Paper)
 	JOINED, // Regular situation. The player is online and playing.
 	LEAVING, // From the start of EventMassiveCorePlayerLeave till the player actually disconnects.
 	LEFT, // The player is fully disconnected and offline.

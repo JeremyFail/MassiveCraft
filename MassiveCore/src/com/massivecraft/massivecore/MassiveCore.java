@@ -89,6 +89,7 @@ import com.massivecraft.massivecore.store.ModificationPollerLocal;
 import com.massivecraft.massivecore.store.ModificationPollerRemote;
 import com.massivecraft.massivecore.util.ContainerUtil;
 import com.massivecraft.massivecore.util.EventUtil;
+import com.massivecraft.massivecore.engine.loginpipeline.LoginPipeline;
 import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.IntervalUtil;
 import com.massivecraft.massivecore.util.InventoryUtil;
@@ -253,6 +254,9 @@ public class MassiveCore extends MassivePlugin
 		
 		// Activate
 		this.activateAuto();
+		
+		// Login pipeline: Spigot, Paper 1.21.7+ modern, or Paper 1.21.4–1.21.6 legacy fallback (see LoginPipeline).
+		LoginPipeline.register(this);
 
 		// These must be activated after nms
 		this.activate(
@@ -390,6 +394,8 @@ public class MassiveCore extends MassivePlugin
 	@Override
 	public void onDisable()
 	{
+		// Tear down platform login listeners before other shutdown work.
+		LoginPipeline.unregister();
 		MassiveUpdate.shutdown();
 		super.onDisable();
 		ModificationPollerLocal.get().interrupt();

@@ -22,7 +22,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 
 import java.io.File;
 import java.lang.reflect.Type;
@@ -379,25 +378,33 @@ public class IdUtil implements Listener, Runnable
 	// Filling them on setup only would not work.
 	// When players log on/off that must be taken note of.
 	
-	// We don't care if it's cancelled or not.
-	// We just wan't to make sure this id is known of and can be "fixed" asap.
-	// Online or not? We just use the mixin to get the actuall value.
+	// Early identity updates are delegated to LoginPipeline*Listener (platform-specific event slot).
 	
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void playerLoginLowest(PlayerLoginEvent event)
+	/**
+	 * Paper: earliest stable id/name from {@code AsyncPlayerPreLoginEvent} (no {@code Player} yet).
+	 * Marks presence as online but not local.
+	 */
+	public static void declareExistenceFromPreLogin(UUID uuid, String name)
 	{
-		Player player = event.getPlayer();
+		if (uuid == null) return;
+		if (name == null) return;
+		
+		update(uuid.toString(), name, SenderPresence.ONLINE);
+	}
+	
+	/**
+	 * Spigot: earliest id/name update during {@code PlayerLoginEvent} (before join).
+	 * Uses {@link com.massivecraft.massivecore.mixin.MixinPlayed#isOnline} for presence.
+	 */
+	public static void declareExistenceFromLogin(Player player)
+	{
 		if (MUtil.isntPlayer(player)) return;
 		
 		UUID uuid = player.getUniqueId();
 		String id = uuid.toString();
 		String name = player.getName();
 		
-		// Declaring Existence? Sure, whatever you were before!
-		// It can definitely not be local at this point.
-		// But online or offline is fine.
 		boolean online = MixinPlayed.get().isOnline(player);
-		
 		update(id, name, SenderPresence.fromOnline(online));
 	}
 	
