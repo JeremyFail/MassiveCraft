@@ -42,6 +42,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -523,7 +524,16 @@ public class FactionsChat extends JavaPlugin
 
             // TODO: This works fine, but could be improved to better handle any structural migrations
             // Compare the current config with the default config and update if necessary
-            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(getResource(Settings.CONFIG_FILE_NAME)));
+            InputStream defaultConfigStream = getResource(Settings.CONFIG_FILE_NAME);
+            if (defaultConfigStream == null)
+            {
+                getLogger().warning("Could not read bundled '" + Settings.CONFIG_FILE_NAME
+                    + "' (plugin class loader may be closed from a reload). You may need to restart your server. "
+                    + "Skipping config version check and using existing file on disk. If this issue persists, "
+                    + "please log an issue on Github.");
+                return;
+            }
+            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultConfigStream));
             YamlConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
 
             // Get versions to check if an update is needed
