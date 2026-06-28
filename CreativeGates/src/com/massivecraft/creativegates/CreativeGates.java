@@ -34,7 +34,6 @@ public class CreativeGates extends MassivePlugin
 	public CreativeGates()
 	{
 		CreativeGates.i = this;
-		this.setVersionSynchronized(false);
 	}
 	
 	// -------------------------------------------- //
