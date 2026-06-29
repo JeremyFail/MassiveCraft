@@ -509,6 +509,7 @@ public class ReflectionUtil
 	// -------------------------------------------- //
 	
 	// Example: "git-Paper-1.21.4-R0.1-SNAPSHOT (MC: 1.21.4)"
+	// Example: "26.2-21-783b6f0 (MC: 26.2)"
 	private static String versionRaw = Bukkit.getServer().getVersion();
 	public static String getVersionRaw() { return versionRaw; }
 	
@@ -516,12 +517,24 @@ public class ReflectionUtil
 	{
 		String version = getMinecraftVersion();
 		String[] parts = version.split("\\.");
+		if (index >= parts.length) return "0";
 		return parts[index];
 	}
 	
-	// Example: "1.21.4"
+	// Example: "1.21.4" or "26.2"
 	public static String getMinecraftVersion()
 	{
+		// getMinecraftVersion() is only available on Paper
+		try
+		{
+			String direct = Bukkit.getMinecraftVersion();
+			if (direct != null && ! direct.isEmpty()) return direct;
+		}
+		catch (Throwable t)
+		{
+			// Spigot - will parse manually
+		}
+		
 		String version = getVersionRaw();
 		
 		String[] parts = version.split(" ");
