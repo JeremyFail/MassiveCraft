@@ -146,7 +146,7 @@ public abstract class MassivePlugin extends JavaPlugin implements Listener, Name
 		
 		log(Level.SEVERE, Txt.parse("<b>ERROR: You are using <pink>" + thisName + " <aqua>" + thisVersion + " <b>and <pink>" + massiveName + " <aqua>" + massiveVersion + "<b>!"));
 		log(Level.SEVERE, Txt.parse("<b>ERROR: They must be the exact same version to work properly!"));
-		log(Level.SEVERE, Txt.parse("<b>ERROR: Stop your server and install the correct versions of the offending plugins."));
+		log(Level.SEVERE, Txt.parse("<b>ERROR: Stop your server and install the correct version."));
 		return false;
 	}
 	
