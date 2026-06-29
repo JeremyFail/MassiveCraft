@@ -10,7 +10,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import java.util.Optional;
 
 /**
- * Resolves which Bukkit plugin registered the active {@link TeamsService} with Teams API.
+ * Resolves which Bukkit plugin registered the active {@link TeamsService} with TeamsAPI.
  */
 public final class TeamsApiProviderProbe
 {
@@ -39,7 +39,7 @@ public final class TeamsApiProviderProbe
     }
 
     /**
-     * Builds a bStats drilldown subcategory for Teams API chat data: library API version plus provider plugin id and version.
+     * Builds a bStats drilldown subcategory for TeamsAPI chat data: library API version plus provider plugin id and version.
      *
      * @return e.g. {@code 1.7.0 · Factions 3.4.0-alpha-14}, or {@code 1.7.0 · unknown provider}
      */

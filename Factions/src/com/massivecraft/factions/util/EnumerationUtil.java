@@ -151,6 +151,7 @@ public class EnumerationUtil
         "POWDER_SNOW_BUCKET",   // Minecraft 1.17
         "PUFFERFISH_BUCKET",    // Minecraft 1.13
         "SALMON_BUCKET",        // Minecraft 1.13
+        "SULFUR_CUBE_BUCKET",   // Minecraft 26.2
         "TADPOLE_BUCKET",       // Minecraft 1.19
         "TROPICAL_FISH_BUCKET", // Minecraft 1.13
         
@@ -830,6 +831,7 @@ public class EnumerationUtil
         "SKELETON",         // Minecraft 1.0
         "SLIME",            // Minecraft 1.0
         "STRAY",            // Minecraft 1.10
+        "SULFUR_CUBE",      // Minecraft 26.2
         "VEX",              // Minecraft 1.11
         "VINDICATOR",       // Minecraft 1.11
         "WARDEN",           // Minecraft 1.19

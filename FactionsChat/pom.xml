@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.massivecraft.massivesuper</groupId>
         <artifactId>MassiveSuper</artifactId>
-        <version>3.4.1</version>
+        <version>3.4.2</version>
         <relativePath>../MassiveSuper</relativePath>
     </parent>
 
@@ -21,7 +21,8 @@
     
     <!-- Dependencies -->
     <dependencies>
-        <!-- Paper before Spigot so compile-time org.bukkit.Server resolves Paper (e.g. Adventure broadcast). -->
+        <!-- Paper before Spigot so compile-time org.bukkit.Server resolves Paper (e.g. Adventure broadcast).
+             Compile target is 1.21.7+; Paper 1.21.4–1.21.6 is soft-supported at runtime via login pipeline fallback. -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
@@ -61,7 +62,7 @@
           <groupId>me.clip</groupId>
           <artifactId>placeholderapi</artifactId>
         </dependency>
-        <!-- Teams API (library module; not com.github.ez-plugins:teams-api aggregator) -->
+        <!-- TeamsAPI (library module; not com.github.ez-plugins:teams-api aggregator) -->
         <dependency>
             <groupId>com.github.ez-plugins.teams-api</groupId>
             <artifactId>teams-api</artifactId>
@@ -166,7 +167,7 @@
             <activation>
                 <file>
                     <!-- Sync directory + filename with MassiveSuper massivePluginUpdateCheckerVersion (not expandable here). -->
-                    <exists>${user.home}/.m2/repository/com/failprooftech/plugin-update-checker/1.0.0/plugin-update-checker-1.0.0.jar</exists>
+                    <exists>${user.home}/.m2/repository/com/failprooftech/plugin-update-checker/1.1.0/plugin-update-checker-1.1.0.jar</exists>
                 </file>
             </activation>
             <dependencies>

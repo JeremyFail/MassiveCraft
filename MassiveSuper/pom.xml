@@ -5,7 +5,7 @@
     <groupId>com.massivecraft.massivesuper</groupId>
     <artifactId>MassiveSuper</artifactId>
     <!-- Change this release version when making updates to the code - update in all pom files -->
-    <version>3.4.1</version>
+    <version>3.4.2</version>
     <packaging>pom</packaging>
 
     <!-- Info -->
@@ -56,7 +56,7 @@
 
         <!-- https://hub.spigotmc.org/nexus/content/groups/public/org/spigotmc/spigot-api/ -->
         <massiveSpigotVersion>1.21.4-R0.1-SNAPSHOT</massiveSpigotVersion>
-        <massivePaperVersion>1.21.4-R0.1-SNAPSHOT</massivePaperVersion>
+        <massivePaperVersion>1.21.7-R0.1-SNAPSHOT</massivePaperVersion>
         <!-- Adventure MiniMessage for compile (match paper-api transitive BOM; run mvn dependency:tree on paper-api when bumping Paper).
              PaperMC format docs: https://docs.papermc.io/adventure/minimessage/format - sprite/head tags require MiniMessage 4.25+;
              at 4.20.0 those tags are absent from this artifact; newer Paper builds may ship a newer Adventure at runtime. -->
@@ -89,7 +89,7 @@
         <massivePlaceholderAPIVersion>2.11.7</massivePlaceholderAPIVersion>
 
         <!-- https://github.com/ez-plugins/teams-api -->
-        <massiveTeamsApiVersion>2.0.0</massiveTeamsApiVersion>
+        <massiveTeamsApiVersion>2.4.0</massiveTeamsApiVersion>
 
         <!-- https://repo.failprooftech.com/ - Failproof Tech Maven repository -->
         <massiveFactionsBridgeApiVersion>1.4.0</massiveFactionsBridgeApiVersion>
@@ -109,7 +109,7 @@
         <!-- https://github.com/JeremyFail/PluginUpdateChecker (optional: mvn install locally for MassiveCore bundle profile).
              When bumping this version, update MassiveCore/pom.xml profile bundle-update-checker <file><exists> path too
              (Maven does not expand POM properties there). -->
-        <massivePluginUpdateCheckerVersion>1.0.0</massivePluginUpdateCheckerVersion>
+        <massivePluginUpdateCheckerVersion>1.1.0</massivePluginUpdateCheckerVersion>
 
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <!-- MANUAL DOWNLOADS REQUIRED -->

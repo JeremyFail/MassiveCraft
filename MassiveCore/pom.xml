@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.massivecraft.massivesuper</groupId>
         <artifactId>MassiveSuper</artifactId>
-        <version>3.4.1</version>
+        <version>3.4.2</version>
         <relativePath>../MassiveSuper</relativePath>
     </parent>
 
@@ -21,6 +21,11 @@
 
     <!-- Dependencies -->
     <dependencies>
+        <!-- Paper before Spigot so compile-time Paper types resolve (see massivePaperVersion in parent). -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+        </dependency>
         <!-- Spigot -->
         <dependency>
             <groupId>org.spigotmc</groupId>
@@ -147,7 +152,7 @@
             <activation>
                 <file>
                     <!-- Sync directory + filename with MassiveSuper massivePluginUpdateCheckerVersion (not expandable here). -->
-                    <exists>${user.home}/.m2/repository/com/failprooftech/plugin-update-checker/1.0.0/plugin-update-checker-1.0.0.jar</exists>
+                    <exists>${user.home}/.m2/repository/com/failprooftech/plugin-update-checker/1.1.0/plugin-update-checker-1.1.0.jar</exists>
                 </file>
             </activation>
             <dependencies>

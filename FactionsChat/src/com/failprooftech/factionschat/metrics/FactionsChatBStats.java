@@ -28,7 +28,7 @@ public final class FactionsChatBStats
     private static final String CATEGORY_MASSIVECRAFT = "MassiveCraft Factions";
     private static final String CATEGORY_PVPINDEX = "PvPIndex-Factions";
     private static final String CATEGORY_FACTIONS_BRIDGE = "FactionsBridge";
-    private static final String CATEGORY_TEAMS_API = "Teams API";
+    private static final String CATEGORY_TEAMS_API = "TeamsAPI";
     private static final String CATEGORY_STANDALONE = "None/Standalone";
 
     private final FactionsChat plugin;

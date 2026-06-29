@@ -7,6 +7,7 @@ import com.massivecraft.massivecore.store.Entity;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.PermissionUtil;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.permissions.PermissionDefault;
 
 import java.util.HashMap;
@@ -69,7 +70,27 @@ public class MConf extends Entity<MConf>
 	public void setAliasesCgVersion(Set<String> aliasesCgVersion) { this.aliasesCgVersion = aliasesCgVersion; }
 
 	public boolean teleportationSoundActive = true;
+	public String teleportationSound = "ENTITY_GHAST_SHOOT";
+	public float teleportationSoundVolume = 1.0f;
+	public float teleportationSoundPitch = 1.0f;
 	public boolean teleportationMessageActive = true;
+	
+	public Sound resolveTeleportationSound()
+	{
+		if (this.teleportationSound == null || this.teleportationSound.isEmpty())
+		{
+			return Sound.ENTITY_GHAST_SHOOT;
+		}
+		
+		try
+		{
+			return Sound.valueOf(this.teleportationSound.trim().toUpperCase());
+		}
+		catch (IllegalArgumentException ex)
+		{
+			return Sound.ENTITY_GHAST_SHOOT;
+		}
+	}
 	
 	public PermissionDefault permissionDefaultCreate = PermissionDefault.TRUE;
 	public PermissionDefault permissionDefaultUse = PermissionDefault.TRUE;
@@ -93,6 +114,34 @@ public class MConf extends Entity<MConf>
 	{
 		this.changed(this.usingWater, usingWater);
 		this.usingWater = usingWater;
+	}
+
+	// Floor/ceiling portals (Portal-style). Always use water/lava fill, not nether portal blocks.
+	private boolean horizontalGatesEnabled = true;
+	public boolean isHorizontalGatesEnabled() { return this.horizontalGatesEnabled; }
+	public void setHorizontalGatesEnabled(boolean horizontalGatesEnabled)
+	{
+		this.changed(this.horizontalGatesEnabled, horizontalGatesEnabled);
+		this.horizontalGatesEnabled = horizontalGatesEnabled;
+	}
+
+	// Keep player momentum when passing through horizontal gates.
+	private boolean horizontalGatesPreserveVelocity = true;
+	public boolean isHorizontalGatesPreserveVelocity() { return this.horizontalGatesPreserveVelocity; }
+	public void setHorizontalGatesPreserveVelocity(boolean horizontalGatesPreserveVelocity)
+	{
+		this.changed(this.horizontalGatesPreserveVelocity, horizontalGatesPreserveVelocity);
+		this.horizontalGatesPreserveVelocity = horizontalGatesPreserveVelocity;
+	}
+
+	// If true, lava will be used in place of water in the nether
+	// Has no effect if usingWater is false
+	private boolean useLavaInNether = true;
+	public boolean isUseLavaInNether() { return this.useLavaInNether; }
+	public void setUseLavaInNether(boolean useLavaInNether)
+	{
+		this.changed(this.useLavaInNether, useLavaInNether);
+		this.useLavaInNether = useLavaInNether;
 	}
 
 	private boolean pigmanPortalSpawnAllowed = true;

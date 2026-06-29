@@ -1,6 +1,5 @@
 package com.massivecraft.factions.cmd;
 
-import com.massivecraft.factions.cmd.req.ReqPermInspectOrShow;
 import com.massivecraft.factions.cmd.type.TypeFaction;
 import com.massivecraft.factions.cmd.type.TypeMPerm;
 import com.massivecraft.factions.cmd.type.TypeMPermable;
@@ -19,8 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Show who has a given permission in a faction. Aliased as "show" for backward compatibility.
- * Accepts either factions.perm.inspect or factions.perm.show.
+ * Show who has a given permission in a faction. Aliased as "show".
  */
 public class CmdFactionsPermInspect extends FactionsCommand
 {
@@ -31,7 +29,6 @@ public class CmdFactionsPermInspect extends FactionsCommand
 	public CmdFactionsPermInspect()
 	{
 		this.setAliases("show");
-		this.addRequirements(ReqPermInspectOrShow.get());
 		this.addParameter(TypeMPerm.get(), "perm");
 		this.addParameter(TypeFaction.get(), "faction", "you");
 	}

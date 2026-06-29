@@ -7,12 +7,10 @@ import com.massivecraft.massivecore.Integration;
  * MassiveCraft {@link Integration} that wires Factions as the TeamsAPI provider set (teams, invites, warps,
  * claims, power, and directional relations).
  * <p>
- * Activation mirrors other optional integrations: runs only while the TeamsAPI plugin is loaded and enabled
- * (via {@link com.massivecraft.massivecore.predicate.PredicateIntegration}).
- * <p>
- * TeamsAPI-facing types live in {@link TeamsApiProviderSession} and are loaded only when integration
- * activates, so {@link com.massivecraft.massivecore.util.ReflectionUtil#getSingletonInstance(Class)}
- * can instantiate this class without the TeamsAPI API on the classpath.
+ * Activation mirrors other optional integrations (e.g. PlaceholderAPI): the TeamsAPI plugin must be loaded and
+ * enabled ({@link com.massivecraft.massivecore.predicate.PredicateIntegration}), and {@link TeamsApiVersion} must
+ * accept the plugin's runtime API (see {@link #setIntegrationActive(Boolean)}). Providers register only when both
+ * checks pass; otherwise no "integration activated" wiring or TeamsAPI provider registration occurs.
  */
 public class IntegrationTeamsApi extends Integration
 {
@@ -36,12 +34,32 @@ public class IntegrationTeamsApi extends Integration
 	// STATE
 	// -------------------------------------------- //
 
-	/** Non-null while providers are registered with TeamsAPI; type is {@link TeamsApiProviderSession}. */
-	private Object providerSession;
+	private TeamsApiProviderSession providerSession;
 
 	// -------------------------------------------- //
 	// OVERRIDE
 	// -------------------------------------------- //
+
+	@Override
+	public void setIntegrationActive(final Boolean integrationActive)
+	{
+		Boolean active = integrationActive;
+		if (active == null)
+		{
+			active = this.getPredicate().test(this);
+		}
+		if (active && !TeamsApiVersion.isRuntimeSupported())
+		{
+			// Integration.run() and PluginEnableEvent fire often; version helper logs at most once.
+			TeamsApiVersion.logAndCheckRuntimeSupported(((Factions) this.getPlugin()).getLogger());
+			if (this.isIntegrationActive())
+			{
+				super.setIntegrationActive(false);
+			}
+			return;
+		}
+		super.setIntegrationActive(active);
+	}
 
 	@Override
 	public void setIntegrationActiveInner(final boolean active)
@@ -49,34 +67,19 @@ public class IntegrationTeamsApi extends Integration
 		if (active)
 		{
 			final Factions factions = (Factions) this.getPlugin();
-			try
+			final TeamsApiProviderSession session = new TeamsApiProviderSession(factions);
+			if (session.register())
 			{
-				final Class<?> sessionClass = Class.forName(
-					"com.massivecraft.factions.integration.teamsapi.TeamsApiProviderSession");
-				final Object session = sessionClass.getConstructor(Factions.class).newInstance(factions);
-				sessionClass.getMethod("register").invoke(session);
 				this.providerSession = session;
-			}
-			catch (final ReflectiveOperationException e)
-			{
-				this.providerSession = null;
-				throw new RuntimeException(e);
 			}
 		}
 		else
 		{
-			final Object session = this.providerSession;
+			final TeamsApiProviderSession session = this.providerSession;
 			this.providerSession = null;
 			if (session != null)
 			{
-				try
-				{
-					session.getClass().getMethod("unregister").invoke(session);
-				}
-				catch (final ReflectiveOperationException ignored)
-				{
-
-				}
+				session.unregister();
 			}
 		}
 	}

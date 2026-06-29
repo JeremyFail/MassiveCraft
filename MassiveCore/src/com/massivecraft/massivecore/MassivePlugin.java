@@ -80,7 +80,7 @@ public abstract class MassivePlugin extends JavaPlugin implements Listener, Name
 	@Override
 	public void onEnable()
 	{
-		if ( ! this.onEnablePre()) return;
+		if (!this.onEnablePre()) return;
 		this.onEnableInner();
 		this.onEnablePost();
 	}
@@ -94,8 +94,12 @@ public abstract class MassivePlugin extends JavaPlugin implements Listener, Name
 		
 		log("=== ENABLE START ===");
 		
-		// Version Synchronization
-		this.checkVersionSynchronization();
+		// Version Synchronization - ensures the plugin is using the correct version of MassiveCore
+		if (!this.checkVersionSynchronization())
+		{
+			Bukkit.getPluginManager().disablePlugin(this);
+			return false;
+		}
 		
 		// Create Gson
 		Gson gson = this.getGsonBuilder().create();
@@ -107,42 +111,43 @@ public abstract class MassivePlugin extends JavaPlugin implements Listener, Name
 		return true;
 	}
 	
-	public void checkVersionSynchronization()
+	/**
+	 * Verifies this plugin's version matches MassiveCore when version synchronization applies.
+	 *
+	 * @return {@code true} if enable may continue; {@code false} if versions mismatch and this plugin must not load
+	 */
+	public boolean checkVersionSynchronization()
 	{
 		// If this plugin is version synchronized ...
-		if ( ! this.isVersionSynchronized()) return;
+		if (!this.isVersionSynchronized()) return true;
 		
 		// ... and it's not MassiveCore itself ...
-		if (this.getClass().equals(MassiveCore.class)) return;
+		if (this.getClass().equals(MassiveCore.class)) return true;
 		
 		// ... and checking is enabled ...
-		if ( ! MassiveCoreMConf.get().versionSynchronizationEnabled) return;
+		if (MassiveCoreMConf.get() == null || !MassiveCoreMConf.get().versionSynchronizationEnabled) return true;
+		
+		MassiveCore massiveCore = MassiveCore.get();
+		if (massiveCore == null || !massiveCore.isEnabled())
+		{
+			log(Level.SEVERE, Txt.parse("<b>MassiveCore must be enabled before <pink>%s<b>.", this.getDescription().getName()));
+			return false;
+		}
 		
 		// ... get the version numbers ...
 		String thisVersion = this.getDescription().getVersion();
-		String massiveVersion = MassiveCore.get().getDescription().getVersion();
+		String massiveVersion = massiveCore.getDescription().getVersion();
 		
 		// ... and if the version numbers are different ...
-		if (thisVersion.equals(massiveVersion)) return;
+		if (thisVersion.equals(massiveVersion)) return true;
 		
-		// ... log a warning message ...
 		String thisName = this.getDescription().getName();
-		String massiveName = MassiveCore.get().getDescription().getName();
+		String massiveName = massiveCore.getDescription().getName();
 		
-		log(Txt.parse("<b>WARNING: You are using <pink>" + thisName + " <aqua>" + thisVersion + " <b>and <pink>" + massiveName + " <aqua>" + massiveVersion + "<b>!"));
-		log(Txt.parse("<b>WARNING: They must be the exact same version to work properly!"));
-		log(Txt.parse("<b>WARNING: Remember to always update all plugins at the same time!"));
-		log(Txt.parse("<b>WARNING: You should stop your server and properly update."));
-		
-		// ... and pause for 10 seconds.
-		try
-		{
-			Thread.sleep(10000L);
-		}
-		catch (InterruptedException ignored)
-		{
-			
-		}
+		log(Level.SEVERE, Txt.parse("<b>ERROR: You are using <pink>" + thisName + " <aqua>" + thisVersion + " <b>and <pink>" + massiveName + " <aqua>" + massiveVersion + "<b>!"));
+		log(Level.SEVERE, Txt.parse("<b>ERROR: They must be the exact same version to work properly!"));
+		log(Level.SEVERE, Txt.parse("<b>ERROR: Stop your server and install the correct version."));
+		return false;
 	}
 	
 	public void onEnableInner()
@@ -282,10 +287,10 @@ public abstract class MassivePlugin extends JavaPlugin implements Listener, Name
 		if (object instanceof Class<?>)
 		{
 			Class<?> clazz = (Class<?>)object;
-			if ( ! Active.class.isAssignableFrom(clazz)) throw new IllegalArgumentException("Not Active Class: " + (clazz == null ? "NULL" : clazz));
+			if (!Active.class.isAssignableFrom(clazz)) throw new IllegalArgumentException("Not Active Class: " + (clazz == null ? "NULL" : clazz));
 
 			Object instance = ReflectionUtil.getSingletonInstance(clazz);
-			if ( ! (instance instanceof Active)) throw new IllegalArgumentException("Not Active Instance: " + (instance == null ? "NULL" : instance) + " for object: " + (object == null ? "NULL" : object));
+			if (!(instance instanceof Active)) throw new IllegalArgumentException("Not Active Instance: " + (instance == null ? "NULL" : instance) + " for object: " + (object == null ? "NULL" : object));
 
 			Active active = (Active)instance;
 			return active;
@@ -310,7 +315,7 @@ public abstract class MassivePlugin extends JavaPlugin implements Listener, Name
 		for (Active active : all)
 		{
 			// Check
-			if ( ! this.equals(active.getActivePlugin())) continue;
+			if (!this.equals(active.getActivePlugin())) continue;
 			
 			// Deactivate
 			active.setActive(false);

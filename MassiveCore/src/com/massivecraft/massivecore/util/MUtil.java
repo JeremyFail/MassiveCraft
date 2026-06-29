@@ -34,7 +34,6 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -256,6 +255,8 @@ public class MUtil
 	// -------------------------------------------- //
 	// IP
 	// -------------------------------------------- //
+	// Falls back to EngineMassiveCoreDatabase#idToConnectionAddress when Player#getAddress() is null
+	// (common during early connect, before the player is fully networked).
 	
 	public static String getIp(CommandSender sender)
 	{
@@ -266,8 +267,8 @@ public class MUtil
 		if (address != null) return getIp(address);
 		
 		String id = IdUtil.getId(player);
-		PlayerLoginEvent event = EngineMassiveCoreDatabase.idToPlayerLoginEvent.get(id);
-		if (event != null) return getIp(event);
+		InetAddress cached = EngineMassiveCoreDatabase.getCachedConnectionAddress(id);
+		if (cached != null) return getIp(cached);
 		
 		return null;
 	}
@@ -284,12 +285,6 @@ public class MUtil
 		
 		ret = parts[0];
 		return ret;
-	}
-	
-	public static String getIp(PlayerLoginEvent event)
-	{
-		InetAddress address = event.getAddress();
-		return getIp(address);
 	}
 	
 	public static String getIp(InetAddress address)

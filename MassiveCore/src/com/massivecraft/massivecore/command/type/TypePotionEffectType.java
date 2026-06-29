@@ -35,7 +35,6 @@ public class TypePotionEffectType extends TypeAbstractChoice<PotionEffectType>
 		return key != null ? key.getKey() : null;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public String getIdInner(PotionEffectType value)
 	{

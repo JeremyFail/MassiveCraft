@@ -1,7 +1,12 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.CreativeGates;
+import com.massivecraft.creativegates.EngineMain;
+import com.massivecraft.creativegates.EngineMain.HorizontalEntryContext;
 import com.massivecraft.creativegates.GateOrientation;
+import com.massivecraft.creativegates.GateTeleportSafety;
+import com.massivecraft.creativegates.HorizontalGateLaunchUtil;
+import com.massivecraft.creativegates.HorizontalGateLaunchUtil.LaunchPlan;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.mixin.MixinTeleport;
 import com.massivecraft.massivecore.mixin.MixinVisibility;
@@ -18,11 +23,13 @@ import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +44,12 @@ public class UGate extends Entity<UGate>
 	// META
 	// -------------------------------------------- //
 	
+	/**
+	 * Gets the gate for an object ID.
+	 * 
+	 * @param oid The object ID to get the gate for.
+	 * @return The gate for the object ID.
+	 */
 	public static UGate get(Object oid)
 	{
 		if (oid == null) throw new NullPointerException("oid");
@@ -63,6 +76,7 @@ public class UGate extends Entity<UGate>
 		this.exit = that.exit;
 		this.orientation = that.orientation;
 		this.setCoordsNoChanged(that.coords);
+		this.setInteriorCoordsNoChanged(that.interiorCoords);
 		
 		return this;
 	}
@@ -92,7 +106,20 @@ public class UGate extends Entity<UGate>
 	// -------------------------------------------- //
 	
 	private String creatorId = null;
-	public String getCreatorId() { return this.creatorId; }
+	/**
+	 * Gets the creator ID for the gate.
+	 * 
+	 * @return The creator ID for the gate.
+	 */
+	public String getCreatorId()
+	{
+		return this.creatorId;
+	}
+	/**
+	 * Sets the creator ID for the gate.
+	 * 
+	 * @param creatorId The creator ID to set.
+	 */
 	public void setCreatorId(String creatorId)
 	{
 		this.changed(this.creatorId, creatorId);
@@ -100,7 +127,17 @@ public class UGate extends Entity<UGate>
 	}
 	
 	private long createdMillis = System.currentTimeMillis();
+	/**
+	 * Gets the created millis for the gate.
+	 * 
+	 * @return The created millis for the gate.
+	 */
 	public long getCreatedMillis() { return this.createdMillis; }
+	/**
+	 * Sets the created millis for the gate.
+	 * 
+	 * @param createdMillis The created millis to set.
+	 */
 	public void setCreatedMillis(long createdMillis)
 	{
 		this.changed(this.createdMillis, createdMillis);
@@ -108,7 +145,20 @@ public class UGate extends Entity<UGate>
 	}
 	
 	private long usedMillis = 0;
-	public long getUsedMillis() { return this.usedMillis; }
+	/**
+	 * Gets the used millis for the gate.
+	 * 
+	 * @return The used millis for the gate.
+	 */
+	public long getUsedMillis()
+	{
+		return this.usedMillis;
+	}
+	/**
+	 * Sets the used millis for the gate.
+	 * 
+	 * @param usedMillis The used millis to set.
+	 */
 	public void setUsedMillis(long usedMillis)
 	{
 		this.changed(this.usedMillis, usedMillis);
@@ -116,7 +166,20 @@ public class UGate extends Entity<UGate>
 	}
 	
 	private String networkId = null;
-	public String getNetworkId() { return this.networkId; }
+	/**
+	 * Gets the network ID for the gate.
+	 * 
+	 * @return The network ID for the gate.
+	 */
+	public String getNetworkId()
+	{
+		return this.networkId;
+	}
+	/**
+	 * Sets the network ID for the gate.
+	 * 
+	 * @param networkId The network ID to set.
+	 */
 	public void setNetworkId(String networkId)
 	{
 		this.changed(this.networkId, networkId);
@@ -124,7 +187,20 @@ public class UGate extends Entity<UGate>
 	}
 	
 	private boolean restricted = false;
-	public boolean isRestricted() { return this.restricted; }
+	/**
+	 * Gets the restricted state for the gate.
+	 * 
+	 * @return The restricted state for the gate.
+	 */
+	public boolean isRestricted()
+	{
+		return this.restricted;
+	}
+	/**
+	 * Sets the restricted state for the gate.
+	 * 
+	 * @param restricted The restricted state to set.
+	 */
 	public void setRestricted(boolean restricted)
 	{
 		this.changed(this.restricted, restricted);
@@ -132,7 +208,20 @@ public class UGate extends Entity<UGate>
 	}
 	
 	private boolean enterEnabled = true;
-	public boolean isEnterEnabled() { return this.enterEnabled; }
+	/**
+	 * Gets the enter enabled state for the gate.
+	 * 
+	 * @return The enter enabled state for the gate.
+	 */
+	public boolean isEnterEnabled()
+	{
+		return this.enterEnabled;
+	}
+	/**
+	 * Sets the enter enabled state for the gate.
+	 * 
+	 * @param enterEnabled The enter enabled state to set.
+	 */
 	public void setEnterEnabled(boolean enterEnabled)
 	{
 		this.changed(this.enterEnabled, enterEnabled);
@@ -140,7 +229,20 @@ public class UGate extends Entity<UGate>
 	}
 	
 	private boolean exitEnabled = true;
-	public boolean isExitEnabled() { return this.exitEnabled; }
+	/**
+	 * Gets the exit enabled state for the gate.
+	 * 
+	 * @return The exit enabled state for the gate.
+	 */
+	public boolean isExitEnabled()
+	{
+		return this.exitEnabled;
+	}
+	/**
+	 * Sets the exit enabled state for the gate.
+	 * 
+	 * @param exitEnabled The exit enabled state to set.
+	 */
 	public void setExitEnabled(boolean exitEnabled)
 	{
 		this.changed(this.exitEnabled, exitEnabled);
@@ -148,7 +250,20 @@ public class UGate extends Entity<UGate>
 	}
 	
 	private PS exit = null;
-	public PS getExit() { return this.exit; }
+	/**
+	 * Gets the exit location for the gate.
+	 * 
+	 * @return The exit location for the gate.
+	 */
+	public PS getExit()
+	{
+		return this.exit;
+	}
+	/**
+	 * Sets the exit location for the gate.
+	 * 
+	 * @param exit The exit location to set.
+	 */
 	public void setExit(PS exit)
 	{
 		this.changed(this.exit, exit);
@@ -156,7 +271,21 @@ public class UGate extends Entity<UGate>
 	}
 	
 	private Set<PS> coords = new TreeSet<>();
-	public Set<PS> getCoords() { return Collections.unmodifiableSet(this.coords);}
+
+	/**
+	 * Gets the coordinates for the gate.
+	 * 
+	 * @return The coordinates for the gate.
+	 */
+	public Set<PS> getCoords()
+	{
+		return Collections.unmodifiableSet(this.coords);
+	}
+	/**
+	 * Sets the coordinates for the gate.
+	 * 
+	 * @param coords The coordinates to set.
+	 */
 	private void setCoordsNoChanged(Collection<PS> coords)
 	{
 		if (this.attached()) CreativeGates.get().getIndex().remove(this);
@@ -165,14 +294,63 @@ public class UGate extends Entity<UGate>
 		
 		if (this.attached()) CreativeGates.get().getIndex().add(this);
 	}
+	/**
+	 * Sets the coordinates for the gate.
+	 * 
+	 * @param coords The coordinates to set.
+	 */
 	public void setCoords(Collection<PS> coords)
 	{
 		this.changed(this.coords, coords);
 		this.setCoordsNoChanged(coords);
 	}
+	
+	// Portal interior only (air flood fill). Used for fill/empty; coords also includes the frame shell.
+	private Set<PS> interiorCoords = new TreeSet<>();
+	/**
+	 * Gets the interior coordinates for the gate.
+	 * 
+	 * @return The interior coordinates for the gate.
+	 */
+	public Set<PS> getInteriorCoords()
+	{
+		return Collections.unmodifiableSet(this.interiorCoords);
+	}
+	/**
+	 * Sets the interior coordinates for the gate.
+	 * 
+	 * @param interiorCoords The interior coordinates to set.
+	 */
+	private void setInteriorCoordsNoChanged(Collection<PS> interiorCoords)
+	{
+		this.interiorCoords = new TreeSet<>(interiorCoords);
+	}
+	/**
+	 * Sets the interior coordinates for the gate.
+	 * 
+	 * @param interiorCoords The interior coordinates to set.
+	 */
+	public void setInteriorCoords(Collection<PS> interiorCoords)
+	{
+		this.changed(this.interiorCoords, interiorCoords);
+		this.setInteriorCoordsNoChanged(interiorCoords);
+	}
 
 	private GateOrientation orientation = GateOrientation.NS;
-	public GateOrientation getOrientation() { return this.orientation; }
+	/**
+	 * Gets the orientation for the gate.
+	 * 
+	 * @return The orientation for the gate.
+	 */
+	public GateOrientation getOrientation()
+	{
+		return this.orientation;
+	}
+	/**
+	 * Sets the orientation for the gate.
+	 * 
+	 * @param orientation The orientation to set.
+	 */
 	public void setOrientation(GateOrientation orientation)
 	{
 		this.changed(this.orientation, orientation);
@@ -183,6 +361,12 @@ public class UGate extends Entity<UGate>
 	// ASSORTED
 	// -------------------------------------------- //
 	
+	/**
+	 * Checks if a command sender is the creator of the gate.
+	 * 
+	 * @param sender The command sender to check.
+	 * @return True if the command sender is the creator of the gate, false otherwise.
+	 */
 	public boolean isCreator(CommandSender sender)
 	{
 		String senderId = IdUtil.getId(sender);
@@ -190,6 +374,9 @@ public class UGate extends Entity<UGate>
 		return senderId.equalsIgnoreCase(this.creatorId);
 	}
 	
+	/**
+	 * Destroys the gate.
+	 */
 	public void destroy()
 	{
 		this.empty();
@@ -197,6 +384,9 @@ public class UGate extends Entity<UGate>
 		this.fxKitDestroy(null);
 	}
 	
+	/**
+	 * Toggles the mode of the gate.
+	 */
 	public void toggleMode()
 	{
 		boolean enter = this.isEnterEnabled();
@@ -228,11 +418,29 @@ public class UGate extends Entity<UGate>
 	// TRANSPORT
 	// -------------------------------------------- //
 	
-	public void transport(Player player)
+	/**
+	 * Transports a player through the gate chain.
+	 * 
+	 * @param player The player to transport.
+	 */
+	public boolean transport(Player player)
+	{
+		return this.transport(player, null, null);
+	}
+	
+	/**
+	 * Transports a player through the gate chain, optionally preserving entry momentum for horizontal gates.
+	 * 
+	 * @param player The player to transport.
+	 * @param entryContext Velocity and launch eligibility for horizontal gates, or null.
+	 * @param sourceLocation Where the player entered; used to return them if the exit is blocked.
+	 */
+	public boolean transport(Player player, HorizontalEntryContext entryContext, Location sourceLocation)
 	{
 		List<UGate> gateChain = this.getGateChain();
 		
 		String message;
+		String blockedMessage = Txt.parse("<b>The gate exit is blocked.");
 		
 		for (UGate ugate : gateChain)
 		{
@@ -240,14 +448,43 @@ public class UGate extends Entity<UGate>
 			
 			PS destinationPs = ugate.getExit();
 			String destinationDesc = (MConf.get().teleportationMessageActive ? "the gate destination" : "");
-			Destination destination = new DestinationSimple(destinationPs, destinationDesc);
+			
+			boolean tryLaunch = entryContext != null
+				&& entryContext.launchEligible
+				&& ugate.getOrientation().isHorizontal()
+				&& MConf.get().isHorizontalGatesPreserveVelocity();
+			
+			LaunchPlan launchPlan = tryLaunch ? HorizontalGateLaunchUtil.tryPlan(ugate, entryContext.velocity) : null;
+			
+			if (launchPlan == null && !GateTeleportSafety.isDestinationSafe(player, destinationPs))
+			{
+				MixinMessage.get().messageOne(player, blockedMessage);
+				continue;
+			}
+			
+			Destination destination = new DestinationSimple(
+				launchPlan != null ? launchPlan.getLaunchPs() : destinationPs,
+				destinationDesc
+			);
 			
 			try
 			{
 				MixinTeleport.get().teleport(player, destination, 0);
+				
+				if (launchPlan == null && !GateTeleportSafety.isDestinationSafe(player, destinationPs))
+				{
+					this.returnPlayerToSource(player, sourceLocation);
+					MixinMessage.get().messageOne(player, blockedMessage);
+					continue;
+				}
+				
 				this.setUsedMillis(System.currentTimeMillis());
 				this.fxKitUse(player);
-				return;
+				if (launchPlan != null)
+				{
+					this.applyLaunch(player, launchPlan);
+				}
+				return true;
 			}
 			catch (TeleporterException e)
 			{
@@ -258,8 +495,52 @@ public class UGate extends Entity<UGate>
 		
 		message = Txt.parse("<i>This gate does not seem to lead anywhere.");
 		MixinMessage.get().messageOne(player, message);
+		return false;
 	}
 	
+	private void returnPlayerToSource(Player player, Location sourceLocation)
+	{
+		if (sourceLocation == null) return;
+		try
+		{
+			Destination source = new DestinationSimple(PS.valueOf(sourceLocation), "");
+			MixinTeleport.get().teleport(player, source, 0);
+		}
+		catch (TeleporterException ignored)
+		{
+		}
+	}
+	
+	private void applyLaunch(Player player, LaunchPlan launchPlan)
+	{
+		Vector launchVelocity = launchPlan.getVelocity().clone();
+		Location launchLoc;
+		try
+		{
+			launchLoc = launchPlan.getLaunchPs().asBukkitLocation(true);
+		}
+		catch (IllegalStateException e)
+		{
+			return;
+		}
+		
+		float lookYaw = launchLoc.getYaw();
+		CreativeGates.get().getServer().getScheduler().runTask(CreativeGates.get(), () ->
+		{
+			launchLoc.setYaw(lookYaw);
+			launchLoc.setPitch(0f);
+			player.teleport(launchLoc);
+			player.setVelocity(launchVelocity);
+			player.setFallDistance(0);
+			EngineMain.markHorizontalLaunchAirborne(player);
+		});
+	}
+	
+	/**
+	 * Gets the gate chain for the gate.
+	 * 
+	 * @return The gate chain for the gate.
+	 */
 	public List<UGate> getGateChain()
 	{
 		List<UGate> ret = new ArrayList<>();
@@ -280,22 +561,37 @@ public class UGate extends Entity<UGate>
 	// CONTENT
 	// -------------------------------------------- //
 	
-	// These blocks are sorted since the coords are sorted
-	public List<Block> getBlocks()
+	/**
+	 * Gets the world for the gate.
+	 * 
+	 * @return The world for the gate.
+	 * @throws IllegalStateException if the exit is not in a world.
+	 */
+	private World getWorld()
 	{
-		List<Block> ret = new ArrayList<>();
-		
-		World world = null;
 		try
 		{
-			world = this.getExit().asBukkitWorld(true);
+			return this.getExit().asBukkitWorld(true);
 		}
 		catch (IllegalStateException e)
 		{
 			return null;
 		}
+	}
+	
+	/**
+	 * Gets the blocks for a set of coordinates.
+	 * 
+	 * @param coords The coordinates to get the blocks for.
+	 * @return The blocks for the coordinates.
+	 */
+	private List<Block> getBlocksForCoords(Set<PS> coords)
+	{
+		World world = this.getWorld();
+		if (world == null) return null;
 		
-		for (PS coord : this.getCoords())
+		List<Block> ret = new ArrayList<>(coords.size());
+		for (PS coord : coords)
 		{
 			Block block = world.getBlockAt(coord.getBlockX(), coord.getBlockY(), coord.getBlockZ());
 			ret.add(block);
@@ -304,17 +600,79 @@ public class UGate extends Entity<UGate>
 		return ret;
 	}
 	
+	/**
+	 * Gets the blocks for the gate.
+	 * 
+	 * @return The blocks for the gate.
+	 */
+	public List<Block> getBlocks()
+	{
+		return this.getBlocksForCoords(this.coords);
+	}
+	
+	/**
+	 * Gets the content blocks for the gate.
+	 * 
+	 * @return The content blocks for the gate.
+	 */
+	public List<Block> getContentBlocks()
+	{
+		return this.getBlocksForCoords(this.getContentCoordSet());
+	}
+	
+	/**
+	 * Gets the content coordinates for the gate.
+	 * 
+	 * @return The content coordinates for the gate.
+	 */
+	private Set<PS> getContentCoordSet()
+	{
+		if ( ! this.interiorCoords.isEmpty()) return this.interiorCoords;
+		return this.inferLegacyContentCoords();
+	}
+	
+	/**
+	 * Gets the legacy content coordinates for the gate.
+	 * 
+	 * @return The legacy content coordinates for the gate.
+	 */
+	private Set<PS> inferLegacyContentCoords()
+	{
+		Set<PS> ret = new TreeSet<>();
+		World world = this.getWorld();
+		if (world == null) return ret;
+		
+		for (PS coord : this.coords)
+		{
+			Material material = world.getBlockAt(coord.getBlockX(), coord.getBlockY(), coord.getBlockZ()).getType();
+			if (material != Material.NETHER_PORTAL && !CreativeGates.isFluidFillMaterial(material) && !CreativeGates.isVoid(material)) continue;
+			ret.add(coord);
+		}
+		
+		return ret;
+	}
+	
+	/**
+	 * Gets the center block for the gate.
+	 * 
+	 * @return The center block for the gate.
+	 */
 	public Block getCenterBlock()
 	{
-		List<Block> blocks = this.getBlocks();
-		if (blocks == null) return null;
+		List<Block> blocks = this.getContentBlocks();
+		if (blocks == null || blocks.isEmpty()) return null;
 		
 		return blocks.get(blocks.size() / 2);
 	}
 	
+	/**
+	 * Checks if the gate is intact.
+	 * 
+	 * @return True if the gate is intact, false otherwise.
+	 */
 	public boolean isIntact()
 	{
-		List<Block> blocks = this.getBlocks();
+		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return true;
 		
 		for (Block block : blocks)
@@ -327,19 +685,47 @@ public class UGate extends Entity<UGate>
 		return true;
 	}
 	
+	/**
+	 * Sets the content of the gate to a material.
+	 * 
+	 * @param material The material to set the content to.
+	 */
 	public void setContent(Material material)
 	{
-		List<Block> blocks = this.getBlocks();
+		this.setContent(material, true);
+	}
+	
+	/**
+	 * Sets the content of the gate to a material.
+	 * 
+	 * @param material The material to set the content to.
+	 * @param applyPhysics Whether to apply physics to the blocks.
+	 */
+	public void setContent(Material material, boolean applyPhysics)
+	{
+		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return;
-		Axis axis = orientation == GateOrientation.NS ? Axis.Z : Axis.X;
+		Axis axis;
+		if (this.orientation == GateOrientation.NS)
+		{
+			axis = Axis.Z;
+		}
+		else if (this.orientation == GateOrientation.WE)
+		{
+			axis = Axis.X;
+		}
+		else
+		{
+			axis = Axis.Y;
+		}
 		
 		for (Block block : blocks)
 		{
 			Material blockMaterial = block.getType();
 			
-			if (blockMaterial != Material.NETHER_PORTAL && blockMaterial != Material.WATER && !CreativeGates.isVoid(blockMaterial)) continue;
+			if (blockMaterial != Material.NETHER_PORTAL && !CreativeGates.isFluidFillMaterial(blockMaterial) && !CreativeGates.isVoid(blockMaterial)) continue;
 			
-			block.setType(material);
+			block.setType(material, applyPhysics);
 			
 			// Apply orientation
 			if (material != Material.NETHER_PORTAL) continue;
@@ -350,45 +736,74 @@ public class UGate extends Entity<UGate>
 		}
 	}
 	
+	/**
+	 * Fills the gate with the fill material.
+	 */
 	public void fill()
 	{
-		MConf mconf = MConf.get();
+		List<Block> blocks = this.getContentBlocks();
+		if (blocks == null || blocks.isEmpty()) return;
+		
 		CreativeGates.get().setFilling(true);
-		this.setContent(mconf.isUsingWater() ? Material.WATER : Material.NETHER_PORTAL);
+		this.setContent(CreativeGates.getFillMaterial(blocks.get(0).getWorld(), this.orientation));
 		CreativeGates.get().setFilling(false);
 	}
 	
+	/**
+	 * Empties the gate.
+	 */
 	public void empty()
 	{
-		this.setContent(Material.AIR);
+		this.setContent(Material.AIR, false);
 	}
 	
 	// -------------------------------------------- //
 	// FX KIT
 	// -------------------------------------------- //
 
+	/**
+	 * Plays the create effect for the gate.
+	 * 
+	 * @param player The player to play the effect for.
+	 */
 	public void fxKitCreate(Player player)
 	{
 		//this.fxSmoke();
-		this.fxShootSound();
+		playConfiguredTeleportSound(player, false);
 	}
 	
+	/**
+	 * Plays the use effect for the gate.
+	 * 
+	 * @param player The player to play the effect for.
+	 */
 	public void fxKitUse(Player player)
 	{
-		// If teleportation sound is active in the config
-		if (!MConf.get().teleportationSoundActive) return;
-		
-		// If the player is not in spectator
-		if (player.getGameMode() == GameMode.SPECTATOR) return;
-		
-		// If the player is not vanished
-		if (!MixinVisibility.get().isVisible(player)) return;
-		
-		// Do sound
-		this.fxShootSound();
-
+		playConfiguredTeleportSound(player, true);
 	}
 	
+	/**
+	 * Plays the configured teleport sound for the gate.
+	 * 
+	 * @param player The player to play the effect for.
+	 * @param requireActive Whether to require the sound to be active.
+	 */
+	private void playConfiguredTeleportSound(Player player, boolean requireActive)
+	{
+		MConf mconf = MConf.get();
+		if (requireActive && !mconf.teleportationSoundActive) return;
+		if (player.getGameMode() == GameMode.SPECTATOR) return;
+		if (!MixinVisibility.get().isVisible(player)) return;
+		
+		Sound sound = mconf.resolveTeleportationSound();
+		player.playSound(player.getLocation(), sound, mconf.teleportationSoundVolume, mconf.teleportationSoundPitch);
+	}
+	
+	/**
+	 * Plays the destroy effect for the gate.
+	 * 
+	 * @param player The player to play the effect for.
+	 */
 	public void fxKitDestroy(Player player)
 	{
 		this.fxExplode();
@@ -398,9 +813,14 @@ public class UGate extends Entity<UGate>
 	// FX SINGLE
 	// -------------------------------------------- //
 	
+	/**
+	 * Plays the smoke effect for the gate.
+	 * 
+	 * @param player The player to play the effect for.
+	 */
 	public void fxSmoke()
 	{
-		List<Block> blocks = this.getBlocks();
+		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return;
 		for (Block block : blocks)
 		{
@@ -408,9 +828,14 @@ public class UGate extends Entity<UGate>
 		}
 	}
 	
+	/**
+	 * Plays the ender effect for the gate.
+	 * 
+	 * @param player The player to play the effect for.
+	 */
 	public void fxEnder()
 	{
-		List<Block> blocks = this.getBlocks();
+		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return;
 		for (Block block : blocks)
 		{
@@ -419,24 +844,20 @@ public class UGate extends Entity<UGate>
 		}
 	}
 	
+	/**
+	 * Plays the explode effect for the gate.
+	 */
 	public void fxExplode()
 	{
 		Block block = this.getCenterBlock();
 		if (block == null) return;
 		
-		Location location = block.getLocation();
+		Location location = block.getLocation().add(0.5, 0.5, 0.5);
+		World world = location.getWorld();
 		
-		SmokeUtil.fakeExplosion(location);
-	}
-	
-	public void fxShootSound()
-	{
-		Block block = this.getCenterBlock();
-		if (block == null) return;
-		
-		Location location = block.getLocation();
-		
-		location.getWorld().playEffect(location, Effect.GHAST_SHOOT, 0);
+		SmokeUtil.spawnCloudSimple(location);
+		world.playEffect(location, Effect.ENDER_SIGNAL, 0);
+		world.playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
 	}
 	
 }

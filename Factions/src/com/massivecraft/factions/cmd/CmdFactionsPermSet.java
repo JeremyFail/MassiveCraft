@@ -22,21 +22,22 @@ public class CmdFactionsPermSet extends FactionsCommand
 	
 	public CmdFactionsPermSet()
 	{
-		// Parameters: perm, entity, value, faction, [manage], [page] - last two optional to re-display table after set
+		// Parameters: perm, entity, value, faction, [manage], [manageTarget], [page] - last three optional to re-display table after set
 		this.addParameter(TypeMPerm.get(), "perm");
 		this.addParameter(TypeMPermable.get(), "rank/rel/player/faction");
 		this.addParameter(TypeBooleanYes.get(), "yes/no");
 		this.addParameter(TypeFaction.get(), "faction", "you");
 		this.addParameter(TypeString.get(), "manage", "");
+		this.addParameter(TypeString.get(), "manageTarget", "");
 		this.addParameter(Parameter.getPage());
 	}
 
 	/**
 	 * Builds the full command line for /f perm set (used by PermTableUtil for click-to-toggle).
 	 */
-	public static String buildSetCommandLine(String permId, String permableArg, String value, String factionId, String manage, String page)
+	public static String buildSetCommandLine(String permId, String permableArg, String value, String factionId, String manage, String manageTarget, String page)
 	{
-		return CmdFactions.get().cmdFactionsPerm.cmdFactionsPermSet.getCommandLine(permId, permableArg, value, factionId, manage, page);
+		return CmdFactions.get().cmdFactionsPerm.cmdFactionsPermSet.getCommandLine(permId, permableArg, value, factionId, manage, manageTarget, page);
 	}
 
 	// -------------------------------------------- //
@@ -95,10 +96,13 @@ public class CmdFactionsPermSet extends FactionsCommand
 
 		// Re-display manage table if "manage" and page were provided (avoids multi-command click)
 		String manageOpt = this.readArgAt(4, "");
-		Integer pageOpt = this.readArgAt(5, 1);
+		String manageTargetOpt = this.readArgAt(5, "");
+		Integer pageOpt = this.readArgAt(6, 1);
 		if (manageOpt != null && "manage".equalsIgnoreCase(manageOpt.trim()) && pageOpt != null && pageOpt >= 1)
 		{
-			String targetArg = CmdFactionsPermManage.getTargetArgForPermable(permable, faction);
+			String targetArg = (manageTargetOpt != null && ! manageTargetOpt.trim().isEmpty())
+				? manageTargetOpt.trim()
+				: CmdFactionsPermManage.getTargetArgForPermable(permable, faction);
 			PermTableUtil.displayTable(sender, targetArg, faction, pageOpt, true, null, CmdFactions.get().cmdFactionsPerm.cmdFactionsPermManage);
 		}
 	}

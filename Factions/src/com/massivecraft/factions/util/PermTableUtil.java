@@ -626,6 +626,7 @@ public final class PermTableUtil
 		List<Mson> parts = new MassiveList<>();
 		boolean canEdit = management && (perm.isEditable() || (msender != null && msender.isOverriding()));
 		String page = manageArgs.get(2);
+		String manageTarget = manageArgs.get(0);
 
 		for (MPermable permable : permables)
 		{
@@ -644,7 +645,7 @@ public final class PermTableUtil
 			{
 				String permableArg = getPermableArgStatic((MPermable) resolved[0], faction);
 				String setValue = value ? "no" : "yes";
-				String clickCommandLine = CmdFactionsPermSet.buildSetCommandLine(perm.getId(), permableArg, setValue, faction.getId(), "manage", page);
+				String clickCommandLine = CmdFactionsPermSet.buildSetCommandLine(perm.getId(), permableArg, setValue, faction.getId(), "manage", manageTarget, page);
 				cell = cell.command(clickCommandLine);
 			}
 			parts.add(cell);

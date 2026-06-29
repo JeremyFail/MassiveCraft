@@ -42,6 +42,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -95,7 +96,7 @@ public class FactionsChat extends JavaPlugin
      * <p>
      * Drives PlaceholderAPI ({@link MassivePlaceholderBridge}, {@code %factions_*}) and related config migration only.
      * This is intentionally <em>not</em> the same as {@code factionsBridge instanceof MassiveFactionsBridge}: chat may use
-     * Teams API ({@link #factionsBridge}) while Massive Factions is still installed and owns the shared PAPI expansion.</p>
+     * TeamsAPI ({@link #factionsBridge}) while Massive Factions is still installed and owns the shared PAPI expansion.</p>
      */
     private boolean massiveCraftFactionsEnvironment;
     /** Typed Essentials wiring ({@link EssentialsIntegrationNoop} when disabled in config, Essentials is absent, or cast fails). */
@@ -115,7 +116,7 @@ public class FactionsChat extends JavaPlugin
     public void onLoad()
     {
         instance = this;
-        //Check for Teams API and register if present
+        //Check for TeamsAPI and register if present
         if (teamsApiPresentOnClasspath())
         {
             TeamsIntegrationRegistry.register(new TeamsIntegrationLive());
@@ -381,7 +382,7 @@ public class FactionsChat extends JavaPlugin
     /**
      * Retrieves the active {@link FactionsBridge} used to access Factions data.
      *
-     * @return the current bridge, or {@code null} when no teams/direct bridge could be wired (for example generic factions with no Teams API)
+     * @return the current bridge, or {@code null} when no teams/direct bridge could be wired (for example generic factions with no TeamsAPI)
      */
     public FactionsBridge getFactionsBridge()
     {
@@ -523,7 +524,16 @@ public class FactionsChat extends JavaPlugin
 
             // TODO: This works fine, but could be improved to better handle any structural migrations
             // Compare the current config with the default config and update if necessary
-            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(getResource(Settings.CONFIG_FILE_NAME)));
+            InputStream defaultConfigStream = getResource(Settings.CONFIG_FILE_NAME);
+            if (defaultConfigStream == null)
+            {
+                getLogger().warning("Could not read bundled '" + Settings.CONFIG_FILE_NAME
+                    + "' (plugin class loader may be closed from a reload). You may need to restart your server. "
+                    + "Skipping config version check and using existing file on disk. If this issue persists, "
+                    + "please log an issue on Github.");
+                return;
+            }
+            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultConfigStream));
             YamlConfiguration currentConfig = YamlConfiguration.loadConfiguration(configFile);
 
             // Get versions to check if an update is needed
@@ -621,7 +631,7 @@ public class FactionsChat extends JavaPlugin
     }
     
     /**
-     * Classpath probe for the Teams API (same approach as MassiveCraft Factions uses via {@code Class.forName} on faction entities).
+     * Classpath probe for the TeamsAPI (same approach as MassiveCraft Factions uses via {@code Class.forName} on faction entities).
      *
      * @return {@code true} when {@code com.skyblockexp.teamsapi.api.TeamsAPI} can be resolved by this plugin's class loader
      */
@@ -683,7 +693,7 @@ public class FactionsChat extends JavaPlugin
             }
         }
 
-        // Command routing: Massive / PvPIndex / Teams API / generic command hook / standalone
+        // Command routing: Massive / PvPIndex / TeamsAPI / generic command hook / standalone
         if (massiveCraft)
         {
             this.commandRegistrar = new MassiveFactionsCommandRegistrar();
@@ -732,12 +742,12 @@ public class FactionsChat extends JavaPlugin
             logger.info("No Factions plugin enabled; registering standalone /chat (alias /c).");
         }
 
-        // Chat membership / relations: Teams API > FactionsBridge plugin > direct Factions (MassiveCraft or PvPIndex)
+        // Chat membership / relations: TeamsAPI > FactionsBridge plugin > direct Factions (MassiveCraft or PvPIndex)
         final Optional<FactionsBridge> teamsApiBridgeOpt = TeamsIntegrationRegistry.get().createBridge(logger);
         if (teamsApiBridgeOpt.isPresent())
         {
             this.factionsBridge = teamsApiBridgeOpt.get();
-            logger.info("Faction chat data: Teams API integration.");
+            logger.info("Faction chat data: TeamsAPI integration.");
         }
         else
         {
@@ -795,7 +805,7 @@ public class FactionsChat extends JavaPlugin
         if (papi != null && papi.isEnabled())
         {
             // MassiveCraft Factions + MassiveCore: hook Massive placeholder expansion regardless of whether
-            // chat uses Teams API or direct Massive {@link FactionsBridge}.
+            // chat uses TeamsAPI or direct Massive {@link FactionsBridge}.
             if (this.massiveCraftFactionsEnvironment)
             {
                 this.placeholderBridge = MassivePlaceholderBridge.get();

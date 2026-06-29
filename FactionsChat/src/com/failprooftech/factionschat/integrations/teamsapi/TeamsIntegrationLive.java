@@ -8,9 +8,9 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * Implementation of {@link TeamsIntegration} that uses the Teams API.
+ * Implementation of {@link TeamsIntegration} that uses the TeamsAPI.
  * <p>
- * This class is used to create a bridge between the Teams API and the FactionsChat plugin.
+ * This class is used to create a bridge between the TeamsAPI and the FactionsChat plugin.
  * 
  * @see TeamsIntegration
  * @see TeamsIntegrationNoop
@@ -20,6 +20,11 @@ public final class TeamsIntegrationLive implements TeamsIntegration
 	@Override
 	public Optional<FactionsBridge> createBridge(final Logger logger)
 	{
+		if (!TeamsApiVersion.logAndCheckRuntimeSupported(logger))
+		{
+			return Optional.empty();
+		}
+
 		final Optional<TeamsApiFactionsBridge> bridgeOpt = TeamsApiFactionsBridge.tryCreate();
 		if (bridgeOpt.isEmpty())
 		{
@@ -30,7 +35,7 @@ public final class TeamsIntegrationLive implements TeamsIntegration
 			if (logger != null)
 			{
 				logger.warning(
-						"Teams API is present but no relation provider is registered; FactionsChat needs TeamsRelationService for ally/truce/enemy channels. "
+						"TeamsAPI is present but no relation provider is registered; FactionsChat needs TeamsRelationService for ally/truce/enemy channels. "
 								+ "Falling back to direct Factions integration when available.");
 			}
 			return Optional.empty();

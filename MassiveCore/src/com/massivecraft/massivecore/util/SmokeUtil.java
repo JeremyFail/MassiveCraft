@@ -107,11 +107,4 @@ public class SmokeUtil
 	{
 		fakeExplosion(location);
 	}
-	
-	// -------------------------------------------- //
-	// Attach continuous effects to or locations
-	// -------------------------------------------- //
-	
-	// TODO
-	
 }

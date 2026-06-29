@@ -17,14 +17,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Handles automatic store sync on login/leave and maintains {@code SenderColl} sender references.
+ * <p>
+ * Platform-specific login timing (Spigot {@code PlayerLoginEvent} vs Paper {@code PlayerJoinEvent}) lives in
+ * {@link com.massivecraft.massivecore.engine.loginpipeline.LoginPipeline}. This engine holds the shared logic
+ * and events that are identical on both platforms ({@code AsyncPlayerPreLoginEvent}, quit, sender register).
+ */
 public class EngineMassiveCoreDatabase extends Engine
 {
 	// -------------------------------------------- //
@@ -37,11 +44,17 @@ public class EngineMassiveCoreDatabase extends Engine
 	// -------------------------------------------- //
 	// PLAYER AND SENDER REFERENCES
 	// -------------------------------------------- //
+	// Sender refs are wired during login/join by LoginPipeline*Listener.
+	// Connection IP is cached separately because Player#getAddress() is often null during early connect.
 	
-	public static Map<String, PlayerLoginEvent> idToPlayerLoginEvent = new MassiveMap<>();
+	/** UUID string → client address, populated at async prelogin and cleared on deny/quit. */
+	public static Map<String, InetAddress> idToConnectionAddress = new MassiveMap<>();
 	
-	// Immediately set the sender reference and cached PlayerLoginEvent.
-	public static void setSenderReferences(CommandSender sender, CommandSender reference, PlayerLoginEvent event)
+	/**
+	 * Immediately sets the {@code SenderColl} sender reference for every coll instance.
+	 * When {@code reference} is null, also clears the cached connection address for that id.
+	 */
+	public static void setSenderReferences(CommandSender sender, CommandSender reference)
 	{
 		// Check Sender 
 		if (MUtil.isntSender(sender)) return;
@@ -57,40 +70,53 @@ public class EngineMassiveCoreDatabase extends Engine
 		// Set References
 		SenderColl.setSenderReferences(id, reference);
 		
-		// Set Event
-		if (event == null)
+		if (reference == null)
 		{
-			idToPlayerLoginEvent.remove(id);
-		}
-		else
-		{
-			idToPlayerLoginEvent.put(id, event);
+			idToConnectionAddress.remove(id);
 		}
 	}
 	
 	// Same as above but next tick.
-	public static void setSenderReferencesSoon(final CommandSender sender, final CommandSender reference, final PlayerLoginEvent event)
+	public static void setSenderReferencesSoon(final CommandSender sender, final CommandSender reference)
 	{
-		Bukkit.getScheduler().scheduleSyncDelayedTask(MassiveCore.get(), () -> setSenderReferences(sender, reference, event));
+		Bukkit.getScheduler().scheduleSyncDelayedTask(MassiveCore.get(), () -> setSenderReferences(sender, reference));
 	}
 	
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void setSenderReferencesLoginLowest(PlayerLoginEvent event)
+	/** Stores or removes the cached connection address for {@code MUtil#getIp} fallback lookup. */
+	public static void cacheConnectionAddress(String id, InetAddress address)
 	{
-		// We set the reference at LOWEST so that it's present during this PlayerLoginEvent event.
-		setSenderReferences(event.getPlayer(), event.getPlayer(), event);
+		if (id == null) return;
+		
+		if (address == null)
+		{
+			idToConnectionAddress.remove(id);
+		}
+		else
+		{
+			idToConnectionAddress.put(id, address);
+		}
 	}
 	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void setSenderReferencesLoginMonitor(PlayerLoginEvent event)
+	/** Clears sender refs and connection address immediately (no deferred online check). */
+	public static void clearConnectionData(String id)
 	{
-		// Not all logins are successful.
-		// If the login fails we remove the reference next tick.
-		// This way we have the reference available through all of the MONITOR phase.
-		// NOTE: We previously looked at player.isOnline() to determine login success.
-		// NOTE: This was however not feasible due to Forge reporting successfully logged in players as offline for a random amount of ticks. 
-		if (event.getResult() == PlayerLoginEvent.Result.ALLOWED) return;
-		setSenderReferencesSoon(event.getPlayer(), null, null);
+		if (id == null) return;
+		
+		SenderColl.setSenderReferences(id, null);
+		idToConnectionAddress.remove(id);
+	}
+	
+	/** Clears sender refs and connection address on the next tick. Used when no {@code Player} exists yet. */
+	public static void clearConnectionDataSoon(final String id)
+	{
+		Bukkit.getScheduler().scheduleSyncDelayedTask(MassiveCore.get(), () -> clearConnectionData(id));
+	}
+	
+	/** Returns the cached address for the given player id, or null if none is stored. */
+	public static InetAddress getCachedConnectionAddress(String id)
+	{
+		if (id == null) return null;
+		return idToConnectionAddress.get(id);
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -98,28 +124,28 @@ public class EngineMassiveCoreDatabase extends Engine
 	{
 		// PlayerQuitEvents are /probably/ trustworthy.
 		// We check ourselves the next tick just to be on the safe side.
-		setSenderReferencesSoon(event.getPlayer(), null, null);
+		setSenderReferencesSoon(event.getPlayer(), null);
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void setSenderReferencesRegisterMonitor(EventMassiveCoreSenderRegister event)
 	{
 		// This one we can however trust.
-		setSenderReferences(event.getSender(), event.getSender(), null);
+		setSenderReferences(event.getSender(), event.getSender());
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void setSenderReferencesUnregisterMonitor(EventMassiveCoreSenderUnregister event)
 	{
 		// This one we can however trust.
-		setSenderReferences(event.getSender(), null, null);
+		setSenderReferences(event.getSender(), null);
 	}
 	
 	// -------------------------------------------- //
 	// SYNC: LOGIN
 	// -------------------------------------------- //
-	// This section handles the automatic sync of a players corresponding massive store entries on login.
-	// If possible the database IO is made during the AsyncPlayerPreLoginEvent to offloat the main server thread.
+	// Async prefetch in massiveStoreLoginSync(AsyncPlayerPreLoginEvent); synchronous hydration in
+	// hydrateStoreOnJoin(Player), invoked by LoginPipeline*Listener at login/join LOWEST.
 	
 	protected Map<String, Map<SenderColl<?>, Entry<JsonObject, Long>>> idToRemoteEntries = new ConcurrentHashMap<>();
 	
@@ -134,9 +160,15 @@ public class EngineMassiveCoreDatabase extends Engine
 		
 		// ... and make sure they are removed after 30 seconds.
 		// Without this we might cause a memory leak.
-		// Players might trigger AsyncPlayerPreLoginEvent but not PlayerLoginEvent.
+		// Players might trigger AsyncPlayerPreLoginEvent but not complete join.
 		// Using WeakHashMap is not an option since the player object does not exist at AsyncPlayerPreLoginEvent.
 		Bukkit.getScheduler().runTaskLaterAsynchronously(this.getPlugin(), () -> idToRemoteEntries.remove(playerId), 20*30);
+	}
+	
+	/** Whether async prelogin has prefetched DB rows not yet consumed by {@link #hydrateStoreOnJoin}. */
+	public boolean hasPendingRemoteEntries(String playerId)
+	{
+		return this.idToRemoteEntries.containsKey(playerId);
 	}
 	
 	// Intended to be ran synchronously.
@@ -169,49 +201,48 @@ public class EngineMassiveCoreDatabase extends Engine
 		return ret;
 	}
 	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void massiveStoreLoginSync(AsyncPlayerPreLoginEvent event)
+	/**
+	 * Syncs prefetched (or freshly loaded) remote store entries into memory for the joining player.
+	 * Called from LoginPipeline at Spigot login LOWEST or Paper join LOWEST.
+	 */
+	public void hydrateStoreOnJoin(Player player)
 	{
-		// DEBUG
-		// long before = System.nanoTime();
-		
-		// If the login was allowed ...
-		if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
-		
-		// ... get player id ...
-		final String playerId = event.getUniqueId().toString();
-		
-		// ... and store the remote entries.
-		this.storeRemoteEntries(playerId);
-		
-		// DEBUG
-		// long after = System.nanoTime();
-		// long duration = after - before;
-		// double ms = (double)duration / 1000000D;
-		// String message = Txt.parse("<i>AsyncPlayerPreLoginEvent for %s <i>took <h>%.2f <i>ms.", event.getName(), ms);
-		// MassiveCore.get().log(message);
-		// NOTE: I get values between 5 and 55 ms!
-	}
-	
-	// Can not be cancelled.
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void massiveStoreLoginSync(PlayerLoginEvent event)
-	{
-		// Get player id ...
-		Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;
 		final String playerId = player.getUniqueId().toString();
 		
-		// ... get remote entries ...
 		Map<SenderColl<?>, Entry<JsonObject, Long>> remoteEntries = getRemoteEntries(playerId);
 		
-		// ... and sync each of them.
 		for (Entry<SenderColl<?>, Entry<JsonObject, Long>> entry : remoteEntries.entrySet())
 		{
 			SenderColl<?> coll = entry.getKey();
 			Entry<JsonObject, Long> remoteEntry = entry.getValue();
 			coll.syncId(playerId, null, remoteEntry);
 		}
+	}
+	
+	// Cache address early; MONITOR handler clears it if prelogin is denied.
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void cacheConnectionAddressPreLoginLowest(AsyncPlayerPreLoginEvent event)
+	{
+		cacheConnectionAddress(event.getUniqueId().toString(), event.getAddress());
+	}
+	
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void massiveStoreLoginSync(AsyncPlayerPreLoginEvent event)
+	{
+		// If the login was allowed ...
+		if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED)
+		{
+			// Prelogin LOWEST may have cached an address; remove refs and cache on deny.
+			clearConnectionData(event.getUniqueId().toString());
+			return;
+		}
+		
+		// ... get player id ...
+		final String playerId = event.getUniqueId().toString();
+		
+		// ... and store the remote entries.
+		this.storeRemoteEntries(playerId);
 	}
 	
 	// -------------------------------------------- //
