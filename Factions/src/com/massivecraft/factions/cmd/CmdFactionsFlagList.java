@@ -37,7 +37,7 @@ public class CmdFactionsFlagList extends FactionsCommand
 		final int page = this.readArg();
 		
 		// Pager create
-		String title = "Flag List for " + msenderFaction.describeTo(msender);
+		String title = "Available Flags list";
 		final boolean override = senderIsConsole || msender.isOverriding();
 
 		final Msonifier<MFlag> msonifier = (mf, i) -> {
