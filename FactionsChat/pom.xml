@@ -94,8 +94,86 @@
     </dependencies>
     
     <!-- Build -->
+    <properties>
+        <!-- Isolated compile of adventure5-bundled (Paper 26.x). Keep in sync with Paper's Adventure when bumping. -->
+        <factionschat.adventure5.version>5.2.0</factionschat.adventure5.version>
+    </properties>
     <build>
         <plugins>
+            <!--
+                Adventure 4 (Paper 1.21.x via paper-api) and Adventure 5 (Paper 26.x) cannot share one compile
+                classpath: ClickEvent.Action.OPEN_URL changed field descriptor (enum -> Action.OpenUrl).
+                Main sources compile against Adventure 4. Adventure5ActionBridge is javac'd separately against
+                Adventure 5 jars from adventure5-bundled/java (outside src/, same idea as update-checker-bundled),
+                then written into target/classes. Runtime picks one bridge via Class.forName
+                (same pattern as Paper vs Spigot listeners).
+                TODO(adventure4-drop): Remove this dependency-plugin + antrun pair and adventure5-bundled when
+                Adventure 4 support is dropped; keep a single Adventure 5 code path.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-adventure5-compile-classpath</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/adventure5-cp</outputDirectory>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>net.kyori</groupId>
+                                    <artifactId>adventure-api</artifactId>
+                                    <version>${factionschat.adventure5.version}</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>net.kyori</groupId>
+                                    <artifactId>adventure-key</artifactId>
+                                    <version>${factionschat.adventure5.version}</version>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.jspecify</groupId>
+                                    <artifactId>jspecify</artifactId>
+                                    <version>1.0.0</version>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>compile-adventure5-bridge</id>
+                        <!-- Must be compile (not process-classes): `mvn compile` does not run process-classes. -->
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <path id="factionschat.adventure5.classpath">
+                                    <pathelement location="${project.build.outputDirectory}"/>
+                                    <fileset dir="${project.build.directory}/adventure5-cp" includes="*.jar"/>
+                                </path>
+                                <javac srcdir="${project.basedir}/adventure5-bundled/java"
+                                       destdir="${project.build.outputDirectory}"
+                                       classpathref="factionschat.adventure5.classpath"
+                                       includeantruntime="false"
+                                       encoding="UTF-8"
+                                       release="${massiveJavaVersion}"
+                                       includes="**/Adventure5ActionBridge.java"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

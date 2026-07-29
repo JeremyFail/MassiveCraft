@@ -10,14 +10,17 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.event.HoverEvent.Action;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Strips Adventure / MiniMessage features the sender is not allowed to use (hovers, clicks, RGB, etc.).
- * Hover {@link Action#SHOW_TEXT} contents are sanitized recursively so nested clicks/colors respect permissions.
+ * Hover show-text contents are sanitized recursively so nested clicks/colors respect permissions.
+ *
+ * <p>Open-URL vs other click gating uses {@link AdventureActionCompat} (Adventure 4 vs 5 bridges).
+ * TODO(adventure4-drop): After dropping Adventure 4, call Adventure 5 action checks directly here
+ * and delete the bridge/facade types.</p>
  */
 public final class AdventureChatPermissionSanitizer
 {
@@ -27,7 +30,7 @@ public final class AdventureChatPermissionSanitizer
 
     /**
      * Sanitizes a component recursively.
-     * 
+     *
      * @param root The root component to sanitize.
      * @param p The chat permissions to use.
      * @param fallbackColor The fallback color to use.
@@ -40,7 +43,7 @@ public final class AdventureChatPermissionSanitizer
 
     /**
      * Sanitizes a node recursively.
-     * 
+     *
      * @param c The component to sanitize.
      * @param p The chat permissions to use.
      * @param parentColor The parent color to use.
@@ -80,7 +83,7 @@ public final class AdventureChatPermissionSanitizer
 
     /**
      * Filters the style of a component.
-     * 
+     *
      * @param s The style to filter.
      * @param p The chat permissions to use.
      * @param inherit The parent color to use.
@@ -130,7 +133,7 @@ public final class AdventureChatPermissionSanitizer
         ClickEvent click = s.clickEvent();
         if (click != null)
         {
-            if (click.action() == ClickEvent.Action.OPEN_URL)
+            if (AdventureActionCompat.isOpenUrl(click))
             {
                 if (p.allowUrl)
                 {
@@ -161,7 +164,7 @@ public final class AdventureChatPermissionSanitizer
 
     /**
      * Sanitizes a hover event.
-     * 
+     *
      * @param hover The hover event to sanitize.
      * @param p The chat permissions to use.
      * @param inherit The parent color to use.
@@ -169,7 +172,7 @@ public final class AdventureChatPermissionSanitizer
      */
     private static HoverEvent<?> sanitizeHoverEvent(HoverEvent<?> hover, ChatPermissions p, TextColor inherit)
     {
-        if (hover.action() == Action.SHOW_TEXT)
+        if (AdventureActionCompat.isShowText(hover))
         {
             Component value = (Component) hover.value();
             return HoverEvent.showText(sanitizeNode(value, p, inherit));
@@ -179,7 +182,7 @@ public final class AdventureChatPermissionSanitizer
 
     /**
      * Checks if a color is allowed.
-     * 
+     *
      * @param col The color to check.
      * @param p The chat permissions to use.
      * @return True if the color is allowed, false otherwise.
