@@ -180,8 +180,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
         if (!permissions.allowUrl)
         {
             // Break links by removing periods
-            Pattern urlPattern = Pattern.compile(URL_REGEX);
-            Matcher matcher = urlPattern.matcher(message);
+            Matcher matcher = URL_PATTERN.matcher(message);
             StringBuffer sb = new StringBuffer();
             while (matcher.find())
             {
@@ -192,8 +191,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
             return sb.toString();
         }
 
-        Pattern urlPattern = Pattern.compile(URL_REGEX);
-        Matcher matcher = urlPattern.matcher(message);
+        Matcher matcher = URL_PATTERN.matcher(message);
         StringBuffer sb = new StringBuffer();
         int lastEnd = 0;
 

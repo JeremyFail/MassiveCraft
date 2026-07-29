@@ -18,6 +18,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -51,9 +52,9 @@ import java.util.stream.Collectors;
  * <p>The message body uses upstream Adventure components when {@link Settings#preserveUpstreamChatComponents} is true:
  * plain text is still used for routing (colon channels); literal markup in text leaves is parsed like flat chat.
  * When that setting is false, the body is rebuilt only from plain text via {@link #processMessageForSender}.
- * Secure chat compares the displayed
- * message to what the client signed; re-encoding on the server can make some clients show a "message modified"
- * indicator-that tradeoff is expected if you want full formatting on the line.</p>
+ * Secure chat compares the displayed message to what the client signed; re-encoding on the server can make some
+ * clients show a "message modified" indicator. That tradeoff is taken whenever markup or permission-gated clickable
+ * URLs must appear in the body — those features are not skipped merely to preserve signing.</p>
  *
  * <p>Format strings (prefix, channel color before {@code %MESSAGE%}) use the same unified codec.</p>
  */
@@ -244,13 +245,12 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
 
         final String plainFullLine = plainSerializer.serialize(event.message());
 
-        // Determine whether the message body needs to be rebuilt from scratch (markup codes present,
-        // or preserveUpstreamChatComponents is disabled). When false (plain text, upstream path), we
-        // use the signed messageComponent argument from the renderer callback so Paper can preserve
-        // the player's chat-signing / reporting status. When true the body is rebuilt from plain text
-        // and is inherently unsigned - that's an acceptable tradeoff for colour-formatted messages.
+        // Prefer the processed body when we must change visible content (markup, clickable URLs, or
+        // preserveUpstream disabled). Otherwise keep Paper's signed messageComponent so chat reporting
+        // stays intact for plain text. URL / markup processing intentionally opts out of that path.
         final boolean messageBodyTransformed = !Settings.preserveUpstreamChatComponents
-            || ChatMarkupLeafExpander.mightContainParsableMarkup(messagePlain);
+            || ChatMarkupLeafExpander.mightContainParsableMarkup(messagePlain)
+            || (senderPerms.allowUrl && URL_PATTERN.matcher(messagePlain).find());
 
         final Component messageBodyFinal = resolveProcessedMessageBody(
             sender, event.message(), plainFullLine, messagePlain, colonQuick, baseColor, chatMode, senderPerms);
@@ -277,10 +277,8 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
         event.renderer((source, sourceDisplayName, messageComponent, viewer) ->
         {
             Player recipientPlayer = viewer instanceof Player ? (Player) viewer : null;
-            // Plain text: wrap the signed messageComponent with baseColor so the message
-            // inherits the channel tint while keeping the signed reference intact for Paper.
-            // Markup and quick-chat messages: use the pre-processed body so quick-chat
-            // channel tokens (e.g. :f) are stripped from the visible message.
+            // Plain unsigned-safe text: wrap the signed messageComponent with baseColor.
+            // Markup, clickable URLs, and quick-chat: use the pre-processed body (may be unsigned).
             Component body = (colonQuick || messageBodyTransformed)
                 ? messageBodyFinal
                 : (baseColorFinal != null
@@ -591,21 +589,28 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
      */
     private Component processLinksInComponent(Component input, boolean underline)
     {
-        // Recursively process all text components to find and replace URLs
-        return processComponentForLinks(input, underline, 0);
+        // Start with empty inherited style; each node merges its own style on top while walking.
+        return processComponentForLinks(input, underline, Style.empty());
     }
 
     /**
      * Recursively processes a Component tree to find and replace URLs with clickable links.
      * This preserves all formatting (color, bold, italic, etc.) while making URLs clickable.
      *
+     * <p>MiniMessage / legacy round-trips often put color on a parent wrapper while the URL lives in a
+     * child leaf with no local color. Splitting that leaf must bake in the resolved inherited
+     * {@link Style}, or surrounding text (e.g. green {@code test} before a link) loses its color.</p>
+     *
      * @param component The component to process.
      * @param underline Whether URLs should be underlined.
-     * @param depth Current recursion depth (for logging).
+     * @param inherited Style from ancestors (explicit values on {@code component} override these).
      * @return A new component with URLs processed.
      */
-    private Component processComponentForLinks(Component component, boolean underline, int depth)
+    private Component processComponentForLinks(Component component, boolean underline, Style inherited)
     {
+        // Child explicit style wins; absent fields (e.g. color on a plain leaf) come from ancestors.
+        final Style effective = component.style().merge(inherited, Style.Merge.Strategy.IF_ABSENT_ON_TARGET);
+
         // If this is a TextComponent, process its content for URLs
         if (component instanceof TextComponent)
         {
@@ -614,12 +619,11 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
 
             if (content != null && !content.isEmpty())
             {
-                Pattern urlPattern = Pattern.compile(URL_REGEX);
-                Matcher matcher = urlPattern.matcher(content);
+                Matcher matcher = URL_PATTERN.matcher(content);
 
                 if (matcher.find())
                 {
-                    // URLs found - need to split the component
+                    // URLs found - need to split the component (flatten with resolved style baked in)
                     Component result = Component.empty();
                     int lastEnd = 0;
                     
@@ -633,12 +637,12 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
                         if (matcher.start() > lastEnd)
                         {
                             String beforeUrl = content.substring(lastEnd, matcher.start());
-                            result = result.append(Component.text(beforeUrl).style(textComponent.style()));
+                            result = result.append(Component.text(beforeUrl).style(effective));
                         }
                         
-                        // Create clickable URL component with preserved style
+                        // Create clickable URL component with preserved resolved style
                         Component urlComponent = Component.text(url)
-                            .style(textComponent.style())
+                            .style(effective)
                             .clickEvent(ClickEvent.openUrl(url));
                         
                         // Add underline if requested
@@ -655,13 +659,13 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
                     if (lastEnd < content.length())
                     {
                         String afterUrl = content.substring(lastEnd);
-                        result = result.append(Component.text(afterUrl).style(textComponent.style()));
+                        result = result.append(Component.text(afterUrl).style(effective));
                     }
                     
                     // Process children recursively and add them to result
                     for (Component child : textComponent.children())
                     {
-                        result = result.append(processComponentForLinks(child, underline, depth + 1));
+                        result = result.append(processComponentForLinks(child, underline, effective));
                     }
 
                     return result;
@@ -669,17 +673,15 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             }
         }
 
-        // No URLs found in this TextComponent, or it's not a TextComponent
-        // Process children recursively and return component with processed children
+        // No URLs found in this node's own content - still walk children with updated inheritance
         if (component.children().isEmpty())
         {
-            return component; // component with no URLs
+            return component;
         }
         
-        // Process all children recursively
         return component.children(
             component.children().stream()
-                .map(child -> processComponentForLinks(child, underline, depth + 1))
+                .map(child -> processComponentForLinks(child, underline, effective))
                 .collect(Collectors.toList())
         );
     }
