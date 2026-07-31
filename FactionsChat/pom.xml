@@ -91,12 +91,61 @@
             <groupId>org.bstats</groupId>
             <artifactId>bstats-base</artifactId>
         </dependency>
+
+        <!-- Unit tests (MockBukkit artifact chosen by paperTestLine profile below) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${factionschat.junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${factionschat.mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Explicit agent for MockBukkit ByteBuddy class injection on JDK 17+ / 25 -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>${factionschat.bytebuddy.agent.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!--
+            MockBukkit (1.21 and 26) needs Guava 21+ (ImmutableMap.ofEntries).
+            paper-api 1.21 still pulls Guava 23.5 onto the test classpath otherwise.
+        -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${factionschat.test.guava.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <!-- Build -->
     <properties>
         <!-- Isolated compile of adventure5-bundled (Paper 26.x). Keep in sync with Paper's Adventure when bumping. -->
         <factionschat.adventure5.version>5.2.0</factionschat.adventure5.version>
+        <factionschat.junit.version>5.11.4</factionschat.junit.version>
+        <factionschat.mockito.version>5.14.2</factionschat.mockito.version>
+        <factionschat.mockbukkit.v21.version>4.110.0</factionschat.mockbukkit.v21.version>
+        <factionschat.mockbukkit.v26.version>4.114.0</factionschat.mockbukkit.v26.version>
+        <!-- Must match MockBukkit-v1.21 MANIFEST Paper-Version. -->
+        <factionschat.paper21.api.version>1.21.11-R0.1-SNAPSHOT</factionschat.paper21.api.version>
+        <!-- Must match MockBukkit-v26.1.2 MANIFEST Paper-Version (see jar META-INF/MANIFEST.MF). -->
+        <factionschat.paper26.api.version>26.1.2.build.72-stable</factionschat.paper26.api.version>
+        <!--
+            Adventure line used by MockBukkit's paper-api for both 1.21.11 and 26.1.2 test swaps
+            (adventure-bom 4.26.1). Not Adventure 5 — that is only for adventure5-bundled compile.
+        -->
+        <factionschat.mockbukkit.adventure.version>4.26.1</factionschat.mockbukkit.adventure.version>
+        <!-- Shared test Guava (MockBukkit ofEntries); paper26 profile also copies this jar when excluding transitive Guava. -->
+        <factionschat.test.guava.version>33.5.0-jre</factionschat.test.guava.version>
+        <factionschat.surefire.version>3.5.2</factionschat.surefire.version>
+        <!-- Keep in sync with MockBukkit-v26.1.2 byte-buddy (see its POM). -->
+        <factionschat.bytebuddy.agent.version>1.18.10</factionschat.bytebuddy.agent.version>
     </properties>
     <build>
         <plugins>
@@ -202,7 +251,69 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <!--
+                        MassiveSuper uses sourceDirectory=src (not src/main/java), so tests must live
+                        outside src/ (test/java). Cursor / VS Code Java often ignores a lone
+                        <testSourceDirectory>; add-test-source registers the root for the language server.
+                    -->
+                    <execution>
+                        <id>add-factionschat-test-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/test/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <!--
+                        MockBukkit.load(Class) needs the plugin packaged as a JAR (CodeSource must be a
+                        .jar URL), but jar runs at package — after test. Re-phase the built-in execution
+                        rather than adding a second one: a second unclassified jar execution fails with
+                        "use a classifier to attach supplemental artifacts". Shade still runs at package
+                        and replaces this artifact. Nothing writes target/classes after compile, so the
+                        earlier jar has complete contents.
+                    -->
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>process-test-classes</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${factionschat.surefire.version}</version>
+                <configuration>
+                    <!-- Avoid parallel MockBukkit servers stomping Bukkit statics -->
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <systemPropertyVariables>
+                        <factionschat.test.pluginJar>${project.build.directory}/${project.build.finalName}.jar</factionschat.test.pluginJar>
+                    </systemPropertyVariables>
+                    <!--
+                        MockBukkit.load(Class) injects a ByteBuddy proxy into ConfiguredPluginClassLoader.
+                        On JDK 17+ that injector is unavailable unless these packages are opened; otherwise
+                        findClass runs and throws "No jar file selected".
+                    -->
+                    <argLine>-Dnet.bytebuddy.experimental=true -javaagent:${user.home}/.m2/repository/net/bytebuddy/byte-buddy-agent/${factionschat.bytebuddy.agent.version}/byte-buddy-agent-${factionschat.bytebuddy.agent.version}.jar -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</argLine>
+                </configuration>
+            </plugin>
         </plugins>
+        <testSourceDirectory>${project.basedir}/test/java</testSourceDirectory>
         <!-- Resources -->
         <resources>
             <!-- Standard -->
@@ -240,6 +351,256 @@
          Sources: update-checker-bundled/java (outside src/) so the parent sourceDirectory does not compile them unless this profile runs.
     -->
     <profiles>
+        <!--
+            MockBukkit cannot put 1.21 and 26.x on one classpath (Paper/Adventure conflict).
+            Default: -DpaperTestLine=26 (or omit). Alternate: -DpaperTestLine=1.21
+            Helper: scripts/run-tests.ps1 / scripts/run-tests.sh
+        -->
+        <profile>
+            <id>test-paper-26</id>
+            <activation>
+                <!--
+                    Negated value, not <value>26</value>: profile activation only reads -D / system
+                    properties (never POM <properties>), so an explicit 26 would leave plain
+                    `mvn install` and the IDE language server without MockBukkit on the test
+                    classpath. !1.21 keeps this line on unless the 1.21 profile is requested.
+                -->
+                <property>
+                    <name>paperTestLine</name>
+                    <value>!1.21</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mockbukkit.mockbukkit</groupId>
+                    <artifactId>mockbukkit-v26.1.2</artifactId>
+                    <version>${factionschat.mockbukkit.v26.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <!--
+                        Main compile stays on Paper 1.21 / Adventure 4 (Adventure4ActionBridge).
+                        Surefire drops that paper-api / older Guava / Adv jars and uses Paper 26 +
+                        Adventure 4.26 (MockBukkit line) + Guava 33 from target/paper26-test-cp.
+                        Replace the full Adventure stack so Adv serializers match adventure-api.
+                    -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-paper26-test-api</id>
+                                <phase>generate-test-resources</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/paper26-test-cp</outputDirectory>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>io.papermc.paper</groupId>
+                                            <artifactId>paper-api</artifactId>
+                                            <version>${factionschat.paper26.api.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>com.google.guava</groupId>
+                                            <artifactId>guava</artifactId>
+                                            <version>${factionschat.test.guava.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-api</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-key</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-minimessage</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-serializer-plain</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-serializer-legacy</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-serializer-gson</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-serializer-commons</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <factionschat.test.pluginJar>${project.build.directory}/${project.build.finalName}.jar</factionschat.test.pluginJar>
+                            </systemPropertyVariables>
+                            <!-- Profile config replaces base surefire config; keep JDK opens for MockBukkit ByteBuddy. -->
+                            <argLine>-Dnet.bytebuddy.experimental=true -javaagent:${user.home}/.m2/repository/net/bytebuddy/byte-buddy-agent/${factionschat.bytebuddy.agent.version}/byte-buddy-agent-${factionschat.bytebuddy.agent.version}.jar -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</argLine>
+                            <classpathDependencyExcludes>
+                                <classpathDependencyExclude>io.papermc.paper:paper-api</classpathDependencyExclude>
+                                <classpathDependencyExclude>org.spigotmc:spigot-api</classpathDependencyExclude>
+                                <classpathDependencyExclude>com.google.guava:guava</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-api</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-key</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-minimessage</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-serializer-plain</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-serializer-legacy</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-serializer-gson</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-serializer-commons</classpathDependencyExclude>
+                            </classpathDependencyExcludes>
+                            <additionalClasspathElements>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/paper-api-${factionschat.paper26.api.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/guava-${factionschat.test.guava.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/adventure-api-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/adventure-key-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/adventure-text-minimessage-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/adventure-text-serializer-plain-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/adventure-text-serializer-legacy-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/adventure-text-serializer-gson-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper26-test-cp/adventure-text-serializer-commons-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                            </additionalClasspathElements>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>test-paper-1.21</id>
+            <activation>
+                <property>
+                    <name>paperTestLine</name>
+                    <value>1.21</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mockbukkit.mockbukkit</groupId>
+                    <artifactId>mockbukkit-v1.21</artifactId>
+                    <version>${factionschat.mockbukkit.v21.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <!--
+                        Main compile may use a different 1.21.x paper-api than MockBukkit-v1.21 expects
+                        (Paper-Version in its MANIFEST). Surefire swaps to the MockBukkit-matched API jar.
+                    -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-paper21-test-api</id>
+                                <phase>generate-test-resources</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/paper21-test-cp</outputDirectory>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>io.papermc.paper</groupId>
+                                            <artifactId>paper-api</artifactId>
+                                            <version>${factionschat.paper21.api.version}</version>
+                                            <destFileName>paper-api-${factionschat.paper21.api.version}.jar</destFileName>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-api</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-key</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-minimessage</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-serializer-plain</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-serializer-legacy</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-serializer-gson</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>net.kyori</groupId>
+                                            <artifactId>adventure-text-serializer-commons</artifactId>
+                                            <version>${factionschat.mockbukkit.adventure.version}</version>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <factionschat.test.pluginJar>${project.build.directory}/${project.build.finalName}.jar</factionschat.test.pluginJar>
+                            </systemPropertyVariables>
+                            <argLine>-Dnet.bytebuddy.experimental=true -javaagent:${user.home}/.m2/repository/net/bytebuddy/byte-buddy-agent/${factionschat.bytebuddy.agent.version}/byte-buddy-agent-${factionschat.bytebuddy.agent.version}.jar -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</argLine>
+                            <classpathDependencyExcludes>
+                                <classpathDependencyExclude>io.papermc.paper:paper-api</classpathDependencyExclude>
+                                <classpathDependencyExclude>org.spigotmc:spigot-api</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-api</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-key</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-minimessage</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-serializer-plain</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-serializer-legacy</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-serializer-gson</classpathDependencyExclude>
+                                <classpathDependencyExclude>net.kyori:adventure-text-serializer-commons</classpathDependencyExclude>
+                            </classpathDependencyExcludes>
+                            <additionalClasspathElements>
+                                <additionalClasspathElement>${project.build.directory}/paper21-test-cp/paper-api-${factionschat.paper21.api.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper21-test-cp/adventure-api-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper21-test-cp/adventure-key-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper21-test-cp/adventure-text-minimessage-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper21-test-cp/adventure-text-serializer-plain-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper21-test-cp/adventure-text-serializer-legacy-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper21-test-cp/adventure-text-serializer-gson-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                                <additionalClasspathElement>${project.build.directory}/paper21-test-cp/adventure-text-serializer-commons-${factionschat.mockbukkit.adventure.version}.jar</additionalClasspathElement>
+                            </additionalClasspathElements>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>bundle-update-checker</id>
             <activation>
