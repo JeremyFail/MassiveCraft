@@ -55,8 +55,10 @@
         <massiveHttpclientVersion>4.5.3</massiveHttpclientVersion>
 
         <!-- https://hub.spigotmc.org/nexus/content/groups/public/org/spigotmc/spigot-api/ -->
-        <massiveSpigotVersion>1.21.4-R0.1-SNAPSHOT</massiveSpigotVersion>
-        <massivePaperVersion>1.21.7-R0.1-SNAPSHOT</massivePaperVersion>
+        <massiveSpigotVersion>1.21.11-R0.2-SNAPSHOT</massiveSpigotVersion>
+        <massivePaperVersion>1.21.11-R0.1-SNAPSHOT</massivePaperVersion>
+        <!-- https://central.sonatype.com/artifact/net.md-5/bungeecord-dialog (Spigot dialog API types) -->
+        <massiveBungeeDialogVersion>1.21-R0.4</massiveBungeeDialogVersion>
         <!-- Adventure MiniMessage for compile (match paper-api transitive BOM; run mvn dependency:tree on paper-api when bumping Paper).
              PaperMC format docs: https://docs.papermc.io/adventure/minimessage/format - sprite/head tags require MiniMessage 4.25+;
              at 4.20.0 those tags are absent from this artifact; newer Paper builds may ship a newer Adventure at runtime. -->
@@ -372,6 +374,12 @@
                 <groupId>io.papermc.paper</groupId>
                 <artifactId>paper-api</artifactId>
                 <version>${massivePaperVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.md-5</groupId>
+                <artifactId>bungeecord-dialog</artifactId>
+                <version>${massiveBungeeDialogVersion}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

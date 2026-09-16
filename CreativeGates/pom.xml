@@ -26,7 +26,7 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
         </dependency>
-        <!-- MassiveCore -->
+        <!-- MassiveCore (includes dialog facade + Paper/Spigot/ChestGui backends) -->
         <dependency>
             <groupId>com.massivecraft.massivecore</groupId>
             <artifactId>MassiveCore</artifactId>
