@@ -20,6 +20,9 @@ public class ChestActionAbstract implements ChestAction
 		return onClick(event, player);
 	}
 	
+	/**
+	 * Player-only click. Default is not consumed (no autoclose, no lastAction).
+	 */
 	public boolean onClick(InventoryClickEvent event, Player player)
 	{
 		return false;
