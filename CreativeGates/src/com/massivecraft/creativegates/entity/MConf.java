@@ -1,6 +1,10 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.Perm;
+import com.massivecraft.creativegates.gate.GateOrientation;
+import com.massivecraft.creativegates.gate.fill.GateType;
+import com.massivecraft.creativegates.gate.fill.GateTypeResolve;
+import com.massivecraft.creativegates.gate.fill.SupportedGateType;
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.command.editor.annotation.EditorName;
 import com.massivecraft.massivecore.store.Entity;
@@ -8,9 +12,13 @@ import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.PermissionUtil;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.permissions.PermissionDefault;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,9 +36,17 @@ public class MConf extends Entity<MConf>
 	public MConf load(MConf that)
 	{
 		super.load(that);
+		this.allowedGateTypes = sanitizeGateTypeIds(this.allowedGateTypes, false);
+		this.allowedHorizontalGateTypes = sanitizeGateTypeIds(this.allowedHorizontalGateTypes, true);
 		this.updatePerms();
 		return this;
 	}
+	
+	// -------------------------------------------- //
+	// VERSION
+	// -------------------------------------------- //
+	
+	public int version = 1;
 	
 	// -------------------------------------------- //
 	// FIELDS
@@ -93,14 +109,17 @@ public class MConf extends Entity<MConf>
 	}
 	
 	public PermissionDefault permissionDefaultCreate = PermissionDefault.TRUE;
+	public PermissionDefault permissionDefaultSetGateFill = PermissionDefault.TRUE;
 	public PermissionDefault permissionDefaultUse = PermissionDefault.TRUE;
 	
 	public boolean verboseCreatePermission = true;
+	public boolean verboseSetGateFillPermission = false;
 	public boolean verboseUsePermission = true;
 
 	public void updatePerms()
 	{
 		PermissionUtil.getPermission(false, true, Perm.CREATE.getId(), "create a gate", this.permissionDefaultCreate);
+		PermissionUtil.getPermission(false, true, Perm.SET_GATE_FILL.getId(), "choose gate fill material when creating", this.permissionDefaultSetGateFill);
 		PermissionUtil.getPermission(false, true, Perm.USE.getId(), "use a gate", this.permissionDefaultUse);
 	}
 
@@ -108,15 +127,103 @@ public class MConf extends Entity<MConf>
 	// FIELDS
 	// -------------------------------------------- //
 
-	private boolean usingWater = false;
-	public boolean isUsingWater() { return this.usingWater; }
-	public void setUsingWater(boolean usingWater)
+	/**
+	 * Vertical gate fill allow-list as config ids ({@link SupportedGateType} names or material names).
+	 * Resolved via {@link GateTypeResolve}.
+	 */
+	private Set<String> allowedGateTypes = MUtil.set(
+		SupportedGateType.NETHER_PORTAL.name(),
+		SupportedGateType.WATER.name(),
+		SupportedGateType.LAVA.name(),
+		SupportedGateType.END_GATEWAY.name(),
+		SupportedGateType.POWDER_SNOW.name(),
+		SupportedGateType.ICE.name(),
+		SupportedGateType.PACKED_ICE.name(),
+		SupportedGateType.BLUE_ICE.name(),
+		SupportedGateType.FROSTED_ICE.name()
+	);
+	public Set<String> getAllowedGateTypes() { return new LinkedHashSet<>(this.allowedGateTypes); }
+	public void setAllowedGateTypes(Set<String> allowedGateTypes)
 	{
-		this.changed(this.usingWater, usingWater);
-		this.usingWater = usingWater;
+		Set<String> sanitized = sanitizeGateTypeIds(allowedGateTypes, false);
+		this.changed(this.allowedGateTypes, sanitized);
+		this.allowedGateTypes = sanitized;
 	}
 
-	// Floor/ceiling portals (Portal-style). Always use water/lava fill, not nether portal blocks.
+	/**
+	 * Horizontal gate fill allow-list as config ids. Never includes {@link SupportedGateType#NETHER_PORTAL}.
+	 */
+	private Set<String> allowedHorizontalGateTypes = MUtil.set(
+		SupportedGateType.WATER.name(),
+		SupportedGateType.LAVA.name(),
+		SupportedGateType.POWDER_SNOW.name(),
+		SupportedGateType.ICE.name(),
+		SupportedGateType.PACKED_ICE.name(),
+		SupportedGateType.BLUE_ICE.name(),
+		SupportedGateType.FROSTED_ICE.name()
+	);
+	public Set<String> getAllowedHorizontalGateTypes() { return new LinkedHashSet<>(this.allowedHorizontalGateTypes); }
+	public void setAllowedHorizontalGateTypes(Set<String> allowedHorizontalGateTypes)
+	{
+		Set<String> sanitized = sanitizeGateTypeIds(allowedHorizontalGateTypes, true);
+		this.changed(this.allowedHorizontalGateTypes, sanitized);
+		this.allowedHorizontalGateTypes = sanitized;
+	}
+
+	/**
+	 * Returns whether a fill type is allowed for the orientation.
+	 *
+	 * @param gateType Type to check.
+	 * @param orientation Gate orientation; null treats as vertical.
+	 * @return True if its config id is listed and compatible.
+	 */
+	public boolean isGateTypeAllowed(GateType gateType, GateOrientation orientation)
+	{
+		if (gateType == null) return false;
+		if (!gateType.isCompatibleWith(orientation)) return false;
+		String id = gateType.getConfigId();
+		if (orientation != null && orientation.isHorizontal())
+		{
+			return this.allowedHorizontalGateTypes.contains(id);
+		}
+		return this.allowedGateTypes.contains(id);
+	}
+
+	/**
+	 * Resolved selectable fills for UI / creation for the given orientation.
+	 *
+	 * @param orientation Gate orientation; null treats as vertical.
+	 * @return Ordered list of resolved types (invalid ids omitted).
+	 */
+	public List<GateType> getSelectableGateTypes(GateOrientation orientation)
+	{
+		boolean horizontal = orientation != null && orientation.isHorizontal();
+		Set<String> ids = horizontal ? this.allowedHorizontalGateTypes : this.allowedGateTypes;
+		List<GateType> ret = new ArrayList<>();
+		for (String id : ids)
+		{
+			GateType type = GateTypeResolve.parse(id);
+			if (type == null) continue;
+			if (!type.isCompatibleWith(orientation)) continue;
+			ret.add(type);
+		}
+		return ret;
+	}
+
+	/**
+	 * When true, {@link SupportedGateType#WATER} gates place lava in the nether instead of water.
+	 * Does not require {@link SupportedGateType#LAVA} to be in the allow-list; that type is separate
+	 * for explicitly selectable lava gates (including overworld).
+	 */
+	private boolean replaceWaterWithLavaInNether = true;
+	public boolean isReplaceWaterWithLavaInNether() { return this.replaceWaterWithLavaInNether; }
+	public void setReplaceWaterWithLavaInNether(boolean replaceWaterWithLavaInNether)
+	{
+		this.changed(this.replaceWaterWithLavaInNether, replaceWaterWithLavaInNether);
+		this.replaceWaterWithLavaInNether = replaceWaterWithLavaInNether;
+	}
+
+	// Floor/ceiling portals (Portal-style). Nether portal blocks are not compatible.
 	private boolean horizontalGatesEnabled = true;
 	public boolean isHorizontalGatesEnabled() { return this.horizontalGatesEnabled; }
 	public void setHorizontalGatesEnabled(boolean horizontalGatesEnabled)
@@ -134,14 +241,80 @@ public class MConf extends Entity<MConf>
 		this.horizontalGatesPreserveVelocity = horizontalGatesPreserveVelocity;
 	}
 
-	// If true, lava will be used in place of water in the nether
-	// Has no effect if usingWater is false
-	private boolean useLavaInNether = true;
-	public boolean isUseLavaInNether() { return this.useLavaInNether; }
-	public void setUseLavaInNether(boolean useLavaInNether)
+	/**
+	 * Configured default fill for vertical gates. Blank / invalid falls back to the first
+	 * entry in {@link #getAllowedGateTypes()}.
+	 */
+	private String defaultGateType = "";
+	public String getDefaultGateType() { return this.defaultGateType; }
+	public void setDefaultGateType(String defaultGateType)
 	{
-		this.changed(this.useLavaInNether, useLavaInNether);
-		this.useLavaInNether = useLavaInNether;
+		String sanitized = defaultGateType == null ? "" : defaultGateType.trim().toUpperCase();
+		this.changed(this.defaultGateType, sanitized);
+		this.defaultGateType = sanitized;
+	}
+
+	/**
+	 * Configured default fill for horizontal gates. Blank / invalid falls back to the first
+	 * entry in {@link #getAllowedHorizontalGateTypes()}.
+	 */
+	private String defaultHorizontalGateType = "";
+	public String getDefaultHorizontalGateType() { return this.defaultHorizontalGateType; }
+	public void setDefaultHorizontalGateType(String defaultHorizontalGateType)
+	{
+		String sanitized = defaultHorizontalGateType == null ? "" : defaultHorizontalGateType.trim().toUpperCase();
+		this.changed(this.defaultHorizontalGateType, sanitized);
+		this.defaultHorizontalGateType = sanitized;
+	}
+
+	/**
+	 * Picks the default fill for newly created gates (when the player cannot or need not pick).
+	 *
+	 * @param orientation Gate orientation.
+	 * @param world World the gate is created in (unused; reserved for future preference).
+	 * @return An allowed compatible type, or null if none are configured.
+	 */
+	public GateType resolveDefaultGateType(GateOrientation orientation, World world)
+	{
+		List<GateType> selectable = this.getSelectableGateTypes(orientation);
+		if (selectable.isEmpty()) return null;
+
+		boolean horizontal = orientation != null && orientation.isHorizontal();
+		String configuredId = horizontal ? this.defaultHorizontalGateType : this.defaultGateType;
+		if (configuredId != null && !configuredId.isEmpty())
+		{
+			for (GateType type : selectable)
+			{
+				if (type.getConfigId().equals(configuredId)) return type;
+			}
+		}
+
+		return selectable.get(0);
+	}
+
+	/**
+	 * Normalizes allow-list ids: uppercase, resolvable only, strip NETHER_PORTAL when horizontal.
+	 *
+	 * @param ids Input ids; null becomes empty.
+	 * @param horizontal When true, removes nether portal.
+	 * @return Sanitized mutable set of config ids.
+	 */
+	private static Set<String> sanitizeGateTypeIds(Set<String> ids, boolean horizontal)
+	{
+		Set<String> sanitized = new LinkedHashSet<>();
+		if (ids == null) return sanitized;
+		for (String raw : ids)
+		{
+			if (raw == null) continue;
+			String id = raw.trim().toUpperCase();
+			if (id.isEmpty()) continue;
+			if (horizontal && SupportedGateType.NETHER_PORTAL.name().equals(id)) continue;
+			GateType type = GateTypeResolve.parse(id);
+			if (type == null) continue;
+			if (horizontal && !type.isCompatibleWith(GateOrientation.HORIZONTAL)) continue;
+			sanitized.add(type.getConfigId());
+		}
+		return sanitized;
 	}
 
 	private boolean pigmanPortalSpawnAllowed = true;

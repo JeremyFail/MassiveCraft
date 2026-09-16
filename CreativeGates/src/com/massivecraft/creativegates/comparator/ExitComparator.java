@@ -1,4 +1,4 @@
-package com.massivecraft.creativegates;
+package com.massivecraft.creativegates.comparator;
 
 import com.massivecraft.creativegates.entity.UGate;
 

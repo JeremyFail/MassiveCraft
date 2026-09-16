@@ -1,4 +1,4 @@
-package com.massivecraft.creativegates;
+package com.massivecraft.creativegates.util;
 
 import com.massivecraft.creativegates.entity.UGate;
 

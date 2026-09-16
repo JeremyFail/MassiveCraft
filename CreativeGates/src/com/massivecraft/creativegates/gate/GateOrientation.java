@@ -1,4 +1,4 @@
-package com.massivecraft.creativegates;
+package com.massivecraft.creativegates.gate;
 
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.ps.PS;

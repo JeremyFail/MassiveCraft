@@ -1,12 +1,16 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.CreativeGates;
-import com.massivecraft.creativegates.EngineMain;
-import com.massivecraft.creativegates.EngineMain.HorizontalEntryContext;
-import com.massivecraft.creativegates.GateOrientation;
-import com.massivecraft.creativegates.GateTeleportSafety;
-import com.massivecraft.creativegates.HorizontalGateLaunchUtil;
-import com.massivecraft.creativegates.HorizontalGateLaunchUtil.LaunchPlan;
+import com.massivecraft.creativegates.engine.EngineGateClientVisual;
+import com.massivecraft.creativegates.engine.EngineMain;
+import com.massivecraft.creativegates.engine.EngineMain.HorizontalEntryContext;
+import com.massivecraft.creativegates.gate.GateOrientation;
+import com.massivecraft.creativegates.gate.fill.GateType;
+import com.massivecraft.creativegates.gate.fill.GateTypeResolve;
+import com.massivecraft.creativegates.gate.fill.SupportedGateType;
+import com.massivecraft.creativegates.util.GateTeleportSafety;
+import com.massivecraft.creativegates.util.HorizontalGateLaunchUtil;
+import com.massivecraft.creativegates.util.HorizontalGateLaunchUtil.LaunchPlan;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.mixin.MixinTeleport;
 import com.massivecraft.massivecore.mixin.MixinVisibility;
@@ -75,6 +79,7 @@ public class UGate extends Entity<UGate>
 		this.exitEnabled = that.exitEnabled;
 		this.exit = that.exit;
 		this.orientation = that.orientation;
+		this.fillTypeId = that.fillTypeId;
 		this.setCoordsNoChanged(that.coords);
 		this.setInteriorCoordsNoChanged(that.interiorCoords);
 		
@@ -355,6 +360,122 @@ public class UGate extends Entity<UGate>
 	{
 		this.changed(this.orientation, orientation);
 		this.orientation = orientation;
+	}
+	
+	/**
+	 * Config id of the fill type ({@link SupportedGateType} name or material name).
+	 * Resolved via {@link GateTypeResolve}.
+	 */
+	private String fillTypeId = null;
+	
+	/**
+	 * @return Stored fill type id, or null if unset.
+	 */
+	public String getFillTypeId()
+	{
+		return this.fillTypeId;
+	}
+	
+	/**
+	 * Sets the fill type by config id.
+	 *
+	 * @param fillTypeId Enum or material name; may be null.
+	 */
+	public void setFillTypeId(String fillTypeId)
+	{
+		String normalized = fillTypeId == null ? null : fillTypeId.trim().toUpperCase();
+		if (normalized != null && normalized.isEmpty()) normalized = null;
+		this.changed(this.fillTypeId, normalized);
+		this.fillTypeId = normalized;
+	}
+	
+	/**
+	 * Sets the fill from a resolved {@link GateType}.
+	 *
+	 * @param gateType Type to store; null clears.
+	 */
+	public void setFillType(GateType gateType)
+	{
+		this.setFillTypeId(gateType == null ? null : gateType.getConfigId());
+	}
+	
+	/**
+	 * @return True when server fill is void and the look is (or will be) client-only.
+	 */
+	public boolean usesClientVisualFill()
+	{
+		GateType type = this.getFillType();
+		return type != null && type.usesClientVisual();
+	}
+	
+	/**
+	 * Material clients should see for this gate's interior.
+	 *
+	 * @return Display material, or null if unresolved.
+	 */
+	public Material getClientDisplayMaterial()
+	{
+		GateType type = this.getFillType();
+		return type != null ? type.getClientDisplayMaterial() : null;
+	}
+	
+	/**
+	 * Resolves the fill type from {@link #fillTypeId}, inferring and persisting when missing.
+	 *
+	 * @return Effective type, or null if none can be resolved.
+	 */
+	public GateType getFillType()
+	{
+		if (this.fillTypeId != null)
+		{
+			GateType parsed = GateTypeResolve.parse(this.fillTypeId);
+			if (parsed != null) return parsed;
+		}
+		
+		GateType inferred = this.inferGateTypeFromContent();
+		if (inferred == null)
+		{
+			inferred = MConf.get().resolveDefaultGateType(this.orientation, this.getWorld());
+		}
+		if (inferred != null)
+		{
+			this.setFillType(inferred);
+		}
+		return inferred;
+	}
+	
+	/**
+	 * Infers type from existing interior blocks without persisting.
+	 *
+	 * @return Inferred type, or null.
+	 */
+	private GateType inferGateTypeFromContent()
+	{
+		List<Block> blocks = this.getContentBlocks();
+		if (blocks == null || blocks.isEmpty()) return null;
+		
+		for (Block block : blocks)
+		{
+			SupportedGateType type = SupportedGateType.fromServerMaterial(block.getType());
+			if (type != null) return type;
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns whether the block is part of this gate's portal interior (not frame).
+	 *
+	 * @param block Block to test.
+	 * @return True if the block is interior content.
+	 */
+	public boolean isInteriorBlock(Block block)
+	{
+		if (block == null) return false;
+		World world = this.getWorld();
+		if (world == null || !world.equals(block.getWorld())) return false;
+		
+		PS ps = PS.valueOf(block).withWorld(null);
+		return this.getContentCoordSet().contains(ps);
 	}
 	
 	// -------------------------------------------- //
@@ -645,7 +766,7 @@ public class UGate extends Entity<UGate>
 		for (PS coord : this.coords)
 		{
 			Material material = world.getBlockAt(coord.getBlockX(), coord.getBlockY(), coord.getBlockZ()).getType();
-			if (material != Material.NETHER_PORTAL && !CreativeGates.isFluidFillMaterial(material) && !CreativeGates.isVoid(material)) continue;
+			if (!CreativeGates.isGateFillOrVoid(material)) continue;
 			ret.add(coord);
 		}
 		
@@ -675,12 +796,17 @@ public class UGate extends Entity<UGate>
 		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return true;
 		
+		boolean clientVisual = this.usesClientVisualFill();
+		
 		for (Block block : blocks)
 		{
-			if (CreativeGates.isVoid(block))
+			if (clientVisual)
 			{
-				return false;
+				if (!CreativeGates.isVoid(block)) return false;
+				continue;
 			}
+			
+			if (CreativeGates.isVoid(block)) return false;
 		}
 		return true;
 	}
@@ -723,7 +849,7 @@ public class UGate extends Entity<UGate>
 		{
 			Material blockMaterial = block.getType();
 			
-			if (blockMaterial != Material.NETHER_PORTAL && !CreativeGates.isFluidFillMaterial(blockMaterial) && !CreativeGates.isVoid(blockMaterial)) continue;
+			if (!CreativeGates.isGateFillOrVoid(blockMaterial)) continue;
 			
 			block.setType(material, applyPhysics);
 			
@@ -744,9 +870,15 @@ public class UGate extends Entity<UGate>
 		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null || blocks.isEmpty()) return;
 		
+		GateType type = this.getFillType();
 		CreativeGates.get().setFilling(true);
-		this.setContent(CreativeGates.getFillMaterial(blocks.get(0).getWorld(), this.orientation));
+		this.setContent(CreativeGates.getFillMaterial(type, blocks.get(0).getWorld(), this.orientation));
 		CreativeGates.get().setFilling(false);
+		
+		if (this.usesClientVisualFill())
+		{
+			EngineGateClientVisual.get().syncGate(this);
+		}
 	}
 	
 	/**
@@ -754,6 +886,10 @@ public class UGate extends Entity<UGate>
 	 */
 	public void empty()
 	{
+		if (this.usesClientVisualFill())
+		{
+			EngineGateClientVisual.get().clearGate(this);
+		}
 		this.setContent(Material.AIR, false);
 	}
 	

@@ -1,12 +1,22 @@
-package com.massivecraft.creativegates;
+package com.massivecraft.creativegates.engine;
 
+import com.massivecraft.creativegates.CreativeGates;
+import com.massivecraft.creativegates.Perm;
+import com.massivecraft.creativegates.engine.create.GateCreate;
+import com.massivecraft.creativegates.engine.create.PendingGateCreate;
+import com.massivecraft.creativegates.engine.PendingGateCreates;
 import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.UGate;
-import com.massivecraft.creativegates.entity.UGateColl;
+import com.massivecraft.creativegates.gate.GateOrientation;
+import com.massivecraft.creativegates.gate.fill.GateType;
+import com.massivecraft.creativegates.gate.fill.SupportedGateType;
+import com.massivecraft.creativegates.ui.GateFillPicker;
+import com.massivecraft.creativegates.util.FloodUtil;
+import com.massivecraft.creativegates.util.GateFloodInfo;
+import com.massivecraft.creativegates.util.MaterialCountUtil;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.ps.PS;
-import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.InventoryUtil;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.Txt;
@@ -50,6 +60,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -123,7 +134,18 @@ public class EngineMain extends Engine
 		if (type == Material.LAVA || type == Material.WATER)
 		{
 			UGate gate = UGate.get(block);
-			if (gate != null && (MConf.get().isUsingWater() || gate.getOrientation().isHorizontal()))
+			if (gate != null)
+			{
+				event.setCancelled(true);
+			}
+			return;
+		}
+		
+		SupportedGateType fillType = SupportedGateType.fromServerMaterial(type);
+		if (fillType != null && fillType.shouldPreventMelt())
+		{
+			UGate gate = UGate.get(block);
+			if (gate != null && gate.isInteriorBlock(block))
 			{
 				event.setCancelled(true);
 			}
@@ -173,7 +195,8 @@ public class EngineMain extends Engine
 		if (fromGate == null && toGate == null) return;
 		
 		UGate gate = fromGate != null ? fromGate : toGate;
-		if (gate.getOrientation().isHorizontal() || MConf.get().isUsingWater())
+		Material type = event.getBlock().getType();
+		if (CreativeGates.isFluidFillMaterial(type) || gate.getOrientation().isHorizontal())
 		{
 			event.setCancelled(true);
 		}
@@ -225,36 +248,35 @@ public class EngineMain extends Engine
 	}
 	
 	// -------------------------------------------- //
-	// PREVENT LAVA GATE HARM
+	// PREVENT GATE HARM (LAVA / COLD / CUSTOM)
 	// -------------------------------------------- //
 	
 	/**
-	 * Handle entity damage events. This is used to prevent the player from taking damage from lava or fire in a gate.
-	 * Primarily used for lava gates.
-	 * 
+	 * Cancel damage the gate fill asks to suppress (lava, freeze, or all causes for unsupported types).
+	 *
 	 * @param event The entity damage event.
 	 */
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void preventGateLavaDamage(EntityDamageEvent event)
+	public void preventGateDamage(EntityDamageEvent event)
 	{
 		if (!(event.getEntity() instanceof Player player)) return;
 		
 		DamageCause cause = event.getCause();
-		if (cause != DamageCause.LAVA && cause != DamageCause.FIRE && cause != DamageCause.FIRE_TICK) return;
+		if (cause == null) return;
 		
 		if (event instanceof EntityDamageByBlockEvent damageByBlock)
 		{
-			if (isProtectedGateFluidBlock(damageByBlock.getDamager()))
+			if (isProtectedGateDamageBlock(damageByBlock.getDamager(), cause))
 			{
-				player.setFireTicks(0);
+				clearGateDamageEffects(player, cause);
 				event.setCancelled(true);
 				return;
 			}
 		}
 		
-		if (isInIntactGateFluid(player))
+		if (isInIntactGatePreventingDamage(player, cause))
 		{
-			player.setFireTicks(0);
+			clearGateDamageEffects(player, cause);
 			event.setCancelled(true);
 		}
 	}
@@ -286,16 +308,23 @@ public class EngineMain extends Engine
 	}
 	
 	/**
-	 * Handle player move events. This is used to clear the player's fire ticks when they are in a gate.
+	 * Handle player move events. This is used to clear the player's fire / freeze ticks in a gate.
 	 * 
 	 * @param event The player move event.
 	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void clearFireInGateFluid(PlayerMoveEvent event)
+	public void clearHazardTicksInGate(PlayerMoveEvent event)
 	{
 		if (MUtil.isSameBlock(event)) return;
-		if (!isInIntactGateFluid(event.getPlayer())) return;
-		event.getPlayer().setFireTicks(0);
+		Player player = event.getPlayer();
+		if (isInIntactGatePreventingDamage(player, DamageCause.FIRE) || isInIntactGateFluid(player))
+		{
+			player.setFireTicks(0);
+		}
+		if (isInIntactGatePreventingDamage(player, DamageCause.FREEZE))
+		{
+			player.setFreezeTicks(0);
+		}
 	}
 	
 	/**
@@ -316,7 +345,38 @@ public class EngineMain extends Engine
 	}
 	
 	/**
-	 * Check if a block is protected by a gate.
+	 * Prevent ice / powder snow gate fills from melting or fading.
+	 *
+	 * @param event The block fade event.
+	 */
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void preventGateMelt(BlockFadeEvent event)
+	{
+		Block block = event.getBlock();
+		UGate gate = UGate.get(block);
+		if (gate == null || !gate.isInteriorBlock(block)) return;
+		
+		GateType type = gate.getFillType();
+		if (type != null && type.shouldPreventMelt())
+		{
+			event.setCancelled(true);
+		}
+	}
+	
+	private static void clearGateDamageEffects(Player player, DamageCause cause)
+	{
+		if (cause == DamageCause.LAVA || cause == DamageCause.FIRE || cause == DamageCause.FIRE_TICK)
+		{
+			player.setFireTicks(0);
+		}
+		if (cause == DamageCause.FREEZE)
+		{
+			player.setFreezeTicks(0);
+		}
+	}
+	
+	/**
+	 * Check if a block is protected fluid gate content.
 	 * 
 	 * @param block The block to check.
 	 * @return True if the block is protected by a gate, false otherwise.
@@ -332,32 +392,68 @@ public class EngineMain extends Engine
 	}
 	
 	/**
-	 * Check if a player is in an intact gate.
+	 * Whether an intact gate fill at this block wants to suppress {@code cause}.
+	 */
+	public static boolean isProtectedGateDamageBlock(Block block, DamageCause cause)
+	{
+		if (block == null || cause == null) return false;
+		
+		UGate gate = UGate.get(block);
+		if (gate == null || !gate.isInteriorBlock(block) || !gate.isIntact()) return false;
+		
+		GateType type = gate.getFillType();
+		return type != null && type.shouldPreventDamage(cause);
+	}
+	
+	/**
+	 * Check if a player is in an intact fluid gate.
 	 * 
 	 * @param player The player to check.
 	 * @return True if the player is in an intact gate, false otherwise.
 	 */
 	public static boolean isInIntactGateFluid(Player player)
 	{
+		return isInIntactGateMatching(player, true, null);
+	}
+	
+	/**
+	 * Whether the player is touching an intact gate that prevents {@code cause}.
+	 */
+	public static boolean isInIntactGatePreventingDamage(Player player, DamageCause cause)
+	{
+		return isInIntactGateMatching(player, false, cause);
+	}
+	
+	private static boolean isInIntactGateMatching(Player player, boolean fluidOnly, DamageCause cause)
+	{
 		Location loc = player.getLocation();
 		BoundingBox box = player.getBoundingBox();
 		
 		int minX = (int) Math.floor(box.getMinX());
 		int maxX = (int) Math.floor(box.getMaxX());
-		int minY = (int) Math.floor(box.getMinY());
+		int minY = (int) Math.floor(box.getMinY()) - 1; // include stand-on solid ice / client-visual
 		int maxY = (int) Math.floor(box.getMaxY());
 		int minZ = (int) Math.floor(box.getMinZ());
 		int maxZ = (int) Math.floor(box.getMaxZ());
 		
-		// Check if the player is in an intact gate by checking if any of the blocks 
-		// in the player's bounding box are protected by a gate
+		World world = loc.getWorld();
+		if (world == null) return false;
+		
 		for (int x = minX; x <= maxX; x++)
 		{
 			for (int y = minY; y <= maxY; y++)
 			{
 				for (int z = minZ; z <= maxZ; z++)
 				{
-					if (isProtectedGateFluidBlock(loc.getWorld().getBlockAt(x, y, z))) return true;
+					Block block = world.getBlockAt(x, y, z);
+					if (fluidOnly)
+					{
+						if (isProtectedGateFluidBlock(block)) return true;
+					}
+					else if (cause != null)
+					{
+						if (isProtectedGateDamageBlock(block, cause)) return true;
+					}
 				}
 			}
 		}
@@ -403,9 +499,14 @@ public class EngineMain extends Engine
 	 */
 	public static boolean isGateContentBlock(Block block)
 	{
-		if (UGate.get(block) == null) return false;
+		UGate gate = UGate.get(block);
+		if (gate == null) return false;
+		if (!gate.isInteriorBlock(block)) return false;
+		
+		if (gate.usesClientVisualFill()) return true;
+		
 		Material type = block.getType();
-		return type == Material.NETHER_PORTAL || CreativeGates.isFluidFillMaterial(type);
+		return CreativeGates.isGateFillMaterial(type);
 	}
 	
 	/**
@@ -432,7 +533,8 @@ public class EngineMain extends Engine
 		
 		int minX = (int) Math.floor(location.getX() - halfWidth);
 		int maxX = (int) Math.floor(location.getX() + halfWidth);
-		int minY = (int) Math.floor(location.getY());
+		// Include one block below feet so solid ice platforms (stand-on) still count.
+		int minY = (int) Math.floor(location.getY()) - 1;
 		int maxY = (int) Math.floor(location.getY() + height);
 		int minZ = (int) Math.floor(location.getZ() - halfWidth);
 		int maxZ = (int) Math.floor(location.getZ() + halfWidth);
@@ -1142,61 +1244,42 @@ public class EngineMain extends Engine
 				interiorCoords.add(PS.valueOf(block).withWorld(null));
 			}
 			
-			// ... create the gate ...
-			UGate newGate = UGateColl.get().create();
-			newGate.setCreatorId(IdUtil.getId(player));
-			newGate.setNetworkId(newNetworkId);
-			newGate.setExit(exit);
-			newGate.setCoords(coords);
-			newGate.setInteriorCoords(interiorCoords);
-			newGate.setOrientation(gateOrientation);
-			
-			// ... set the air blocks to portal material ...
-			newGate.fill();
-			
-			// ... run fx ...
-			newGate.fxKitCreate(player);
-			
-			// ... fx-inform the player ...
-			message = Txt.parse("<g>A \"<h>%s<g>\" gate takes form in front of you.", newNetworkId);
-			MixinMessage.get().messageOne(player, message);
-			
-			// ... item cost ...
-			if (MConf.get().isRemovingCreateToolItem())
+			List<GateType> selectable = MConf.get().getSelectableGateTypes(gateOrientation);
+			if (selectable.isEmpty())
 			{
-				// ... remove one item amount...
-				
-				// (decrease count in hand)
-				decreaseOne(event);
-				
-				// (message)
-				message = Txt.parse("<i>The %s disappears.", Txt.getMaterialName(material));
+				message = Txt.parse("<b>No allowed gate types are configured for this gate.");
 				MixinMessage.get().messageOne(player, message);
+				return;
 			}
-			else if (MConf.get().isRemovingCreateToolName())
+			
+			PendingGateCreate pending = new PendingGateCreate(
+				player.getUniqueId(),
+				player.getWorld(),
+				newNetworkId,
+				exit,
+				coords,
+				interiorCoords,
+				gateOrientation,
+				event.getHand()
+			);
+			
+			boolean canPickFill = Perm.SET_GATE_FILL.has(player, MConf.get().verboseSetGateFillPermission);
+			if (canPickFill && selectable.size() > 1)
 			{
-				// ... just remove the item name ...
-				
-				// (decrease count in hand)
-				decreaseOne(event);
-				
-				// (add one unnamed)
-				ItemStack newItemUnnamed = new ItemStack(currentItem);
-				ItemMeta newItemUnnamedMeta = InventoryUtil.createMeta(newItemUnnamed);
-				newItemUnnamedMeta.setDisplayName(null);
-				newItemUnnamed.setItemMeta(newItemUnnamedMeta);
-				newItemUnnamed.setAmount(1);
-				if (player.getInventory().addItem(newItemUnnamed).size() > 0) {
-					player.getWorld().dropItemNaturally(player.getLocation(), newItemUnnamed);
-				}
-				
-				// Update soon
-				InventoryUtil.updateSoon(player);
-				
-				// (message)
-				message = Txt.parse("<i>The %s seems to have lost it's power.", Txt.getMaterialName(material));
-				MixinMessage.get().messageOne(player, message);
+				PendingGateCreates.get().put(pending);
+				GateFillPicker.open(player, pending, selectable);
+				return;
 			}
+			
+			GateType gateType = canPickFill ? selectable.get(0) : MConf.get().resolveDefaultGateType(gateOrientation, player.getWorld());
+			if (gateType == null)
+			{
+				message = Txt.parse("<b>No allowed gate types are configured for this gate.");
+				MixinMessage.get().messageOne(player, message);
+				return;
+			}
+			
+			GateCreate.complete(player, pending, gateType);
 		}
 		else
 		{
@@ -1224,8 +1307,8 @@ public class EngineMain extends Engine
 				}
 			}
 			
-			// ... and we are not using water ...
-			if (!MConf.get().isUsingWater())
+			// ... and the gate uses nether portal fill ...
+			if (currentGate.getFillType() == SupportedGateType.NETHER_PORTAL)
 			{
 				// ... update the portal orientation
 				currentGate.fill();
@@ -1296,23 +1379,6 @@ public class EngineMain extends Engine
 			
 		}
 		
-	}
-	
-	/**
-	 * Decrease the amount of an item by one. This is used to remove one item from the player's inventory.
-	 * Primarily used for the create portal item.
-	 * 
-	 * @param event The player interact event to decrease the item amount in.
-	 */
-	private static void decreaseOne(PlayerInteractEvent event)
-	{
-		ItemStack currentItem = event.getItem();
-		Player player = event.getPlayer();
-		
-		assert currentItem != null;
-		ItemStack newItem = new ItemStack(currentItem);
-		newItem.setAmount(newItem.getAmount() - 1);
-		InventoryUtil.setSlot(player, newItem, event.getHand());
 	}
 	
 }
