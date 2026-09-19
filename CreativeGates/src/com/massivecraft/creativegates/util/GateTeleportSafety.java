@@ -1,7 +1,6 @@
 package com.massivecraft.creativegates.util;
 
 import com.massivecraft.creativegates.CreativeGates;
-import com.massivecraft.creativegates.gate.fill.SupportedGateType;
 import com.massivecraft.massivecore.ps.PS;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -39,11 +38,8 @@ public final class GateTeleportSafety
 		if (block == null) return false;
 		Material material = block.getType();
 		if (CreativeGates.isVoid(material)) return true;
-		if (CreativeGates.isGateFillMaterial(material))
-		{
-			SupportedGateType type = SupportedGateType.fromServerMaterial(material);
-			if (type != null && type.isEnterable()) return true;
-		}
+		if (material == Material.LIGHT) return true;
+		if (CreativeGates.isFluidFillMaterial(material)) return true;
 		return !material.isSolid();
 	}
 	

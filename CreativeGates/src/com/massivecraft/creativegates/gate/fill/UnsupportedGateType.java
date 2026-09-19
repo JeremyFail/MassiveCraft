@@ -3,7 +3,6 @@ package com.massivecraft.creativegates.gate.fill;
 import com.massivecraft.creativegates.CreativeGates;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import java.util.Objects;
@@ -11,8 +10,8 @@ import java.util.Objects;
 /**
  * Experimental / custom gate fill keyed by an arbitrary block {@link Material}.
  * <p>
- * Always enterable and client-visual (server air). Attempts to prevent melt and
- * <em>any</em> damage while the player is in the gate. Not officially supported;
+ * Always enterable and BlockDisplay-based (invisible {@link Material#LIGHT} at
+ * {@link GateType#DISPLAY_BLOCK_LIGHT_LEVEL}). Not officially supported;
  * admins opt in via string ids in the MConf allow-lists.
  * </p>
  */
@@ -50,13 +49,7 @@ public final class UnsupportedGateType implements GateType
 	}
 	
 	@Override
-	public Material getServerFillMaterial(World world)
-	{
-		return Material.AIR;
-	}
-	
-	@Override
-	public boolean usesClientVisual()
+	public boolean usesBlockDisplay(GateOrientation orientation)
 	{
 		return true;
 	}
@@ -68,15 +61,9 @@ public final class UnsupportedGateType implements GateType
 	}
 	
 	@Override
-	public boolean shouldPreventMelt()
-	{
-		return true;
-	}
-	
-	@Override
 	public boolean shouldPreventDamage(DamageCause cause)
 	{
-		return cause != null;
+		return false;
 	}
 	
 	@Override

@@ -1,7 +1,8 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.CreativeGates;
-import com.massivecraft.creativegates.engine.EngineGateClientVisual;
+import com.massivecraft.creativegates.engine.EngineGateFillDisplay;
+import com.massivecraft.creativegates.engine.EngineGateFillParticles;
 import com.massivecraft.creativegates.engine.EngineMain;
 import com.massivecraft.creativegates.engine.EngineMain.HorizontalEntryContext;
 import com.massivecraft.creativegates.gate.GateOrientation;
@@ -22,7 +23,6 @@ import com.massivecraft.massivecore.teleport.DestinationSimple;
 import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.SmokeUtil;
 import com.massivecraft.massivecore.util.Txt;
-import org.bukkit.Axis;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -30,7 +30,6 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.Orientable;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -363,7 +362,7 @@ public class UGate extends Entity<UGate>
 	}
 	
 	/**
-	 * Config id of the fill type ({@link SupportedGateType} name or material name).
+	 * Config id of the fill type ({@link SupportedGateType} name, material name, or {@code PARTICLE_*}).
 	 * Resolved via {@link GateTypeResolve}.
 	 */
 	private String fillTypeId = null;
@@ -400,12 +399,21 @@ public class UGate extends Entity<UGate>
 	}
 	
 	/**
-	 * @return True when server fill is void and the look is (or will be) client-only.
+	 * @return True when the look is BlockDisplay (or END_GATEWAY fallback) for this gate's orientation.
 	 */
-	public boolean usesClientVisualFill()
+	public boolean usesBlockDisplayFill()
 	{
 		GateType type = this.getFillType();
-		return type != null && type.usesClientVisual();
+		return type != null && type.usesBlockDisplay(this.orientation);
+	}
+	
+	/**
+	 * @return True when the interior is a particle fill rather than blocks.
+	 */
+	public boolean usesParticleFill()
+	{
+		GateType type = this.getFillType();
+		return type != null && type.isParticleFill();
 	}
 	
 	/**
@@ -796,17 +804,13 @@ public class UGate extends Entity<UGate>
 		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return true;
 		
-		boolean clientVisual = this.usesClientVisualFill();
+		GateType type = this.getFillType();
+		if (type == null) return true;
 		
+		World world = blocks.get(0).getWorld();
 		for (Block block : blocks)
 		{
-			if (clientVisual)
-			{
-				if (!CreativeGates.isVoid(block)) return false;
-				continue;
-			}
-			
-			if (CreativeGates.isVoid(block)) return false;
+			if (!type.isExpectedServerFill(block.getType(), world, this.orientation)) return false;
 		}
 		return true;
 	}
@@ -831,19 +835,9 @@ public class UGate extends Entity<UGate>
 	{
 		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return;
-		Axis axis;
-		if (this.orientation == GateOrientation.NS)
-		{
-			axis = Axis.Z;
-		}
-		else if (this.orientation == GateOrientation.WE)
-		{
-			axis = Axis.X;
-		}
-		else
-		{
-			axis = Axis.Y;
-		}
+		
+		GateType type = this.getFillType();
+		int lightLevel = type != null ? type.getEmittedBlockLightLevel(this.orientation) : -1;
 		
 		for (Block block : blocks)
 		{
@@ -851,19 +845,21 @@ public class UGate extends Entity<UGate>
 			
 			if (!CreativeGates.isGateFillOrVoid(blockMaterial)) continue;
 			
-			block.setType(material, applyPhysics);
-			
-			// Apply orientation
-			if (material != Material.NETHER_PORTAL) continue;
-
-			Orientable orientable = (Orientable) block.getBlockData();
-			orientable.setAxis(axis);
-			block.setBlockData(orientable);
+			if (material == Material.LIGHT && lightLevel >= 0)
+			{
+				org.bukkit.block.data.type.Light light = (org.bukkit.block.data.type.Light) Material.LIGHT.createBlockData();
+				light.setLevel(Math.min(15, lightLevel));
+				block.setBlockData(light, applyPhysics);
+			}
+			else
+			{
+				block.setType(material, applyPhysics);
+			}
 		}
 	}
 	
 	/**
-	 * Fills the gate with the fill material.
+	 * Fills the gate with the fill material and syncs BlockDisplay visuals.
 	 */
 	public void fill()
 	{
@@ -875,9 +871,13 @@ public class UGate extends Entity<UGate>
 		this.setContent(CreativeGates.getFillMaterial(type, blocks.get(0).getWorld(), this.orientation));
 		CreativeGates.get().setFilling(false);
 		
-		if (this.usesClientVisualFill())
+		if (this.usesBlockDisplayFill())
 		{
-			EngineGateClientVisual.get().syncGate(this);
+			EngineGateFillDisplay.get().syncGate(this);
+		}
+		else
+		{
+			EngineGateFillDisplay.get().clearGate(this);
 		}
 	}
 	
@@ -886,10 +886,7 @@ public class UGate extends Entity<UGate>
 	 */
 	public void empty()
 	{
-		if (this.usesClientVisualFill())
-		{
-			EngineGateClientVisual.get().clearGate(this);
-		}
+		EngineGateFillDisplay.get().clearGate(this);
 		this.setContent(Material.AIR, false);
 	}
 	
@@ -904,8 +901,8 @@ public class UGate extends Entity<UGate>
 	 */
 	public void fxKitCreate(Player player)
 	{
-		//this.fxSmoke();
 		playConfiguredTeleportSound(player, false);
+		EngineGateFillParticles.get().burstGate(this);
 	}
 	
 	/**
@@ -916,6 +913,7 @@ public class UGate extends Entity<UGate>
 	public void fxKitUse(Player player)
 	{
 		playConfiguredTeleportSound(player, true);
+		EngineGateFillParticles.get().burstGate(this);
 	}
 	
 	/**

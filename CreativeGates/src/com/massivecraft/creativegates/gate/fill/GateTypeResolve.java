@@ -6,8 +6,8 @@ import org.bukkit.Material;
 /**
  * Resolves config / persistence string ids into {@link GateType} instances.
  * <p>
- * Order: {@link SupportedGateType} enum name first, then {@link Material} as
- * {@link UnsupportedGateType}.
+ * Order: {@link ParticleGateType} ({@code PARTICLE_*} prefix), then {@link SupportedGateType}
+ * enum name, then {@link Material} as {@link UnsupportedGateType}.
  * </p>
  */
 public final class GateTypeResolve
@@ -17,7 +17,7 @@ public final class GateTypeResolve
 	/**
 	 * Parse a config id into a gate type.
 	 *
-	 * @param id Enum name or material name; may be null/blank.
+	 * @param id Enum name, {@code PARTICLE_*} id, or material name; may be null/blank.
 	 * @return Resolved type, or null if unrecognized / invalid.
 	 */
 	public static GateType parse(String id)
@@ -27,6 +27,11 @@ public final class GateTypeResolve
 		if (trimmed.isEmpty()) return null;
 		
 		String key = trimmed.toUpperCase();
+		
+		if (key.startsWith(ParticleGateType.ID_PREFIX))
+		{
+			return ParticleGateType.parse(key);
+		}
 		
 		try
 		{

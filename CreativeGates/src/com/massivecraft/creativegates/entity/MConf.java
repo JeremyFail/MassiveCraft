@@ -4,6 +4,7 @@ import com.massivecraft.creativegates.Perm;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.gate.fill.GateTypeResolve;
+import com.massivecraft.creativegates.gate.fill.ParticleGateType;
 import com.massivecraft.creativegates.gate.fill.SupportedGateType;
 import com.massivecraft.massivecore.collections.MassiveSet;
 import com.massivecraft.massivecore.command.editor.annotation.EditorName;
@@ -38,6 +39,9 @@ public class MConf extends Entity<MConf>
 		super.load(that);
 		this.allowedGateTypes = sanitizeGateTypeIds(this.allowedGateTypes, false);
 		this.allowedHorizontalGateTypes = sanitizeGateTypeIds(this.allowedHorizontalGateTypes, true);
+		this.allowedGateParticleTypes = ParticleGateType.sanitizeIds(this.allowedGateParticleTypes);
+		this.allowedHorizontalGateParticleTypes = ParticleGateType.sanitizeIds(this.allowedHorizontalGateParticleTypes);
+		this.gateFillParticleAmount = sanitizeParticleAmount(this.gateFillParticleAmount);
 		this.updatePerms();
 		return this;
 	}
@@ -119,7 +123,7 @@ public class MConf extends Entity<MConf>
 	public void updatePerms()
 	{
 		PermissionUtil.getPermission(false, true, Perm.CREATE.getId(), "create a gate", this.permissionDefaultCreate);
-		PermissionUtil.getPermission(false, true, Perm.SET_GATE_FILL.getId(), "choose gate fill material when creating", this.permissionDefaultSetGateFill);
+		PermissionUtil.getPermission(false, true, Perm.SET_GATE_FILL.getId(), "choose gate fill when creating", this.permissionDefaultSetGateFill);
 		PermissionUtil.getPermission(false, true, Perm.USE.getId(), "use a gate", this.permissionDefaultUse);
 	}
 
@@ -128,19 +132,17 @@ public class MConf extends Entity<MConf>
 	// -------------------------------------------- //
 
 	/**
-	 * Vertical gate fill allow-list as config ids ({@link SupportedGateType} names or material names).
+	 * Vertical gate <em>block</em> fill allow-list as config ids ({@link SupportedGateType} names
+	 * or material names). Particle fills use {@link #getAllowedGateParticleTypes()} instead.
 	 * Resolved via {@link GateTypeResolve}.
 	 */
 	private Set<String> allowedGateTypes = MUtil.set(
 		SupportedGateType.NETHER_PORTAL.name(),
+		SupportedGateType.END_GATEWAY.name(),
 		SupportedGateType.WATER.name(),
 		SupportedGateType.LAVA.name(),
-		SupportedGateType.END_GATEWAY.name(),
-		SupportedGateType.POWDER_SNOW.name(),
-		SupportedGateType.ICE.name(),
-		SupportedGateType.PACKED_ICE.name(),
-		SupportedGateType.BLUE_ICE.name(),
-		SupportedGateType.FROSTED_ICE.name()
+		Material.POWDER_SNOW.name(),
+		Material.ICE.name()
 	);
 	public Set<String> getAllowedGateTypes() { return new LinkedHashSet<>(this.allowedGateTypes); }
 	public void setAllowedGateTypes(Set<String> allowedGateTypes)
@@ -151,16 +153,17 @@ public class MConf extends Entity<MConf>
 	}
 
 	/**
-	 * Horizontal gate fill allow-list as config ids. Never includes {@link SupportedGateType#NETHER_PORTAL}.
+	 * Horizontal gate <em>block</em> fill allow-list as config ids (includes nether portal via
+	 * BlockDisplay rotation; animation can freeze at some camera pitches). Particle fills use
+	 * {@link #getAllowedHorizontalGateParticleTypes()}.
 	 */
 	private Set<String> allowedHorizontalGateTypes = MUtil.set(
+		SupportedGateType.NETHER_PORTAL.name(),
+		SupportedGateType.END_GATEWAY.name(),
 		SupportedGateType.WATER.name(),
 		SupportedGateType.LAVA.name(),
-		SupportedGateType.POWDER_SNOW.name(),
-		SupportedGateType.ICE.name(),
-		SupportedGateType.PACKED_ICE.name(),
-		SupportedGateType.BLUE_ICE.name(),
-		SupportedGateType.FROSTED_ICE.name()
+		Material.POWDER_SNOW.name(),
+		Material.ICE.name()
 	);
 	public Set<String> getAllowedHorizontalGateTypes() { return new LinkedHashSet<>(this.allowedHorizontalGateTypes); }
 	public void setAllowedHorizontalGateTypes(Set<String> allowedHorizontalGateTypes)
@@ -168,6 +171,43 @@ public class MConf extends Entity<MConf>
 		Set<String> sanitized = sanitizeGateTypeIds(allowedHorizontalGateTypes, true);
 		this.changed(this.allowedHorizontalGateTypes, sanitized);
 		this.allowedHorizontalGateTypes = sanitized;
+	}
+
+	/**
+	 * Vertical gate particle fill allow-list as {@code PARTICLE_*} (or bare enum) ids.
+	 */
+	private Set<String> allowedGateParticleTypes = ParticleGateType.defaultConfigIds();
+	public Set<String> getAllowedGateParticleTypes() { return new LinkedHashSet<>(this.allowedGateParticleTypes); }
+	public void setAllowedGateParticleTypes(Set<String> allowedGateParticleTypes)
+	{
+		Set<String> sanitized = ParticleGateType.sanitizeIds(allowedGateParticleTypes);
+		this.changed(this.allowedGateParticleTypes, sanitized);
+		this.allowedGateParticleTypes = sanitized;
+	}
+
+	/**
+	 * Horizontal gate particle fill allow-list as {@code PARTICLE_*} (or bare enum) ids.
+	 */
+	private Set<String> allowedHorizontalGateParticleTypes = ParticleGateType.defaultConfigIds();
+	public Set<String> getAllowedHorizontalGateParticleTypes() { return new LinkedHashSet<>(this.allowedHorizontalGateParticleTypes); }
+	public void setAllowedHorizontalGateParticleTypes(Set<String> allowedHorizontalGateParticleTypes)
+	{
+		Set<String> sanitized = ParticleGateType.sanitizeIds(allowedHorizontalGateParticleTypes);
+		this.changed(this.allowedHorizontalGateParticleTypes, sanitized);
+		this.allowedHorizontalGateParticleTypes = sanitized;
+	}
+
+	/**
+	 * Particles spawned throughout a particle-fill gate each ambient tick.
+	 * Block fills ignore this (they use their own themed kit).
+	 */
+	private int gateFillParticleAmount = 16;
+	public int getGateFillParticleAmount() { return this.gateFillParticleAmount; }
+	public void setGateFillParticleAmount(int gateFillParticleAmount)
+	{
+		int sanitized = sanitizeParticleAmount(gateFillParticleAmount);
+		this.changed(this.gateFillParticleAmount, sanitized);
+		this.gateFillParticleAmount = sanitized;
 	}
 
 	/**
@@ -182,20 +222,25 @@ public class MConf extends Entity<MConf>
 		if (gateType == null) return false;
 		if (!gateType.isCompatibleWith(orientation)) return false;
 		String id = gateType.getConfigId();
-		if (orientation != null && orientation.isHorizontal())
+		boolean horizontal = orientation != null && orientation.isHorizontal();
+		if (gateType.isParticleFill())
 		{
-			return this.allowedHorizontalGateTypes.contains(id);
+			return horizontal
+				? this.allowedHorizontalGateParticleTypes.contains(id)
+				: this.allowedGateParticleTypes.contains(id);
 		}
-		return this.allowedGateTypes.contains(id);
+		return horizontal
+			? this.allowedHorizontalGateTypes.contains(id)
+			: this.allowedGateTypes.contains(id);
 	}
 
 	/**
-	 * Resolved selectable fills for UI / creation for the given orientation.
+	 * Resolved selectable <em>block</em> fills for UI / creation for the given orientation.
 	 *
 	 * @param orientation Gate orientation; null treats as vertical.
-	 * @return Ordered list of resolved types (invalid ids omitted).
+	 * @return Ordered list of resolved block types (invalid ids omitted).
 	 */
-	public List<GateType> getSelectableGateTypes(GateOrientation orientation)
+	public List<GateType> getSelectableBlockGateTypes(GateOrientation orientation)
 	{
 		boolean horizontal = orientation != null && orientation.isHorizontal();
 		Set<String> ids = horizontal ? this.allowedHorizontalGateTypes : this.allowedGateTypes;
@@ -203,10 +248,44 @@ public class MConf extends Entity<MConf>
 		for (String id : ids)
 		{
 			GateType type = GateTypeResolve.parse(id);
-			if (type == null) continue;
+			if (type == null || type.isParticleFill()) continue;
 			if (!type.isCompatibleWith(orientation)) continue;
 			ret.add(type);
 		}
+		return ret;
+	}
+
+	/**
+	 * Resolved selectable <em>particle</em> fills for UI / creation for the given orientation.
+	 *
+	 * @param orientation Gate orientation; null treats as vertical.
+	 * @return Ordered list of resolved particle types (invalid ids omitted).
+	 */
+	public List<GateType> getSelectableParticleGateTypes(GateOrientation orientation)
+	{
+		boolean horizontal = orientation != null && orientation.isHorizontal();
+		Set<String> ids = horizontal ? this.allowedHorizontalGateParticleTypes : this.allowedGateParticleTypes;
+		List<GateType> ret = new ArrayList<>();
+		for (String id : ids)
+		{
+			ParticleGateType type = ParticleGateType.parse(id);
+			if (type == null) continue;
+			ret.add(type);
+		}
+		return ret;
+	}
+
+	/**
+	 * Resolved selectable fills (blocks then particles) for UI / creation for the given orientation.
+	 *
+	 * @param orientation Gate orientation; null treats as vertical.
+	 * @return Ordered list of resolved types (invalid ids omitted).
+	 */
+	public List<GateType> getSelectableGateTypes(GateOrientation orientation)
+	{
+		List<GateType> ret = new ArrayList<>();
+		ret.addAll(this.getSelectableBlockGateTypes(orientation));
+		ret.addAll(this.getSelectableParticleGateTypes(orientation));
 		return ret;
 	}
 
@@ -223,7 +302,8 @@ public class MConf extends Entity<MConf>
 		this.replaceWaterWithLavaInNether = replaceWaterWithLavaInNether;
 	}
 
-	// Floor/ceiling portals (Portal-style). Nether portal blocks are not compatible.
+	// Floor/ceiling portals (Portal-style). Nether portal fill uses rotated BlockDisplays
+	// (client animation can freeze at some camera pitches — BlockDisplay limitation).
 	private boolean horizontalGatesEnabled = true;
 	public boolean isHorizontalGatesEnabled() { return this.horizontalGatesEnabled; }
 	public void setHorizontalGatesEnabled(boolean horizontalGatesEnabled)
@@ -243,7 +323,7 @@ public class MConf extends Entity<MConf>
 
 	/**
 	 * Configured default fill for vertical gates. Blank / invalid falls back to the first
-	 * entry in {@link #getAllowedGateTypes()}.
+	 * entry in {@link #getSelectableGateTypes(GateOrientation)}.
 	 */
 	private String defaultGateType = "";
 	public String getDefaultGateType() { return this.defaultGateType; }
@@ -256,7 +336,7 @@ public class MConf extends Entity<MConf>
 
 	/**
 	 * Configured default fill for horizontal gates. Blank / invalid falls back to the first
-	 * entry in {@link #getAllowedHorizontalGateTypes()}.
+	 * entry in {@link #getSelectableGateTypes(GateOrientation)}.
 	 */
 	private String defaultHorizontalGateType = "";
 	public String getDefaultHorizontalGateType() { return this.defaultHorizontalGateType; }
@@ -293,10 +373,10 @@ public class MConf extends Entity<MConf>
 	}
 
 	/**
-	 * Normalizes allow-list ids: uppercase, resolvable only, strip NETHER_PORTAL when horizontal.
+	 * Normalizes allow-list ids: uppercase, resolvable only.
 	 *
 	 * @param ids Input ids; null becomes empty.
-	 * @param horizontal When true, removes nether portal.
+	 * @param horizontal When true, skips types incompatible with horizontal orientation.
 	 * @return Sanitized mutable set of config ids.
 	 */
 	private static Set<String> sanitizeGateTypeIds(Set<String> ids, boolean horizontal)
@@ -308,21 +388,23 @@ public class MConf extends Entity<MConf>
 			if (raw == null) continue;
 			String id = raw.trim().toUpperCase();
 			if (id.isEmpty()) continue;
-			if (horizontal && SupportedGateType.NETHER_PORTAL.name().equals(id)) continue;
 			GateType type = GateTypeResolve.parse(id);
-			if (type == null) continue;
+			if (type == null || type.isParticleFill()) continue;
 			if (horizontal && !type.isCompatibleWith(GateOrientation.HORIZONTAL)) continue;
 			sanitized.add(type.getConfigId());
 		}
 		return sanitized;
 	}
 
-	private boolean pigmanPortalSpawnAllowed = true;
-	public boolean isPigmanPortalSpawnAllowed() { return this.pigmanPortalSpawnAllowed; }
-	public void setPigmanPortalSpawnAllowed(boolean pigmanPortalSpawnAllowed)
+	/**
+	 * Clamps particle-fill spawn count to a safe range.
+	 *
+	 * @param amount Raw config value.
+	 * @return Value in {@code [1, 128]}.
+	 */
+	private static int sanitizeParticleAmount(int amount)
 	{
-		this.changed(this.pigmanPortalSpawnAllowed, pigmanPortalSpawnAllowed);
-		this.pigmanPortalSpawnAllowed = pigmanPortalSpawnAllowed;
+		return Math.max(1, Math.min(128, amount));
 	}
 
 	private int maxarea = 200;

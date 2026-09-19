@@ -13,103 +13,68 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
  * Admins choose which of these players may use via string ids in
  * {@link MConf#getAllowedGateTypes()} and {@link MConf#getAllowedHorizontalGateTypes()}
  * (resolved by {@link GateTypeResolve}). Experimental materials become
- * {@link UnsupportedGateType} instances instead.
+ * {@link UnsupportedGateType} instances instead. Particle fills are configured separately
+ * via {@link MConf#getAllowedGateParticleTypes()}.
  * </p>
  * <p>
- * <b>Server fill vs client look:</b> Some types place a real block
- * ({@link #WATER}, {@link #LAVA}, {@link #NETHER_PORTAL}, {@link #POWDER_SNOW}).
- * Others ({@link #END_GATEWAY}, ice variants) use
- * <em>client visuals</em>: the server keeps void/air so there is no collision, and
- * the look is (or will be) sent with {@code Player#sendBlockChange}. Collision is
- * always determined by the server block, not by what the client is shown.
- * </p>
- * <p>
- * Behavior flags on each constant ({@link #shouldPreventMelt()},
- * {@link #shouldPreventDamage(DamageCause)}, {@link #isEnterable()},
- * {@link #usesClientVisual()}) keep special-case logic out of event listeners.
+ * <b>Server fill vs look:</b> {@link #WATER} and {@link #LAVA} place real fluid blocks.
+ * All other supported types keep invisible {@link Material#LIGHT} on the server and show the
+ * look via BlockDisplay and/or {@code Player#sendBlockChange} — never real portal/fire blocks
+ * (so no piglin portal spawns, vanilla nether travel, or fire damage from the fill).
+ * {@link #FIRE}, {@link #SOUL_FIRE}, and <em>vertical</em> {@link #NETHER_PORTAL} use
+ * {@code sendBlockChange} (client sees real blocks → correct animation).
+ * <em>Horizontal</em> {@link #NETHER_PORTAL} uses rotated BlockDisplays (vanilla portal models
+ * cannot lie flat; BlockDisplay animation may freeze at some pitches).
+ * {@link #END_GATEWAY} uses BlockDisplay (or {@code sendBlockChange} before MC 26.1).
  * </p>
  */
 public enum SupportedGateType implements GateType
 {
 	/**
-	 * Vanilla nether portal interior. Vertical gates only;
-	 * not compatible with horizontal gates.
+	 * Nether portal look. Vertical: client {@code sendBlockChange} (animates; no server portal
+	 * block). Horizontal: rotated BlockDisplay (flat look; animation may freeze at some pitches).
 	 */
-	NETHER_PORTAL(Material.NETHER_PORTAL, false, false, true, false),
+	NETHER_PORTAL(Material.NETHER_PORTAL),
 	
 	/**
 	 * Water interior. In the nether, may become lava when
 	 * {@link MConf#isReplaceWaterWithLavaInNether()} is true.
 	 */
-	WATER(Material.WATER, false, false, true, false),
+	WATER(Material.WATER),
 	
 	/**
 	 * Lava interior (overworld or nether). Fire/lava damage
 	 * is cancelled while inside the gate.
 	 */
-	LAVA(Material.LAVA, false, false, true, false),
+	LAVA(Material.LAVA),
 	
 	/**
-	 * End-gateway look. Server fill is air; client overlay shows {@link Material#END_GATEWAY}.
-	 * Walk-through because the server block has no collision.
+	 * End-gateway look. BlockDisplay when MC ≥ 26.1,
+	 * otherwise temporary client block-change fallback.
 	 */
-	END_GATEWAY(Material.END_GATEWAY, false, false, true, true),
+	END_GATEWAY(Material.END_GATEWAY),
 	
 	/**
-	 * Powder snow interior (real block). Players sink into it;
-	 * melt and freeze damage are suppressed.
+	 * Fire look via client {@code sendBlockChange} on the whole interior (server light).
+	 * BlockDisplays cannot animate fire reliably from all view angles. Full cube model;
+	 * walk-through may show the vanilla fire overlay. No server fire damage.
 	 */
-	POWDER_SNOW(Material.POWDER_SNOW, true, true, true, false),
+	FIRE(Material.FIRE),
 	
 	/**
-	 * Ice look via client visual (server air). Walk-through; no real ice to melt or freeze from.
+	 * Soul fire look via client {@code sendBlockChange} on the whole interior (server light).
+	 * BlockDisplays never start the soul-fire atlas. Full cube model; walk-through may show
+	 * the vanilla fire overlay. No server fire damage.
 	 */
-	ICE(Material.ICE, false, false, true, true),
-	
-	/**
-	 * Packed ice look via client visual (server air). Walk-through.
-	 */
-	PACKED_ICE(Material.PACKED_ICE, false, false, true, true),
-	
-	/**
-	 * Blue ice look via client visual (server air). Walk-through.
-	 */
-	BLUE_ICE(Material.BLUE_ICE, false, false, true, true),
-	
-	/**
-	 * Frosted ice look via client visual (server air). Walk-through.
-	 */
-	FROSTED_ICE(Material.FROSTED_ICE, false, false, true, true),
+	SOUL_FIRE(Material.SOUL_FIRE),
 	;
 	
 	/** Material used for placement and/or client display identity. */
 	private final Material baseMaterial;
 	
-	/** When true, cancel {@code BlockFadeEvent} (and similar) on real server fills of this type. */
-	private final boolean preventMelt;
-	
-	/** When true, cancel freeze damage / clear freeze ticks for real fills of this type. */
-	private final boolean preventColdDamage;
-	
-	/**
-	 * When true, players are expected to move through the fill.
-	 * Client-visual types are always enterable because the server block is air.
-	 */
-	private final boolean enterable;
-	
-	/**
-	 * When true, server places air and the look comes from {@link #getClientDisplayMaterial()}
-	 * (via {@code sendBlockChange} when that layer is implemented).
-	 */
-	private final boolean clientVisual;
-	
-	SupportedGateType(Material baseMaterial, boolean preventMelt, boolean preventColdDamage, boolean enterable, boolean clientVisual)
+	SupportedGateType(Material baseMaterial)
 	{
 		this.baseMaterial = baseMaterial;
-		this.preventMelt = preventMelt;
-		this.preventColdDamage = preventColdDamage;
-		this.enterable = enterable;
-		this.clientVisual = clientVisual;
 	}
 	
 	@Override
@@ -125,22 +90,13 @@ public enum SupportedGateType implements GateType
 	}
 	
 	@Override
-	public boolean shouldPreventMelt()
-	{
-		return this.preventMelt;
-	}
-	
-	@Override
 	public boolean shouldPreventDamage(DamageCause cause)
 	{
 		if (cause == null) return false;
+		// Only real lava fill deals contact damage; client-overlay fire does not.
 		if (this == LAVA)
 		{
 			return cause == DamageCause.LAVA || cause == DamageCause.FIRE || cause == DamageCause.FIRE_TICK;
-		}
-		if (this.preventColdDamage)
-		{
-			return cause == DamageCause.FREEZE;
 		}
 		return false;
 	}
@@ -148,23 +104,32 @@ public enum SupportedGateType implements GateType
 	@Override
 	public boolean isEnterable()
 	{
-		return this.enterable;
+		return true;
 	}
 	
 	@Override
 	public boolean isCompatibleWith(GateOrientation orientation)
 	{
-		if (orientation != null && orientation.isHorizontal())
-		{
-			return this != NETHER_PORTAL;
-		}
 		return true;
 	}
 	
 	@Override
-	public boolean usesClientVisual()
+	public boolean usesBlockDisplay(GateOrientation orientation)
 	{
-		return this.clientVisual;
+		// LIGHT server fill + EngineGateFillDisplay (entities and/or sendBlockChange).
+		return this == END_GATEWAY || this == FIRE || this == SOUL_FIRE || this == NETHER_PORTAL;
+	}
+	
+	@Override
+	public boolean usesClientBlockChangeFill(GateOrientation orientation)
+	{
+		if (this == FIRE || this == SOUL_FIRE) return true;
+		if (this == NETHER_PORTAL)
+		{
+			// Horizontal keeps BlockDisplay (flat). Vertical uses client portal blocks.
+			return orientation == null || orientation.isVertical();
+		}
+		return false;
 	}
 	
 	@Override
@@ -186,9 +151,12 @@ public enum SupportedGateType implements GateType
 	}
 	
 	@Override
-	public Material getServerFillMaterial(World world)
+	public Material getServerFillMaterial(World world, GateOrientation orientation)
 	{
-		if (this.clientVisual) return Material.AIR;
+		if (this.usesBlockDisplay(orientation))
+		{
+			return Material.LIGHT;
+		}
 		
 		if (this == WATER
 			&& world != null
@@ -201,21 +169,27 @@ public enum SupportedGateType implements GateType
 		return this.baseMaterial;
 	}
 	
+	@Override
+	public boolean isExpectedServerFill(Material material, World world, GateOrientation orientation)
+	{
+		// Legacy vertical gates may still have real portal blocks until the next fill().
+		if (this == NETHER_PORTAL && material == Material.NETHER_PORTAL) return true;
+		return GateType.super.isExpectedServerFill(material, world, orientation);
+	}
+	
 	/**
 	 * Infer a supported gate type from an existing <em>server</em> fill block.
-	 * Does not match client-visual types (those leave air in the world).
+	 * Matches real fluid fills and legacy real nether-portal interiors.
 	 *
 	 * @param material Current content material.
-	 * @return Matching type, or null if unknown / void / client-visual-only.
+	 * @return Matching type, or null if unknown / void / display-only.
 	 */
 	public static SupportedGateType fromServerMaterial(Material material)
 	{
 		if (material == null || CreativeGates.isVoid(material)) return null;
-		for (SupportedGateType type : values())
-		{
-			if (type.clientVisual) continue;
-			if (type.baseMaterial == material) return type;
-		}
+		if (material == Material.WATER) return WATER;
+		if (material == Material.LAVA) return LAVA;
+		if (material == Material.NETHER_PORTAL) return NETHER_PORTAL;
 		return null;
 	}
 	

@@ -4,12 +4,10 @@ import com.massivecraft.creativegates.CreativeGates;
 import com.massivecraft.creativegates.Perm;
 import com.massivecraft.creativegates.engine.create.GateCreate;
 import com.massivecraft.creativegates.engine.create.PendingGateCreate;
-import com.massivecraft.creativegates.engine.PendingGateCreates;
 import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
-import com.massivecraft.creativegates.gate.fill.SupportedGateType;
 import com.massivecraft.creativegates.ui.GateFillPicker;
 import com.massivecraft.creativegates.util.FloodUtil;
 import com.massivecraft.creativegates.util.GateFloodInfo;
@@ -39,8 +37,6 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustByBlockEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
@@ -48,12 +44,10 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.BoundingBox;
@@ -104,32 +98,17 @@ public class EngineMain extends Engine
 	}
 	
 	// -------------------------------------------- //
-	// STABILIZE PORTAL CONENT
+	// STABILIZE GATE CONTENT (FLUIDS)
 	// -------------------------------------------- //
 	
-	// PORTAL & FLUID (NETHER PORTAL / NETHER LAVA)
-	
 	/**
-	 * Handle block physics events. This is used to prevent the portal from disappearing.
-	 * 
-	 * @param event The block physics event.
+	 * Cancel fluid physics inside gate interiors.
 	 */
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void stabilizePortalContent(BlockPhysicsEvent event)
 	{
 		Block block = event.getBlock();
 		Material type = block.getType();
-		
-		if (type == Material.NETHER_PORTAL)
-		{
-			// If a portal block is running physics ...
-			// ... and we are filling or that block is stable according to our algorithm ...
-			if (!(CreativeGates.get().isFilling() || isPortalBlockStable(block))) return;
-			
-			// ... then block the physics to stop the portal from disappearing.
-			event.setCancelled(true);
-			return;
-		}
 		
 		if (type == Material.LAVA || type == Material.WATER)
 		{
@@ -138,52 +117,13 @@ public class EngineMain extends Engine
 			{
 				event.setCancelled(true);
 			}
-			return;
-		}
-		
-		SupportedGateType fillType = SupportedGateType.fromServerMaterial(type);
-		if (fillType != null && fillType.shouldPreventMelt())
-		{
-			UGate gate = UGate.get(block);
-			if (gate != null && gate.isInteriorBlock(block))
-			{
-				event.setCancelled(true);
-			}
 		}
 	}
 	
-	/**
-	 * Check if a portal block is stable according to our geometric algorithm.
-	 * This is used to determine if a portal block should be protected from physics.
-	 * 
-	 * @param block The block to check.
-	 * @return True if the block is stable, false otherwise.
-	 */
-	public static boolean isPortalBlockStable(Block block)
-	{
-		UGate gate = UGate.get(block);
-		if (gate != null && gate.getOrientation().isHorizontal())
-		{
-			if (CreativeGates.isVoid(block.getRelative(+1, +0, +0))) return false;
-			if (CreativeGates.isVoid(block.getRelative(-1, +0, +0))) return false;
-			if (CreativeGates.isVoid(block.getRelative(+0, +0, +1))) return false;
-			if (CreativeGates.isVoid(block.getRelative(+0, +0, -1))) return false;
-			return true;
-		}
-		
-		if (CreativeGates.isVoid(block.getRelative(+0, +1, +0))) return false;
-		if (CreativeGates.isVoid(block.getRelative(+0, -1, +0))) return false;
-		
-		if (!CreativeGates.isVoid(block.getRelative(+1, +0, +0)) && !CreativeGates.isVoid(block.getRelative(-1, +0, +0))) return true;
-		if (!CreativeGates.isVoid(block.getRelative(+0, +0, +1)) && !CreativeGates.isVoid(block.getRelative(+0, +0, -1))) return true;
-		
-		return false;
-	}
-	
-	// FLUID FLOW (WATER / NETHER LAVA)
+	// FLUID FLOW (WATER / LAVA)
 	
 	/**
-	 * Handle block from to events. This is used to prevent the portal from disappearing.
+	 * Handle block from to events. This is used to prevent fluid from flowing in/out of gates.
 	 * 
 	 * @param event The block from to event.
 	 */
@@ -248,11 +188,11 @@ public class EngineMain extends Engine
 	}
 	
 	// -------------------------------------------- //
-	// PREVENT GATE HARM (LAVA / COLD / CUSTOM)
+	// PREVENT GATE HARM (LAVA)
 	// -------------------------------------------- //
 	
 	/**
-	 * Cancel damage the gate fill asks to suppress (lava, freeze, or all causes for unsupported types).
+	 * Cancel damage the gate fill asks to suppress (lava/fire for lava fills).
 	 *
 	 * @param event The entity damage event.
 	 */
@@ -308,7 +248,7 @@ public class EngineMain extends Engine
 	}
 	
 	/**
-	 * Handle player move events. This is used to clear the player's fire / freeze ticks in a gate.
+	 * Handle player move events. This is used to clear the player's fire ticks in a lava gate.
 	 * 
 	 * @param event The player move event.
 	 */
@@ -320,10 +260,6 @@ public class EngineMain extends Engine
 		if (isInIntactGatePreventingDamage(player, DamageCause.FIRE) || isInIntactGateFluid(player))
 		{
 			player.setFireTicks(0);
-		}
-		if (isInIntactGatePreventingDamage(player, DamageCause.FREEZE))
-		{
-			player.setFreezeTicks(0);
 		}
 	}
 	
@@ -344,34 +280,11 @@ public class EngineMain extends Engine
 		}
 	}
 	
-	/**
-	 * Prevent ice / powder snow gate fills from melting or fading.
-	 *
-	 * @param event The block fade event.
-	 */
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-	public void preventGateMelt(BlockFadeEvent event)
-	{
-		Block block = event.getBlock();
-		UGate gate = UGate.get(block);
-		if (gate == null || !gate.isInteriorBlock(block)) return;
-		
-		GateType type = gate.getFillType();
-		if (type != null && type.shouldPreventMelt())
-		{
-			event.setCancelled(true);
-		}
-	}
-	
 	private static void clearGateDamageEffects(Player player, DamageCause cause)
 	{
 		if (cause == DamageCause.LAVA || cause == DamageCause.FIRE || cause == DamageCause.FIRE_TICK)
 		{
 			player.setFireTicks(0);
-		}
-		if (cause == DamageCause.FREEZE)
-		{
-			player.setFreezeTicks(0);
 		}
 	}
 	
@@ -431,7 +344,7 @@ public class EngineMain extends Engine
 		
 		int minX = (int) Math.floor(box.getMinX());
 		int maxX = (int) Math.floor(box.getMaxX());
-		int minY = (int) Math.floor(box.getMinY()) - 1; // include stand-on solid ice / client-visual
+		int minY = (int) Math.floor(box.getMinY()) - 1; // include stand-on / display fills
 		int maxY = (int) Math.floor(box.getMaxY());
 		int minZ = (int) Math.floor(box.getMinZ());
 		int maxZ = (int) Math.floor(box.getMaxZ());
@@ -492,7 +405,7 @@ public class EngineMain extends Engine
 	}
 	
 	/**
-	 * Check if a block is part of a gate's content.
+	 * Check if a block is part of a gate's interior content (fluids, real portal, display fills, or particle fills).
 	 * 
 	 * @param block The block to check.
 	 * @return True if the block is part of a gate's content, false otherwise.
@@ -503,7 +416,8 @@ public class EngineMain extends Engine
 		if (gate == null) return false;
 		if (!gate.isInteriorBlock(block)) return false;
 		
-		if (gate.usesClientVisualFill()) return true;
+		if (gate.usesBlockDisplayFill()) return true;
+		if (gate.usesParticleFill()) return true;
 		
 		Material type = block.getType();
 		return CreativeGates.isGateFillMaterial(type);
@@ -764,95 +678,6 @@ public class EngineMain extends Engine
 	}
 	
 	// -------------------------------------------- //
-	// DISABLE VANILLA PORTAL BEHAVIOR
-	// -------------------------------------------- //
-	
-	/**
-	 * Check if a player is in a creative gate.
-	 * 
-	 * @param player The player to check.
-	 * @param location The location to check.
-	 * @return True if the player is in a creative gate, false otherwise.
-	 */
-	public static boolean isInCreativeGate(Player player, Location location)
-	{
-		if (!MConf.get().isEnabled()) return false;
-		if (getGateAtPlayer(player) != null) return true;
-		if (getGateAt(location) != null) return true;
-		return isGateNearby(location.getBlock());
-	}
-	
-	/**
-	 * Handle player portal events.
-	 * 
-	 * @param event The player portal event.
-	 */
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onPlayerPortal(PlayerPortalEvent event)
-	{
-		Player player = event.getPlayer();
-		
-		if (wasRecentCreativeGateTransport(player))
-		{
-			event.setCancelled(true);
-			player.setPortalCooldown(300);
-			return;
-		}
-		
-		if (!isInCreativeGate(player, event.getFrom())) return;
-		
-		event.setCancelled(true);
-		player.setPortalCooldown(300);
-		
-		UGate gate = getGateAtPlayer(player);
-		if (gate == null) gate = getGateAtContent(event.getFrom());
-		tryUseGate(player, gate);
-	}
-	
-	/**
-	 * Disable vanilla gate behavior for entities (when using nether portal blocks in creative gates).
-	 * 
-	 * @param event The entity portal event.
-	 */
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void disableVanillaGates(EntityPortalEvent event)
-	{
-		if (event.getEntity() instanceof Player) return;
-		if (!MConf.get().isEnabled()) return;
-		if (!isGateNearby(event.getFrom().getBlock())) return;
-		event.setCancelled(true);
-	}
-	
-	// -------------------------------------------- //
-	// NO ZOMBIE PIGMAN PORTAL SPAWN
-	// -------------------------------------------- //
-	
-	/**
-	 * Prevent zombie pigman portal spawns in creative gates (when using nether portal blocks in creative gates).
-	 * 
-	 * @param event The creature spawn event.
-	 */
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void noZombifiedPiglinPortalSpawn(CreatureSpawnEvent event)
-	{
-		// If a zombified piglin is spawning ...
-		if (event.getEntityType() != EntityType.ZOMBIFIED_PIGLIN) return;
-		
-		// ... because of a nether portal ...
-		if (event.getSpawnReason() != SpawnReason.NETHER_PORTAL) return;
-		
-		// ... near a gate ...
-		Location location = event.getLocation();
-		if ( ! isGateNearby(location.getBlock())) return;
-		
-		// ... and we are blocking zombie pigman portal spawn ...
-		if (MConf.get().isPigmanPortalSpawnAllowed()) return;
-		
-		// ... then block the spawn event.
-		event.setCancelled(true);
-	}
-	
-	// -------------------------------------------- //
 	// USE GATE
 	// -------------------------------------------- //
 	
@@ -935,7 +760,7 @@ public class EngineMain extends Engine
 		
 		if (wasRecentCreativeGateTransport(player)) return true;
 		
-		// Still inside at the start of this move — not a fresh entry.
+		// Still inside at the start of this move - not a fresh entry.
 		if (fromGate == ugate) return true;
 		
 		// Must end the tick inside this gate (outside → inside), not a grazing path sample.
@@ -1267,7 +1092,7 @@ public class EngineMain extends Engine
 			if (canPickFill && selectable.size() > 1)
 			{
 				PendingGateCreates.get().put(pending);
-				GateFillPicker.open(player, pending, selectable);
+				GateFillPicker.open(player, pending);
 				return;
 			}
 			
@@ -1307,10 +1132,9 @@ public class EngineMain extends Engine
 				}
 			}
 			
-			// ... and the gate uses nether portal fill ...
-			if (currentGate.getFillType() == SupportedGateType.NETHER_PORTAL)
+			// ... refresh BlockDisplay / client-overlay fills if needed ...
+			if (currentGate.usesBlockDisplayFill())
 			{
-				// ... update the portal orientation
 				currentGate.fill();
 			}
 			
