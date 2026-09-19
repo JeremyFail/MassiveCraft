@@ -10,6 +10,7 @@ import com.massivecraft.massivecore.engine.EngineMassiveCoreDialog;
 import com.massivecraft.massivecore.dialog.MDialogSpec;
 import com.massivecraft.massivecore.dialog.MDialogTexts;
 import com.massivecraft.massivecore.dialog.body.MDialogBody;
+import com.massivecraft.massivecore.dialog.body.MDialogBodyItem;
 import com.massivecraft.massivecore.dialog.body.MDialogBodyPlain;
 import com.massivecraft.massivecore.dialog.input.MDialogInput;
 import com.massivecraft.massivecore.dialog.input.MDialogInputBool;
@@ -24,6 +25,7 @@ import com.massivecraft.massivecore.dialog.type.MDialogTypeMultiAction;
 import com.massivecraft.massivecore.dialog.type.MDialogTypeNotice;
 import com.massivecraft.massivecore.dialog.type.MDialogTypeServerLinks;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.dialog.ConfirmationDialog;
 import net.md_5.bungee.api.dialog.Dialog;
 import net.md_5.bungee.api.dialog.DialogBase;
@@ -220,15 +222,55 @@ public final class SpigotMDialogBackend implements MDialogBackend, MDialogBacken
 					out.add(new PlainMessageBody(MDialogTexts.bungee(plain.getMessage())));
 				}
 			}
-			// Item bodies are Paper-oriented; Spigot dialog package has no ItemBody — skip with text fallback.
-			else if (body instanceof com.massivecraft.massivecore.dialog.body.MDialogBodyItem)
+			// Item bodies are Paper-oriented; Spigot dialog package has no ItemBody - skip with text fallback.
+			else if (body instanceof MDialogBodyItem)
 			{
-				com.massivecraft.massivecore.dialog.body.MDialogBodyItem item = (com.massivecraft.massivecore.dialog.body.MDialogBodyItem) body;
+				MDialogBodyItem item = (MDialogBodyItem) body;
 				String desc = item.getDescription() != null ? item.getDescription() : (item.getItem() == null ? "Item" : item.getItem().getType().name());
-				out.add(new PlainMessageBody(MDialogTexts.bungee(desc)));
+				BaseComponent component = MDialogTexts.bungee(desc);
+				if (item.getClickId() != null) applyCustomClick(component, item.getClickId());
+				out.add(new PlainMessageBody(component));
 			}
 		}
 		return out;
+	}
+	
+	/**
+	 * Attaches the same namespaced custom click used by action buttons so body text completes that id.
+	 *
+	 * @param component Root text; extras are updated recursively.
+	 * @param buttonId  Action-button id.
+	 */
+	private static void applyCustomClick(BaseComponent component, String buttonId)
+	{
+		ClickEvent.Action custom;
+		try
+		{
+			custom = ClickEvent.Action.valueOf("CUSTOM");
+		}
+		catch (IllegalArgumentException ex)
+		{
+			return;
+		}
+		ClickEvent event = new ClickEvent(custom, NAMESPACE + ":" + KEY_PREFIX + buttonId.toLowerCase(Locale.ROOT));
+		applyClickRecursive(component, event);
+	}
+	
+	/**
+	 * Sets {@code event} on {@code component} and every extra child.
+	 *
+	 * @param component Text node.
+	 * @param event     Custom click.
+	 */
+	private static void applyClickRecursive(BaseComponent component, ClickEvent event)
+	{
+		component.setClickEvent(event);
+		List<BaseComponent> extra = component.getExtra();
+		if (extra == null) return;
+		for (BaseComponent child : extra)
+		{
+			applyClickRecursive(child, event);
+		}
 	}
 	
 	/**

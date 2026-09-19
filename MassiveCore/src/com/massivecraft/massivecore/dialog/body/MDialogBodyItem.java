@@ -1,11 +1,14 @@
 package com.massivecraft.massivecore.dialog.body;
 
+import com.massivecraft.massivecore.dialog.MDialogClickHandler;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * Item display body entry.
  * <p>
  * Shows an {@link ItemStack} with optional description and decoration/tooltip flags.
+ * If {@link #clickId(String)} is set, clicking the description completes that id.
+ * Pair it with {@link #onClick(MDialogClickHandler)} when there is no matching footer button.
  * </p>
  */
 public final class MDialogBodyItem implements MDialogBody
@@ -28,6 +31,12 @@ public final class MDialogBodyItem implements MDialogBody
 	/** Optional layout height. */
 	private final Integer height;
 	
+	/** Optional action id completed when the description is clicked. */
+	private final String clickId;
+	
+	/** Optional click handler when this description is used as the action (no footer button). */
+	private final MDialogClickHandler clickHandler;
+	
 	/**
 	 * @param item Item stack or null.
 	 * @param description Description text or null.
@@ -35,8 +44,10 @@ public final class MDialogBodyItem implements MDialogBody
 	 * @param showTooltip Tooltip flag.
 	 * @param width Width hint or null.
 	 * @param height Height hint or null.
+	 * @param clickId Action id, or null.
+	 * @param clickHandler Click handler or null.
 	 */
-	private MDialogBodyItem(ItemStack item, String description, boolean showDecorations, boolean showTooltip, Integer width, Integer height)
+	private MDialogBodyItem(ItemStack item, String description, boolean showDecorations, boolean showTooltip, Integer width, Integer height, String clickId, MDialogClickHandler clickHandler)
 	{
 		this.item = item == null ? null : item.clone();
 		this.description = description;
@@ -44,6 +55,8 @@ public final class MDialogBodyItem implements MDialogBody
 		this.showTooltip = showTooltip;
 		this.width = width;
 		this.height = height;
+		this.clickId = clickId;
+		this.clickHandler = clickHandler;
 	}
 	
 	/**
@@ -54,7 +67,7 @@ public final class MDialogBodyItem implements MDialogBody
 	 */
 	public static MDialogBodyItem of(ItemStack item)
 	{
-		return new MDialogBodyItem(item, null, true, true, null, null);
+		return new MDialogBodyItem(item, null, true, true, null, null, null, null);
 	}
 	
 	/**
@@ -65,7 +78,7 @@ public final class MDialogBodyItem implements MDialogBody
 	 */
 	public MDialogBodyItem description(String description)
 	{
-		return new MDialogBodyItem(this.item, description, this.showDecorations, this.showTooltip, this.width, this.height);
+		return new MDialogBodyItem(this.item, description, this.showDecorations, this.showTooltip, this.width, this.height, this.clickId, this.clickHandler);
 	}
 	
 	/**
@@ -76,7 +89,7 @@ public final class MDialogBodyItem implements MDialogBody
 	 */
 	public MDialogBodyItem showDecorations(boolean showDecorations)
 	{
-		return new MDialogBodyItem(this.item, this.description, showDecorations, this.showTooltip, this.width, this.height);
+		return new MDialogBodyItem(this.item, this.description, showDecorations, this.showTooltip, this.width, this.height, this.clickId, this.clickHandler);
 	}
 	
 	/**
@@ -87,7 +100,7 @@ public final class MDialogBodyItem implements MDialogBody
 	 */
 	public MDialogBodyItem showTooltip(boolean showTooltip)
 	{
-		return new MDialogBodyItem(this.item, this.description, this.showDecorations, showTooltip, this.width, this.height);
+		return new MDialogBodyItem(this.item, this.description, this.showDecorations, showTooltip, this.width, this.height, this.clickId, this.clickHandler);
 	}
 	
 	/**
@@ -98,7 +111,7 @@ public final class MDialogBodyItem implements MDialogBody
 	 */
 	public MDialogBodyItem width(int width)
 	{
-		return new MDialogBodyItem(this.item, this.description, this.showDecorations, this.showTooltip, width, this.height);
+		return new MDialogBodyItem(this.item, this.description, this.showDecorations, this.showTooltip, width, this.height, this.clickId, this.clickHandler);
 	}
 	
 	/**
@@ -109,7 +122,29 @@ public final class MDialogBodyItem implements MDialogBody
 	 */
 	public MDialogBodyItem height(int height)
 	{
-		return new MDialogBodyItem(this.item, this.description, this.showDecorations, this.showTooltip, this.width, height);
+		return new MDialogBodyItem(this.item, this.description, this.showDecorations, this.showTooltip, this.width, height, this.clickId, this.clickHandler);
+	}
+	
+	/**
+	 * Returns a copy that completes the given action id when the description is clicked.
+	 *
+	 * @param clickId Action id, or null to clear.
+	 * @return New body instance.
+	 */
+	public MDialogBodyItem clickId(String clickId)
+	{
+		return new MDialogBodyItem(this.item, this.description, this.showDecorations, this.showTooltip, this.width, this.height, clickId, this.clickHandler);
+	}
+	
+	/**
+	 * Returns a copy with a click handler for this description.
+	 *
+	 * @param clickHandler Handler or null to clear.
+	 * @return New body instance.
+	 */
+	public MDialogBodyItem onClick(MDialogClickHandler clickHandler)
+	{
+		return new MDialogBodyItem(this.item, this.description, this.showDecorations, this.showTooltip, this.width, this.height, this.clickId, clickHandler);
 	}
 	
 	/**
@@ -141,4 +176,14 @@ public final class MDialogBodyItem implements MDialogBody
 	 * @return Height hint or null.
 	 */
 	public Integer getHeight() { return this.height; }
+	
+	/**
+	 * @return Action id completed on description click, or null.
+	 */
+	public String getClickId() { return this.clickId; }
+	
+	/**
+	 * @return Click handler or null.
+	 */
+	public MDialogClickHandler getClickHandler() { return this.clickHandler; }
 }

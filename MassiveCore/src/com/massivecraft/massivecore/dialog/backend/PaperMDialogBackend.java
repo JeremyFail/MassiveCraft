@@ -36,6 +36,9 @@ import io.papermc.paper.registry.data.dialog.type.DialogType;
 import io.papermc.paper.registry.set.RegistrySet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -94,7 +97,7 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 			.canCloseWithEscape(spec.canCloseWithEscape())
 			.pause(spec.isPause())
 			.afterAction(toPaperAfterAction(spec.getAfterAction()))
-			.body(toPaperBodies(spec.getBodies()))
+			.body(toPaperBodies(player, spec.getBodies()))
 			.inputs(toPaperInputs(spec.getInputs()));
 		
 		if (spec.getExternalTitle() != null)
@@ -237,10 +240,11 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 	/**
 	 * Converts MassiveCore body entries to Paper {@link DialogBody} list (plain text and items).
 	 *
+	 * @param player Viewer used for description click routing.
 	 * @param bodies MassiveCore bodies; may be empty.
 	 * @return Paper body list in display order.
 	 */
-	private static List<DialogBody> toPaperBodies(List<MDialogBody> bodies)
+	private static List<DialogBody> toPaperBodies(Player player, List<MDialogBody> bodies)
 	{
 		List<DialogBody> out = new ArrayList<>();
 		for (MDialogBody body : bodies)
@@ -267,9 +271,14 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 					.showTooltip(itemBody.isShowTooltip());
 				if (itemBody.getDescription() != null)
 				{
+					Component descComponent = MDialogTexts.component(itemBody.getDescription());
+					if (itemBody.getClickId() != null)
+					{
+						descComponent = clickable(descComponent, player, itemBody.getClickId());
+					}
 					PlainMessageDialogBody desc = itemBody.getWidth() != null
-						? DialogBody.plainMessage(MDialogTexts.component(itemBody.getDescription()), itemBody.getWidth())
-						: DialogBody.plainMessage(MDialogTexts.component(itemBody.getDescription()));
+						? DialogBody.plainMessage(descComponent, itemBody.getWidth())
+						: DialogBody.plainMessage(descComponent);
 					builder.description(desc);
 				}
 				if (itemBody.getWidth() != null) builder.width(itemBody.getWidth());
@@ -278,6 +287,47 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 			}
 		}
 		return out;
+	}
+	
+	/**
+	 * Marks body text as a dialog action: click completes {@code clickId}, same as the matching button.
+	 *
+	 * @param component Description text.
+	 * @param player    Default clicker if the audience is not a player.
+	 * @param clickId   Action-button id to complete.
+	 * @return Component with click, hover, and underline applied to the whole tree.
+	 */
+	private static Component clickable(Component component, Player player, String clickId)
+	{
+		ClickEvent click = ClickEvent.callback(audience -> {
+			Player clicker = audience instanceof Player ? (Player) audience : player;
+			EngineMassiveCoreDialog.get().completeClick(clicker, clickId);
+		}, ClickCallback.Options.builder().uses(1).build());
+		Component hover = Component.text("Click to select");
+		return applyClick(component, click, hover);
+	}
+	
+	/**
+	 * Applies click, hover, and underline to {@code component} and all children.
+	 * Legacy-deserialized trees put style on children, so the root event alone would not fire.
+	 *
+	 * @param component Text tree.
+	 * @param click     Click event.
+	 * @param hover     Hover text.
+	 * @return Styled copy.
+	 */
+	private static Component applyClick(Component component, ClickEvent click, Component hover)
+	{
+		Component out = component.clickEvent(click)
+			.hoverEvent(HoverEvent.showText(hover))
+			.decorate(TextDecoration.UNDERLINED);
+		if (component.children().isEmpty()) return out;
+		List<Component> children = new ArrayList<>();
+		for (Component child : component.children())
+		{
+			children.add(applyClick(child, click, hover));
+		}
+		return out.children(children);
 	}
 	
 	/**

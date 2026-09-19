@@ -57,8 +57,11 @@ public final class ChestGuiMDialogBackend implements MDialogBackend
 		{
 			if (body instanceof MDialogBodyItem)
 			{
-				ItemStack item = ((MDialogBodyItem) body).getItem();
-				if (item != null) slots.add(SlotAction.display(item));
+				MDialogBodyItem itemBody = (MDialogBodyItem) body;
+				ItemStack item = itemBody.getItem();
+				if (item == null) continue;
+				if (itemBody.getClickId() != null) slots.add(SlotAction.clickableDisplay(item, itemBody.getClickId()));
+				else slots.add(SlotAction.display(item));
 			}
 			else if (body instanceof MDialogBodyPlain)
 			{
@@ -100,11 +103,12 @@ public final class ChestGuiMDialogBackend implements MDialogBackend
 				@Override
 				public boolean onClick(InventoryClickEvent event)
 				{
-					if (slot.button != null)
+					String completeId = slot.button != null ? slot.button.getId() : slot.clickId;
+					if (completeId != null)
 					{
 						selected[0] = true;
 						gui.setAutoclosing(true);
-						EngineMassiveCoreDialog.get().completeClick(player, slot.button.getId());
+						EngineMassiveCoreDialog.get().completeClick(player, completeId);
 						return true;
 					}
 					if (slot.childSpec != null)
@@ -278,19 +282,22 @@ public final class ChestGuiMDialogBackend implements MDialogBackend
 		private final MDialogInput input;
 		private final MDialogSpec childSpec;
 		private final ItemStack display;
+		private final String clickId;
 		
 		/**
 		 * @param button    Non-null when this slot completes a button click.
 		 * @param input     Non-null when this slot cycles an input.
 		 * @param childSpec Non-null when this slot opens a nested dialog.
 		 * @param display   Non-null for static display stacks.
+		 * @param clickId   Non-null when a display stack should complete this button id.
 		 */
-		private SlotAction(MDialogButton button, MDialogInput input, MDialogSpec childSpec, ItemStack display)
+		private SlotAction(MDialogButton button, MDialogInput input, MDialogSpec childSpec, ItemStack display, String clickId)
 		{
 			this.button = button;
 			this.input = input;
 			this.childSpec = childSpec;
 			this.display = display;
+			this.clickId = clickId;
 		}
 		
 		/**
@@ -299,7 +306,7 @@ public final class ChestGuiMDialogBackend implements MDialogBackend
 		 */
 		static SlotAction button(MDialogButton button)
 		{
-			return new SlotAction(button, null, null, null);
+			return new SlotAction(button, null, null, null, null);
 		}
 		
 		/**
@@ -308,7 +315,7 @@ public final class ChestGuiMDialogBackend implements MDialogBackend
 		 */
 		static SlotAction input(MDialogInput input)
 		{
-			return new SlotAction(null, input, null, null);
+			return new SlotAction(null, input, null, null, null);
 		}
 		
 		/**
@@ -318,7 +325,7 @@ public final class ChestGuiMDialogBackend implements MDialogBackend
 		 */
 		static SlotAction child(MDialogSpec child, ItemStack display)
 		{
-			return new SlotAction(null, null, child, display);
+			return new SlotAction(null, null, child, display, null);
 		}
 		
 		/**
@@ -327,7 +334,17 @@ public final class ChestGuiMDialogBackend implements MDialogBackend
 		 */
 		static SlotAction display(ItemStack display)
 		{
-			return new SlotAction(null, null, null, display);
+			return new SlotAction(null, null, null, display, null);
+		}
+		
+		/**
+		 * @param display Item to show.
+		 * @param clickId Action-button id to complete on click.
+		 * @return Slot action that completes {@code clickId} on click.
+		 */
+		static SlotAction clickableDisplay(ItemStack display, String clickId)
+		{
+			return new SlotAction(null, null, null, display, clickId);
 		}
 		
 		/**

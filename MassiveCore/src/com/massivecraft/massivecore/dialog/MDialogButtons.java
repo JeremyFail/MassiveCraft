@@ -1,5 +1,7 @@
 package com.massivecraft.massivecore.dialog;
 
+import com.massivecraft.massivecore.dialog.body.MDialogBody;
+import com.massivecraft.massivecore.dialog.body.MDialogBodyItem;
 import com.massivecraft.massivecore.dialog.input.MDialogInput;
 import com.massivecraft.massivecore.dialog.input.MDialogInputBool;
 import com.massivecraft.massivecore.dialog.input.MDialogInputNumber;
@@ -41,6 +43,7 @@ public final class MDialogButtons
 	{
 		if (spec == null || out == null) return;
 		collectType(spec.getType(), out);
+		collectBodies(spec, out);
 	}
 	
 	/**
@@ -77,6 +80,28 @@ public final class MDialogButtons
 		else if (type instanceof MDialogTypeServerLinks)
 		{
 			put(out, ((MDialogTypeServerLinks) type).getExitAction());
+		}
+	}
+	
+	/**
+	 * Registers clickable item-body descriptions as virtual buttons when they have an id and handler
+	 * and that id is not already used by a footer button.
+	 *
+	 * @param spec Dialog definition.
+	 * @param out Accumulator map.
+	 */
+	private static void collectBodies(MDialogSpec spec, Map<String, MDialogButton> out)
+	{
+		for (MDialogBody body : spec.getBodies())
+		{
+			if (!(body instanceof MDialogBodyItem)) continue;
+			MDialogBodyItem item = (MDialogBodyItem) body;
+			if (item.getClickId() == null || item.getClickHandler() == null) continue;
+			if (out.containsKey(item.getClickId())) continue;
+			String label = item.getDescription() == null ? item.getClickId() : item.getDescription();
+			put(out, MDialogButton.of(item.getClickId(), label)
+				.icon(item.getItem())
+				.onClick(item.getClickHandler()));
 		}
 	}
 	
