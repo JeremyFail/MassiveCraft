@@ -12,8 +12,8 @@ import java.util.Set;
 /**
  * Orientation of a creative gate, which controls flood-fill axes and exit facing.
  * <ul>
- *   <li>{@link #NS} and {@link #WE} — vertical wall gates (north/south or east/west plane).</li>
- *   <li>{@link #HORIZONTAL} — floor or ceiling gates (single Y layer, expands on XZ only).</li>
+ *   <li>{@link #NS} and {@link #WE} - vertical wall gates (north/south or east/west plane).</li>
+ *   <li>{@link #HORIZONTAL} - floor or ceiling gates (single Y layer, expands on XZ only).</li>
  * </ul>
  */
 public enum GateOrientation

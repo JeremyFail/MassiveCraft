@@ -448,7 +448,7 @@ public class HorizontalGateLaunchUtil
 	/**
 	 * Minimizes {@link #scoreLaunchAngle} over elevation angle using golden-section search.
 	 *
-	 * @return {@code double[3]} — best angle (rad), score, landing error.
+	 * @return {@code double[3]} - best angle (rad), score, landing error.
 	 */
 	private static double[] goldenSectionMinimizeAngle(Location launchOrigin, Location exitLoc, Vector horizontalDir, double speed, BlockFace exitFace, List<Block> contentBlocks, double slowWeight, double minRad, double maxRad, double bestAngle, double bestScore, double bestLandingError)
 	{
@@ -526,7 +526,7 @@ public class HorizontalGateLaunchUtil
 	/**
 	 * Speed-adaptive launch angle limits. Slower entries require steeper arcs (more vertical).
 	 *
-	 * @return {@code int[2]} — {@code [0]} minimum angle, {@code [1]} maximum angle (degrees from horizontal).
+	 * @return {@code int[2]} - {@code [0]} minimum angle, {@code [1]} maximum angle (degrees from horizontal).
 	 */
 	private static int[] resolveAngleBounds(double speed, BlockFace exitFace)
 	{
