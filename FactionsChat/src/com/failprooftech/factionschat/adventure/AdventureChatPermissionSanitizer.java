@@ -54,17 +54,20 @@ public final class AdventureChatPermissionSanitizer
         TextColor here = c.style().color() != null ? c.style().color() : parentColor;
 
         // If the component is a text component, sanitize the style.
+        // Use Component factories - not Builder#build() - so Adventure 4-compiled bytecode stays valid on Adventure 5.x.
         if (c instanceof TextComponent)
         {
             TextComponent tc = (TextComponent) c;
             Style st = filterStyle(tc.style(), p, parentColor);
-            TextComponent.Builder b = Component.text().content(tc.content()).style(st);
+            Component out = Component.text(tc.content()).style(st);
             if (p.allowInsert && tc.insertion() != null)
             {
-                b.insertion(tc.insertion());
+                out = out.insertion(tc.insertion());
             }
-            b.append(tc.children().stream().map(ch -> sanitizeNode(ch, p, here)).collect(Collectors.toList()));
-            return b.build();
+            List<Component> kids = tc.children().stream()
+                .map(ch -> sanitizeNode(ch, p, here))
+                .collect(Collectors.toList());
+            return out.children(kids);
         }
 
         // If the component is not a text component, sanitize the children.
