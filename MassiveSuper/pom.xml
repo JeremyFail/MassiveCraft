@@ -194,7 +194,7 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
-        <!-- Failproof Tech (FactionsBridge API, etc.) — https://repo.failprooftech.com/ -->
+        <!-- Failproof Tech (FactionsBridge API, etc.) - https://repo.failprooftech.com/ -->
         <repository>
             <id>failprooftech-repo-snapshots</id>
             <name>Failproof Tech Repository</name>

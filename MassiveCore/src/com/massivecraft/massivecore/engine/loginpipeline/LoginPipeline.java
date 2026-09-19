@@ -11,9 +11,9 @@ import org.bukkit.event.Listener;
  * <p>
  * Three tiers:
  * <ol>
- *   <li><b>Spigot</b> — {@link LoginPipelineSpigotListener} ({@code PlayerLoginEvent})</li>
- *   <li><b>Paper 1.21.7+</b> — {@link LoginPipelinePaperListener} (validate-login + join pipeline)</li>
- *   <li><b>Paper 1.21.4–1.21.6</b> — soft-support fallback to {@link LoginPipelineSpigotListener}</li>
+ *   <li><b>Spigot</b> - {@link LoginPipelineSpigotListener} ({@code PlayerLoginEvent})</li>
+ *   <li><b>Paper 1.21.7+</b> - {@link LoginPipelinePaperListener} (validate-login + join pipeline)</li>
+ *   <li><b>Paper 1.21.4–1.21.6</b> - soft-support fallback to {@link LoginPipelineSpigotListener}</li>
  * </ol>
  * Paper 1.21.4–1.21.6 is not actively tested; compatibility is best-effort only.
  * <p>

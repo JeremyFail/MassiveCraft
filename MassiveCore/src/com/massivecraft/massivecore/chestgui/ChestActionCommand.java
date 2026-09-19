@@ -55,7 +55,7 @@ public class ChestActionCommand extends ChestActionAbstract
 		String commandLine = this.getCommandLine();
 		if (commandLine == null) return false;
 		
-		// true only if the command actually dispatched — that consumes the click.
+		// true only if the command actually dispatched - that consumes the click.
 		return MixinCommand.get().dispatchCommand(player, commandLine);
 	}
 	

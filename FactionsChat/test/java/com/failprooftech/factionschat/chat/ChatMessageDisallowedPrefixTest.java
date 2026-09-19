@@ -27,7 +27,7 @@ class ChatMessageDisallowedPrefixTest
     }
 
     /**
-     * Bold ({@code &l}) requires format; magic ({@code &k}) requires magic — format alone is not enough.
+     * Bold ({@code &l}) requires format; magic ({@code &k}) requires magic - format alone is not enough.
      */
     @Test
     void formatAndMagicAreSeparateGates()
@@ -85,7 +85,7 @@ class ChatMessageDisallowedPrefixTest
     @Test
     void sectionHashAlwaysParseableMarker()
     {
-        // &# / §# returns 0 even when malformed — RGB_REGEX / codec decide later.
+        // &# / §# returns 0 even when malformed - RGB_REGEX / codec decide later.
         assertEquals(0, ChatMessageDisallowedPrefix.disallowedPrefixLength(
             "&#", 0, ChatPermissionsFixtures.urlOnly(false, false)));
         assertEquals(0, ChatMessageDisallowedPrefix.disallowedPrefixLength(

@@ -56,7 +56,7 @@ class ChatModeParseTest
 
     /**
      * {@link ChatMode#getChatModeByName} keys are {@code enum.name()} (uppercase) and single-letter
-     * aliases only — lowercase full names are rejected.
+     * aliases only - lowercase full names are rejected.
      */
     @Test
     void getChatModeByName()

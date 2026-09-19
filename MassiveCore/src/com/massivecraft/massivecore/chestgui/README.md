@@ -4,8 +4,8 @@ MassiveCore wrapper for **virtual chest menus**: an `Inventory` whose slots are 
 
 `ChestGui` is the single entry point. MassiveCore picks a backend at runtime, same idea as `MDialog`:
 
-1. **Paper** (`PaperChestGuiBackend`) — Adventure `Component` titles and, when the inventory is created at `open(player)`, Paper `MenuType` views (`GENERIC_9xN`, hopper, 3×3).
-2. **Spigot** (`SpigotChestGuiBackend`) — `Bukkit.createInventory` with parsed string titles.
+1. **Paper** (`PaperChestGuiBackend`) - Adventure `Component` titles and, when the inventory is created at `open(player)`, Paper `MenuType` views (`GENERIC_9xN`, hopper, 3×3).
+2. **Spigot** (`SpigotChestGuiBackend`) - `Bukkit.createInventory` with parsed string titles.
 
 The click engine (`EngineMassiveCoreChestGui`) is shared. You do not register listeners.
 
@@ -90,4 +90,4 @@ CreativeGates gate fill selection goes through `MDialog`, which uses ChestGui au
 
 ## What this is not
 
-ChestGui is still a **virtual icon menu**, not a replacement for Paper Dialogs (forms, text, confirmations) or for real-item editors (`CommandEditItemStacksOpen`). It does not paginate, animate, or wrap anvil/smithing/enchanting screens — those have their own mechanics. Use `MDialog` for forms; use ChestGui when you need clickable items on every supported server.
+ChestGui is still a **virtual icon menu**, not a replacement for Paper Dialogs (forms, text, confirmations) or for real-item editors (`CommandEditItemStacksOpen`). It does not paginate, animate, or wrap anvil/smithing/enchanting screens - those have their own mechanics. Use `MDialog` for forms; use ChestGui when you need clickable items on every supported server.

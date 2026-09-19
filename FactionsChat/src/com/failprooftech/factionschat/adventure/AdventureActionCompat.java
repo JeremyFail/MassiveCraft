@@ -8,7 +8,7 @@ import net.kyori.adventure.text.event.HoverEvent;
  *
  * <p>Mirrors Paper vs Spigot listener selection: detect once, {@link Class#forName(String)} only the
  * matching implementation so the other is never linked (Adventure 4 and 5 {@code Action} constants are
- * binary-incompatible — unlike Paper/Spigot APIs, they cannot share one compile classpath).</p>
+ * binary-incompatible - unlike Paper/Spigot APIs, they cannot share one compile classpath).</p>
  *
  * <p>TODO(adventure4-drop): Replace this facade with direct Adventure 5 checks (or a single bridge)
  * once Paper 1.21.x support is dropped.</p>
@@ -65,7 +65,7 @@ public final class AdventureActionCompat
     }
 
     /**
-     * Same style of detection as {@code FactionsChat#isPaper()} — class presence only, no field access.
+     * Same style of detection as {@code FactionsChat#isPaper()} - class presence only, no field access.
      */
     private static boolean isAdventure5()
     {

@@ -28,7 +28,7 @@ class ProcessLinksStyleInheritanceTest
     @Test
     void preservesInheritedGreenOnTextBeforeUrl() throws Exception
     {
-        // Color on parent, URL text on uncolored child — the structure that previously lost green.
+        // Color on parent, URL text on uncolored child - the structure that previously lost green.
         Component tree = Component.empty()
             .color(NamedTextColor.GREEN)
             .append(Component.text("test https://test.com"));

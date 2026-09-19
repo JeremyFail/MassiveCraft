@@ -4,9 +4,9 @@ MassiveCore wrapper for **Minecraft dialogs**: notices, confirmations, multi-act
 
 `MDialog` is the single entry point. MassiveCore picks a backend at runtime (Minecraft **1.21.6+** required for native dialogs):
 
-1. **Paper** (`PaperMDialogBackend`) — Paper Dialog API + Adventure.
-2. **Spigot** (`SpigotMDialogBackend`) — Bungee Dialog API + custom click events.
-3. **ChestGui** (`ChestGuiMDialogBackend`) — inventory fallback on older servers or when dialog classes are missing.
+1. **Paper** (`PaperMDialogBackend`) - Paper Dialog API + Adventure.
+2. **Spigot** (`SpigotMDialogBackend`) - Bungee Dialog API + custom click events.
+3. **ChestGui** (`ChestGuiMDialogBackend`) - inventory fallback on older servers or when dialog classes are missing.
 
 You do not register listeners. Session routing lives in `EngineMassiveCoreDialog`. Backend classes are loaded with `Class.forName` so older servers never link Paper/Spigot dialog types.
 
@@ -166,6 +166,6 @@ ChestGui fallback approximates bodies, inputs (click-to-cycle), and actions as i
 
 MDialog does not replace raw Paper/Spigot Dialog builders if you need API surface that is not modeled here.
 
-It also **does not** _currently_ paginate large option lists. A multi-action dialog shows every `action(...)` you add in one screen (subject to client/layout limits). If you have dozens of choices (e.g. every material), you must build paging yourself — for example Next/Previous buttons that `MDialog.open` a new spec for the next slice of items, or a dialog-list of category dialogs. MassiveCore will not invent pages for you.
+It also **does not** _currently_ paginate large option lists. A multi-action dialog shows every `action(...)` you add in one screen (subject to client/layout limits). If you have dozens of choices (e.g. every material), you must build paging yourself - for example Next/Previous buttons that `MDialog.open` a new spec for the next slice of items, or a dialog-list of category dialogs. MassiveCore will not invent pages for you.
 
-For pure clickable item menus on every server (and when you want full control of chest slots), use `ChestGui` directly — see `chestgui/README.md`.
+For pure clickable item menus on every server (and when you want full control of chest slots), use `ChestGui` directly - see `chestgui/README.md`.

@@ -86,7 +86,7 @@ public final class ChatPermissionsFixtures
     }
 
     /**
-     * Named colors only — format, magic, RGB, URLs, and MiniMessage features denied.
+     * Named colors only - format, magic, RGB, URLs, and MiniMessage features denied.
      *
      * @return permissions allowing color and nothing else
      */

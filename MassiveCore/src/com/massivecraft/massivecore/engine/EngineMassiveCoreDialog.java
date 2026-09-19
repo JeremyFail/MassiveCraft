@@ -143,7 +143,7 @@ public class EngineMassiveCoreDialog extends Engine
 	public void completeClose(Player player)
 	{
 		MDialogSession session = this.remove(player);
-		// Already finished via a button — do not fire onClose.
+		// Already finished via a button - do not fire onClose.
 		if (session == null || session.isCompleted()) return;
 		session.setCompleted(true);
 		MDialogCloseHandler closeHandler = session.getSpec().getCloseHandler();

@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
  * When that setting is false, the body is rebuilt only from plain text via {@link #processMessageForSender}.
  * Secure chat compares the displayed message to what the client signed; re-encoding on the server can make some
  * clients show a "message modified" indicator. That tradeoff is taken whenever markup or permission-gated clickable
- * URLs must appear in the body — those features are not skipped merely to preserve signing.</p>
+ * URLs must appear in the body - those features are not skipped merely to preserve signing.</p>
  *
  * <p>Format strings (prefix, channel color before {@code %MESSAGE%}) use the same unified codec.</p>
  */

@@ -73,7 +73,7 @@ class PermissionAwareChatMessageTest
     }
 
     /**
-     * Spigot: color+format allowed but magic denied — {@code &k} remains literal under base color;
+     * Spigot: color+format allowed but magic denied - {@code &k} remains literal under base color;
      * allowed colors still translate.
      */
     @Test

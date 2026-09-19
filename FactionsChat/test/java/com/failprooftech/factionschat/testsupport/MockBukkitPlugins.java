@@ -101,7 +101,7 @@ public final class MockBukkitPlugins
             description = new PluginDescriptionFile(in);
         }
 
-        // Package-private MockBukkit APIs — setAccessible required across JDK versions.
+        // Package-private MockBukkit APIs - setAccessible required across JDK versions.
         Method createClassLoader = PluginManagerMock.class.getDeclaredMethod(
             "createClassLoader", PluginDescriptionFile.class);
         createClassLoader.setAccessible(true);

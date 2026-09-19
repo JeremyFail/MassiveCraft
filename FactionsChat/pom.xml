@@ -138,7 +138,7 @@
         <factionschat.paper26.api.version>26.1.2.build.72-stable</factionschat.paper26.api.version>
         <!--
             Adventure line used by MockBukkit's paper-api for both 1.21.11 and 26.1.2 test swaps
-            (adventure-bom 4.26.1). Not Adventure 5 — that is only for adventure5-bundled compile.
+            (adventure-bom 4.26.1). Not Adventure 5 - that is only for adventure5-bundled compile.
         -->
         <factionschat.mockbukkit.adventure.version>4.26.1</factionschat.mockbukkit.adventure.version>
         <!-- Shared test Guava (MockBukkit ofEntries); paper26 profile also copies this jar when excluding transitive Guava. -->
@@ -281,7 +281,7 @@
                 <executions>
                     <!--
                         MockBukkit.load(Class) needs the plugin packaged as a JAR (CodeSource must be a
-                        .jar URL), but jar runs at package — after test. Re-phase the built-in execution
+                        .jar URL), but jar runs at package - after test. Re-phase the built-in execution
                         rather than adding a second one: a second unclassified jar execution fails with
                         "use a classifier to attach supplemental artifacts". Shade still runs at package
                         and replaces this artifact. Nothing writes target/classes after compile, so the
