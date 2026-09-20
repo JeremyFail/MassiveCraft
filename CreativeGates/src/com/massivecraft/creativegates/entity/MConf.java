@@ -322,6 +322,31 @@ public class MConf extends Entity<MConf>
 	}
 
 	/**
+	 * When true, living mobs may use gates (wandering, on leads, and as mounts).
+	 * Individual gates may further disable via {@link UGate#isAllowMobs()}.
+	 */
+	private boolean gatesAllowMobs = true;
+	public boolean isGatesAllowMobs() { return this.gatesAllowMobs; }
+	public void setGatesAllowMobs(boolean gatesAllowMobs)
+	{
+		this.changed(this.gatesAllowMobs, gatesAllowMobs);
+		this.gatesAllowMobs = gatesAllowMobs;
+	}
+
+	/**
+	 * Spigot backend only: how often to scan loaded-chunk gates for wandering mobs.
+	 * Ignored on Paper ({@code EntityMoveEvent} backend). 20 ticks = 1 second. Default 10.
+	 */
+	private int gatesAllowMobsScanTicks = 10;
+	public int getGatesAllowMobsScanTicks() { return this.gatesAllowMobsScanTicks; }
+	public void setGatesAllowMobsScanTicks(int gatesAllowMobsScanTicks)
+	{
+		int sanitized = Math.max(1, gatesAllowMobsScanTicks);
+		this.changed(this.gatesAllowMobsScanTicks, sanitized);
+		this.gatesAllowMobsScanTicks = sanitized;
+	}
+
+	/**
 	 * Configured default fill for vertical gates. Blank / invalid falls back to the first
 	 * entry in {@link #getSelectableGateTypes(GateOrientation)}.
 	 */

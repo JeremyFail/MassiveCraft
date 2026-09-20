@@ -440,10 +440,18 @@ public class EngineMain extends Engine
 	 */
 	public static UGate getGateIntersectingPlayer(Player player, Location location)
 	{
-		if (player == null || location == null || location.getWorld() == null) return null;
+		return getGateIntersectingEntity(player, location);
+	}
+
+	/**
+	 * Finds a gate whose portal content intersects the entity's hitbox at a specific location.
+	 */
+	public static UGate getGateIntersectingEntity(org.bukkit.entity.Entity entity, Location location)
+	{
+		if (entity == null || location == null || location.getWorld() == null) return null;
 		
-		double halfWidth = player.getWidth() / 2.0;
-		double height = player.getHeight();
+		double halfWidth = entity.getWidth() / 2.0;
+		double height = entity.getHeight();
 		
 		int minX = (int) Math.floor(location.getX() - halfWidth);
 		int maxX = (int) Math.floor(location.getX() + halfWidth);
@@ -569,6 +577,10 @@ public class EngineMain extends Engine
 		{
 			RECENT_GATE_USE_BY_PLAYER.put(playerId, System.currentTimeMillis());
 			player.setPortalCooldown(300);
+			if (ugate.isAllowMobs())
+			{
+				EngineGateMobs.markRecentGateUse(player);
+			}
 			if (ugate.getOrientation().isHorizontal())
 			{
 				HORIZONTAL_GATE_SUPPRESS_UNTIL_EXIT.add(playerId);

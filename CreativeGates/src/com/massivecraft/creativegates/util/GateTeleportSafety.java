@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
@@ -88,6 +89,43 @@ public final class GateTeleportSafety
 		if (!canOccupy(world, baseX, baseY, baseZ)) return false;
 		if (!canOccupy(world, baseX, baseY + 1, baseZ)) return false;
 		
+		return true;
+	}
+
+	/**
+	 * Returns whether the destination is safe for the given entity's height.
+	 * Falls back to two-block clearance when height cannot be determined.
+	 */
+	public static boolean isDestinationSafe(Entity entity, PS destination)
+	{
+		if (destination == null) return false;
+		try
+		{
+			return isDestinationSafe(entity, destination.asBukkitLocation(true));
+		}
+		catch (IllegalStateException e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Returns whether the destination location is safe for the given entity's height.
+	 */
+	public static boolean isDestinationSafe(Entity entity, Location location)
+	{
+		if (entity == null || location == null || location.getWorld() == null) return false;
+
+		World world = location.getWorld();
+		int baseX = location.getBlockX();
+		int baseY = location.getBlockY();
+		int baseZ = location.getBlockZ();
+
+		int heightBlocks = Math.max(1, (int) Math.ceil(entity.getHeight()));
+		for (int dy = 0; dy < heightBlocks; dy++)
+		{
+			if (!canOccupy(world, baseX, baseY + dy, baseZ)) return false;
+		}
 		return true;
 	}
 	

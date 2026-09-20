@@ -9,6 +9,7 @@ import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.gate.fill.GateTypeResolve;
 import com.massivecraft.creativegates.gate.fill.SupportedGateType;
+import com.massivecraft.creativegates.util.GateEntityTeleport;
 import com.massivecraft.creativegates.util.GateTeleportSafety;
 import com.massivecraft.creativegates.util.HorizontalGateLaunchUtil;
 import com.massivecraft.creativegates.util.HorizontalGateLaunchUtil.LaunchPlan;
@@ -21,6 +22,7 @@ import com.massivecraft.massivecore.store.Entity;
 import com.massivecraft.massivecore.teleport.Destination;
 import com.massivecraft.massivecore.teleport.DestinationSimple;
 import com.massivecraft.massivecore.util.IdUtil;
+import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.SmokeUtil;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Effect;
@@ -31,6 +33,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -76,6 +79,7 @@ public class UGate extends Entity<UGate>
 		this.restricted = that.restricted;
 		this.enterEnabled = that.enterEnabled;
 		this.exitEnabled = that.exitEnabled;
+		this.allowMobs = that.allowMobs;
 		this.exit = that.exit;
 		this.orientation = that.orientation;
 		this.fillTypeId = that.fillTypeId;
@@ -251,6 +255,50 @@ public class UGate extends Entity<UGate>
 	{
 		this.changed(this.exitEnabled, exitEnabled);
 		this.exitEnabled = exitEnabled;
+	}
+
+	/**
+	 * Per-gate mob teleport override. {@code null} means follow the server when mobs are allowed.
+	 * Cannot enable mobs when {@link MConf#isGatesAllowMobs()} is false.
+	 */
+	private Boolean allowMobs = null;
+
+	/**
+	 * Effective whether mobs may use this gate.
+	 * <p>
+	 * Server {@link MConf#isGatesAllowMobs()} is a hard kill-switch: when false, every gate
+	 * is denied regardless of any stored per-gate {@code true}. When the server allows mobs,
+	 * a per-gate {@code false} can still disable them for that gate; {@code null} follows the server.
+	 * </p>
+	 */
+	public boolean isAllowMobs()
+	{
+		if (!MConf.get().isGatesAllowMobs()) return false;
+		if (this.allowMobs == null) return true;
+		return this.allowMobs;
+	}
+
+	/**
+	 * Raw per-gate override, or {@code null} when following server config.
+	 */
+	public Boolean getAllowMobsOverride()
+	{
+		return this.allowMobs;
+	}
+
+	/**
+	 * Sets the per-gate mob teleport override. Pass {@code null} to follow server config.
+	 * Values equal to the current server default are stored as {@code null}.
+	 */
+	public void setAllowMobs(Boolean allowMobs)
+	{
+		Boolean target = allowMobs;
+		if (MUtil.equals(target, MConf.get().isGatesAllowMobs())) target = null;
+
+		if (MUtil.equals(this.allowMobs, target)) return;
+
+		this.changed(this.allowMobs, target);
+		this.allowMobs = target;
 	}
 	
 	private PS exit = null;
@@ -566,6 +614,11 @@ public class UGate extends Entity<UGate>
 	 */
 	public boolean transport(Player player, HorizontalEntryContext entryContext, Location sourceLocation)
 	{
+		if (this.isAllowMobs() && GateEntityTeleport.shouldBringEntourage(player))
+		{
+			return this.transportPlayerWithEntourage(player, sourceLocation);
+		}
+
 		List<UGate> gateChain = this.getGateChain();
 		
 		String message;
@@ -625,6 +678,117 @@ public class UGate extends Entity<UGate>
 		message = Txt.parse("<i>This gate does not seem to lead anywhere.");
 		MixinMessage.get().messageOne(player, message);
 		return false;
+	}
+
+	/**
+	 * Transports a player together with their mount and/or leashed mobs, keeping mounts and leads.
+	 * Momentum launch is skipped so the whole party can be moved as a unit.
+	 */
+	private boolean transportPlayerWithEntourage(Player player, Location sourceLocation)
+	{
+		List<UGate> gateChain = this.getGateChain();
+		String blockedMessage = Txt.parse("<b>The gate exit is blocked.");
+
+		for (UGate ugate : gateChain)
+		{
+			if (!ugate.isExitEnabled()) continue;
+			if (!ugate.isAllowMobs()) continue;
+
+			PS destinationPs = ugate.getExit();
+			if (!GateTeleportSafety.isDestinationSafe(player, destinationPs))
+			{
+				MixinMessage.get().messageOne(player, blockedMessage);
+				continue;
+			}
+
+			Location destination;
+			try
+			{
+				destination = destinationPs.asBukkitLocation(true);
+			}
+			catch (IllegalStateException e)
+			{
+				continue;
+			}
+
+			if (!GateEntityTeleport.teleportParty(player, destination)) continue;
+
+			if (!GateTeleportSafety.isDestinationSafe(player, destinationPs))
+			{
+				this.returnPlayerToSource(player, sourceLocation);
+				MixinMessage.get().messageOne(player, blockedMessage);
+				continue;
+			}
+
+			this.setUsedMillis(System.currentTimeMillis());
+			this.fxKitUse(player);
+			return true;
+		}
+
+		MixinMessage.get().messageOne(player, Txt.parse("<i>This gate does not seem to lead anywhere."));
+		return false;
+	}
+
+	/**
+	 * Transports a non-player living entity (and its mount / passengers / leash party) through the gate chain.
+	 *
+	 * @param entity The entity to transport.
+	 * @return {@code true} if the entity was teleported.
+	 */
+	public boolean transportEntity(LivingEntity entity)
+	{
+		if (entity == null || !entity.isValid() || entity.isDead()) return false;
+		if (entity instanceof Player) return false;
+		if (!this.isAllowMobs()) return false;
+		if (!this.isEnterEnabled()) return false;
+
+		// Leash/mount party that includes a player: use the player path (perms, debounce, FX).
+		Player player = GateEntityTeleport.findPlayerInParty(entity);
+		if (player != null)
+		{
+			return EngineMain.tryUseGate(player, this);
+		}
+
+		List<UGate> gateChain = this.getGateChain();
+		for (UGate ugate : gateChain)
+		{
+			if (!ugate.isExitEnabled()) continue;
+			if (!ugate.isAllowMobs()) continue;
+
+			PS destinationPs = ugate.getExit();
+			if (!GateTeleportSafety.isDestinationSafe(entity, destinationPs)) continue;
+
+			Location destination;
+			try
+			{
+				destination = destinationPs.asBukkitLocation(true);
+			}
+			catch (IllegalStateException e)
+			{
+				continue;
+			}
+
+			if (!GateEntityTeleport.teleportParty(entity, destination)) continue;
+
+			this.setUsedMillis(System.currentTimeMillis());
+			this.fxKitUseEntity(entity);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Plays use FX for an entity party (player sound when a player is present).
+	 */
+	private void fxKitUseEntity(LivingEntity entity)
+	{
+		Player player = GateEntityTeleport.findPlayerInParty(entity);
+		if (player != null)
+		{
+			this.fxKitUse(player);
+			return;
+		}
+		EngineGateFillParticles.get().burstGate(this);
 	}
 	
 	private void returnPlayerToSource(Player player, Location sourceLocation)

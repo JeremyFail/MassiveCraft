@@ -3,6 +3,7 @@ package com.massivecraft.creativegates;
 import com.massivecraft.creativegates.cmd.CmdCg;
 import com.massivecraft.creativegates.engine.EngineGateFillDisplay;
 import com.massivecraft.creativegates.engine.EngineGateFillParticles;
+import com.massivecraft.creativegates.engine.EngineGateMobs;
 import com.massivecraft.creativegates.engine.EngineMain;
 import com.massivecraft.creativegates.engine.PendingGateCreates;
 import com.massivecraft.creativegates.entity.MConf;
@@ -81,6 +82,7 @@ public class CreativeGates extends MassivePlugin
 		
 			// Engine
 			EngineMain.class,
+			EngineGateMobs.class,
 			PendingGateCreates.class,
 			EngineGateFillDisplay.class,
 			EngineGateFillParticles.class,
