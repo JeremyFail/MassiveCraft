@@ -79,7 +79,9 @@ public class UGate extends Entity<UGate>
 		this.restricted = that.restricted;
 		this.enterEnabled = that.enterEnabled;
 		this.exitEnabled = that.exitEnabled;
+		this.allowPlayers = that.allowPlayers;
 		this.allowMobs = that.allowMobs;
+		this.allowVehicles = that.allowVehicles;
 		this.exit = that.exit;
 		this.orientation = that.orientation;
 		this.fillTypeId = that.fillTypeId;
@@ -258,6 +260,32 @@ public class UGate extends Entity<UGate>
 	}
 
 	/**
+	 * Whether players may travel through this gate (when enter is also enabled).
+	 */
+	private boolean allowPlayers = true;
+
+	/**
+	 * Gets whether players may use this gate for travel.
+	 * 
+	 * @return True if players may use this gate for travel.
+	 */
+	public boolean isAllowPlayers()
+	{
+		return this.allowPlayers;
+	}
+
+	/**
+	 * Sets whether players may travel through this gate.
+	 *
+	 * @param allowPlayers True to allow player travel.
+	 */
+	public void setAllowPlayers(boolean allowPlayers)
+	{
+		this.changed(this.allowPlayers, allowPlayers);
+		this.allowPlayers = allowPlayers;
+	}
+
+	/**
 	 * Per-gate mob teleport override. {@code null} means follow the server when mobs are allowed.
 	 * Cannot enable mobs when {@link MConf#isGatesAllowMobs()} is false.
 	 */
@@ -289,6 +317,8 @@ public class UGate extends Entity<UGate>
 	/**
 	 * Sets the per-gate mob teleport override. Pass {@code null} to follow server config.
 	 * Values equal to the current server default are stored as {@code null}.
+	 * 
+	 * @param allowMobs The mob teleport override to set.
 	 */
 	public void setAllowMobs(Boolean allowMobs)
 	{
@@ -299,6 +329,51 @@ public class UGate extends Entity<UGate>
 
 		this.changed(this.allowMobs, target);
 		this.allowMobs = target;
+	}
+
+	/**
+	 * Per-gate vehicle teleport override. {@code null} means follow the server when vehicles are allowed.
+	 * Cannot enable vehicles when {@link MConf#isGatesAllowVehicles()} is false.
+	 */
+	private Boolean allowVehicles = null;
+
+	/**
+	 * Effective whether non-living vehicles may use this gate.
+	 * <p>
+	 * Server {@link MConf#isGatesAllowVehicles()} is a hard kill-switch. When the server allows
+	 * vehicles, a per-gate {@code false} can still disable them; {@code null} follows the server.
+	 * </p>
+	 */
+	public boolean isAllowVehicles()
+	{
+		if (!MConf.get().isGatesAllowVehicles()) return false;
+		if (this.allowVehicles == null) return true;
+		return this.allowVehicles;
+	}
+
+	/**
+	 * Raw per-gate override, or {@code null} when following server config.
+	 */
+	public Boolean getAllowVehiclesOverride()
+	{
+		return this.allowVehicles;
+	}
+
+	/**
+	 * Sets the per-gate vehicle teleport override. Pass {@code null} to follow server config.
+	 * Values equal to the current server default are stored as {@code null}.
+	 * 
+	 * @param allowVehicles The vehicle teleport override to set.
+	 */
+	public void setAllowVehicles(Boolean allowVehicles)
+	{
+		Boolean target = allowVehicles;
+		if (MUtil.equals(target, MConf.get().isGatesAllowVehicles())) target = null;
+
+		if (MUtil.equals(this.allowVehicles, target)) return;
+
+		this.changed(this.allowVehicles, target);
+		this.allowVehicles = target;
 	}
 	
 	private PS exit = null;
@@ -561,36 +636,6 @@ public class UGate extends Entity<UGate>
 		this.fxKitDestroy(null);
 	}
 	
-	/**
-	 * Toggles the mode of the gate.
-	 */
-	public void toggleMode()
-	{
-		boolean enter = this.isEnterEnabled();
-		boolean exit = this.isExitEnabled();
-		
-		if (enter == false && exit == false)
-		{
-			this.setEnterEnabled(true);
-			this.setExitEnabled(false);
-		}
-		else if (enter == true && exit == false)
-		{
-			this.setEnterEnabled(false);
-			this.setExitEnabled(true);
-		}
-		else if (enter == false && exit == true)
-		{
-			this.setEnterEnabled(true);
-			this.setExitEnabled(true);
-		}
-		else if (enter == true && exit == true)
-		{
-			this.setEnterEnabled(false);
-			this.setExitEnabled(false);
-		}
-	}
-	
 	// -------------------------------------------- //
 	// TRANSPORT
 	// -------------------------------------------- //
@@ -614,7 +659,8 @@ public class UGate extends Entity<UGate>
 	 */
 	public boolean transport(Player player, HorizontalEntryContext entryContext, Location sourceLocation)
 	{
-		if (this.isAllowMobs() && GateEntityTeleport.shouldBringEntourage(player))
+		if (this.isAllowMobs() && GateEntityTeleport.hasMobEntourage(player)
+			|| this.isAllowVehicles() && GateEntityTeleport.hasNonLivingVehicle(player))
 		{
 			return this.transportPlayerWithEntourage(player, sourceLocation);
 		}
@@ -683,16 +729,24 @@ public class UGate extends Entity<UGate>
 	/**
 	 * Transports a player together with their mount and/or leashed mobs, keeping mounts and leads.
 	 * Momentum launch is skipped so the whole party can be moved as a unit.
+	 * 
+	 * @param player The player to transport.
+	 * @param sourceLocation The location the player entered from.
+	 * @return True if the player was teleported.
 	 */
 	private boolean transportPlayerWithEntourage(Player player, Location sourceLocation)
 	{
+		boolean bringMobs = this.isAllowMobs() && GateEntityTeleport.hasMobEntourage(player);
+		boolean bringVehicles = this.isAllowVehicles() && GateEntityTeleport.hasNonLivingVehicle(player);
+
 		List<UGate> gateChain = this.getGateChain();
 		String blockedMessage = Txt.parse("<b>The gate exit is blocked.");
 
 		for (UGate ugate : gateChain)
 		{
 			if (!ugate.isExitEnabled()) continue;
-			if (!ugate.isAllowMobs()) continue;
+			if (bringMobs && !ugate.isAllowMobs()) continue;
+			if (bringVehicles && !ugate.isAllowVehicles()) continue;
 
 			PS destinationPs = ugate.getExit();
 			if (!GateTeleportSafety.isDestinationSafe(player, destinationPs))
@@ -730,16 +784,27 @@ public class UGate extends Entity<UGate>
 	}
 
 	/**
-	 * Transports a non-player living entity (and its mount / passengers / leash party) through the gate chain.
+	 * Transports a non-player entity (living mob or vehicle) and its mount / passengers / leash party
+	 * through the gate chain.
 	 *
 	 * @param entity The entity to transport.
 	 * @return {@code true} if the entity was teleported.
 	 */
-	public boolean transportEntity(LivingEntity entity)
+	public boolean transportEntity(org.bukkit.entity.Entity entity)
 	{
-		if (entity == null || !entity.isValid() || entity.isDead()) return false;
+		if (entity == null || !entity.isValid()) return false;
+		if (entity instanceof LivingEntity && ((LivingEntity) entity).isDead()) return false;
 		if (entity instanceof Player) return false;
-		if (!this.isAllowMobs()) return false;
+
+		boolean livingTrigger = entity instanceof LivingEntity;
+		if (livingTrigger)
+		{
+			if (!this.isAllowMobs()) return false;
+		}
+		else if (!this.isAllowVehicles())
+		{
+			return false;
+		}
 		if (!this.isEnterEnabled()) return false;
 
 		// Leash/mount party that includes a player: use the player path (perms, debounce, FX).
@@ -753,7 +818,14 @@ public class UGate extends Entity<UGate>
 		for (UGate ugate : gateChain)
 		{
 			if (!ugate.isExitEnabled()) continue;
-			if (!ugate.isAllowMobs()) continue;
+			if (livingTrigger)
+			{
+				if (!ugate.isAllowMobs()) continue;
+			}
+			else if (!ugate.isAllowVehicles())
+			{
+				continue;
+			}
 
 			PS destinationPs = ugate.getExit();
 			if (!GateTeleportSafety.isDestinationSafe(entity, destinationPs)) continue;
@@ -779,8 +851,10 @@ public class UGate extends Entity<UGate>
 
 	/**
 	 * Plays use FX for an entity party (player sound when a player is present).
+	 * 
+	 * @param entity The entity to play the use FX for.
 	 */
-	private void fxKitUseEntity(LivingEntity entity)
+	private void fxKitUseEntity(org.bukkit.entity.Entity entity)
 	{
 		Player player = GateEntityTeleport.findPlayerInParty(entity);
 		if (player != null)

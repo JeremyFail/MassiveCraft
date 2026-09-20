@@ -21,6 +21,9 @@ public class CmdCg extends MassiveCommand
 	// FIELDS
 	// -------------------------------------------- //
 	
+	public CmdCgInspect cmdCgInspect = new CmdCgInspect();
+	public CmdCgManage cmdCgManage = new CmdCgManage();
+	public CmdCgOverride cmdCgOverride = new CmdCgOverride();
 	public CmdCgWorld cmdCgWorld = new CmdCgWorld();
 	public CmdCgConfig cmdCgConfig = new CmdCgConfig();
 	public CmdCgVersion cmdCgVersion = new CmdCgVersion();
@@ -32,6 +35,9 @@ public class CmdCg extends MassiveCommand
 	public CmdCg()
 	{
 		// Children
+		this.addChild(this.cmdCgInspect);
+		this.addChild(this.cmdCgManage);
+		this.addChild(this.cmdCgOverride);
 		this.addChild(this.cmdCgWorld);
 		this.addChild(this.cmdCgConfig);
 		this.addChild(this.cmdCgVersion);

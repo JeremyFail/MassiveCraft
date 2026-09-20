@@ -88,6 +88,22 @@ public class MConf extends Entity<MConf>
 	private Set<String> aliasesCgVersion = MUtil.set("v", "version");
 	public Set<String> getAliasesCgVersion() { return this.aliasesCgVersion; }
 	public void setAliasesCgVersion(Set<String> aliasesCgVersion) { this.aliasesCgVersion = aliasesCgVersion; }
+	
+	private Set<String> aliasesCgInspect = MUtil.set("inspect", "view", "show");
+	public Set<String> getAliasesCgInspect() { return this.aliasesCgInspect; }
+	public void setAliasesCgInspect(Set<String> aliasesCgInspect) { this.aliasesCgInspect = aliasesCgInspect; }
+	
+	private Set<String> aliasesCgManage = MUtil.set("manage");
+	public Set<String> getAliasesCgManage() { return this.aliasesCgManage; }
+	public void setAliasesCgManage(Set<String> aliasesCgManage) { this.aliasesCgManage = aliasesCgManage; }
+	
+	private Set<String> aliasesCgManageSet = MUtil.set("set");
+	public Set<String> getAliasesCgManageSet() { return this.aliasesCgManageSet; }
+	public void setAliasesCgManageSet(Set<String> aliasesCgManageSet) { this.aliasesCgManageSet = aliasesCgManageSet; }
+	
+	private Set<String> aliasesCgOverride = MUtil.set("override", "admin");
+	public Set<String> getAliasesCgOverride() { return this.aliasesCgOverride; }
+	public void setAliasesCgOverride(Set<String> aliasesCgOverride) { this.aliasesCgOverride = aliasesCgOverride; }
 
 	public boolean teleportationSoundActive = true;
 	public String teleportationSound = "ENTITY_GHAST_SHOOT";
@@ -322,7 +338,7 @@ public class MConf extends Entity<MConf>
 	}
 
 	/**
-	 * When true, living mobs may use gates (wandering, on leads, and as mounts).
+	 * When true, living mobs may use gates (wandering, on leads, and as living mounts).
 	 * Individual gates may further disable via {@link UGate#isAllowMobs()}.
 	 */
 	private boolean gatesAllowMobs = true;
@@ -331,6 +347,19 @@ public class MConf extends Entity<MConf>
 	{
 		this.changed(this.gatesAllowMobs, gatesAllowMobs);
 		this.gatesAllowMobs = gatesAllowMobs;
+	}
+
+	/**
+	 * When true, non-living vehicles (boats, minecarts, etc.) may use gates.
+	 * Individual gates may further disable via {@link UGate#isAllowVehicles()}.
+	 * Living mounts are controlled by {@link #isGatesAllowMobs()} instead.
+	 */
+	private boolean gatesAllowVehicles = true;
+	public boolean isGatesAllowVehicles() { return this.gatesAllowVehicles; }
+	public void setGatesAllowVehicles(boolean gatesAllowVehicles)
+	{
+		this.changed(this.gatesAllowVehicles, gatesAllowVehicles);
+		this.gatesAllowVehicles = gatesAllowVehicles;
 	}
 
 	/**
@@ -482,20 +511,12 @@ public class MConf extends Entity<MConf>
 		this.materialInspect = materialInspect;
 	}
 
-	private Material materialSecret = Material.MAGMA_CREAM;
-	public Material getMaterialSecret() { return this.materialSecret; }
-	public void setMaterialSecret(Material materialSecret)
+	private Material materialManage = Material.BLAZE_ROD;
+	public Material getMaterialManage() { return this.materialManage; }
+	public void setMaterialManage(Material materialManage)
 	{
-		this.changed(this.materialSecret, materialSecret);
-		this.materialSecret = materialSecret;
-	}
-
-	private Material materialMode = Material.BLAZE_ROD;
-	public Material getMaterialMode() { return this.materialMode; }
-	public void setMaterialMode(Material materialMode)
-	{
-		this.changed(this.materialMode, materialMode);
-		this.materialMode = materialMode;
+		this.changed(this.materialManage, materialManage);
+		this.materialManage = materialManage;
 	}
 
 	// Prevent gate creation in these worlds

@@ -8,19 +8,22 @@ import com.massivecraft.massivecore.gson.JsonPrimitive;
 import com.massivecraft.massivecore.store.migrator.MigratorRoot;
 
 /**
- * Migrates legacy global fill flags ({@code usingWater}, {@code useLavaInNether})
- * to unified string allow-lists {@code allowedGateTypes} /
- * {@code allowedHorizontalGateTypes} and {@code replaceWaterWithLavaInNether}.
+ * Migrates legacy MConf fields for this release:
+ * <ul>
+ *   <li>Fill flags ({@code usingWater}, {@code useLavaInNether}) → allow-lists</li>
+ *   <li>{@code materialMode} → {@code materialManage}</li>
+ *   <li>Removes obsolete {@code materialSecret}</li>
+ * </ul>
  */
-public class MigratorMConf001GateTypes extends MigratorRoot
+public class MigratorMConf001Settings extends MigratorRoot
 {
 	// -------------------------------------------- //
 	// INSTANCE & CONSTRUCT
 	// -------------------------------------------- //
 	
-	private static MigratorMConf001GateTypes i = new MigratorMConf001GateTypes();
-	public static MigratorMConf001GateTypes get() { return i; }
-	private MigratorMConf001GateTypes()
+	private static MigratorMConf001Settings i = new MigratorMConf001Settings();
+	public static MigratorMConf001Settings get() { return i; }
+	private MigratorMConf001Settings()
 	{
 		super(MConf.class);
 	}
@@ -32,6 +35,19 @@ public class MigratorMConf001GateTypes extends MigratorRoot
 	@Override
 	public void migrateInner(JsonObject entity)
 	{
+		migrateGateTypes(entity);
+		migrateMaterials(entity);
+	}
+	
+	// -------------------------------------------- //
+	// GATE TYPES
+	// -------------------------------------------- //
+	
+	private static void migrateGateTypes(JsonObject entity)
+	{
+		boolean hasLegacy = entity.has("usingWater") || entity.has("useLavaInNether");
+		if (!hasLegacy && entity.has("allowedGateTypes")) return;
+		
 		boolean usingWater = getBoolean(entity, "usingWater", false);
 		boolean useLavaInNether = getBoolean(entity, "useLavaInNether", true);
 		
@@ -56,6 +72,21 @@ public class MigratorMConf001GateTypes extends MigratorRoot
 		
 		entity.remove("usingWater");
 		entity.remove("useLavaInNether");
+	}
+	
+	// -------------------------------------------- //
+	// MATERIALS
+	// -------------------------------------------- //
+	
+	private static void migrateMaterials(JsonObject entity)
+	{
+		JsonElement mode = entity.get("materialMode");
+		if (mode != null && !mode.isJsonNull() && !entity.has("materialManage"))
+		{
+			entity.add("materialManage", mode);
+		}
+		entity.remove("materialMode");
+		entity.remove("materialSecret");
 	}
 	
 	// -------------------------------------------- //

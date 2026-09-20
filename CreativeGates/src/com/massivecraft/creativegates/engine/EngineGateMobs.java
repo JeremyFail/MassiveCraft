@@ -5,18 +5,22 @@ import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.gate.mobdetect.GateMobDetect;
 import com.massivecraft.creativegates.util.GateEntityTeleport;
 import com.massivecraft.massivecore.Engine;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Shared mob-gate use logic (debounce, transport) and lifecycle hook for {@link GateMobDetect}.
+ * Shared mob/vehicle gate use logic (debounce, transport) and lifecycle hook for {@link GateMobDetect}.
  * <p>
- * Wandering-mob <em>detection</em> is platform-specific (Paper event vs Spigot scan) and lives
- * in {@code gate.mobdetect} backends — not here.
+ * Living-mob detection is platform-specific (Paper event vs Spigot scan). Non-living vehicles
+ * (boats, minecarts) use Bukkit {@link VehicleMoveEvent}, available on both Spigot and Paper.
  * </p>
  */
 public class EngineGateMobs extends Engine
@@ -41,17 +45,27 @@ public class EngineGateMobs extends Engine
 	}
 
 	/**
-	 * Attempts to send a wandering (non-player) living entity through a gate.
+	 * Attempts to send a non-player entity (wandering mob or eligible vehicle) through a gate.
 	 *
+	 * @param entity The entity to transport.
+	 * @param gate The gate to transport the entity through.
 	 * @return {@code true} if the entity was transported.
 	 */
-	public static boolean tryUseGate(LivingEntity entity, UGate gate)
+	public static boolean tryUseGate(Entity entity, UGate gate)
 	{
 		if (entity == null || gate == null) return false;
 		if (!MConf.get().isEnabled()) return false;
-		if (!gate.isAllowMobs()) return false;
 		if (!gate.isEnterEnabled()) return false;
-		if (!GateEntityTeleport.isEligibleWanderingMob(entity)) return false;
+		if (!GateEntityTeleport.isEligibleNonPlayerTrigger(entity)) return false;
+
+		if (entity instanceof LivingEntity)
+		{
+			if (!gate.isAllowMobs()) return false;
+		}
+		else if (!gate.isAllowVehicles())
+		{
+			return false;
+		}
 
 		UUID id = entity.getUniqueId();
 		if (wasRecentGateUse(id)) return false;
@@ -66,6 +80,12 @@ public class EngineGateMobs extends Engine
 		return true;
 	}
 
+	/**
+	 * Checks if the entity has recently used a gate.
+	 * 
+	 * @param entityId The unique ID of the entity.
+	 * @return True if the entity has recently used a gate.
+	 */
 	private static boolean wasRecentGateUse(UUID entityId)
 	{
 		Long recent = RECENT_GATE_USE_BY_ENTITY.get(entityId);
@@ -76,6 +96,38 @@ public class EngineGateMobs extends Engine
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Boats / minecarts (and other non-living vehicles) on Spigot and Paper.
+	 * Living vehicles are left to the living-mob backends to avoid duplicate work.
+	 * 
+	 * @param event The vehicle move event.
+	 */
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onVehicleMove(VehicleMoveEvent event)
+	{
+		if (!MConf.get().isEnabled()) return;
+		if (!MConf.get().isGatesAllowVehicles()) return;
+
+		Entity vehicle = event.getVehicle();
+		if (!GateEntityTeleport.isEligibleGateVehicle(vehicle)) return;
+
+		Location to = event.getTo();
+		Location from = event.getFrom();
+		if (to == null) return;
+
+		if (from.getBlockX() == to.getBlockX()
+			&& from.getBlockY() == to.getBlockY()
+			&& from.getBlockZ() == to.getBlockZ())
+		{
+			return;
+		}
+
+		UGate gate = EngineMain.getGateIntersectingEntity(vehicle, to);
+		if (gate == null) return;
+
+		tryUseGate(vehicle, gate);
 	}
 
 	@Override

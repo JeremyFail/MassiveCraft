@@ -20,6 +20,10 @@ permissions:
   creativegates.cg.world.delete: {description: delete all gates in world, default: false}
   creativegates.cg.version: {description: see plugin version, default: false}
   creativegates.cg.config: {description: edit configuration, default: false}
+  creativegates.cg.inspect: {description: inspect gate details, default: false}
+  creativegates.cg.manage: {description: manage gate settings, default: false}
+  creativegates.cg.override: {description: toggle override mode for managing others gates, default: false}
+  creativegates.cg.override.bypass: {description: always manage any gate without override mode, default: false}
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
@@ -30,11 +34,17 @@ permissions:
       creativegates.setgatefill: true
       creativegates.use: true
       creativegates.cg: true
+      creativegates.cg.version: true
+      creativegates.cg.inspect: true
+      creativegates.cg.manage: true
+  creativegates.admin.*:
+    default: false
+    children:
+      creativegates.cg.override: true
+      creativegates.cg.config: true
       creativegates.cg.world: true
       creativegates.cg.world.list: true
       creativegates.cg.world.delete: true
-      creativegates.cg.version: true
-      creativegates.cg.config: true
 # -------------------------------------------- #
 # KITS
 # -------------------------------------------- #
@@ -42,11 +52,12 @@ permissions:
     default: op
     children:
       creativegates.*: true
+      creativegates.admin.*: true
   creativegates.kit.rank3:
     default: false
     children:
       creativegates.kit.rank2: true
-      creativegates.cg.config: true
+      creativegates.admin.*: true
   creativegates.kit.rank2:
     default: false
     children:
@@ -56,8 +67,6 @@ permissions:
     children:
       creativegates.kit.rank0: true
       creativegates.cg: true
-      creativegates.cg.world: true
-      creativegates.cg.world.list: true
   creativegates.kit.rank0:
     default: false
     children:

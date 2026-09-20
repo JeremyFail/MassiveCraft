@@ -8,9 +8,10 @@ import com.massivecraft.creativegates.engine.EngineMain;
 import com.massivecraft.creativegates.engine.PendingGateCreates;
 import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.MConfColl;
+import com.massivecraft.creativegates.entity.MPlayerColl;
 import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.entity.UGateColl;
-import com.massivecraft.creativegates.entity.migrator.MigratorMConf001GateTypes;
+import com.massivecraft.creativegates.entity.migrator.MigratorMConf001Settings;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.gate.fill.SupportedGateType;
@@ -74,10 +75,11 @@ public class CreativeGates extends MassivePlugin
 		
 		// Activate (migrator before MConfColl so version upgrades run on load)
 		this.activate(
-			MigratorMConf001GateTypes.class,
+			MigratorMConf001Settings.class,
 			
 			// Coll
 			MConfColl.class,
+			MPlayerColl.class,
 			UGateColl.class,
 		
 			// Engine

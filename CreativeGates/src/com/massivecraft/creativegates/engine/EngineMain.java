@@ -2,6 +2,7 @@ package com.massivecraft.creativegates.engine;
 
 import com.massivecraft.creativegates.CreativeGates;
 import com.massivecraft.creativegates.Perm;
+import com.massivecraft.creativegates.cmd.CmdCg;
 import com.massivecraft.creativegates.engine.create.GateCreate;
 import com.massivecraft.creativegates.engine.create.PendingGateCreate;
 import com.massivecraft.creativegates.entity.MConf;
@@ -9,8 +10,11 @@ import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.ui.GateFillPicker;
+import com.massivecraft.creativegates.ui.GateManageUi;
 import com.massivecraft.creativegates.util.FloodUtil;
 import com.massivecraft.creativegates.util.GateFloodInfo;
+import com.massivecraft.creativegates.util.GateInspectUtil;
+import com.massivecraft.creativegates.util.GateLookUtil;
 import com.massivecraft.creativegates.util.MaterialCountUtil;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.mixin.MixinMessage;
@@ -566,6 +570,13 @@ public class EngineMain extends Engine
 			return false;
 		}
 		
+		if (!ugate.isAllowPlayers())
+		{
+			String message = Txt.parse("<i>This gate does not allow player travel.");
+			MixinMessage.get().messageOne(player, message);
+			return false;
+		}
+		
 		HorizontalEntryContext entryContext = null;
 		if (ugate.getOrientation().isHorizontal() && MConf.get().isHorizontalGatesPreserveVelocity())
 		{
@@ -577,7 +588,7 @@ public class EngineMain extends Engine
 		{
 			RECENT_GATE_USE_BY_PLAYER.put(playerId, System.currentTimeMillis());
 			player.setPortalCooldown(300);
-			if (ugate.isAllowMobs())
+			if (ugate.isAllowMobs() || ugate.isAllowVehicles())
 			{
 				EngineGateMobs.markRecentGateUse(player);
 			}
@@ -967,9 +978,8 @@ public class EngineMain extends Engine
 		final Player player = event.getPlayer();
 		if (MUtil.isntPlayer(player)) return;
 		
-		// ... is clicking a block ...
+		// ... is clicking a block (create) or looking at a gate (inspect/manage) ...
 		final Block clickedBlock = event.getClickedBlock();
-		if (clickedBlock == null) return;
 		
 		// ... and gates are enabled here ...
 		if (!MConf.get().isEnabled()) return;
@@ -984,9 +994,7 @@ public class EngineMain extends Engine
 		(
 			material != MConf.get().getMaterialInspect()
 			&&
-			material != MConf.get().getMaterialMode()
-			&&
-			material != MConf.get().getMaterialSecret()
+			material != MConf.get().getMaterialManage()
 			&&
 			material != MConf.get().getMaterialCreate()
 		)
@@ -994,8 +1002,11 @@ public class EngineMain extends Engine
 			return;
 		}
 		
+		// Create still requires a clicked block.
+		if (material == MConf.get().getMaterialCreate() && clickedBlock == null) return;
+		
 		// ... then find the current gate ...
-		final UGate currentGate = UGate.get(clickedBlock);
+		final UGate currentGate = GateLookUtil.getGateFromClickOrLook(player, clickedBlock);
 		
 		String message = null;
 		
@@ -1120,13 +1131,17 @@ public class EngineMain extends Engine
 		}
 		else
 		{
-			// ... we are trying to do something else that create ...
+			// ... we are trying to inspect or manage ...
+			
+			// ... silent permission check for tools ...
+			if (material == MConf.get().getMaterialInspect() && !Perm.CG_INSPECT.has(player)) return;
+			if (material == MConf.get().getMaterialManage() && !Perm.CG_MANAGE.has(player)) return;
 			
 			// ... and there is a gate ...
 			if (currentGate == null)
 			{
 				// ... and there is no gate ...
-				if (isGateNearby(clickedBlock))
+				if (clickedBlock != null && isGateNearby(clickedBlock))
 				{
 					// ... but there is portal nearby.
 					
@@ -1151,66 +1166,32 @@ public class EngineMain extends Engine
 			}
 			
 			// ... send use action description ...
-			message = Txt.parse("<i>You use the %s on the %s...", Txt.getMaterialName(material), Txt.getMaterialName(clickedBlock.getType()));
+			String blockName = clickedBlock != null ? Txt.getMaterialName(clickedBlock.getType()) : "gate";
+			message = Txt.parse("<i>You use the %s on the %s...", Txt.getMaterialName(material), blockName);
 			MixinMessage.get().messageOne(player, message);
 			
-			// ... check restriction ...
-			if (currentGate.isRestricted())
+			if (material == MConf.get().getMaterialInspect())
 			{
-				if (currentGate.isCreator(player))
+				// ... we are trying to inspect ...
+				if (currentGate.isRestricted() && EngineGateOverride.canReadSecret(player, currentGate) && currentGate.isCreator(player))
 				{
 					message = Txt.parse("<i>... the gate is restricted but you are the creator ...");
 					MixinMessage.get().messageOne(player, message);
 				}
-				else
+				
+				GateInspectUtil.show(player, currentGate, 1, CmdCg.get().cmdCgInspect);
+			}
+			else if (material == MConf.get().getMaterialManage())
+			{
+				// ... we are trying to manage ...
+				if (!EngineGateOverride.canManage(player, currentGate))
 				{
-					message = Txt.parse("<b>... the gate is restricted and you are not the creator.");
+					message = Txt.parse("<b>... only the gate creator can manage this gate.");
 					MixinMessage.get().messageOne(player, message);
 					return;
 				}
-			}
-
-			if (material == MConf.get().getMaterialInspect())
-			{
-				// ... we are trying to inspect ...
-				message = Txt.parse("<i>Some gate inscriptions are revealed:");
-				MixinMessage.get().messageOne(player, message);
 				
-				message = Txt.parse("<k>network: <v>%s", currentGate.getNetworkId());
-				MixinMessage.get().messageOne(player, message);
-				
-				message = Txt.parse("<k>gates: <v>%d", currentGate.getGateChain().size());
-				MixinMessage.get().messageOne(player, message);
-			}
-			else if (material == MConf.get().getMaterialSecret())
-			{
-				// ... we are trying to change secret state ...
-				
-				boolean creator = currentGate.isCreator(player);
-				if (creator)
-				{
-					boolean secret = !currentGate.isRestricted();
-					currentGate.setRestricted(secret);
-					
-					message = (secret ? Txt.parse("<h>Only you <i>can read the gate inscriptions now.") : Txt.parse("<h>Anyone <i>can read the gate inscriptions now."));
-				}
-				else
-				{
-					message = Txt.parse("<i>It seems <h>only the gate creator <i>can change inscription readability.", Txt.getMaterialName(material), Txt.getMaterialName(clickedBlock.getType()));
-				}
-				MixinMessage.get().messageOne(player, message);
-			}
-			else if (material == MConf.get().getMaterialMode())
-			{
-				// ... we are trying to change mode ...
-				
-				currentGate.toggleMode();
-				
-				String enter = currentGate.isEnterEnabled() ? Txt.parse("<g>enter enabled") : Txt.parse("<b>enter disabled");
-				String exit = currentGate.isExitEnabled() ? Txt.parse("<g>exit enabled") : Txt.parse("<b>exit disabled");
-				
-				message = Txt.parse("<i>The gate now has %s <i>and %s<i>.", enter, exit);
-				MixinMessage.get().messageOne(player, message);
+				GateManageUi.open(player, currentGate);
 			}
 			
 		}

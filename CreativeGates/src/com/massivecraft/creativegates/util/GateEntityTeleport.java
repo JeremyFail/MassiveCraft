@@ -10,6 +10,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LeashHitch;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Vehicle;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,17 +38,48 @@ public final class GateEntityTeleport
 
 	/**
 	 * Returns whether the player is mounted or has nearby leashed mobs that should come along.
+	 * 
+	 * @param player The player to check.
+	 * @return True if the player should bring their entourage.
 	 */
 	public static boolean shouldBringEntourage(Player player)
 	{
+		return hasMobEntourage(player) || hasNonLivingVehicle(player);
+	}
+
+	/**
+	 * Living mount and/or leashed pets (controlled by mobs config).
+	 * 
+	 * @param player The player to check.
+	 * @return True if the player has a mob entourage.
+	 */
+	public static boolean hasMobEntourage(Player player)
+	{
 		if (player == null) return false;
-		if (player.getVehicle() != null) return true;
+		Entity vehicle = player.getVehicle();
+		if (vehicle instanceof LivingEntity) return true;
 		if (!player.getPassengers().isEmpty()) return true;
 		return !findLeashedTo(player).isEmpty();
 	}
 
 	/**
+	 * Boat / minecart / other non-living vehicle (controlled by vehicles config).
+	 * 
+	 * @param player The player to check.
+	 * @return True if the player has a non-living vehicle.
+	 */
+	public static boolean hasNonLivingVehicle(Player player)
+	{
+		if (player == null) return false;
+		Entity vehicle = player.getVehicle();
+		return vehicle != null && !(vehicle instanceof LivingEntity);
+	}
+
+	/**
 	 * Finds living entities currently leashed to {@code holder} within lead range.
+	 * 
+	 * @param holder The entity to check.
+	 * @return A list of living entities currently leashed to the holder.
 	 */
 	public static List<LivingEntity> findLeashedTo(Entity holder)
 	{
@@ -69,6 +101,9 @@ public final class GateEntityTeleport
 
 	/**
 	 * Collects the travel party for {@code trigger}: vehicle tree plus leash-linked living entities.
+	 * 
+	 * @param trigger The entity to collect the party for.
+	 * @return A set of entities in the travel party.
 	 */
 	public static Set<Entity> collectParty(Entity trigger)
 	{
@@ -108,6 +143,9 @@ public final class GateEntityTeleport
 
 	/**
 	 * Finds a player in the travel party rooted at {@code trigger}, if any.
+	 * 
+	 * @param trigger The entity to collect the party for.
+	 * @return The player in the travel party, or null if no player is found.
 	 */
 	public static Player findPlayerInParty(Entity trigger)
 	{
@@ -125,6 +163,8 @@ public final class GateEntityTeleport
 	 * while still attached to living holders. Fence hitches are broken first.
 	 * </p>
 	 *
+	 * @param trigger The entity to teleport.
+	 * @param destination The destination location.
 	 * @return {@code true} if the trigger entity was teleported.
 	 */
 	public static boolean teleportParty(Entity trigger, Location destination)
@@ -182,6 +222,9 @@ public final class GateEntityTeleport
 
 	/**
 	 * Returns whether this living entity is eligible to trigger a wandering mob gate use.
+	 * 
+	 * @param entity The entity to check.
+	 * @return True if the entity is eligible to trigger a wandering mob gate use.
 	 */
 	public static boolean isEligibleWanderingMob(LivingEntity entity)
 	{
@@ -196,7 +239,41 @@ public final class GateEntityTeleport
 	}
 
 	/**
+	 * Returns whether this entity is an eligible non-living vehicle (boat, minecart, etc.).
+	 * <p>
+	 * Living vehicles (horses, pigs, Happy Ghasts, …) use {@link #isEligibleWanderingMob} instead
+	 * so {@code VehicleMoveEvent} and living detection do not double-fire.
+	 * </p>
+	 */
+	public static boolean isEligibleGateVehicle(Entity entity)
+	{
+		if (!(entity instanceof Vehicle)) return false;
+		if (!entity.isValid()) return false;
+		if (entity instanceof LivingEntity) return false;
+		if (vehicleOrPassengerContainsPlayer(entity)) return false;
+		return true;
+	}
+
+	/**
+	 * Returns whether {@code entity} may trigger a non-player gate use (wandering mob or empty vehicle).
+	 * 
+	 * @param entity The entity to check.
+	 * @return True if the entity is eligible to trigger a non-player gate use.
+	 */
+	public static boolean isEligibleNonPlayerTrigger(Entity entity)
+	{
+		if (entity instanceof LivingEntity)
+		{
+			return isEligibleWanderingMob((LivingEntity) entity);
+		}
+		return isEligibleGateVehicle(entity);
+	}
+
+	/**
 	 * Marks every entity in {@code party} as having recently used a gate (debounce helper).
+	 * 
+	 * @param trigger The entity to collect the party for.
+	 * @return A list of unique IDs of the entities in the travel party.
 	 */
 	public static Collection<UUID> partyIds(Entity trigger)
 	{
@@ -210,6 +287,8 @@ public final class GateEntityTeleport
 
 	/**
 	 * Breaks fence hitches for leashed members about to gate-travel (drops the lead like vanilla overdistance).
+	 * 
+	 * @param party The party to break the fence hitches for.
 	 */
 	private static void breakFenceHitches(Set<Entity> party)
 	{
@@ -227,6 +306,9 @@ public final class GateEntityTeleport
 	/**
 	 * Entities that should be teleported directly: vehicle roots and free-standing party members
 	 * (e.g. leashed pets) that are not passengers of another party member.
+	 * 
+	 * @param party The party to teleport the roots for.
+	 * @return A list of entities that should be teleported directly.
 	 */
 	private static List<Entity> teleportRoots(Set<Entity> party)
 	{
@@ -240,6 +322,12 @@ public final class GateEntityTeleport
 		return roots;
 	}
 
+	/**
+	 * Takes a snapshot of the passengers by vehicle for the given party.
+	 * 
+	 * @param party The party to snapshot the passengers for.
+	 * @return A map of vehicle IDs to lists of passenger IDs.
+	 */
 	private static Map<UUID, List<UUID>> snapshotPassengers(Set<Entity> party)
 	{
 		Map<UUID, List<UUID>> passengersByVehicle = new LinkedHashMap<>();
@@ -258,6 +346,14 @@ public final class GateEntityTeleport
 		return passengersByVehicle;
 	}
 
+	/**
+	 * Checks if the passengers need to be restored after teleporting.
+	 * 
+	 * @param party The party to check.
+	 * @param passengersByVehicle The passengers by vehicle.
+	 * @param destWorld The destination world.
+	 * @return True if the passengers need to be restored.
+	 */
 	private static boolean needsPassengerRestore(Set<Entity> party, Map<UUID, List<UUID>> passengersByVehicle, World destWorld)
 	{
 		Map<UUID, Entity> byId = indexById(party);
@@ -276,6 +372,13 @@ public final class GateEntityTeleport
 		return false;
 	}
 
+	/**
+	 * Restores the passengers to their vehicles after teleporting.
+	 * 
+	 * @param party The party to restore the passengers for.
+	 * @param passengersByVehicle The passengers by vehicle.
+	 * @param destination The destination location.
+	 */
 	private static void restorePassengers(Set<Entity> party, Map<UUID, List<UUID>> passengersByVehicle, Location destination)
 	{
 		Map<UUID, Entity> byId = indexById(party);
@@ -302,6 +405,12 @@ public final class GateEntityTeleport
 		}
 	}
 
+	/**
+	 * Indexes the entities in the party by their unique IDs.
+	 * 
+	 * @param party The party to index.
+	 * @return A map of entity IDs to entities.
+	 */
 	private static Map<UUID, Entity> indexById(Set<Entity> party)
 	{
 		Map<UUID, Entity> byId = new LinkedHashMap<>();
@@ -312,6 +421,12 @@ public final class GateEntityTeleport
 		return byId;
 	}
 
+	/**
+	 * Checks if the entity or any of its passengers is a player.
+	 * 
+	 * @param entity The entity to check.
+	 * @return True if the entity or any of its passengers is a player.
+	 */
 	private static boolean vehicleOrPassengerContainsPlayer(Entity entity)
 	{
 		Entity cursor = entity;
@@ -323,6 +438,12 @@ public final class GateEntityTeleport
 		return passengerTreeContainsPlayer(entity);
 	}
 
+	/**
+	 * Checks if the entity or any of its passengers is a player.
+	 * 
+	 * @param entity The entity to check.
+	 * @return True if the entity or any of its passengers is a player.
+	 */
 	private static boolean passengerTreeContainsPlayer(Entity entity)
 	{
 		for (Entity passenger : entity.getPassengers())
@@ -333,6 +454,12 @@ public final class GateEntityTeleport
 		return false;
 	}
 
+	/**
+	 * Gets the root vehicle of the entity.
+	 * 
+	 * @param entity The entity to get the root vehicle for.
+	 * @return The root vehicle of the entity.
+	 */
 	private static Entity getRootVehicle(Entity entity)
 	{
 		Entity root = entity;
@@ -343,6 +470,12 @@ public final class GateEntityTeleport
 		return root;
 	}
 
+	/**
+	 * Adds the vehicle tree of the entity to the party.
+	 * 
+	 * @param root The root vehicle to add.
+	 * @param party The party to add the vehicle tree to.
+	 */
 	private static void addVehicleTree(Entity root, Set<Entity> party)
 	{
 		if (root == null || !root.isValid()) return;

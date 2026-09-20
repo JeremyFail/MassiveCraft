@@ -20,6 +20,10 @@ public enum Perm implements Identified
 	CG_WORLD_DELETE,
 	CG_VERSION,
 	CG_CONFIG,
+	CG_INSPECT,
+	CG_MANAGE,
+	CG_OVERRIDE,
+	CG_OVERRIDE_BYPASS,
 	
 	// END OF LIST
 	;
