@@ -20,16 +20,4 @@ public interface MDialogBackend
 	 * @param session Mutable working state for inputs and completion handlers.
 	 */
 	void open(Player player, MDialogSpec spec, MDialogSession session);
-	
-	/**
-	 * Optional probe so backends can be loaded only when their platform APIs exist.
-	 */
-	interface CapabilityProbe
-	{
-		/**
-		 * @return {@code true} if this backend's dependencies are present on the classpath / server.
-		 */
-		boolean isAvailable();
-	}
 }
-

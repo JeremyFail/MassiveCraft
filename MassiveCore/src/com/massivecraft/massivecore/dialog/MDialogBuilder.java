@@ -9,6 +9,7 @@ import com.massivecraft.massivecore.dialog.input.MDialogInputNumber;
 import com.massivecraft.massivecore.dialog.input.MDialogInputSingleOption;
 import com.massivecraft.massivecore.dialog.input.MDialogInputText;
 import com.massivecraft.massivecore.dialog.type.MDialogType;
+import com.massivecraft.massivecore.mson.Mson;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -141,6 +142,28 @@ public final class MDialogBuilder
 	}
 	
 	/**
+	 * Convenience for {@link MDialogBodyPlain} with rich {@link MDialogText}.
+	 *
+	 * @param message Body text.
+	 * @return This builder.
+	 */
+	public MDialogBuilder bodyPlain(MDialogText message)
+	{
+		return this.body(MDialogBodyPlain.of(message));
+	}
+	
+	/**
+	 * Convenience for {@link MDialogBodyPlain} with {@link Mson}.
+	 *
+	 * @param message Body text.
+	 * @return This builder.
+	 */
+	public MDialogBuilder bodyPlain(Mson message)
+	{
+		return this.body(MDialogBodyPlain.of(message));
+	}
+	
+	/**
 	 * Convenience for {@link MDialogBodyItem}.
 	 *
 	 * @param item Item shown in the body.
@@ -171,6 +194,30 @@ public final class MDialogBuilder
 	 * @return This builder.
 	 */
 	public MDialogBuilder inputBool(String key, String label)
+	{
+		return this.input(MDialogInputBool.of(key, label));
+	}
+	
+	/**
+	 * Adds a boolean input with rich {@link MDialogText} label.
+	 *
+	 * @param key Response key.
+	 * @param label Field label.
+	 * @return This builder.
+	 */
+	public MDialogBuilder inputBool(String key, MDialogText label)
+	{
+		return this.input(MDialogInputBool.of(key, label));
+	}
+	
+	/**
+	 * Adds a boolean input with {@link Mson} label.
+	 *
+	 * @param key Response key.
+	 * @param label Field label.
+	 * @return This builder.
+	 */
+	public MDialogBuilder inputBool(String key, Mson label)
 	{
 		return this.input(MDialogInputBool.of(key, label));
 	}

@@ -1,9 +1,13 @@
 package com.massivecraft.massivecore.dialog.input;
 
+import com.massivecraft.massivecore.dialog.MDialogText;
+import com.massivecraft.massivecore.mson.Mson;
+
 /**
  * Boolean / checkbox dialog input.
  * <p>
  * Optional {@link #onTrue(String)} / {@link #onFalse(String)} customize displayed state labels on some backends.
+ * Labels may be {@link MDialogText} (Txt, {@link Mson}, or Adventure) for color and hover tooltips.
  * </p>
  */
 public final class MDialogInputBool implements MDialogInput
@@ -12,7 +16,7 @@ public final class MDialogInputBool implements MDialogInput
 	private final String key;
 	
 	/** Field label. */
-	private final String label;
+	private final MDialogText label;
 	
 	/** Starting checked state. */
 	private final boolean initial;
@@ -23,32 +27,49 @@ public final class MDialogInputBool implements MDialogInput
 	/** Label when false, if customized. */
 	private final String onFalse;
 	
-	/**
-	 * @param key Input key.
-	 * @param label Label text.
-	 * @param initial Initial boolean.
-	 * @param onTrue True-state label or null.
-	 * @param onFalse False-state label or null.
-	 */
-	private MDialogInputBool(String key, String label, boolean initial, String onTrue, String onFalse)
+	private MDialogInputBool(String key, MDialogText label, boolean initial, String onTrue, String onFalse)
 	{
 		this.key = key;
-		this.label = label;
+		this.label = label == null ? MDialogText.txt("") : label;
 		this.initial = initial;
 		this.onTrue = onTrue;
 		this.onFalse = onFalse;
 	}
 	
 	/**
-	 * Creates a checkbox defaulting to unchecked.
+	 * Creates a checkbox with a Txt-markup label, defaulting to unchecked.
+	 *
+	 * @param key Response key.
+	 * @param label Field label (Txt tags allowed).
+	 * @return New input.
+	 */
+	public static MDialogInputBool of(String key, String label)
+	{
+		return new MDialogInputBool(key, MDialogText.txt(label), false, null, null);
+	}
+	
+	/**
+	 * Creates a checkbox with rich {@link MDialogText} label, defaulting to unchecked.
 	 *
 	 * @param key Response key.
 	 * @param label Field label.
 	 * @return New input.
 	 */
-	public static MDialogInputBool of(String key, String label)
+	public static MDialogInputBool of(String key, MDialogText label)
 	{
 		return new MDialogInputBool(key, label, false, null, null);
+	}
+	
+	/**
+	 * Creates a checkbox with an {@link Mson} label, defaulting to unchecked.
+	 *
+	 * @param key Response key.
+	 * @param label Field label.
+	 * @return New input.
+	 */
+	public static MDialogInputBool of(String key, Mson label)
+	{
+		return new MDialogInputBool(key, MDialogText.mson(label), false, null, null);
 	}
 	
 	/**
@@ -84,16 +105,20 @@ public final class MDialogInputBool implements MDialogInput
 		return new MDialogInputBool(this.key, this.label, this.initial, this.onTrue, onFalse);
 	}
 	
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public String getKey() { return this.key; }
 	
 	/**
-	 * @return Label text.
+	 * @return Rich label text.
 	 */
-	public String getLabel() { return this.label; }
+	public MDialogText getLabelText() { return this.label; }
+	
+	/**
+	 * Plain / legacy label for ChestGui and callers that need a string.
+	 *
+	 * @return Styled plain label.
+	 */
+	public String getLabel() { return this.label.toPlain(); }
 	
 	/**
 	 * @return Initial checked state.

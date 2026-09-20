@@ -56,13 +56,15 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Spigot Bungee Dialog backend. Loaded only via {@link com.massivecraft.massivecore.dialog.MDialog}.
+ * Spigot Bungee Dialog backend.
  * <p>
- * Builds {@link net.md_5.bungee.api.dialog.Dialog} instances and routes {@link PlayerCustomClickEvent}
- * clicks under the {@value #NAMESPACE} namespace back to {@link EngineMassiveCoreDialog}.
+ * Constructed by {@link com.massivecraft.massivecore.dialog.MDialog} only after a Spigot Dialog API
+ * classpath probe succeeds. Builds Bungee {@link Dialog} instances and routes
+ * {@link PlayerCustomClickEvent} clicks under the {@value #NAMESPACE} namespace back to
+ * {@link EngineMassiveCoreDialog}.
  * </p>
  */
-public final class SpigotMDialogBackend implements MDialogBackend, MDialogBackend.CapabilityProbe, Listener
+public final class SpigotMDialogBackend implements MDialogBackend, Listener
 {
 	/** Namespace for {@link CustomClickAction} ids on dialog buttons. */
 	private static final String NAMESPACE = "massivecore";
@@ -71,25 +73,6 @@ public final class SpigotMDialogBackend implements MDialogBackend, MDialogBacken
 	
 	/** Ensures {@link #onCustomClick} is registered once per JVM. */
 	private boolean listenerRegistered;
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean isAvailable()
-	{
-		try
-		{
-			Class.forName("net.md_5.bungee.api.dialog.MultiActionDialog");
-			Class.forName("org.bukkit.event.player.PlayerCustomClickEvent");
-			Player.class.getMethod("showDialog", Dialog.class);
-			return true;
-		}
-		catch (ReflectiveOperationException | NoClassDefFoundError ex)
-		{
-			return false;
-		}
-	}
 	
 	/**
 	 * Registers this listener with Bukkit if not already done.
@@ -215,11 +198,11 @@ public final class SpigotMDialogBackend implements MDialogBackend, MDialogBacken
 				MDialogBodyPlain plain = (MDialogBodyPlain) body;
 				if (plain.getWidth() != null)
 				{
-					out.add(new PlainMessageBody(MDialogTexts.bungee(plain.getMessage()), plain.getWidth()));
+					out.add(new PlainMessageBody(MDialogTexts.bungee(plain.getMessageText()), plain.getWidth()));
 				}
 				else
 				{
-					out.add(new PlainMessageBody(MDialogTexts.bungee(plain.getMessage())));
+					out.add(new PlainMessageBody(MDialogTexts.bungee(plain.getMessageText())));
 				}
 			}
 			// Item bodies are Paper-oriented; Spigot dialog package has no ItemBody - skip with text fallback.
@@ -287,7 +270,7 @@ public final class SpigotMDialogBackend implements MDialogBackend, MDialogBacken
 			if (input instanceof MDialogInputBool)
 			{
 				MDialogInputBool bool = (MDialogInputBool) input;
-				BooleanInput bungee = new BooleanInput(bool.getKey(), MDialogTexts.bungee(bool.getLabel()), bool.getInitial(), bool.getOnTrue(), bool.getOnFalse());
+				BooleanInput bungee = new BooleanInput(bool.getKey(), MDialogTexts.bungee(bool.getLabelText()), bool.getInitial(), bool.getOnTrue(), bool.getOnFalse());
 				out.add(bungee);
 			}
 			else if (input instanceof MDialogInputText)
@@ -330,9 +313,9 @@ public final class SpigotMDialogBackend implements MDialogBackend, MDialogBacken
 				List<InputOption> options = new ArrayList<>();
 				for (MDialogInputOption option : single.getOptions())
 				{
-					options.add(new InputOption(option.getId(), MDialogTexts.bungee(option.getDisplay()), option.isInitial()));
+					options.add(new InputOption(option.getId(), MDialogTexts.bungee(option.getDisplayText()), option.isInitial()));
 				}
-				out.add(new SingleOptionInput(single.getKey(), single.getWidth(), MDialogTexts.bungee(single.getLabel()), single.isLabelVisible(), options));
+				out.add(new SingleOptionInput(single.getKey(), single.getWidth(), MDialogTexts.bungee(single.getLabelText()), single.isLabelVisible(), options));
 			}
 		}
 		return out;
@@ -357,7 +340,12 @@ public final class SpigotMDialogBackend implements MDialogBackend, MDialogBacken
 	}
 	
 	/**
-	 * Invokes {@code Player.showDialog} reflectively for compile-time Spigot compatibility.
+	 * Shows a Bungee Dialog via the Spigot {@code Player.showDialog(Dialog)} overload.
+	 * <p>
+	 * MassiveCore compiles against Paper, where {@code Player.showDialog(DialogLike)} is also
+	 * present; a direct call binds to Adventure and rejects Bungee {@link Dialog}. Looking up the
+	 * method by exact parameter type selects the Spigot overload without loading Paper backends.
+	 * </p>
 	 *
 	 * @param player Viewer.
 	 * @param dialog Built Bungee dialog.

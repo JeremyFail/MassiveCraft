@@ -5,7 +5,7 @@ import com.massivecraft.massivecore.dialog.MDialogButton;
 import com.massivecraft.massivecore.dialog.MDialogSession;
 import com.massivecraft.massivecore.engine.EngineMassiveCoreDialog;
 import com.massivecraft.massivecore.dialog.MDialogSpec;
-import com.massivecraft.massivecore.dialog.MDialogTexts;
+import com.massivecraft.massivecore.dialog.text.PaperMDialogTextPlatform;
 import com.massivecraft.massivecore.dialog.body.MDialogBody;
 import com.massivecraft.massivecore.dialog.body.MDialogBodyItem;
 import com.massivecraft.massivecore.dialog.body.MDialogBodyPlain;
@@ -46,33 +46,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Paper Dialog API backend. Loaded only via {@link com.massivecraft.massivecore.dialog.MDialog}.
+ * Paper Dialog API backend.
  * <p>
- * Converts {@link MDialogSpec} into Paper {@link Dialog} instances and applies input values from
- * {@link DialogResponseView} into the session before click completion.
+ * Constructed by {@link com.massivecraft.massivecore.dialog.MDialog} only after a Paper Dialog API
+ * classpath probe succeeds, so Spigot never links this class.
  * </p>
  */
-public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend.CapabilityProbe
+public final class PaperMDialogBackend implements MDialogBackend
 {
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean isAvailable()
-	{
-		try
-		{
-			// Probe core Paper dialog types without initializing the backend on Spigot.
-			Class.forName("io.papermc.paper.dialog.Dialog");
-			Class.forName("io.papermc.paper.registry.data.dialog.type.DialogType");
-			return true;
-		}
-		catch (ClassNotFoundException ex)
-		{
-			return false;
-		}
-	}
-	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -93,7 +74,7 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 	 */
 	private Dialog buildDialog(Player player, MDialogSpec spec, MDialogSession session)
 	{
-		DialogBase.Builder base = DialogBase.builder(MDialogTexts.component(spec.getTitle()))
+		DialogBase.Builder base = DialogBase.builder(PaperMDialogTextPlatform.toComponent(spec.getTitle()))
 			.canCloseWithEscape(spec.canCloseWithEscape())
 			.pause(spec.isPause())
 			.afterAction(toPaperAfterAction(spec.getAfterAction()))
@@ -102,7 +83,7 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 		
 		if (spec.getExternalTitle() != null)
 		{
-			base.externalTitle(MDialogTexts.component(spec.getExternalTitle()));
+			base.externalTitle(PaperMDialogTextPlatform.toComponent(spec.getExternalTitle()));
 		}
 		
 		return Dialog.create(factory -> factory.empty()
@@ -192,8 +173,8 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 			return ActionButton.builder(Component.text("OK")).build();
 		}
 		
-		ActionButton.Builder builder = ActionButton.builder(MDialogTexts.component(button.getLabel()));
-		if (button.getTooltip() != null) builder.tooltip(MDialogTexts.component(button.getTooltip()));
+		ActionButton.Builder builder = ActionButton.builder(PaperMDialogTextPlatform.toComponent(button.getLabel()));
+		if (button.getTooltip() != null) builder.tooltip(PaperMDialogTextPlatform.toComponent(button.getTooltip()));
 		if (button.getWidth() != null) builder.width(button.getWidth());
 		
 		final String buttonId = button.getId();
@@ -254,11 +235,11 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 				MDialogBodyPlain plain = (MDialogBodyPlain) body;
 				if (plain.getWidth() != null)
 				{
-					out.add(DialogBody.plainMessage(MDialogTexts.component(plain.getMessage()), plain.getWidth()));
+					out.add(DialogBody.plainMessage(PaperMDialogTextPlatform.toComponent(plain.getMessageText()), plain.getWidth()));
 				}
 				else
 				{
-					out.add(DialogBody.plainMessage(MDialogTexts.component(plain.getMessage())));
+					out.add(DialogBody.plainMessage(PaperMDialogTextPlatform.toComponent(plain.getMessageText())));
 				}
 			}
 			else if (body instanceof MDialogBodyItem)
@@ -271,7 +252,7 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 					.showTooltip(itemBody.isShowTooltip());
 				if (itemBody.getDescription() != null)
 				{
-					Component descComponent = MDialogTexts.component(itemBody.getDescription());
+					Component descComponent = PaperMDialogTextPlatform.toComponent(itemBody.getDescription());
 					if (itemBody.getClickId() != null)
 					{
 						descComponent = clickable(descComponent, player, itemBody.getClickId());
@@ -344,7 +325,7 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 			if (input instanceof MDialogInputBool)
 			{
 				MDialogInputBool bool = (MDialogInputBool) input;
-				var builder = DialogInput.bool(bool.getKey(), MDialogTexts.component(bool.getLabel()))
+				var builder = DialogInput.bool(bool.getKey(), PaperMDialogTextPlatform.toComponent(bool.getLabelText()))
 					.initial(bool.getInitial());
 				if (bool.getOnTrue() != null) builder.onTrue(bool.getOnTrue());
 				if (bool.getOnFalse() != null) builder.onFalse(bool.getOnFalse());
@@ -353,7 +334,7 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 			else if (input instanceof MDialogInputText)
 			{
 				MDialogInputText text = (MDialogInputText) input;
-				var builder = DialogInput.text(text.getKey(), MDialogTexts.component(text.getLabel()))
+				var builder = DialogInput.text(text.getKey(), PaperMDialogTextPlatform.toComponent(text.getLabel()))
 					.labelVisible(text.isLabelVisible());
 				if (text.getWidth() != null) builder.width(text.getWidth());
 				if (text.getInitial() != null) builder.initial(text.getInitial());
@@ -367,7 +348,7 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 			else if (input instanceof MDialogInputNumber)
 			{
 				MDialogInputNumber number = (MDialogInputNumber) input;
-				var builder = DialogInput.numberRange(number.getKey(), MDialogTexts.component(number.getLabel()), number.getStart(), number.getEnd());
+				var builder = DialogInput.numberRange(number.getKey(), PaperMDialogTextPlatform.toComponent(number.getLabel()), number.getStart(), number.getEnd());
 				if (number.getWidth() != null) builder.width(number.getWidth());
 				if (number.getLabelFormat() != null) builder.labelFormat(number.getLabelFormat());
 				if (number.getInitial() != null) builder.initial(number.getInitial());
@@ -382,11 +363,11 @@ public final class PaperMDialogBackend implements MDialogBackend, MDialogBackend
 				{
 					options.add(SingleOptionDialogInput.OptionEntry.create(
 						option.getId(),
-						MDialogTexts.component(option.getDisplay()),
+						PaperMDialogTextPlatform.toComponent(option.getDisplayText()),
 						option.isInitial()
 					));
 				}
-				var builder = DialogInput.singleOption(single.getKey(), MDialogTexts.component(single.getLabel()), options)
+				var builder = DialogInput.singleOption(single.getKey(), PaperMDialogTextPlatform.toComponent(single.getLabelText()), options)
 					.labelVisible(single.isLabelVisible());
 				if (single.getWidth() != null) builder.width(single.getWidth());
 				out.add(builder.build());

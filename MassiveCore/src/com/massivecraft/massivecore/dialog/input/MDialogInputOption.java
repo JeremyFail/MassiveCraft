@@ -1,5 +1,8 @@
 package com.massivecraft.massivecore.dialog.input;
 
+import com.massivecraft.massivecore.dialog.MDialogText;
+import com.massivecraft.massivecore.mson.Mson;
+
 /**
  * One choice in a single-option dialog input.
  * <p>
@@ -13,21 +16,28 @@ public final class MDialogInputOption
 	private final String id;
 	
 	/** Text shown to the player. */
-	private final String display;
+	private final MDialogText display;
 	
 	/** Whether this option is selected when the dialog opens. */
 	private final boolean initial;
 	
-	/**
-	 * @param id Option id.
-	 * @param display Display string.
-	 * @param initial Initial selection flag.
-	 */
-	private MDialogInputOption(String id, String display, boolean initial)
+	private MDialogInputOption(String id, MDialogText display, boolean initial)
 	{
 		this.id = id;
-		this.display = display;
+		this.display = display == null ? MDialogText.txt(id == null ? "" : id) : display;
 		this.initial = initial;
+	}
+	
+	/**
+	 * Creates an option that is not initially selected.
+	 *
+	 * @param id Option id.
+	 * @param display Visible label (Txt tags allowed).
+	 * @return New option.
+	 */
+	public static MDialogInputOption of(String id, String display)
+	{
+		return new MDialogInputOption(id, MDialogText.txt(display), false);
 	}
 	
 	/**
@@ -37,9 +47,21 @@ public final class MDialogInputOption
 	 * @param display Visible label.
 	 * @return New option.
 	 */
-	public static MDialogInputOption of(String id, String display)
+	public static MDialogInputOption of(String id, MDialogText display)
 	{
 		return new MDialogInputOption(id, display, false);
+	}
+	
+	/**
+	 * Creates an option that is not initially selected.
+	 *
+	 * @param id Option id.
+	 * @param display Visible label.
+	 * @return New option.
+	 */
+	public static MDialogInputOption of(String id, Mson display)
+	{
+		return new MDialogInputOption(id, MDialogText.mson(display), false);
 	}
 	
 	/**
@@ -59,9 +81,16 @@ public final class MDialogInputOption
 	public String getId() { return this.id; }
 	
 	/**
-	 * @return Display label.
+	 * @return Rich display text.
 	 */
-	public String getDisplay() { return this.display; }
+	public MDialogText getDisplayText() { return this.display; }
+	
+	/**
+	 * Plain / legacy display for ChestGui and string callers.
+	 *
+	 * @return Styled plain display.
+	 */
+	public String getDisplay() { return this.display.toPlain(); }
 	
 	/**
 	 * @return True if this option starts selected.

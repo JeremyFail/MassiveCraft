@@ -2,12 +2,11 @@ package com.massivecraft.massivecore.dialog;
 
 import com.massivecraft.massivecore.dialog.backend.ChestGuiMDialogBackend;
 import com.massivecraft.massivecore.dialog.backend.MDialogBackend;
+import com.massivecraft.massivecore.dialog.backend.PaperMDialogBackend;
+import com.massivecraft.massivecore.dialog.backend.SpigotMDialogBackend;
 import com.massivecraft.massivecore.engine.EngineMassiveCoreDialog;
 import com.massivecraft.massivecore.util.ReflectionUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-
-import java.util.logging.Level;
 
 /**
  * Single entry point for MassiveCore dialogs.
@@ -16,20 +15,15 @@ import java.util.logging.Level;
  * This class selects a runtime backend once and caches it:
  * </p>
  * <ol>
- *   <li>Paper Dialog API when Minecraft is 1.21.6+ and Paper classes are present</li>
+ *   <li>Paper Dialog API when Minecraft is 1.21.6+ and Paper dialog classes are present</li>
  *   <li>Spigot / Bungee Dialog when those APIs are present</li>
  *   <li>{@link ChestGuiMDialogBackend} otherwise</li>
  * </ol>
- * Dialog backend classes are loaded with {@link Class#forName} so older servers never link them.
+ * Availability is probed with {@link ReflectionUtil#classExists(String)} on platform APIs only;
+ * backends are then constructed with {@code new} so Spigot never links Paper types (and vice versa).
  */
 public final class MDialog
 {
-	/** Fully-qualified Paper backend class name (loaded reflectively). */
-	private static final String PAPER_BACKEND = "com.massivecraft.massivecore.dialog.backend.PaperMDialogBackend";
-	
-	/** Fully-qualified Spigot/Bungee backend class name (loaded reflectively). */
-	private static final String SPIGOT_BACKEND = "com.massivecraft.massivecore.dialog.backend.SpigotMDialogBackend";
-	
 	/** Cached backend chosen for this JVM; never re-probed after first success. */
 	private static volatile MDialogBackend cachedBackend;
 	
@@ -81,6 +75,21 @@ public final class MDialog
 	}
 	
 	/**
+	 * Whether Paper or Spigot native Dialog APIs are available (not ChestGui).
+	 * <p>
+	 * Callers that want a different UX when dialogs are missing (e.g. chat tables)
+	 * should check this before {@link #open}. ChestGui remains the default backend
+	 * for unconditional {@link #open} calls.
+	 * </p>
+	 *
+	 * @return True if the resolved backend is a native Dialog implementation.
+	 */
+	public static boolean isNativeDialogAvailable()
+	{
+		return !(resolveBackend() instanceof ChestGuiMDialogBackend);
+	}
+	
+	/**
 	 * Returns the cached backend, resolving and caching on first call.
 	 *
 	 * @return Non-null backend (at worst ChestGui).
@@ -92,23 +101,19 @@ public final class MDialog
 		
 		synchronized (MDialog.class)
 		{
-			// Double-check after taking the lock.
 			if (cachedBackend != null) return cachedBackend;
 			
 			// Vanilla dialogs exist from 1.21.6; older versions always use ChestGui.
 			if (ReflectionUtil.isAtLeastMinecraft(1, 21, 6))
 			{
-				MDialogBackend paper = tryLoad(PAPER_BACKEND);
-				if (paper != null)
+				if (isPaperDialogApiPresent())
 				{
-					cachedBackend = paper;
+					cachedBackend = new PaperMDialogBackend();
 					return cachedBackend;
 				}
-				
-				MDialogBackend spigot = tryLoad(SPIGOT_BACKEND);
-				if (spigot != null)
+				if (isSpigotDialogApiPresent())
 				{
-					cachedBackend = spigot;
+					cachedBackend = new SpigotMDialogBackend();
 					return cachedBackend;
 				}
 			}
@@ -119,30 +124,24 @@ public final class MDialog
 	}
 	
 	/**
-	 * Instantiates a backend by class name and runs its capability probe when present.
+	 * Probe only — does not load {@link PaperMDialogBackend}.
 	 *
-	 * @param className Fully-qualified backend class.
-	 * @return Backend instance, or null if missing / unavailable / wrong type.
+	 * @return True when Paper Dialog API types exist on the classpath.
 	 */
-	private static MDialogBackend tryLoad(String className)
+	private static boolean isPaperDialogApiPresent()
 	{
-		try
-		{
-			Class<?> clazz = Class.forName(className);
-			Object instance = clazz.getDeclaredConstructor().newInstance();
-			if (!(instance instanceof MDialogBackend)) return null;
-			MDialogBackend backend = (MDialogBackend) instance;
-			// Optional probe: Paper/Spigot backends refuse to load without their APIs.
-			if (backend instanceof MDialogBackend.CapabilityProbe && !((MDialogBackend.CapabilityProbe) backend).isAvailable())
-			{
-				return null;
-			}
-			return backend;
-		}
-		catch (Throwable t)
-		{
-			Bukkit.getLogger().log(Level.FINE, "MassiveCore dialog backend unavailable: " + className, t);
-			return null;
-		}
+		return ReflectionUtil.classExists("io.papermc.paper.dialog.Dialog")
+			&& ReflectionUtil.classExists("io.papermc.paper.registry.data.dialog.type.DialogType");
+	}
+	
+	/**
+	 * Probe only — does not load {@link SpigotMDialogBackend}.
+	 *
+	 * @return True when Spigot Bungee Dialog + custom-click types exist.
+	 */
+	private static boolean isSpigotDialogApiPresent()
+	{
+		return ReflectionUtil.classExists("net.md_5.bungee.api.dialog.MultiActionDialog")
+			&& ReflectionUtil.classExists("org.bukkit.event.player.PlayerCustomClickEvent");
 	}
 }

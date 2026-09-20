@@ -1,14 +1,18 @@
 package com.massivecraft.massivecore.dialog.input;
 
+import com.massivecraft.massivecore.dialog.MDialogText;
+import com.massivecraft.massivecore.mson.Mson;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Single-option (dropdown / cycling) dialog input. Selected option id is returned as text.
+ * Single-option (cycling) dialog input. Selected option id is returned as text.
  * <p>
- * Build with {@link #builder(String, String)}; selected {@link MDialogInputOption#getId()}
- * is stored under {@link #getKey()} in {@link com.massivecraft.massivecore.dialog.MDialogResponse}.
+ * Build with {@link #builder(String, String)} or {@link #builder(String, MDialogText)};
+ * selected {@link MDialogInputOption#getId()} is stored under {@link #getKey()} in
+ * {@link com.massivecraft.massivecore.dialog.MDialogResponse}.
  * </p>
  */
 public final class MDialogInputSingleOption implements MDialogInput
@@ -17,7 +21,7 @@ public final class MDialogInputSingleOption implements MDialogInput
 	private final String key;
 	
 	/** Field label. */
-	private final String label;
+	private final MDialogText label;
 	
 	/** Optional width hint. */
 	private final Integer width;
@@ -28,17 +32,10 @@ public final class MDialogInputSingleOption implements MDialogInput
 	/** Choices in display order. */
 	private final List<MDialogInputOption> options;
 	
-	/**
-	 * @param key Input key.
-	 * @param label Label text.
-	 * @param width Width hint or null.
-	 * @param labelVisible Label visibility.
-	 * @param options Option list; copied defensively.
-	 */
-	private MDialogInputSingleOption(String key, String label, Integer width, boolean labelVisible, List<MDialogInputOption> options)
+	private MDialogInputSingleOption(String key, MDialogText label, Integer width, boolean labelVisible, List<MDialogInputOption> options)
 	{
 		this.key = key;
-		this.label = label;
+		this.label = label == null ? MDialogText.txt("") : label;
 		this.width = width;
 		this.labelVisible = labelVisible;
 		this.options = Collections.unmodifiableList(new ArrayList<>(options));
@@ -48,24 +45,52 @@ public final class MDialogInputSingleOption implements MDialogInput
 	 * Starts a fluent builder for a single-option input.
 	 *
 	 * @param key Response key.
-	 * @param label Field label.
+	 * @param label Field label (Txt tags allowed).
 	 * @return New builder.
 	 */
 	public static Builder builder(String key, String label)
+	{
+		return new Builder(key, MDialogText.txt(label));
+	}
+	
+	/**
+	 * Starts a fluent builder with rich label text.
+	 *
+	 * @param key Response key.
+	 * @param label Field label.
+	 * @return New builder.
+	 */
+	public static Builder builder(String key, MDialogText label)
 	{
 		return new Builder(key, label);
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * Starts a fluent builder with an {@link Mson} label.
+	 *
+	 * @param key Response key.
+	 * @param label Field label.
+	 * @return New builder.
 	 */
+	public static Builder builder(String key, Mson label)
+	{
+		return new Builder(key, MDialogText.mson(label));
+	}
+	
 	@Override
 	public String getKey() { return this.key; }
 	
 	/**
-	 * @return Label text.
+	 * @return Rich label text.
 	 */
-	public String getLabel() { return this.label; }
+	public MDialogText getLabelText() { return this.label; }
+	
+	/**
+	 * Plain / legacy label for ChestGui and string callers.
+	 *
+	 * @return Styled plain label.
+	 */
+	public String getLabel() { return this.label.toPlain(); }
 	
 	/**
 	 * @return Width hint or null.
@@ -87,33 +112,20 @@ public final class MDialogInputSingleOption implements MDialogInput
 	 */
 	public static final class Builder
 	{
-		/** Target key. */
 		private final String key;
-		
-		/** Target label. */
-		private final String label;
-		
-		/** Optional width. */
+		private final MDialogText label;
 		private Integer width;
-		
-		/** Label visibility; default true. */
 		private boolean labelVisible = true;
-		
-		/** Accumulated options. */
 		private final List<MDialogInputOption> options = new ArrayList<>();
 		
-		/**
-		 * @param key Input key.
-		 * @param label Label text.
-		 */
-		private Builder(String key, String label)
+		private Builder(String key, MDialogText label)
 		{
 			this.key = key;
 			this.label = label;
 		}
 		
 		/**
-		 * Sets layout width.
+		 * Sets layout width (same width on every row aligns the cycling controls).
 		 *
 		 * @param width Width hint.
 		 * @return This builder.
@@ -125,7 +137,7 @@ public final class MDialogInputSingleOption implements MDialogInput
 		}
 		
 		/**
-		 * Sets whether the label is visible.
+		 * Sets whether the label is visible / incorporated into the button.
 		 *
 		 * @param labelVisible Label visibility.
 		 * @return This builder.
@@ -140,7 +152,7 @@ public final class MDialogInputSingleOption implements MDialogInput
 		 * Adds a non-initial option.
 		 *
 		 * @param id Option id.
-		 * @param display Display text.
+		 * @param display Display text (Txt tags allowed).
 		 * @return This builder.
 		 */
 		public Builder option(String id, String display)
@@ -153,11 +165,25 @@ public final class MDialogInputSingleOption implements MDialogInput
 		 * Adds an option with explicit initial flag.
 		 *
 		 * @param id Option id.
-		 * @param display Display text.
+		 * @param display Display text (Txt tags allowed).
 		 * @param initial True to mark as default selection.
 		 * @return This builder.
 		 */
 		public Builder option(String id, String display, boolean initial)
+		{
+			this.options.add(MDialogInputOption.of(id, display).initial(initial));
+			return this;
+		}
+		
+		/**
+		 * Adds an option with rich display text.
+		 *
+		 * @param id Option id.
+		 * @param display Display text.
+		 * @param initial True to mark as default selection.
+		 * @return This builder.
+		 */
+		public Builder option(String id, MDialogText display, boolean initial)
 		{
 			this.options.add(MDialogInputOption.of(id, display).initial(initial));
 			return this;

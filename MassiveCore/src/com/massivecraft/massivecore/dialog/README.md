@@ -8,7 +8,7 @@ MassiveCore wrapper for **Minecraft dialogs**: notices, confirmations, multi-act
 2. **Spigot** (`SpigotMDialogBackend`) - Bungee Dialog API + custom click events.
 3. **ChestGui** (`ChestGuiMDialogBackend`) - inventory fallback on older servers or when dialog classes are missing.
 
-You do not register listeners. Session routing lives in `EngineMassiveCoreDialog`. Backend classes are loaded with `Class.forName` so older servers never link Paper/Spigot dialog types.
+You do not register listeners. Session routing lives in `EngineMassiveCoreDialog`. `MDialog` probes Paper/Spigot Dialog API classes for availability, then constructs the matching backend with `new` (JVM linking stays lazy until that branch runs).
 
 Strings accept MassiveCore `Txt` color codes (e.g. `<h>Title`); backends convert them for Adventure / Bungee.
 
@@ -156,7 +156,7 @@ One open session is kept per player (`EngineMassiveCoreDialog`).
 | --- | --- |
 | Paper | Minecraft ≥ 1.21.6 (`ReflectionUtil.isAtLeastMinecraft`) **and** Paper Dialog classes present. |
 | Spigot | Same version gate **and** Bungee Dialog / `PlayerCustomClickEvent` present. |
-| ChestGui | Everything else: older MC, missing APIs, or both dialog backends failed their capability probe. |
+| ChestGui | Everything else: older MC, missing APIs, or both dialog API probes failed. |
 
 You should not import `backend.*` from plugin code. Define an `MDialogSpec` and call `MDialog.open`; the wrapper owns rendering.
 
