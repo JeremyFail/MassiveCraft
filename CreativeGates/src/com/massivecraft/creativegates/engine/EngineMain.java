@@ -1166,8 +1166,7 @@ public class EngineMain extends Engine
 			}
 			
 			// ... send use action description ...
-			String blockName = clickedBlock != null ? Txt.getMaterialName(clickedBlock.getType()) : "gate";
-			message = Txt.parse("<i>You use the %s on the %s...", Txt.getMaterialName(material), blockName);
+			message = Txt.parse("<i>You use the <v>%s <i>on the <v>Gate<i>...", Txt.getMaterialName(material));
 			MixinMessage.get().messageOne(player, message);
 			
 			if (material == MConf.get().getMaterialInspect())

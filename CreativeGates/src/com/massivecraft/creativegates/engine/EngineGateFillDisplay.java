@@ -22,7 +22,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -475,28 +477,77 @@ public class EngineGateFillDisplay extends Engine
 		for (UGate gate : UGateColl.get().getAll())
 		{
 			if (gate == null || !gate.usesBlockDisplayFill()) continue;
-			GateType type = gate.getFillType();
-			if (type == null) continue;
-			
-			GateOrientation orientation = gate.getOrientation();
-			Material overlayMaterial = null;
-			if (type.usesClientBlockChangeFill(orientation))
-			{
-				overlayMaterial = type.getClientDisplayMaterial();
-			}
-			else if (type == SupportedGateType.END_GATEWAY && usesEndGatewayBlockChangeFallback())
-			{
-				overlayMaterial = Material.END_GATEWAY;
-			}
-			if (overlayMaterial == null || !overlayMaterial.isBlock()) continue;
+			Material overlayMaterial = this.resolveClientOverlayMaterial(gate);
+			if (overlayMaterial == null) continue;
 			
 			List<Block> blocks = gate.getContentBlocks();
 			if (blocks == null || blocks.isEmpty()) continue;
 			if (blocks.get(0).getWorld() != world) continue;
 			if (!isNear(playerLoc, contentCenter(blocks))) continue;
 			
-			this.sendClientBlockChanges(player, blocks, overlayMaterial, orientation, true);
+			this.sendClientBlockChanges(player, blocks, overlayMaterial, gate.getOrientation(), true);
 		}
+	}
+	
+	/**
+	 * Material used for this gate's {@code sendBlockChange} interior overlay, or null if none.
+	 */
+	private Material resolveClientOverlayMaterial(UGate gate)
+	{
+		if (gate == null) return null;
+		GateType type = gate.getFillType();
+		if (type == null) return null;
+		
+		GateOrientation orientation = gate.getOrientation();
+		if (type.usesClientBlockChangeFill(orientation))
+		{
+			Material material = type.getClientDisplayMaterial();
+			return material != null && material.isBlock() ? material : null;
+		}
+		if (type == SupportedGateType.END_GATEWAY && usesEndGatewayBlockChangeFallback())
+		{
+			return Material.END_GATEWAY;
+		}
+		return null;
+	}
+	
+	/**
+	 * Re-applies a gate's client overlay for one player (no-op if the gate has none).
+	 */
+	private void refreshClientOverlay(Player player, UGate gate)
+	{
+		if (player == null || !player.isOnline() || gate == null) return;
+		Material overlay = this.resolveClientOverlayMaterial(gate);
+		if (overlay == null) return;
+		
+		List<Block> blocks = gate.getContentBlocks();
+		if (blocks == null || blocks.isEmpty()) return;
+		this.sendClientBlockChanges(player, blocks, overlay, gate.getOrientation(), true);
+	}
+	
+	/**
+	 * Client prediction after clicking a fake portal/fire block reverts {@code sendBlockChange}
+	 * to the real server LIGHT block. Re-send the overlay immediately and on the next ticks.
+	 */
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
+	public void onInteractClientOverlay(PlayerInteractEvent event)
+	{
+		Action action = event.getAction();
+		if (action != Action.RIGHT_CLICK_BLOCK && action != Action.LEFT_CLICK_BLOCK) return;
+		
+		Block block = event.getClickedBlock();
+		if (block == null) return;
+		
+		UGate gate = UGate.get(block);
+		if (gate == null) return;
+		if (this.resolveClientOverlayMaterial(gate) == null) return;
+		
+		Player player = event.getPlayer();
+		this.refreshClientOverlay(player, gate);
+		
+		CreativeGates plugin = CreativeGates.get();
+		Bukkit.getScheduler().runTask(plugin, () -> this.refreshClientOverlay(player, gate));
+		Bukkit.getScheduler().runTaskLater(plugin, () -> this.refreshClientOverlay(player, gate), 2L);
 	}
 	
 	private static boolean isNear(Location playerLoc, Location gateLoc)

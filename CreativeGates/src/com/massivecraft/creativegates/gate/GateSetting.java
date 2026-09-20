@@ -8,8 +8,8 @@ import com.massivecraft.creativegates.entity.UGate;
 public enum GateSetting
 {
 	SECRET("secret", "Secret", "Only the creator can read full gate inscriptions."),
-	ENTRY("entry", "Entry", "Whether entities may enter this gate."),
-	EXIT("exit", "Exit", "Whether this gate may be used as a destination."),
+	ENTRY("entry", "Entry", "Whether this gate may be used as an entrance."),
+	EXIT("exit", "Exit", "Whether this gate may be used as an exit."),
 	PLAYERS("players", "Players", "Whether players may travel through this gate."),
 	MOBS("mobs", "Mobs", "Whether mobs may travel through this gate."),
 	VEHICLES("vehicles", "Vehicles", "Whether vehicles may travel through this gate."),

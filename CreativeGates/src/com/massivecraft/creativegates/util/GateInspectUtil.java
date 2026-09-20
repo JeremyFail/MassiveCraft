@@ -13,7 +13,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,7 +61,9 @@ public final class GateInspectUtil
 		
 		if (commandForPagination != null)
 		{
-			messages.add(Txt.titleizeMson("Gate Inspect", pageCount, page, commandForPagination, Collections.emptyList()));
+			// Keep gate entity id in flip-page clicks so the viewer need not keep looking at the gate.
+			List<String> pageArgs = new MassiveList<>(String.valueOf(page), gate.getId());
+			messages.add(Txt.titleizeMson("Gate Inspect", pageCount, page, commandForPagination, pageArgs));
 		}
 		else
 		{
@@ -102,10 +103,11 @@ public final class GateInspectUtil
 		lines.add(kv("Network", String.valueOf(gate.getNetworkId())));
 		lines.add(kv("Gates", String.valueOf(gate.getGateChain().size())));
 		
-		lines.add(Mson.mson("<a>-------"));
+		lines.add(Mson.mson(""));
+		lines.add(Mson.mson(Txt.parse("<a>-------")));
 		lines.add(settingRow(GateSetting.SECRET, gate));
 		
-		lines.add(Mson.mson("<a>-------"));
+		lines.add(Mson.mson(Txt.parse("<a>-------")));
 		lines.add(settingRow(GateSetting.ENTRY, gate));
 		lines.add(settingRow(GateSetting.EXIT, gate));
 		
