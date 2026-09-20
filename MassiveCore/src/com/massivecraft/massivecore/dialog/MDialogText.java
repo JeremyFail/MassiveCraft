@@ -44,6 +44,11 @@ public final class MDialogText
 	
 	/**
 	 * Txt label with a parsed hover tooltip (implemented as {@link Mson}).
+	 * <p>
+	 * Useful for chat and dialog <em>body</em> text. Minecraft ignores {@code hover_event}
+	 * on dialog input controls (MC-298405); action buttons need
+	 * {@link MDialogButton#tooltip(String)} instead.
+	 * </p>
 	 *
 	 * @param raw Label markup.
 	 * @param tooltipParse Tooltip markup (passed to {@link Mson#tooltipParse(String)}).

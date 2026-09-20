@@ -7,7 +7,9 @@ import com.massivecraft.massivecore.mson.Mson;
  * Boolean / checkbox dialog input.
  * <p>
  * Optional {@link #onTrue(String)} / {@link #onFalse(String)} customize displayed state labels on some backends.
- * Labels may be {@link MDialogText} (Txt, {@link Mson}, or Adventure) for color and hover tooltips.
+ * Labels may be {@link MDialogText} (Txt, {@link Mson}, or Adventure) for color and styling.
+ * Minecraft does not show {@code hover_event} on dialog input controls (MC-298405);
+ * use {@link com.massivecraft.massivecore.dialog.MDialogButton#tooltip(String)} on action buttons.
  * </p>
  */
 public final class MDialogInputBool implements MDialogInput
