@@ -599,6 +599,59 @@ public class EnumerationUtil
     }
 
     // -------------------------------------------- //
+    // MATERIAL CUSHIONS
+    // -------------------------------------------- //
+
+    public static final BackstringSet<Material> MATERIALS_CUSHIONS = new BackstringSet<>(Material.class,
+        "BLACK_CUSHION",             // Minecraft 26.3
+        "BLUE_CUSHION",              // Minecraft 26.3
+        "BROWN_CUSHION",             // Minecraft 26.3
+        "CYAN_CUSHION",              // Minecraft 26.3
+        "GRAY_CUSHION",              // Minecraft 26.3
+        "GREEN_CUSHION",             // Minecraft 26.3
+        "LIGHT_BLUE_CUSHION",        // Minecraft 26.3
+        "LIGHT_GRAY_CUSHION",        // Minecraft 26.3
+        "LIME_CUSHION",              // Minecraft 26.3
+        "MAGENTA_CUSHION",           // Minecraft 26.3
+        "ORANGE_CUSHION",            // Minecraft 26.3
+        "PINK_CUSHION",              // Minecraft 26.3
+        "PURPLE_CUSHION",            // Minecraft 26.3
+        "RED_CUSHION",               // Minecraft 26.3
+        "WHITE_CUSHION",             // Minecraft 26.3
+        "YELLOW_CUSHION"             // Minecraft 26.3
+    );
+
+    /**
+     * Checks if the given material is a cushion.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a cushion; false otherwise.
+     */
+    public static boolean isMaterialCushion(Material material)
+    {
+        return MATERIALS_CUSHIONS.contains(material) || MConf.get().materialsCushions.contains(material);
+    }
+
+    // -------------------------------------------- //
+    // ENTITY TYPE CUSHION
+    // -------------------------------------------- //
+
+    public static final BackstringSet<EntityType> ENTITY_TYPES_CUSHION = new BackstringSet<>(EntityType.class,
+        "CUSHION"                   // Minecraft 26.3
+    );
+
+    /**
+     * Checks if the given entity type is a cushion.
+     *
+     * @param entityType The entity type to check.
+     * @return True if the entity type is a cushion; false otherwise.
+     */
+    public static boolean isEntityTypeCushion(EntityType entityType)
+    {
+        return ENTITY_TYPES_CUSHION.contains(entityType);
+    }
+
+    // -------------------------------------------- //
     // MATERIAL NARROW BLOCKS
     // -------------------------------------------- //
     public static final BackstringSet<Material> MATERIALS_NARROW_BLOCKS_FENCES = new BackstringSet<>(Material.class,

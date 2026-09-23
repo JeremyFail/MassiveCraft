@@ -14,6 +14,7 @@ public enum ProtectCase
 	
 	BUILD,
 	BUILD_VEHICLE,
+	BUILD_CUSHION,
 	USE_BLOCK,
 	USE_ITEM,
 	USE_ENTITY,
@@ -37,6 +38,9 @@ public enum ProtectCase
 
 			case BUILD_VEHICLE:
 				return MPerm.getPermVehicle();
+
+			case BUILD_CUSHION:
+				return MPerm.getPermCushion();
 			
 			case USE_ITEM:
 				if (!(object instanceof Material)) return null;
@@ -47,6 +51,7 @@ public enum ProtectCase
 				if (!(object instanceof Entity)) return null;
 				Entity entity = (Entity) object;
 				EntityType type = entity.getType();
+				if (EnumerationUtil.isEntityTypeCushion(type)) return MPerm.getPermCushion();
 				if (EnumerationUtil.isEntityTypeContainer(type)) return MPerm.getPermContainer();
 				if (EnumerationUtil.isEntityTypeEditOnInteract(type)) return MPerm.getPermBuild();
 				return null;

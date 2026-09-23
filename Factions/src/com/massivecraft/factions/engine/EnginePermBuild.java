@@ -171,6 +171,11 @@ public class EnginePermBuild extends Engine
 	{
 		return protect(ProtectCase.BUILD_VEHICLE, true, player, PS.valueOf(block), block.getType(), cancellable);
 	}
+
+	public static Boolean buildCushion(Player player, Block block, Cancellable cancellable)
+	{
+		return protect(ProtectCase.BUILD_CUSHION, true, player, PS.valueOf(block), block.getType(), cancellable);
+	}
 	
 	public static Boolean useItem(Player player, Block block, Material material, Cancellable cancellable)
 	{
@@ -631,6 +636,42 @@ public class EnginePermBuild extends Engine
 		
 		// then check for build permissions.
 		buildVehicle(player, block, event);
+	}
+
+	// -------------------------------------------- //
+	// BUILD > CUSHION
+	// -------------------------------------------- //
+
+	// Handles placing cushions (entity items)
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void cushionPlace(PlayerInteractEvent event)
+	{
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+		if (event.getItem() == null) return;
+
+		Material item = event.getItem().getType();
+		Block block = event.getClickedBlock();
+		Player player = event.getPlayer();
+		if (MUtil.isntPlayer(player)) return;
+
+		if (EnumerationUtil.isMaterialCushion(item))
+		{
+			buildCushion(player, block, event);
+		}
+	}
+
+	// Handles destroying cushions by dealing damage (cushions are entities)
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void cushionDestroy(EntityDamageByEntityEvent event)
+	{
+		Entity damager = MUtil.getLiableDamager(event);
+		if (MUtil.isntPlayer(damager)) return;
+		Player player = (Player) damager;
+
+		Entity entity = event.getEntity();
+		if (entity == null || !EnumerationUtil.isEntityTypeCushion(entity.getType())) return;
+
+		buildCushion(player, entity.getLocation().getBlock(), event);
 	}
 
 	// -------------------------------------------- //

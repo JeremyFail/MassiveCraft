@@ -577,6 +577,7 @@ public class MConf extends Entity<MConf>
 		MPerm.ID_BUILD, MUtil.set("LEADER", "OFFICER", "MEMBER"),
 		MPerm.ID_PAINBUILD, MUtil.set(),
 		MPerm.ID_VEHICLE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
+		MPerm.ID_CUSHION, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_DOOR, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_BUTTON, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
 		MPerm.ID_PRESSURE_PLATE, MUtil.set("LEADER", "OFFICER", "MEMBER", "RECRUIT", "ALLY"),
@@ -646,8 +647,11 @@ public class MConf extends Entity<MConf>
 	// These materials can be broken by a wind charge.
 	public BackstringSet<Material> materialsWindChargeBreakable = new BackstringSet<>(Material.class);
 
-	// Interacting with these materials placed in the terrain results in placing a vehicle.
+	// Interacting with these materials placed in the terrain results in vehicle placement/use.
 	public BackstringSet<Material> materialsVehicle = new BackstringSet<>(Material.class);
+
+	// Interacting with these materials placed in the terrain results in a cushion placement/use.
+	public BackstringSet<Material> materialsCushions = new BackstringSet<>(Material.class);
 
 	// Using ender pearls on these materials results in ender pearl clip logic running.
 	public BackstringSet<Material> materialsNarrowBlocksFences = new BackstringSet<>(Material.class);
