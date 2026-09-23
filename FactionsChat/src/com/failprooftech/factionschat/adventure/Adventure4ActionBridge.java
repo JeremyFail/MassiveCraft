@@ -10,7 +10,9 @@ import net.kyori.adventure.text.event.HoverEvent;
  * ({@link AdventureActionCompat}). Linking this class on Adventure 5 would throw
  * {@link NoSuchFieldError} because {@code OPEN_URL}'s field descriptor changed.</p>
  *
- * <p>TODO(adventure4-drop): Delete this class when Adventure 4 support is removed.</p>
+ * <p>TODO(adventure4-drop): Delete this class when the minimum supported Minecraft version is
+ * Paper 26.1+ / Adventure 5 only (Adventure 5 shipped with Paper 26.1). Also drop the matching
+ * {@code paper-api} pin and adventure4 bridge wiring in {@code FactionsChat/pom.xml}.</p>
  */
 public final class Adventure4ActionBridge implements AdventureActionBridge
 {

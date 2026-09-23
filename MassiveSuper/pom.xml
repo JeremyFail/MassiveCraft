@@ -56,7 +56,8 @@
 
         <!-- https://hub.spigotmc.org/nexus/content/groups/public/org/spigotmc/spigot-api/ -->
         <massiveSpigotVersion>1.21.11-R0.2-SNAPSHOT</massiveSpigotVersion>
-        <massivePaperVersion>1.21.11-R0.1-SNAPSHOT</massivePaperVersion>
+        <!-- https://repo.papermc.io/repository/maven-public/{version}.build.{n}-{channel} -->
+        <massivePaperVersion>26.3.build.35-alpha</massivePaperVersion>
         <!-- https://central.sonatype.com/artifact/net.md-5/bungeecord-dialog (Spigot dialog API types) -->
         <massiveBungeeDialogVersion>1.21-R0.4</massiveBungeeDialogVersion>
         <!-- Adventure MiniMessage for compile (match paper-api transitive BOM; run mvn dependency:tree on paper-api when bumping Paper).

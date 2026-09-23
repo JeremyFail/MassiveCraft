@@ -28,7 +28,7 @@ public class MigratorFaction007CushionPerm extends MigratorRoot
 		JsonObject perms = entity.getAsJsonObject("perms");
 		if (perms == null) return;
 
-		// Cushion perm (place/use cushions): copy from door (only if not already present)
+		// Cushion perm (place/use/break cushions): copy from door (only if not already present)
 		JsonElement doorPerm = perms.has("door") ? perms.get("door") : null;
 		if (doorPerm != null && !perms.has("cushion"))
 		{

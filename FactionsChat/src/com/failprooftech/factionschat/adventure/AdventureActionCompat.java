@@ -11,7 +11,7 @@ import net.kyori.adventure.text.event.HoverEvent;
  * binary-incompatible - unlike Paper/Spigot APIs, they cannot share one compile classpath).</p>
  *
  * <p>TODO(adventure4-drop): Replace this facade with direct Adventure 5 checks (or a single bridge)
- * once Paper 1.21.x support is dropped.</p>
+ * once the minimum supported Minecraft version is Paper 26.1+ / Adventure 5 only.</p>
  */
 public final class AdventureActionCompat
 {

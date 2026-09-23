@@ -247,12 +247,30 @@ public class EnginePermBuild extends Engine
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void build(HangingPlaceEvent event) 
 	{ 
+		// Spigot: cushions are Hangings, so place lands here
+		if (EnumerationUtil.isEntityTypeCushion(event.getEntity().getType()))
+		{
+			buildCushion(event.getPlayer(), event.getBlock(), event);
+			return;
+		}
 		build(event.getPlayer(), event.getBlock(), true, event);
 	}
 	
 	// Handles breaking entity items such as item frames, paintings, leashes
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void build(HangingBreakByEntityEvent event) { build(event.getRemover(), event.getEntity().getLocation().getBlock(), event); }
+	public void build(HangingBreakByEntityEvent event)
+	{
+		Entity entity = event.getEntity();
+		// Spigot: cushions extend Hanging, so breaks land here
+		if (EnumerationUtil.isEntityTypeCushion(entity.getType()))
+		{
+			Entity remover = event.getRemover();
+			if (MUtil.isntPlayer(remover)) return;
+			buildCushion((Player) remover, entity.getLocation().getBlock(), event);
+			return;
+		}
+		build(event.getRemover(), entity.getLocation().getBlock(), event);
+	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void build(EntityChangeBlockEvent event)
@@ -642,6 +660,24 @@ public class EnginePermBuild extends Engine
 	// BUILD > CUSHION
 	// -------------------------------------------- //
 
+	@Override
+	public void setActiveInner(boolean active)
+	{
+		// Paper 26.3+: cushions are not Hangings; breaking fires EntityBreakByEntityEvent.
+		// Probe the event class first so Spigot never loads EnginePermBuildPaper.
+		try
+		{
+			Class.forName("io.papermc.paper.event.entity.EntityBreakByEntityEvent");
+		}
+		catch (ClassNotFoundException e)
+		{
+			return;
+		}
+
+		EnginePermBuildPaper.get().setPluginSoft(this.getPlugin());
+		EnginePermBuildPaper.get().setActive(active);
+	}
+
 	// Handles placing cushions (entity items)
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void cushionPlace(PlayerInteractEvent event)
@@ -658,20 +694,6 @@ public class EnginePermBuild extends Engine
 		{
 			buildCushion(player, block, event);
 		}
-	}
-
-	// Handles destroying cushions by dealing damage (cushions are entities)
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void cushionDestroy(EntityDamageByEntityEvent event)
-	{
-		Entity damager = MUtil.getLiableDamager(event);
-		if (MUtil.isntPlayer(damager)) return;
-		Player player = (Player) damager;
-
-		Entity entity = event.getEntity();
-		if (entity == null || !EnumerationUtil.isEntityTypeCushion(entity.getType())) return;
-
-		buildCushion(player, entity.getLocation().getBlock(), event);
 	}
 
 	// -------------------------------------------- //

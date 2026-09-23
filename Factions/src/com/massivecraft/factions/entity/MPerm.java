@@ -167,7 +167,7 @@ public class MPerm extends Entity<MPerm> implements Prioritized, Registerable, N
 	public static MPerm getPermBuild() { return getCreative(PRIORITY_BUILD, ID_BUILD, ID_BUILD, "edit the terrain", true, true, true); }
 	public static MPerm getPermPainbuild() { return getCreative(PRIORITY_PAINBUILD, ID_PAINBUILD, ID_PAINBUILD, "edit, take damage", true, true, true); }
 	public static MPerm getPermVehicle() { return getCreative(PRIORITY_VEHICLE, ID_VEHICLE, ID_VEHICLE, "place/destroy vehicles", true, true, true); }
-	public static MPerm getPermCushion() { return getCreative(PRIORITY_CUSHION, ID_CUSHION, ID_CUSHION, "place/use cushions", true, true, true); }
+	public static MPerm getPermCushion() { return getCreative(PRIORITY_CUSHION, ID_CUSHION, ID_CUSHION, "place/use/break cushions", true, true, true); }
 	public static MPerm getPermDoor() { return getCreative(PRIORITY_DOOR, ID_DOOR, ID_DOOR, "use doors", true, true, true); }
 	public static MPerm getPermButton() { return getCreative(PRIORITY_BUTTON, ID_BUTTON, ID_BUTTON, "use buttons", true, true, true); }
 	public static MPerm getPermPressurePlate() { return getCreative(PRIORITY_PRESSURE_PLATE, ID_PRESSURE_PLATE, ID_PRESSURE_PLATE, "use pressure plates", true, true, true); }
