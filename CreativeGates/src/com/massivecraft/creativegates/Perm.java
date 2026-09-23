@@ -13,6 +13,7 @@ public enum Perm implements Identified
 	CREATE,
 	CREATE_BYPASSDISABLED,
 	SET_GATE_FILL,
+	SET_FILL_PARTICLE_COUNT,
 	USE,
 	CG,
 	CG_WORLD,

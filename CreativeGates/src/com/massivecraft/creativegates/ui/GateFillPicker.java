@@ -12,10 +12,15 @@ import com.massivecraft.creativegates.entity.UGateColl;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.gate.fill.ParticleGateType;
+import com.massivecraft.massivecore.chestgui.ChestActionAbstract;
+import com.massivecraft.massivecore.chestgui.ChestGui;
 import com.massivecraft.massivecore.dialog.MDialog;
 import com.massivecraft.massivecore.dialog.MDialogBuilder;
 import com.massivecraft.massivecore.dialog.MDialogButton;
+import com.massivecraft.massivecore.dialog.MDialogResponse;
 import com.massivecraft.massivecore.dialog.body.MDialogBodyItem;
+import com.massivecraft.massivecore.dialog.input.MDialogInputNumber;
+import com.massivecraft.massivecore.dialog.type.MDialogTypeConfirmation;
 import com.massivecraft.massivecore.dialog.type.MDialogTypeMultiAction;
 import com.massivecraft.massivecore.dialog.type.MDialogTypeNotice;
 import com.massivecraft.massivecore.mixin.MixinMessage;
@@ -23,27 +28,27 @@ import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
  * Multi-step gate fill selection via MassiveCore {@link MDialog} (Paper / Spigot / ChestGui).
  * <p>
- * Shared UI for create ({@link PendingGateCreate}) and edit ({@link UGate}). Flow: kind
- * (blocks vs particles) when both are allowed, then a paged list. Particles are action
- * buttons; blocks stay item links. The kind step has Cancel; a list opened from kind has
- * Back as its footer. Escape still dismisses the dialog.
+ * Shared UI for create ({@link PendingGateCreate}) and edit ({@link UGate}). Particle fills may
+ * open an amount step (slider or ChestGui +/-) when the player may set particle count.
  * </p>
  */
 public final class GateFillPicker
 {
 	private static final int PAGE_SIZE = 20;
 	private static final int PARTICLE_COLUMNS = 2;
+	private static final String AMOUNT_KEY = "amount";
 	
 	private GateFillPicker()
 	{
@@ -61,7 +66,8 @@ public final class GateFillPicker
 		
 		open(player, new Session(
 			pending.getOrientation(),
-			(p, type) -> GateCreate.complete(p, pending, type),
+			MConf.get().getGateFillParticleAmountDefault(),
+			(p, type, amount) -> GateCreate.complete(p, pending, type, amount),
 			p -> GateCreate.cancel(p, true),
 			p -> PendingGateCreates.get().get(p) != null,
 			"Cancel gate creation"
@@ -81,7 +87,8 @@ public final class GateFillPicker
 		String gateId = gate.getId();
 		open(player, new Session(
 			gate.getOrientation(),
-			(p, type) -> applyEdit(p, gate, type),
+			gate.getFillParticleAmount(),
+			(p, type, amount) -> applyEdit(p, gate, type, amount),
 			p -> GateManageUi.open(p, gate),
 			p -> p.isOnline() && gateId != null && UGateColl.get().getFixed(gateId) != null,
 			"Back to manage"
@@ -99,12 +106,15 @@ public final class GateFillPicker
 		if (gate == null) return "unknown";
 		GateType type = gate.getFillType();
 		if (type == null) return "unknown";
+		if (type.isParticleFill())
+		{
+			return prettyName(type) + " (" + gate.getFillParticleAmount() + ")";
+		}
 		return prettyName(type);
 	}
 	
 	/**
 	 * Whether this player may change fill on the gate from manage UI.
-	 * Requires manage access, plus {@link Perm#SET_GATE_FILL} or ownership bypass / override.
 	 *
 	 * @param player Viewer.
 	 * @param gate Target gate.
@@ -118,7 +128,21 @@ public final class GateFillPicker
 		return EngineGateOverride.canBypassOwnership(player);
 	}
 	
-	private static void applyEdit(Player player, UGate gate, GateType gateType)
+	/**
+	 * Whether the player may choose particle amount (create or edit).
+	 * Override / bypass always may; otherwise {@link Perm#SET_FILL_PARTICLE_COUNT}.
+	 *
+	 * @param player Viewer.
+	 * @return True if the amount step should be shown.
+	 */
+	public static boolean canSetParticleCount(Player player)
+	{
+		if (player == null) return false;
+		if (Perm.SET_FILL_PARTICLE_COUNT.has(player)) return true;
+		return EngineGateOverride.canBypassOwnership(player);
+	}
+	
+	private static void applyEdit(Player player, UGate gate, GateType gateType, int particleAmount)
 	{
 		if (player == null || gate == null || gateType == null) return;
 		if (!canChangeFill(player, gate))
@@ -134,6 +158,10 @@ public final class GateFillPicker
 		
 		gate.empty();
 		gate.setFillType(gateType);
+		if (gateType.isParticleFill())
+		{
+			gate.setFillParticleAmount(particleAmount);
+		}
 		gate.fill();
 		
 		MixinMessage.get().messageOne(player, Txt.parse("<g>Gate fill set to <h>%s<g>.", prettyName(gateType)));
@@ -200,7 +228,7 @@ public final class GateFillPicker
 			dialog.body(MDialogBodyItem.of(iconFor(gateType))
 				.description(label)
 				.clickId(typeId)
-				.onClick((p, response) -> session.onSelect.accept(p, gateType)));
+				.onClick((p, response) -> session.onSelect.accept(p, gateType, session.initialParticleAmount)));
 		}
 		
 		applyFooter(dialog, session, canGoBack, safePage, totalPages,
@@ -232,15 +260,193 @@ public final class GateFillPicker
 			String label = prettyName(gateType);
 			multi.action(MDialogButton.of(gateType.getConfigId(), label)
 				.tooltip(label)
-				.onClick((p, response) -> session.onSelect.accept(p, gateType)));
+				.onClick((p, response) -> selectParticle(p, session, gateType, safePage, canGoBack)));
 		}
-		appendPageBodies(dialog, safePage, totalPages,
-			p -> openLater(p, session, () -> openParticleList(p, session, safePage - 1, canGoBack)),
-			p -> openLater(p, session, () -> openParticleList(p, session, safePage + 1, canGoBack)));
+		if (safePage > 0)
+		{
+			multi.action(MDialogButton.of("nav_prev", "<aqua><< Previous Page")
+				.tooltip("Previous page")
+				.onClick((p, response) -> openLater(p, session, () -> openParticleList(p, session, safePage - 1, canGoBack))));
+		}
+		if (safePage < totalPages - 1)
+		{
+			multi.action(MDialogButton.of("nav_next", "<aqua>Next Page >>")
+				.tooltip("Next page")
+				.onClick((p, response) -> openLater(p, session, () -> openParticleList(p, session, safePage + 1, canGoBack))));
+		}
 		multi.exit(listExitButton(session, canGoBack, p -> openLater(p, session, () -> openKind(p, session))));
 		dialog.type(multi.build());
 		
 		MDialog.open(player, dialog.build());
+	}
+	
+	private static void selectParticle(Player player, Session session, GateType gateType, int listPage, boolean listCanGoBack)
+	{
+		if (canSetParticleCount(player))
+		{
+			openLater(player, session, () -> openParticleAmount(player, session, gateType, listPage, listCanGoBack));
+			return;
+		}
+		session.onSelect.accept(player, gateType, session.initialParticleAmount);
+	}
+	
+	private static void openParticleAmount(Player player, Session session, GateType gateType, int listPage, boolean listCanGoBack)
+	{
+		if (MDialog.isNativeDialogAvailable())
+		{
+			openParticleAmountDialog(player, session, gateType, listPage, listCanGoBack);
+		}
+		else
+		{
+			openParticleAmountChest(player, session, gateType, listPage, listCanGoBack);
+		}
+	}
+	
+	private static void openParticleAmountDialog(Player player, Session session, GateType gateType, int listPage, boolean listCanGoBack)
+	{
+		MConf conf = MConf.get();
+		int min = conf.getGateFillParticleAmountMin();
+		int max = conf.getGateFillParticleAmountMax();
+		int initial = conf.clampParticleAmount(session.initialParticleAmount);
+		
+		MDialog.open(player, MDialog.builder()
+			.title("<h>Particle Amount")
+			.bodyPlain(Txt.parse("<i>Fill: <h>%s\n<i>Choose how many particles spawn.", prettyName(gateType)))
+			.canCloseWithEscape(true)
+			.onClose(p -> session.onCancel.accept(p))
+			.input(MDialogInputNumber.of(AMOUNT_KEY, "Amount", min, max)
+				.initial(initial)
+				.step(1f)
+				.width(200))
+			.type(MDialogTypeConfirmation.of(
+				MDialogButton.of("save", "Save")
+					.tooltip("Save this particle amount.")
+					.onClick((p, response) -> finishParticleAmount(p, session, gateType, response)),
+				MDialogButton.of("back", "Back")
+					.tooltip("Back to particle selection.")
+					.onClick((p, response) -> openLater(p, session, () -> openParticleList(p, session, listPage, listCanGoBack)))
+			))
+		);
+	}
+	
+	private static void finishParticleAmount(Player player, Session session, GateType gateType, MDialogResponse response)
+	{
+		int amount = session.initialParticleAmount;
+		if (response != null)
+		{
+			Float value = response.getNumber(AMOUNT_KEY);
+			if (value != null) amount = Math.round(value);
+		}
+		amount = MConf.get().clampParticleAmount(amount);
+		session.onSelect.accept(player, gateType, amount);
+	}
+	
+	private static void openParticleAmountChest(Player player, Session session, GateType gateType, int listPage, boolean listCanGoBack)
+	{
+		MConf conf = MConf.get();
+		int min = conf.getGateFillParticleAmountMin();
+		int max = conf.getGateFillParticleAmountMax();
+		int[] amount = {conf.clampParticleAmount(session.initialParticleAmount)};
+		
+		ChestGui gui = ChestGui.create(27, Txt.parse("<h>Particle Amount"));
+		gui.setBottomInventoryAllow(false);
+		gui.setAutoclosing(false);
+		gui.setAutoremoving(true);
+		
+		Runnable refresh = () -> paintParticleAmountChest(gui, amount[0], min, max, prettyName(gateType));
+		
+		gui.setAction(11, new ChestActionAbstract()
+		{
+			@Override
+			public boolean onClick(InventoryClickEvent event, Player p)
+			{
+				if (amount[0] <= min) return false;
+				amount[0]--;
+				refresh.run();
+				return false;
+			}
+		});
+		gui.setAction(15, new ChestActionAbstract()
+		{
+			@Override
+			public boolean onClick(InventoryClickEvent event, Player p)
+			{
+				if (amount[0] >= max) return false;
+				amount[0]++;
+				refresh.run();
+				return false;
+			}
+		});
+		gui.setAction(21, new ChestActionAbstract()
+		{
+			@Override
+			public boolean onClick(InventoryClickEvent event, Player p)
+			{
+				gui.setAutoclosing(true);
+				openLater(p, session, () -> openParticleList(p, session, listPage, listCanGoBack));
+				return true;
+			}
+		});
+		gui.setAction(23, new ChestActionAbstract()
+		{
+			@Override
+			public boolean onClick(InventoryClickEvent event, Player p)
+			{
+				gui.setAutoclosing(true);
+				session.onSelect.accept(p, gateType, amount[0]);
+				return true;
+			}
+		});
+		
+		refresh.run();
+		gui.open(player);
+	}
+	
+	private static void paintParticleAmountChest(ChestGui gui, int amount, int min, int max, String fillName)
+	{
+		String hover = amountHover(amount, min, max);
+		gui.setItem(11, pane(Material.RED_STAINED_GLASS_PANE, "<b>-", hover));
+		gui.setItem(13, amountDisplay(amount, min, max, fillName));
+		gui.setItem(15, pane(Material.LIME_STAINED_GLASS_PANE, "<g>+", hover));
+		gui.setItem(21, named(Material.ARROW, "<i>Back"));
+		gui.setItem(23, named(Material.EMERALD, "<g>Save"));
+	}
+	
+	private static String amountHover(int amount, int min, int max)
+	{
+		if (amount <= min) return Txt.parse("<c>MIN") + "\n" + Txt.parse("<i>Current: <h>%s", amount);
+		if (amount >= max) return Txt.parse("<c>MAX") + "\n" + Txt.parse("<i>Current: <h>%s", amount);
+		return Txt.parse("<i>Current: <h>%s", amount);
+	}
+	
+	private static ItemStack amountDisplay(int amount, int min, int max, String fillName)
+	{
+		ItemStack stack = new ItemStack(Material.FIREWORK_STAR);
+		ItemMeta meta = stack.getItemMeta();
+		if (meta != null)
+		{
+			meta.setDisplayName(Txt.parse("<h>%s", fillName));
+			String status;
+			if (amount <= min) status = Txt.parse("<c>MIN");
+			else if (amount >= max) status = Txt.parse("<c>MAX");
+			else status = Txt.parse("<i>Current: <h>%s", amount);
+			meta.setLore(Arrays.asList(status, Txt.parse("<i>Amount: <h>%s", amount)));
+			stack.setItemMeta(meta);
+		}
+		return stack;
+	}
+	
+	private static ItemStack pane(Material material, String name, String loreLine)
+	{
+		ItemStack stack = new ItemStack(material);
+		ItemMeta meta = stack.getItemMeta();
+		if (meta != null)
+		{
+			meta.setDisplayName(Txt.parse(name));
+			meta.setLore(Arrays.asList(loreLine.split("\n")));
+			stack.setItemMeta(meta);
+		}
+		return stack;
 	}
 	
 	private static MDialogBuilder baseDialog(Session session, String title, String body)
@@ -264,15 +470,15 @@ public final class GateFillPicker
 	{
 		if (page > 0)
 		{
-			dialog.body(MDialogBodyItem.of(named(Material.SPECTRAL_ARROW, "Previous"))
-				.description("Previous")
+			dialog.body(MDialogBodyItem.of(named(Material.PAPER, "<aqua><< Previous Page"))
+				.description(Txt.parse("<aqua><< Previous Page"))
 				.clickId("nav_prev")
 				.onClick((p, response) -> prev.accept(p)));
 		}
 		if (page < totalPages - 1)
 		{
-			dialog.body(MDialogBodyItem.of(named(Material.COMPASS, "Next"))
-				.description("Next")
+			dialog.body(MDialogBodyItem.of(named(Material.PAPER, "<aqua>Next Page >>"))
+				.description(Txt.parse("<aqua>Next Page >>"))
 				.clickId("nav_next")
 				.onClick((p, response) -> next.accept(p)));
 		}
@@ -341,11 +547,6 @@ public final class GateFillPicker
 		return stack;
 	}
 	
-	/**
-	 * Dialog item bodies need an {@link ItemStack}; Paper 26+ rejects non-item materials
-	 * ({@code NETHER_PORTAL}, fluids, {@code END_GATEWAY}, …). Those fills have no item form,
-	 * so we show a related proxy item.
-	 */
 	private static Material iconMaterial(Material material)
 	{
 		if (material != null && material.isItem()) return material;
@@ -381,7 +582,7 @@ public final class GateFillPicker
 		ItemMeta meta = stack.getItemMeta();
 		if (meta != null)
 		{
-			meta.setDisplayName(Txt.parse("<h>%s", name));
+			meta.setDisplayName(Txt.parse(name == null ? "" : name));
 			stack.setItemMeta(meta);
 		}
 		return stack;
@@ -400,21 +601,26 @@ public final class GateFillPicker
 		return Txt.getMaterialName(type.getBaseMaterial());
 	}
 	
-	/**
-	 * Create/edit session: orientation + callbacks, independent of pending vs existing gate.
-	 */
+	@FunctionalInterface
+	private interface FillSelectHandler
+	{
+		void accept(Player player, GateType type, int particleAmount);
+	}
+	
 	private static final class Session
 	{
 		private final GateOrientation orientation;
-		private final BiConsumer<Player, GateType> onSelect;
+		private final int initialParticleAmount;
+		private final FillSelectHandler onSelect;
 		private final Consumer<Player> onCancel;
 		private final Predicate<Player> stillValid;
 		private final String cancelTooltip;
 		
-		private Session(GateOrientation orientation, BiConsumer<Player, GateType> onSelect, Consumer<Player> onCancel,
-			Predicate<Player> stillValid, String cancelTooltip)
+		private Session(GateOrientation orientation, int initialParticleAmount, FillSelectHandler onSelect,
+			Consumer<Player> onCancel, Predicate<Player> stillValid, String cancelTooltip)
 		{
 			this.orientation = orientation;
+			this.initialParticleAmount = initialParticleAmount;
 			this.onSelect = onSelect;
 			this.onCancel = onCancel;
 			this.stillValid = stillValid;

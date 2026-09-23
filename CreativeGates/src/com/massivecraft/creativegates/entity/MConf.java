@@ -41,7 +41,7 @@ public class MConf extends Entity<MConf>
 		this.allowedHorizontalGateTypes = sanitizeGateTypeIds(this.allowedHorizontalGateTypes, true);
 		this.allowedGateParticleTypes = ParticleGateType.sanitizeIds(this.allowedGateParticleTypes);
 		this.allowedHorizontalGateParticleTypes = ParticleGateType.sanitizeIds(this.allowedHorizontalGateParticleTypes);
-		this.gateFillParticleAmount = sanitizeParticleAmount(this.gateFillParticleAmount);
+		this.normalizeParticleAmountConfig();
 		this.updatePerms();
 		return this;
 	}
@@ -138,16 +138,19 @@ public class MConf extends Entity<MConf>
 	
 	public PermissionDefault permissionDefaultCreate = PermissionDefault.TRUE;
 	public PermissionDefault permissionDefaultSetGateFill = PermissionDefault.TRUE;
+	public PermissionDefault permissionDefaultSetFillParticleCount = PermissionDefault.TRUE;
 	public PermissionDefault permissionDefaultUse = PermissionDefault.TRUE;
 	
 	public boolean verboseCreatePermission = true;
 	public boolean verboseSetGateFillPermission = false;
+	public boolean verboseSetFillParticleCountPermission = false;
 	public boolean verboseUsePermission = true;
 
 	public void updatePerms()
 	{
 		PermissionUtil.getPermission(false, true, Perm.CREATE.getId(), "create a gate", this.permissionDefaultCreate);
 		PermissionUtil.getPermission(false, true, Perm.SET_GATE_FILL.getId(), "choose gate fill when creating or managing", this.permissionDefaultSetGateFill);
+		PermissionUtil.getPermission(false, true, Perm.SET_FILL_PARTICLE_COUNT.getId(), "choose particle fill amount when creating or managing", this.permissionDefaultSetFillParticleCount);
 		PermissionUtil.getPermission(false, true, Perm.USE.getId(), "use a gate", this.permissionDefaultUse);
 	}
 
@@ -222,16 +225,39 @@ public class MConf extends Entity<MConf>
 	}
 
 	/**
-	 * Particles spawned throughout a particle-fill gate each ambient tick.
-	 * Block fills ignore this (they use their own themed kit).
+	 * Minimum particle-fill spawn count (slider floor).
 	 */
-	private int gateFillParticleAmount = 16;
-	public int getGateFillParticleAmount() { return this.gateFillParticleAmount; }
-	public void setGateFillParticleAmount(int gateFillParticleAmount)
+	private int gateFillParticleAmountMin = 16;
+	public int getGateFillParticleAmountMin() { return this.gateFillParticleAmountMin; }
+	public void setGateFillParticleAmountMin(int gateFillParticleAmountMin)
 	{
-		int sanitized = sanitizeParticleAmount(gateFillParticleAmount);
-		this.changed(this.gateFillParticleAmount, sanitized);
-		this.gateFillParticleAmount = sanitized;
+		this.gateFillParticleAmountMin = gateFillParticleAmountMin;
+		this.normalizeParticleAmountConfig();
+		this.changed();
+	}
+	
+	/**
+	 * Maximum particle-fill spawn count (slider ceiling).
+	 */
+	private int gateFillParticleAmountMax = 32;
+	public int getGateFillParticleAmountMax() { return this.gateFillParticleAmountMax; }
+	public void setGateFillParticleAmountMax(int gateFillParticleAmountMax)
+	{
+		this.gateFillParticleAmountMax = gateFillParticleAmountMax;
+		this.normalizeParticleAmountConfig();
+		this.changed();
+	}
+	
+	/**
+	 * Default particle-fill spawn count for new gates / players who cannot set amount.
+	 */
+	private int gateFillParticleAmountDefault = 16;
+	public int getGateFillParticleAmountDefault() { return this.gateFillParticleAmountDefault; }
+	public void setGateFillParticleAmountDefault(int gateFillParticleAmountDefault)
+	{
+		this.gateFillParticleAmountDefault = gateFillParticleAmountDefault;
+		this.normalizeParticleAmountConfig();
+		this.changed();
 	}
 
 	/**
@@ -459,14 +485,40 @@ public class MConf extends Entity<MConf>
 	}
 
 	/**
-	 * Clamps particle-fill spawn count to a safe range.
+	 * Clamps a raw particle amount into the absolute safe range {@code [1, 128]}.
 	 *
-	 * @param amount Raw config value.
-	 * @return Value in {@code [1, 128]}.
+	 * @param amount Raw value.
+	 * @return Clamped value.
 	 */
-	private static int sanitizeParticleAmount(int amount)
+	private static int sanitizeParticleAmountAbsolute(int amount)
 	{
 		return Math.max(1, Math.min(128, amount));
+	}
+	
+	/**
+	 * Ensures min ≤ default ≤ max within the absolute safe range.
+	 */
+	private void normalizeParticleAmountConfig()
+	{
+		int min = sanitizeParticleAmountAbsolute(this.gateFillParticleAmountMin);
+		int max = sanitizeParticleAmountAbsolute(this.gateFillParticleAmountMax);
+		if (max < min) max = min;
+		int def = sanitizeParticleAmountAbsolute(this.gateFillParticleAmountDefault);
+		def = Math.max(min, Math.min(max, def));
+		this.gateFillParticleAmountMin = min;
+		this.gateFillParticleAmountMax = max;
+		this.gateFillParticleAmountDefault = def;
+	}
+	
+	/**
+	 * Clamps a per-gate amount into the configured min/max window.
+	 *
+	 * @param amount Raw amount.
+	 * @return Value in {@code [min, max]}.
+	 */
+	public int clampParticleAmount(int amount)
+	{
+		return Math.max(this.gateFillParticleAmountMin, Math.min(this.gateFillParticleAmountMax, amount));
 	}
 
 	private int maxarea = 200;

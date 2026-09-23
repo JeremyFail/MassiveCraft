@@ -85,6 +85,7 @@ public class UGate extends Entity<UGate>
 		this.exit = that.exit;
 		this.orientation = that.orientation;
 		this.fillTypeId = that.fillTypeId;
+		this.fillParticleAmount = that.fillParticleAmount;
 		this.setCoordsNoChanged(that.coords);
 		this.setInteriorCoordsNoChanged(that.interiorCoords);
 		
@@ -519,6 +520,49 @@ public class UGate extends Entity<UGate>
 	public void setFillType(GateType gateType)
 	{
 		this.setFillTypeId(gateType == null ? null : gateType.getConfigId());
+	}
+	
+	/**
+	 * Per-gate particle-fill spawn count. Null means use {@link MConf#getGateFillParticleAmountDefault()}.
+	 */
+	private Integer fillParticleAmount = null;
+	
+	/**
+	 * @return Stored particle amount, or null to use the server default.
+	 */
+	public Integer getFillParticleAmountRaw()
+	{
+		return this.fillParticleAmount;
+	}
+	
+	/**
+	 * Effective particle amount for ambient/burst, clamped to the server min/max window.
+	 *
+	 * @return Amount in {@code [min, max]}.
+	 */
+	public int getFillParticleAmount()
+	{
+		MConf conf = MConf.get();
+		int value = this.fillParticleAmount != null
+			? this.fillParticleAmount
+			: conf.getGateFillParticleAmountDefault();
+		return conf.clampParticleAmount(value);
+	}
+	
+	/**
+	 * Sets the per-gate particle amount (clamped). Pass null to clear back to server default.
+	 *
+	 * @param fillParticleAmount Raw amount or null.
+	 */
+	public void setFillParticleAmount(Integer fillParticleAmount)
+	{
+		Integer normalized = fillParticleAmount;
+		if (normalized != null)
+		{
+			normalized = MConf.get().clampParticleAmount(normalized);
+		}
+		this.changed(this.fillParticleAmount, normalized);
+		this.fillParticleAmount = normalized;
 	}
 	
 	/**

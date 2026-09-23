@@ -12,7 +12,8 @@ permissions:
 # -------------------------------------------- #
   creativegates.create: {description: create a gate, default: false}
   creativegates.create.bypassdisabled: {description: bypass disabled worlds for gate creation, default: false}
-  creativegates.setgatefill: {description: choose gate fill material when creating, default: false}
+  creativegates.setgatefill: {description: choose gate fill when creating or managing, default: false}
+  creativegates.setfillparticlecount: {description: choose particle fill amount when creating or managing, default: false}
   creativegates.use: {description: use a gate, default: false}
   creativegates.cg: {description: use creativegates base command, default: false}
   creativegates.cg.world: {description: world gate management, default: false}
@@ -33,6 +34,7 @@ permissions:
     children:
       creativegates.create: true
       creativegates.setgatefill: true
+      creativegates.setfillparticlecount: true
       creativegates.use: true
       creativegates.cg: true
       creativegates.cg.version: true
@@ -42,6 +44,7 @@ permissions:
   creativegates.admin.*:
     default: false
     children:
+      creativegates.*: true
       creativegates.cg.override: true
       creativegates.cg.config: true
       creativegates.cg.world: true

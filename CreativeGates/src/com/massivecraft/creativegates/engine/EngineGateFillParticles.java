@@ -1,7 +1,6 @@
 package com.massivecraft.creativegates.engine;
 
 import com.massivecraft.creativegates.CreativeGates;
-import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.entity.UGateColl;
 import com.massivecraft.creativegates.gate.GateOrientation;
@@ -24,7 +23,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * Ambient fill-themed particles for intact gates near players.
  * <p>
  * Block fills use {@link GateFillParticleKit}. Particle fills spawn the selected particle
- * throughout the interior using {@link MConf#getGateFillParticleAmount()}.
+ * throughout the interior using the gate's particle amount
+ * ({@link UGate#getFillParticleAmount()}).
  * </p>
  */
 public class EngineGateFillParticles extends Engine
@@ -67,7 +67,7 @@ public class EngineGateFillParticles extends Engine
 		GateType type = gate.getFillType();
 		if (type != null && type.isParticleFill())
 		{
-			this.spawnParticleFill(blocks, type.getParticle(), Math.max(8, MConf.get().getGateFillParticleAmount() * 2));
+			this.spawnParticleFill(blocks, type.getParticle(), Math.max(8, gate.getFillParticleAmount() * 2));
 			return;
 		}
 		
@@ -127,7 +127,7 @@ public class EngineGateFillParticles extends Engine
 		GateType type = gate.getFillType();
 		if (type != null && type.isParticleFill())
 		{
-			this.spawnParticleFill(blocks, type.getParticle(), MConf.get().getGateFillParticleAmount());
+			this.spawnParticleFill(blocks, type.getParticle(), gate.getFillParticleAmount());
 			return;
 		}
 		

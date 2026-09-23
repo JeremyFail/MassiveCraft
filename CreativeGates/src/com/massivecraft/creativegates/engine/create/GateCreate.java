@@ -34,9 +34,26 @@ public final class GateCreate
 	/**
 	 * Creates the gate from a pending snapshot and selected fill type.
 	 *
+	 * @param player Creating player.
+	 * @param pending Snapshot.
+	 * @param gateType Selected fill.
 	 * @return True if the gate was created.
 	 */
 	public static boolean complete(Player player, PendingGateCreate pending, GateType gateType)
+	{
+		return complete(player, pending, gateType, MConf.get().getGateFillParticleAmountDefault());
+	}
+	
+	/**
+	 * Creates the gate from a pending snapshot, fill type, and particle amount.
+	 *
+	 * @param player Creating player.
+	 * @param pending Snapshot.
+	 * @param gateType Selected fill.
+	 * @param particleAmount Particle spawn count (used when {@code gateType} is a particle fill).
+	 * @return True if the gate was created.
+	 */
+	public static boolean complete(Player player, PendingGateCreate pending, GateType gateType, int particleAmount)
 	{
 		if (player == null || pending == null || gateType == null) return false;
 		
@@ -114,6 +131,10 @@ public final class GateCreate
 		newGate.setInteriorCoords(pending.getInteriorCoords());
 		newGate.setOrientation(pending.getOrientation());
 		newGate.setFillType(gateType);
+		if (gateType.isParticleFill())
+		{
+			newGate.setFillParticleAmount(particleAmount);
+		}
 		
 		newGate.fill();
 		newGate.fxKitCreate(player);
