@@ -1,10 +1,15 @@
 package com.massivecraft.creativegates.ui;
 
 import com.massivecraft.creativegates.CreativeGates;
+import com.massivecraft.creativegates.Perm;
+import com.massivecraft.creativegates.engine.EngineGateOverride;
 import com.massivecraft.creativegates.engine.PendingGateCreates;
 import com.massivecraft.creativegates.engine.create.GateCreate;
 import com.massivecraft.creativegates.engine.create.PendingGateCreate;
 import com.massivecraft.creativegates.entity.MConf;
+import com.massivecraft.creativegates.entity.UGate;
+import com.massivecraft.creativegates.entity.UGateColl;
+import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.gate.fill.ParticleGateType;
 import com.massivecraft.massivecore.dialog.MDialog;
@@ -13,6 +18,7 @@ import com.massivecraft.massivecore.dialog.MDialogButton;
 import com.massivecraft.massivecore.dialog.body.MDialogBodyItem;
 import com.massivecraft.massivecore.dialog.type.MDialogTypeMultiAction;
 import com.massivecraft.massivecore.dialog.type.MDialogTypeNotice;
+import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -21,14 +27,17 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Multi-step gate fill selection via MassiveCore {@link MDialog} (Paper / Spigot / ChestGui).
  * <p>
- * Flow: kind (blocks vs particles) when both are allowed, then a paged list. Particles are
- * action buttons; blocks stay item links. The kind step has Cancel; a list opened from kind
- * has Back as its footer. Escape still dismisses the dialog.
+ * Shared UI for create ({@link PendingGateCreate}) and edit ({@link UGate}). Flow: kind
+ * (blocks vs particles) when both are allowed, then a paged list. Particles are action
+ * buttons; blocks stay item links. The kind step has Cancel; a list opened from kind has
+ * Back as its footer. Escape still dismisses the dialog.
  * </p>
  */
 public final class GateFillPicker
@@ -41,7 +50,7 @@ public final class GateFillPicker
 	}
 	
 	/**
-	 * Opens the fill picker at the first applicable step.
+	 * Create-time fill picker (pending snapshot → {@link GateCreate#complete}).
 	 *
 	 * @param player Creating player.
 	 * @param pending Snapshot waiting on a fill choice.
@@ -50,61 +59,132 @@ public final class GateFillPicker
 	{
 		if (player == null || pending == null) return;
 		
-		List<GateType> blocks = MConf.get().getSelectableBlockGateTypes(pending.getOrientation());
-		List<GateType> particles = MConf.get().getSelectableParticleGateTypes(pending.getOrientation());
+		open(player, new Session(
+			pending.getOrientation(),
+			(p, type) -> GateCreate.complete(p, pending, type),
+			p -> GateCreate.cancel(p, true),
+			p -> PendingGateCreates.get().get(p) != null,
+			"Cancel gate creation"
+		));
+	}
+	
+	/**
+	 * Edit-time fill picker for an existing gate (manage UI).
+	 *
+	 * @param player Managing player.
+	 * @param gate Target gate.
+	 */
+	public static void open(Player player, UGate gate)
+	{
+		if (player == null || gate == null) return;
+		
+		String gateId = gate.getId();
+		open(player, new Session(
+			gate.getOrientation(),
+			(p, type) -> applyEdit(p, gate, type),
+			p -> GateManageUi.open(p, gate),
+			p -> p.isOnline() && gateId != null && UGateColl.get().getFixed(gateId) != null,
+			"Back to manage"
+		));
+	}
+	
+	/**
+	 * Display name for the gate's current fill (blocks or particles).
+	 *
+	 * @param gate Target gate.
+	 * @return Pretty fill name.
+	 */
+	public static String currentFillLabel(UGate gate)
+	{
+		if (gate == null) return "unknown";
+		GateType type = gate.getFillType();
+		if (type == null) return "unknown";
+		return prettyName(type);
+	}
+	
+	/**
+	 * Whether this player may change fill on the gate from manage UI.
+	 * Requires manage access, plus {@link Perm#SET_GATE_FILL} or ownership bypass / override.
+	 *
+	 * @param player Viewer.
+	 * @param gate Target gate.
+	 * @return True if the Gate Fill manage control should show.
+	 */
+	public static boolean canChangeFill(Player player, UGate gate)
+	{
+		if (player == null || gate == null) return false;
+		if (!EngineGateOverride.canManage(player, gate)) return false;
+		if (Perm.SET_GATE_FILL.has(player)) return true;
+		return EngineGateOverride.canBypassOwnership(player);
+	}
+	
+	private static void applyEdit(Player player, UGate gate, GateType gateType)
+	{
+		if (player == null || gate == null || gateType == null) return;
+		if (!canChangeFill(player, gate))
+		{
+			MixinMessage.get().messageOne(player, Txt.parse("<b>You cannot change this gate's fill."));
+			return;
+		}
+		if (!MConf.get().isGateTypeAllowed(gateType, gate.getOrientation()))
+		{
+			MixinMessage.get().messageOne(player, Txt.parse("<b>That gate fill is no longer allowed."));
+			return;
+		}
+		
+		gate.empty();
+		gate.setFillType(gateType);
+		gate.fill();
+		
+		MixinMessage.get().messageOne(player, Txt.parse("<g>Gate fill set to <h>%s<g>.", prettyName(gateType)));
+		GateManageUi.open(player, gate);
+	}
+	
+	private static void open(Player player, Session session)
+	{
+		if (player == null || session == null) return;
+		
+		List<GateType> blocks = MConf.get().getSelectableBlockGateTypes(session.orientation);
+		List<GateType> particles = MConf.get().getSelectableParticleGateTypes(session.orientation);
 		if (blocks.isEmpty() && particles.isEmpty()) return;
 		
 		if (!blocks.isEmpty() && !particles.isEmpty())
 		{
-			openKind(player, pending);
+			openKind(player, session);
 			return;
 		}
 		if (!particles.isEmpty())
 		{
-			openParticleList(player, pending, 0, false);
+			openParticleList(player, session, 0, false);
 			return;
 		}
-		openBlockList(player, pending, 0, false);
+		openBlockList(player, session, 0, false);
 	}
 	
-	/**
-	 * Opens the kind selection dialog (block or particle).
-	 * 
-	 * @param player Creating player.
-	 * @param pending Snapshot waiting on a fill choice.
-	 */
-	private static void openKind(Player player, PendingGateCreate pending)
+	private static void openKind(Player player, Session session)
 	{
-		MDialogBuilder dialog = baseDialog("<h>Select Gate Fill", "Choose a block fill or a particle fill.");
+		MDialogBuilder dialog = baseDialog(session, "<h>Select Gate Fill", "Choose a block fill or a particle fill.");
 		
 		dialog.body(MDialogBodyItem.of(named(Material.BRICKS, "Blocks"))
 			.description("Blocks")
 			.clickId("kind_blocks")
-			.onClick((p, response) -> openLater(p, () -> openBlockList(p, pending, 0, true))));
+			.onClick((p, response) -> openLater(p, session, () -> openBlockList(p, session, 0, true))));
 		
 		dialog.body(MDialogBodyItem.of(named(Material.FIREWORK_STAR, "Particles"))
 			.description("Particles")
 			.clickId("kind_particles")
-			.onClick((p, response) -> openLater(p, () -> openParticleList(p, pending, 0, true))));
+			.onClick((p, response) -> openLater(p, session, () -> openParticleList(p, session, 0, true))));
 		
-		dialog.type(MDialogTypeNotice.of(cancelButton()));
+		dialog.type(MDialogTypeNotice.of(cancelButton(session)));
 		MDialog.open(player, dialog.build());
 	}
 	
-	/**
-	 * Opens the block fill list dialog.
-	 * 
-	 * @param player Creating player.
-	 * @param pending Snapshot waiting on a fill choice.
-	 * @param page Current page number.
-	 * @param canGoBack Whether the player can go back to the kind selection dialog.
-	 */
-	private static void openBlockList(Player player, PendingGateCreate pending, int page, boolean canGoBack)
+	private static void openBlockList(Player player, Session session, int page, boolean canGoBack)
 	{
-		List<GateType> types = MConf.get().getSelectableBlockGateTypes(pending.getOrientation());
+		List<GateType> types = MConf.get().getSelectableBlockGateTypes(session.orientation);
 		if (types.isEmpty())
 		{
-			if (canGoBack) openLater(player, () -> openKind(player, pending));
+			if (canGoBack) openLater(player, session, () -> openKind(player, session));
 			return;
 		}
 		
@@ -112,39 +192,31 @@ public final class GateFillPicker
 		int safePage = clampPage(page, totalPages);
 		List<GateType> slice = pageSlice(types, safePage);
 		
-		MDialogBuilder dialog = baseDialog("<h>Select Block Fill", "Choose the fill block for this gate.");
+		MDialogBuilder dialog = baseDialog(session, "<h>Select Block Fill", "Choose the fill block for this gate.");
 		for (GateType gateType : slice)
 		{
 			String typeId = gateType.getConfigId();
-			String label = prettyBlockName(gateType);
+			String label = prettyName(gateType);
 			dialog.body(MDialogBodyItem.of(iconFor(gateType))
 				.description(label)
 				.clickId(typeId)
-				.onClick((p, response) -> GateCreate.complete(p, pending, gateType)));
+				.onClick((p, response) -> session.onSelect.accept(p, gateType)));
 		}
 		
-		applyFooter(dialog, canGoBack, safePage, totalPages,
-			p -> openLater(p, () -> openKind(p, pending)),
-			p -> openLater(p, () -> openBlockList(p, pending, safePage - 1, canGoBack)),
-			p -> openLater(p, () -> openBlockList(p, pending, safePage + 1, canGoBack)));
+		applyFooter(dialog, session, canGoBack, safePage, totalPages,
+			p -> openLater(p, session, () -> openKind(p, session)),
+			p -> openLater(p, session, () -> openBlockList(p, session, safePage - 1, canGoBack)),
+			p -> openLater(p, session, () -> openBlockList(p, session, safePage + 1, canGoBack)));
 		
 		MDialog.open(player, dialog.build());
 	}
 	
-	/**
-	 * Opens the particle fill list dialog.
-	 * 
-	 * @param player Creating player.
-	 * @param pending Snapshot waiting on a fill choice.
-	 * @param page Current page number.
-	 * @param canGoBack Whether the player can go back to the kind selection dialog.
-	 */
-	private static void openParticleList(Player player, PendingGateCreate pending, int page, boolean canGoBack)
+	private static void openParticleList(Player player, Session session, int page, boolean canGoBack)
 	{
-		List<GateType> types = MConf.get().getSelectableParticleGateTypes(pending.getOrientation());
+		List<GateType> types = MConf.get().getSelectableParticleGateTypes(session.orientation);
 		if (types.isEmpty())
 		{
-			if (canGoBack) openLater(player, () -> openKind(player, pending));
+			if (canGoBack) openLater(player, session, () -> openKind(player, session));
 			return;
 		}
 		
@@ -152,61 +224,41 @@ public final class GateFillPicker
 		int safePage = clampPage(page, totalPages);
 		List<GateType> slice = pageSlice(types, safePage);
 		
-		MDialogBuilder dialog = baseDialog("<h>Select Particle Fill", "Choose the particle for this gate.");
+		MDialogBuilder dialog = baseDialog(session, "<h>Select Particle Fill", "Choose the particle for this gate.");
 		
 		MDialogTypeMultiAction.Builder multi = MDialogTypeMultiAction.builder().columns(PARTICLE_COLUMNS);
 		for (GateType gateType : slice)
 		{
-			String label = prettyParticleName(gateType);
+			String label = prettyName(gateType);
 			multi.action(MDialogButton.of(gateType.getConfigId(), label)
 				.tooltip(label)
-				.onClick((p, response) -> GateCreate.complete(p, pending, gateType)));
+				.onClick((p, response) -> session.onSelect.accept(p, gateType)));
 		}
 		appendPageBodies(dialog, safePage, totalPages,
-			p -> openLater(p, () -> openParticleList(p, pending, safePage - 1, canGoBack)),
-			p -> openLater(p, () -> openParticleList(p, pending, safePage + 1, canGoBack)));
-		multi.exit(listExitButton(canGoBack, p -> openLater(p, () -> openKind(p, pending))));
+			p -> openLater(p, session, () -> openParticleList(p, session, safePage - 1, canGoBack)),
+			p -> openLater(p, session, () -> openParticleList(p, session, safePage + 1, canGoBack)));
+		multi.exit(listExitButton(session, canGoBack, p -> openLater(p, session, () -> openKind(p, session))));
 		dialog.type(multi.build());
 		
 		MDialog.open(player, dialog.build());
 	}
 	
-	/**
-	 * Creates a base dialog builder with the given title and body.
-	 * 
-	 * @param title Dialog title.
-	 * @param body Dialog body.
-	 * @return Base dialog builder.
-	 */
-	private static MDialogBuilder baseDialog(String title, String body)
+	private static MDialogBuilder baseDialog(Session session, String title, String body)
 	{
 		return MDialog.builder()
 			.title(title)
 			.bodyPlain(body)
 			.canCloseWithEscape(true)
-			.onClose(p -> GateCreate.cancel(p, true));
+			.onClose(p -> session.onCancel.accept(p));
 	}
 	
-	/**
-	 * Page links stay in the body so the footer can be a single exit button
-	 * (Back after the kind step, otherwise Cancel).
-	 */
-	private static void applyFooter(MDialogBuilder dialog, boolean canGoBack, int page, int totalPages,
+	private static void applyFooter(MDialogBuilder dialog, Session session, boolean canGoBack, int page, int totalPages,
 		Consumer<Player> back, Consumer<Player> prev, Consumer<Player> next)
 	{
 		appendPageBodies(dialog, page, totalPages, prev, next);
-		dialog.type(MDialogTypeNotice.of(listExitButton(canGoBack, back)));
+		dialog.type(MDialogTypeNotice.of(listExitButton(session, canGoBack, back)));
 	}
 	
-	/**
-	 * Appends page links to the dialog body.
-	 * 
-	 * @param dialog Dialog builder.
-	 * @param page Current page number.
-	 * @param totalPages Total number of pages.
-	 * @param prev Consumer for previous page.
-	 * @param next Consumer for next page.
-	 */
 	private static void appendPageBodies(MDialogBuilder dialog, int page, int totalPages,
 		Consumer<Player> prev, Consumer<Player> next)
 	{
@@ -226,24 +278,11 @@ public final class GateFillPicker
 		}
 	}
 	
-	/**
-	 * Creates an exit button for the list dialog.
-	 * 
-	 * @param canGoBack Whether the player can go back to the kind selection dialog.
-	 * @param back Consumer for going back to the kind selection dialog.
-	 * @return Exit button.
-	 */
-	private static MDialogButton listExitButton(boolean canGoBack, Consumer<Player> back)
+	private static MDialogButton listExitButton(Session session, boolean canGoBack, Consumer<Player> back)
 	{
-		return canGoBack ? backButton(back) : cancelButton();
+		return canGoBack ? backButton(back) : cancelButton(session);
 	}
 	
-	/**
-	 * Creates a back button for the list dialog.
-	 * 
-	 * @param back Consumer for going back to the kind selection dialog.
-	 * @return Back button.
-	 */
 	private static MDialogButton backButton(Consumer<Player> back)
 	{
 		return MDialogButton.of("nav_back", "Back")
@@ -252,53 +291,30 @@ public final class GateFillPicker
 			.onClick((p, response) -> back.accept(p));
 	}
 	
-	/**
-	 * Creates a cancel button for the list dialog.
-	 * 
-	 * @return Cancel button.
-	 */
-	private static MDialogButton cancelButton()
+	private static MDialogButton cancelButton(Session session)
 	{
 		return MDialogButton.of("cancel", "Cancel")
-			.tooltip("Cancel gate creation")
+			.tooltip(session.cancelTooltip)
 			.icon(new ItemStack(Material.BARRIER))
-			.onClick((p, response) -> GateCreate.cancel(p, true));
+			.onClick((p, response) -> session.onCancel.accept(p));
 	}
 	
-	/**
-	 * Opens a task later on the main server thread.
-	 * 
-	 * @param player Creating player.
-	 * @param task Task to run.
-	 */
-	private static void openLater(Player player, Runnable task)
+	private static void openLater(Player player, Session session, Runnable task)
 	{
-		Bukkit.getScheduler().runTask(CreativeGates.get(), () -> {
+		Bukkit.getScheduler().runTask(CreativeGates.get(), () ->
+		{
 			if (player == null || !player.isOnline()) return;
-			if (PendingGateCreates.get().get(player) == null) return;
+			if (!session.stillValid.test(player)) return;
 			task.run();
 		});
 	}
 	
-	/**
-	 * Calculates the total number of pages for a list of items.
-	 * 
-	 * @param size Total number of items.
-	 * @return Total number of pages.
-	 */
 	private static int pageCount(int size)
 	{
 		if (size <= 0) return 1;
 		return (size + PAGE_SIZE - 1) / PAGE_SIZE;
 	}
 	
-	/**
-	 * Clamps a page number to a valid range.
-	 * 
-	 * @param page Current page number.
-	 * @param totalPages Total number of pages.
-	 * @return Clamped page number.
-	 */
 	private static int clampPage(int page, int totalPages)
 	{
 		if (page < 0) return 0;
@@ -306,13 +322,6 @@ public final class GateFillPicker
 		return page;
 	}
 	
-	/**
-	 * Creates a sublist of items for the current page.
-	 * 
-	 * @param types List of items.
-	 * @param page Current page number.
-	 * @return Sublist of items for the current page.
-	 */
 	private static List<GateType> pageSlice(List<GateType> types, int page)
 	{
 		int from = page * PAGE_SIZE;
@@ -320,19 +329,13 @@ public final class GateFillPicker
 		return types.subList(from, to);
 	}
 	
-	/**
-	 * Creates an item stack for the given gate type.
-	 * 
-	 * @param type Gate type.
-	 * @return Item stack.
-	 */
 	private static ItemStack iconFor(GateType type)
 	{
 		ItemStack stack = new ItemStack(iconMaterial(type.getBaseMaterial()));
 		ItemMeta meta = stack.getItemMeta();
 		if (meta != null)
 		{
-			meta.setDisplayName(Txt.parse("<h>%s", prettyBlockName(type)));
+			meta.setDisplayName(Txt.parse("<h>%s", prettyName(type)));
 			stack.setItemMeta(meta);
 		}
 		return stack;
@@ -372,13 +375,6 @@ public final class GateFillPicker
 		}
 	}
 	
-	/**
-	 * Creates an item stack with the given material and name.
-	 * 
-	 * @param material Material.
-	 * @param name Item name.
-	 * @return Item stack.
-	 */
 	private static ItemStack named(Material material, String name)
 	{
 		ItemStack stack = new ItemStack(material == null ? Material.PAPER : material);
@@ -392,25 +388,37 @@ public final class GateFillPicker
 	}
 	
 	/**
-	 * Creates a pretty name for the given block gate type.
-	 * 
-	 * @param type Block gate type.
-	 * @return Pretty name.
+	 * Pretty name for a fill type (block material or particle display name).
+	 *
+	 * @param type Gate type.
+	 * @return Display label.
 	 */
-	private static String prettyBlockName(GateType type)
+	public static String prettyName(GateType type)
 	{
+		if (type == null) return "unknown";
+		if (type instanceof ParticleGateType particle) return particle.getDisplayName();
 		return Txt.getMaterialName(type.getBaseMaterial());
 	}
 	
 	/**
-	 * Creates a pretty name for the given particle gate type.
-	 * 
-	 * @param type Particle gate type.
-	 * @return Pretty name.
+	 * Create/edit session: orientation + callbacks, independent of pending vs existing gate.
 	 */
-	private static String prettyParticleName(GateType type)
+	private static final class Session
 	{
-		if (type instanceof ParticleGateType particle) return particle.getDisplayName();
-		return type.getConfigId();
+		private final GateOrientation orientation;
+		private final BiConsumer<Player, GateType> onSelect;
+		private final Consumer<Player> onCancel;
+		private final Predicate<Player> stillValid;
+		private final String cancelTooltip;
+		
+		private Session(GateOrientation orientation, BiConsumer<Player, GateType> onSelect, Consumer<Player> onCancel,
+			Predicate<Player> stillValid, String cancelTooltip)
+		{
+			this.orientation = orientation;
+			this.onSelect = onSelect;
+			this.onCancel = onCancel;
+			this.stillValid = stillValid;
+			this.cancelTooltip = cancelTooltip;
+		}
 	}
 }

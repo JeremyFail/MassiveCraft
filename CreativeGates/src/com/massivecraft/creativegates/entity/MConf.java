@@ -101,6 +101,10 @@ public class MConf extends Entity<MConf>
 	public Set<String> getAliasesCgManageSet() { return this.aliasesCgManageSet; }
 	public void setAliasesCgManageSet(Set<String> aliasesCgManageSet) { this.aliasesCgManageSet = aliasesCgManageSet; }
 	
+	private Set<String> aliasesCgManageFill = MUtil.set("fill");
+	public Set<String> getAliasesCgManageFill() { return this.aliasesCgManageFill; }
+	public void setAliasesCgManageFill(Set<String> aliasesCgManageFill) { this.aliasesCgManageFill = aliasesCgManageFill; }
+	
 	private Set<String> aliasesCgOverride = MUtil.set("override", "admin");
 	public Set<String> getAliasesCgOverride() { return this.aliasesCgOverride; }
 	public void setAliasesCgOverride(Set<String> aliasesCgOverride) { this.aliasesCgOverride = aliasesCgOverride; }
@@ -139,7 +143,7 @@ public class MConf extends Entity<MConf>
 	public void updatePerms()
 	{
 		PermissionUtil.getPermission(false, true, Perm.CREATE.getId(), "create a gate", this.permissionDefaultCreate);
-		PermissionUtil.getPermission(false, true, Perm.SET_GATE_FILL.getId(), "choose gate fill when creating", this.permissionDefaultSetGateFill);
+		PermissionUtil.getPermission(false, true, Perm.SET_GATE_FILL.getId(), "choose gate fill when creating or managing", this.permissionDefaultSetGateFill);
 		PermissionUtil.getPermission(false, true, Perm.USE.getId(), "use a gate", this.permissionDefaultUse);
 	}
 

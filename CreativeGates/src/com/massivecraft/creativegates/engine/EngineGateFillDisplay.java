@@ -109,13 +109,17 @@ public class EngineGateFillDisplay extends Engine
 		
 		if (type.usesClientBlockChangeFill(orientation))
 		{
-			this.sendClientBlockChanges(blocks, type.getClientDisplayMaterial(), orientation, true);
+			Material overlay = type.getClientDisplayMaterial();
+			this.sendClientBlockChanges(blocks, overlay, orientation, true);
+			// setContent's real LIGHT packets often arrive after this sendBlockChange and wipe it.
+			this.scheduleClientOverlayResyncForGate(gate, overlay, orientation);
 			return;
 		}
 		
 		if (type == SupportedGateType.END_GATEWAY && usesEndGatewayBlockChangeFallback())
 		{
 			this.sendClientBlockChanges(blocks, Material.END_GATEWAY, orientation, true);
+			this.scheduleClientOverlayResyncForGate(gate, Material.END_GATEWAY, orientation);
 			return;
 		}
 		
@@ -512,11 +516,11 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Re-applies a gate's client overlay for one player (no-op if the gate has none).
+	 * Re-applies a gate's client overlay for one player (no-op if the gate has none or is gone).
 	 */
 	private void refreshClientOverlay(Player player, UGate gate)
 	{
-		if (player == null || !player.isOnline() || gate == null) return;
+		if (player == null || !player.isOnline() || gate == null || !gate.attached()) return;
 		Material overlay = this.resolveClientOverlayMaterial(gate);
 		if (overlay == null) return;
 		
@@ -526,14 +530,17 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Client prediction after clicking a fake portal/fire block reverts {@code sendBlockChange}
+	 * Client prediction after right-clicking a fake portal/fire block reverts {@code sendBlockChange}
 	 * to the real server LIGHT block. Re-send the overlay immediately and on the next ticks.
+	 * <p>
+	 * Left-click is intentionally ignored: it starts block breaking, and a delayed overlay
+	 * refresh would fight gate destroy (nether portal fills looked unbreakable).
+	 * </p>
 	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void onInteractClientOverlay(PlayerInteractEvent event)
 	{
-		Action action = event.getAction();
-		if (action != Action.RIGHT_CLICK_BLOCK && action != Action.LEFT_CLICK_BLOCK) return;
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		
 		Block block = event.getClickedBlock();
 		if (block == null) return;
@@ -555,6 +562,30 @@ public class EngineGateFillDisplay extends Engine
 		if (playerLoc == null || gateLoc == null) return false;
 		if (playerLoc.getWorld() != gateLoc.getWorld()) return false;
 		return playerLoc.distanceSquared(gateLoc) <= (double) VIEW_DISTANCE_BLOCKS * VIEW_DISTANCE_BLOCKS;
+	}
+	
+	/**
+	 * Re-sends a gate's client overlay a few ticks later so it wins over real block-update packets
+	 * from {@link UGate#fill()} (otherwise nether portal / fire fills stay invisible until move).
+	 */
+	private void scheduleClientOverlayResyncForGate(UGate gate, Material overlayMaterial, GateOrientation orientation)
+	{
+		if (gate == null || overlayMaterial == null) return;
+		CreativeGates plugin = CreativeGates.get();
+		String gateId = gate.getId();
+		for (long delay : new long[] { 1L, 5L, 10L })
+		{
+			Bukkit.getScheduler().runTaskLater(plugin, () ->
+			{
+				UGate live = gateId == null ? null : UGateColl.get().get(gateId);
+				if (live == null || !live.attached()) return;
+				if (this.resolveClientOverlayMaterial(live) == null) return;
+				
+				List<Block> blocks = live.getContentBlocks();
+				if (blocks == null || blocks.isEmpty()) return;
+				this.sendClientBlockChanges(blocks, overlayMaterial, orientation != null ? orientation : live.getOrientation(), true);
+			}, delay);
+		}
 	}
 	
 	/**

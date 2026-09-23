@@ -54,7 +54,9 @@ public final class GateManageChat
 		String title = "Manage Gate " + gate.getNetworkId() + " (" + ownerName + ")";
 		
 		int pageHeight = (sender instanceof Player) ? Txt.PAGEHEIGHT_PLAYER : Txt.PAGEHEIGHT_CONSOLE;
-		int pageCount = Math.max(1, (int) Math.ceil((double) settings.size() / pageHeight));
+		boolean showFill = sender instanceof Player && GateFillPicker.canChangeFill((Player) sender, gate);
+		int extraLines = showFill ? 1 : 0;
+		int pageCount = Math.max(1, (int) Math.ceil((double) (settings.size() + extraLines) / pageHeight));
 		
 		if (page < 1 || page > pageCount)
 		{
@@ -64,7 +66,6 @@ public final class GateManageChat
 		
 		int from = (page - 1) * pageHeight;
 		int to = Math.min(from + pageHeight, settings.size());
-		List<GateSetting> pageSettings = settings.subList(from, to);
 		
 		List<Mson> messages = new MassiveList<>();
 		List<String> paginationArgs = new MassiveList<>(gate.getId(), String.valueOf(page));
@@ -75,9 +76,20 @@ public final class GateManageChat
 			messages.add(Mson.mson("(click YES/NOO to toggle)").color(ChatColor.GRAY));
 		}
 		
-		for (GateSetting setting : pageSettings)
+		if (from < settings.size())
 		{
-			messages.add(buildRow(setting, gate, page));
+			List<GateSetting> pageSettings = settings.subList(from, to);
+			for (GateSetting setting : pageSettings)
+			{
+				messages.add(buildRow(setting, gate, page));
+			}
+		}
+		
+		// Fill control sits after Vehicles; show when this page would include that "slot".
+		int fillIndex = settings.size();
+		if (showFill && fillIndex >= from && fillIndex < from + pageHeight)
+		{
+			messages.add(buildFillRow(gate));
 		}
 		
 		MixinMessage.get().messageOne(sender, messages);
@@ -115,6 +127,23 @@ public final class GateManageChat
 			Mson.mson(setting.getDisplayName()).color(ChatColor.AQUA),
 			Mson.SPACE,
 			Mson.mson(setting.getDescription()).color(ChatColor.YELLOW)
+		);
+	}
+	
+	/**
+	 * Clickable fill row: opens {@link GateFillPicker} via {@link com.massivecraft.creativegates.cmd.CmdCgManageFill}.
+	 */
+	private static Mson buildFillRow(UGate gate)
+	{
+		String fillName = GateFillPicker.currentFillLabel(gate);
+		String clickCommand = CmdCg.get().cmdCgManage.cmdCgManageFill.getCommandLine(gate.getId());
+		
+		return Mson.mson(
+			Mson.mson("Gate Fill").color(ChatColor.GREEN),
+			Mson.mson(": ").color(ChatColor.GRAY),
+			Mson.mson(fillName).color(ChatColor.LIGHT_PURPLE)
+				.tooltipParse(Txt.parse("<i>The current gate fill block/particle. Click to modify."))
+				.command(clickCommand)
 		);
 	}
 	

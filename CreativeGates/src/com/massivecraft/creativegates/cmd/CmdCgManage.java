@@ -26,6 +26,7 @@ public class CmdCgManage extends MassiveCommand
 	// -------------------------------------------- //
 	
 	public CmdCgManageSet cmdCgManageSet = new CmdCgManageSet();
+	public CmdCgManageFill cmdCgManageFill = new CmdCgManageFill();
 	
 	// -------------------------------------------- //
 	// CONSTRUCT
@@ -35,6 +36,7 @@ public class CmdCgManage extends MassiveCommand
 	{
 		// Children
 		this.addChild(this.cmdCgManageSet);
+		this.addChild(this.cmdCgManageFill);
 		
 		// Parameters: optional gate id (chat pagination), optional page
 		this.addParameter(TypeEntity.get(UGateColl.get()), "gate", "look");

@@ -50,6 +50,11 @@ public final class GateManageDialog
 			type.action(settingButton(setting, gate));
 		}
 		
+		if (GateFillPicker.canChangeFill(player, gate))
+		{
+			type.action(fillButton(gate));
+		}
+		
 		MDialog.open(player, MDialog.builder()
 			.title("<h>Manage Gate")
 			.bodyPlain(Txt.parse("<k>Owner: <h>%s\n<k>Network: <h>%s", ownerName, String.valueOf(gate.getNetworkId())))
@@ -72,6 +77,18 @@ public final class GateManageDialog
 				setting.set(gate, !value);
 				open(player, gate);
 			});
+	}
+	
+	/**
+	 * Opens {@link GateFillPicker} for this gate. Label green, current fill purple.
+	 */
+	private static MDialogButton fillButton(UGate gate)
+	{
+		String fillName = GateFillPicker.currentFillLabel(gate);
+		return MDialogButton.of("fill", "<g>Gate Fill<i>: <v>" + fillName)
+			.tooltip("The current gate fill block/particle. Click to modify.")
+			.width(SETTING_WIDTH)
+			.onClick((player, response) -> GateFillPicker.open(player, gate));
 	}
 	
 	/**
