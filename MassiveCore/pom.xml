@@ -31,10 +31,15 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
         </dependency>
-        <!-- Bungee dialog types for Spigot showDialog backend (runtime-gated). -->
+        <!-- Bungee dialog + chat for Spigot showDialog backend (runtime-gated).
+             Explicit chat pin overrides Paper's older transitive bungeecord-chat (needs ClickEventCustom). -->
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-dialog</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-chat</artifactId>
         </dependency>
         <dependency>
 		    <groupId>com.googlecode.json-simple</groupId>

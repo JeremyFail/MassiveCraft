@@ -2,6 +2,7 @@ package com.massivecraft.massivecore.dialog.backend;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.massivecraft.massivecore.MassiveCore;
 import com.massivecraft.massivecore.dialog.MDialogAfterAction;
 import com.massivecraft.massivecore.dialog.MDialogButton;
@@ -26,6 +27,10 @@ import com.massivecraft.massivecore.dialog.type.MDialogTypeNotice;
 import com.massivecraft.massivecore.dialog.type.MDialogTypeServerLinks;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ClickEventCustom;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.dialog.ConfirmationDialog;
 import net.md_5.bungee.api.dialog.Dialog;
 import net.md_5.bungee.api.dialog.DialogBase;
@@ -50,7 +55,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCustomClickEvent;
+import org.bukkit.inventory.ItemStack;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -70,6 +77,15 @@ public final class SpigotMDialogBackend implements MDialogBackend, Listener
 	private static final String NAMESPACE = "massivecore";
 	/** Key prefix after namespace; remainder is the button id (lowercase). */
 	private static final String KEY_PREFIX = "mdlg/";
+	
+	/**
+	 * Cached {@link PlayerCustomClickEvent#getData()} lookup.
+	 * <p>
+	 * TODO: Remove reflective getData bridge if MassiveCore drops shaded Gson (or Spigot
+	 * exposes click payload without {@code com.google.gson} in the method signature).
+	 * </p>
+	 */
+	private static final Method GET_DATA = resolveGetDataMethod();
 	
 	/** Ensures {@link #onCustomClick} is registered once per JVM. */
 	private boolean listenerRegistered;
@@ -205,14 +221,37 @@ public final class SpigotMDialogBackend implements MDialogBackend, Listener
 					out.add(new PlainMessageBody(MDialogTexts.bungee(plain.getMessageText())));
 				}
 			}
-			// Item bodies are Paper-oriented; Spigot dialog package has no ItemBody - skip with text fallback.
+			// TODO: Spigot has no ItemBody API yet; emit a vanilla minecraft:item body for Gson to serialize.
+			// Change if this ever gets improved.
 			else if (body instanceof MDialogBodyItem)
 			{
-				MDialogBodyItem item = (MDialogBodyItem) body;
-				String desc = item.getDescription() != null ? item.getDescription() : (item.getItem() == null ? "Item" : item.getItem().getType().name());
+				MDialogBodyItem itemBody = (MDialogBodyItem) body;
+				ItemStack stack = itemBody.getItem();
+				String desc = itemBody.getDescription() != null
+					? itemBody.getDescription()
+					: (stack == null ? "Item" : stack.getType().name());
 				BaseComponent component = MDialogTexts.bungee(desc);
-				if (item.getClickId() != null) applyCustomClick(component, item.getClickId());
-				out.add(new PlainMessageBody(component));
+				if (itemBody.getClickId() != null) applyCustomClick(component, itemBody.getClickId());
+				
+				if (stack != null)
+				{
+					SpigotItemDialogBody item = SpigotItemDialogBody.of(
+						stack,
+						component,
+						itemBody.isShowDecorations(),
+						itemBody.isShowTooltip(),
+						itemBody.getWidth(),
+						itemBody.getHeight()
+					);
+					if (item != null)
+					{
+						out.add(item);
+						continue;
+					}
+				}
+				out.add(itemBody.getWidth() != null
+					? new PlainMessageBody(component, itemBody.getWidth())
+					: new PlainMessageBody(component));
 			}
 		}
 		return out;
@@ -220,27 +259,23 @@ public final class SpigotMDialogBackend implements MDialogBackend, Listener
 	
 	/**
 	 * Attaches the same namespaced custom click used by action buttons so body text completes that id.
+	 * <p>
+	 * Spigot requires {@link ClickEventCustom} for {@link ClickEvent.Action#CUSTOM}; a plain
+	 * {@link ClickEvent} fails dialog serialization with {@link ClassCastException}.
+	 * Also applies underline and hover to match Paper clickable body text.
+	 * </p>
 	 *
 	 * @param component Root text; extras are updated recursively.
 	 * @param buttonId  Action-button id.
 	 */
 	private static void applyCustomClick(BaseComponent component, String buttonId)
 	{
-		ClickEvent.Action custom;
-		try
-		{
-			custom = ClickEvent.Action.valueOf("CUSTOM");
-		}
-		catch (IllegalArgumentException ex)
-		{
-			return;
-		}
-		ClickEvent event = new ClickEvent(custom, NAMESPACE + ":" + KEY_PREFIX + buttonId.toLowerCase(Locale.ROOT));
-		applyClickRecursive(component, event);
+		String id = NAMESPACE + ":" + KEY_PREFIX + buttonId.toLowerCase(Locale.ROOT);
+		applyClickRecursive(component, new ClickEventCustom(id, null));
 	}
 	
 	/**
-	 * Sets {@code event} on {@code component} and every extra child.
+	 * Sets click, underline, and hover on {@code component} and every extra child.
 	 *
 	 * @param component Text node.
 	 * @param event     Custom click.
@@ -248,6 +283,8 @@ public final class SpigotMDialogBackend implements MDialogBackend, Listener
 	private static void applyClickRecursive(BaseComponent component, ClickEvent event)
 	{
 		component.setClickEvent(event);
+		component.setUnderlined(Boolean.TRUE);
+		component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new TextComponent("Click to select"))));
 		List<BaseComponent> extra = component.getExtra();
 		if (extra == null) return;
 		for (BaseComponent child : extra)
@@ -295,16 +332,17 @@ public final class SpigotMDialogBackend implements MDialogBackend, Listener
 			else if (input instanceof MDialogInputNumber)
 			{
 				MDialogInputNumber number = (MDialogInputNumber) input;
+				// Bungee NumberRangeInput's 8-arg ctor applies step/initial swapped; use fluent setters.
 				NumberRangeInput bungee = new NumberRangeInput(
 					number.getKey(),
-					number.getWidth(),
 					MDialogTexts.bungee(number.getLabel()),
-					number.getLabelFormat(),
 					number.getStart(),
-					number.getEnd(),
-					number.getInitial(),
-					number.getStep()
+					number.getEnd()
 				);
+				if (number.getWidth() != null) bungee.width(number.getWidth());
+				if (number.getLabelFormat() != null) bungee.labelFormat(number.getLabelFormat());
+				if (number.getStep() != null) bungee.step(number.getStep());
+				if (number.getInitial() != null) bungee.initial(number.getInitial());
 				out.add(bungee);
 			}
 			else if (input instanceof MDialogInputSingleOption)
@@ -380,10 +418,57 @@ public final class SpigotMDialogBackend implements MDialogBackend, Listener
 		if (session == null) return;
 		
 		// Client sends current input values as JSON on the click payload.
-		applyJsonData(session, event.getData());
+		applyJsonData(session, readClickData(event));
 		String buttonId = key.substring(KEY_PREFIX.length());
 		MDialogButton button = session.findButtonIgnoreCase(buttonId);
 		EngineMassiveCoreDialog.get().completeClick(player, button == null ? buttonId : button.getId());
+	}
+	
+	/**
+	 * Reads {@link PlayerCustomClickEvent#getData()} without a compile-time Gson return type.
+	 * <p>
+	 * MassiveCore shades {@code com.google.gson} to {@code lib.gson}. A direct
+	 * {@code event.getData()} call would rewrite the invoke to expect the shaded return type,
+	 * causing {@link NoSuchMethodError} against Spigot's real {@code com.google.gson.JsonElement}.
+	 * Reflection + re-parse keeps both Gson trees separate.
+	 * </p>
+	 * <p>
+	 * TODO: Drop this bridge when MassiveCore no longer shades Gson (or Spigot stops returning Gson).
+	 * </p>
+	 *
+	 * @param event Custom click event.
+	 * @return Parsed payload for this backend's Gson, or null.
+	 */
+	private static JsonElement readClickData(PlayerCustomClickEvent event)
+	{
+		if (event == null || GET_DATA == null) return null;
+		try
+		{
+			Object raw = GET_DATA.invoke(event);
+			if (raw == null) return null;
+			return JsonParser.parseString(raw.toString());
+		}
+		catch (ReflectiveOperationException | RuntimeException ex)
+		{
+			return null;
+		}
+	}
+	
+	/**
+	 * Resolves {@link PlayerCustomClickEvent#getData()} once for {@link #GET_DATA}.
+	 *
+	 * @return Method handle, or null if the API shape changed.
+	 */
+	private static Method resolveGetDataMethod()
+	{
+		try
+		{
+			return PlayerCustomClickEvent.class.getMethod("getData");
+		}
+		catch (NoSuchMethodException ex)
+		{
+			return null;
+		}
 	}
 	
 	/**
