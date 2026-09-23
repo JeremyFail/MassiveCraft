@@ -13,4 +13,11 @@ public class CmdFactionsPerm extends FactionsCommand
 	CmdFactionsPermSet cmdFactionsPermSet = new CmdFactionsPermSet();
 	CmdFactionsPermManage cmdFactionsPermManage = new CmdFactionsPermManage();
 
+	@Override
+	public void setup()
+	{
+		super.setup();
+		this.sortChildrenAlphabetically();
+	}
+
 }

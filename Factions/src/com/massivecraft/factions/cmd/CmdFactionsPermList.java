@@ -11,6 +11,7 @@ import com.massivecraft.massivecore.pager.Pager;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -48,6 +49,7 @@ public class CmdFactionsPermList extends FactionsCommand
 
 		Bukkit.getScheduler().runTaskAsynchronously(Factions.get(), () -> {
 			List<MPerm> items = MPermColl.get().getAll(predicate);
+			items.sort(Comparator.comparing(MPerm::getName, String.CASE_INSENSITIVE_ORDER));
 			pager.setItems(items);
 			pager.message();
 		});

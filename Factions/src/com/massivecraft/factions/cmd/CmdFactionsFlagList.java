@@ -11,6 +11,7 @@ import com.massivecraft.massivecore.pager.Pager;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -53,6 +54,7 @@ public class CmdFactionsFlagList extends FactionsCommand
 		Bukkit.getScheduler().runTaskAsynchronously(Factions.get(), () -> {
 			// Get items
 			List<MFlag> items = MFlagColl.get().getAll(predicate);
+			items.sort(Comparator.comparing(MFlag::getName, String.CASE_INSENSITIVE_ORDER));
 
 			// Pager items
 			pager.setItems(items);
