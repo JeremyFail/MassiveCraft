@@ -103,13 +103,13 @@ public final class GateInspectUtil
 		lines.add(kv("Network", String.valueOf(gate.getNetworkId())));
 		lines.add(kv("Gates", String.valueOf(gate.getGateChain().size())));
 		
-		lines.add(Mson.mson(""));
 		lines.add(Mson.mson(Txt.parse("<a>-------")));
 		lines.add(settingRow(GateSetting.SECRET, gate));
 		
 		lines.add(Mson.mson(Txt.parse("<a>-------")));
 		lines.add(settingRow(GateSetting.ENTRY, gate));
 		lines.add(settingRow(GateSetting.EXIT, gate));
+		lines.add(Mson.mson(Txt.parse("<a>-------")));
 		
 		// page 2
 		lines.add(settingRow(GateSetting.PLAYERS, gate));
