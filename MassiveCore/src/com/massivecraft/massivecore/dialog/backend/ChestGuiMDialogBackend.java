@@ -59,7 +59,12 @@ public final class ChestGuiMDialogBackend implements MDialogBackend
 			{
 				MDialogBodyItem itemBody = (MDialogBodyItem) body;
 				ItemStack item = itemBody.getItem();
-				if (item == null) continue;
+				// Text-only bodies still need a stack in ChestGui; use description as the name.
+				if (item == null)
+				{
+					if (itemBody.getDescription() == null) continue;
+					item = named(Material.PAPER, itemBody.getDescription());
+				}
 				if (itemBody.getClickId() != null) slots.add(SlotAction.clickableDisplay(item, itemBody.getClickId()));
 				else slots.add(SlotAction.display(item));
 			}

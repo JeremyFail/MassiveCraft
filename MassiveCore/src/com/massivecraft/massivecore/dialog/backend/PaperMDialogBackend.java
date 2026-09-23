@@ -246,7 +246,25 @@ public final class PaperMDialogBackend implements MDialogBackend
 			{
 				MDialogBodyItem itemBody = (MDialogBodyItem) body;
 				ItemStack item = itemBody.getItem();
-				if (item == null) continue;
+				// Null item = text-only body (clickable when clickId is set).
+				if (item == null)
+				{
+					if (itemBody.getDescription() == null) continue;
+					Component descComponent = PaperMDialogTextPlatform.toComponent(itemBody.getDescription());
+					if (itemBody.getClickId() != null)
+					{
+						descComponent = clickable(descComponent, player, itemBody.getClickId());
+					}
+					if (itemBody.getWidth() != null)
+					{
+						out.add(DialogBody.plainMessage(descComponent, itemBody.getWidth()));
+					}
+					else
+					{
+						out.add(DialogBody.plainMessage(descComponent));
+					}
+					continue;
+				}
 				var builder = DialogBody.item(item)
 					.showDecorations(itemBody.isShowDecorations())
 					.showTooltip(itemBody.isShowTooltip());

@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
  * Item display body entry.
  * <p>
  * Shows an {@link ItemStack} with optional description and decoration/tooltip flags.
+ * Pass a null item (via {@link #ofDescription(String)}) for text-only native dialogs.
  * If {@link #clickId(String)} is set, clicking the description completes that id.
  * Pair it with {@link #onClick(MDialogClickHandler)} when there is no matching footer button.
  * </p>
@@ -68,6 +69,21 @@ public final class MDialogBodyItem implements MDialogBody
 	public static MDialogBodyItem of(ItemStack item)
 	{
 		return new MDialogBodyItem(item, null, true, true, null, null, null, null);
+	}
+	
+	/**
+	 * Creates a text-only body (no item icon on native dialog backends).
+	 * <p>
+	 * Use with {@link #clickId(String)} / {@link #onClick(MDialogClickHandler)} for clickable links.
+	 * ChestGui fallback still needs a stack and synthesizes one from the description.
+	 * </p>
+	 *
+	 * @param description Display text (Txt markup OK).
+	 * @return New body element.
+	 */
+	public static MDialogBodyItem ofDescription(String description)
+	{
+		return new MDialogBodyItem(null, description, false, false, null, null, null, null);
 	}
 	
 	/**
