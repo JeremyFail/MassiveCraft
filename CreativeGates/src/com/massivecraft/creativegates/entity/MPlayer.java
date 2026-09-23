@@ -32,6 +32,7 @@ public class MPlayer extends SenderEntity<MPlayer>
 	public MPlayer load(MPlayer that)
 	{
 		this.overriding = that.overriding;
+		this.toolsEnabled = that.toolsEnabled;
 		return this;
 	}
 	
@@ -39,6 +40,7 @@ public class MPlayer extends SenderEntity<MPlayer>
 	public boolean isDefault()
 	{
 		if (this.overriding != null && this.overriding) return false;
+		if (this.toolsEnabled != null && !this.toolsEnabled) return false;
 		return true;
 	}
 	
@@ -81,6 +83,37 @@ public class MPlayer extends SenderEntity<MPlayer>
 		if (MUtil.equals(this.overriding, target)) return;
 		
 		this.overriding = target;
+		this.changed();
+	}
+	
+	/** Null means true (inspect/manage tools enabled). */
+	private Boolean toolsEnabled = null;
+	
+	/**
+	 * Whether inspect/manage tools should respond for this player.
+	 * Defaults to {@code true}.
+	 * 
+	 * @return True if tools are enabled.
+	 */
+	public boolean isToolsEnabled()
+	{
+		if (this.toolsEnabled == null) return true;
+		return this.toolsEnabled;
+	}
+	
+	/**
+	 * Sets whether inspect/manage tools are enabled. {@code true} is stored as {@code null}.
+	 *
+	 * @param toolsEnabled True to enable tools.
+	 */
+	public void setToolsEnabled(Boolean toolsEnabled)
+	{
+		Boolean target = toolsEnabled;
+		if (MUtil.equals(target, true)) target = null;
+		
+		if (MUtil.equals(this.toolsEnabled, target)) return;
+		
+		this.toolsEnabled = target;
 		this.changed();
 	}
 	

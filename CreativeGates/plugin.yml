@@ -22,6 +22,7 @@ permissions:
   creativegates.cg.config: {description: edit configuration, default: false}
   creativegates.cg.inspect: {description: inspect gate details, default: false}
   creativegates.cg.manage: {description: manage gate settings, default: false}
+  creativegates.cg.tool: {description: toggle inspect and manage tools, default: false}
   creativegates.cg.override: {description: toggle override mode for managing others gates, default: false}
   creativegates.cg.override.bypass: {description: always manage any gate without override mode, default: false}
 # -------------------------------------------- #
@@ -37,6 +38,7 @@ permissions:
       creativegates.cg.version: true
       creativegates.cg.inspect: true
       creativegates.cg.manage: true
+      creativegates.cg.tool: true
   creativegates.admin.*:
     default: false
     children:

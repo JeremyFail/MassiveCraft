@@ -22,6 +22,7 @@ public enum Perm implements Identified
 	CG_CONFIG,
 	CG_INSPECT,
 	CG_MANAGE,
+	CG_TOOL,
 	CG_OVERRIDE,
 	CG_OVERRIDE_BYPASS,
 	

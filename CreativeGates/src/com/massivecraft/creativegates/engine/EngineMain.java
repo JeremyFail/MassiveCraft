@@ -6,6 +6,7 @@ import com.massivecraft.creativegates.cmd.CmdCg;
 import com.massivecraft.creativegates.engine.create.GateCreate;
 import com.massivecraft.creativegates.engine.create.PendingGateCreate;
 import com.massivecraft.creativegates.entity.MConf;
+import com.massivecraft.creativegates.entity.MPlayer;
 import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
@@ -1132,6 +1133,9 @@ public class EngineMain extends Engine
 		else
 		{
 			// ... we are trying to inspect or manage ...
+			
+			// ... skip if the player disabled gate tools ...
+			if (!MPlayer.get(player).isToolsEnabled()) return;
 			
 			// ... silent permission check for tools ...
 			if (material == MConf.get().getMaterialInspect() && !Perm.CG_INSPECT.has(player)) return;

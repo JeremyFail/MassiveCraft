@@ -108,6 +108,10 @@ public class MConf extends Entity<MConf>
 	private Set<String> aliasesCgOverride = MUtil.set("override", "admin");
 	public Set<String> getAliasesCgOverride() { return this.aliasesCgOverride; }
 	public void setAliasesCgOverride(Set<String> aliasesCgOverride) { this.aliasesCgOverride = aliasesCgOverride; }
+	
+	private Set<String> aliasesCgTool = MUtil.set("tool", "tooltoggle", "toggletool");
+	public Set<String> getAliasesCgTool() { return this.aliasesCgTool; }
+	public void setAliasesCgTool(Set<String> aliasesCgTool) { this.aliasesCgTool = aliasesCgTool; }
 
 	public boolean teleportationSoundActive = true;
 	public String teleportationSound = "ENTITY_GHAST_SHOOT";
