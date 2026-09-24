@@ -1,9 +1,20 @@
 package com.massivecraft.creativegates;
 
 import com.massivecraft.creativegates.cmd.CmdCg;
+import com.massivecraft.creativegates.engine.EngineGateFillDisplay;
+import com.massivecraft.creativegates.engine.EngineGateFillParticles;
+import com.massivecraft.creativegates.engine.EngineGateMobs;
+import com.massivecraft.creativegates.engine.EngineMain;
+import com.massivecraft.creativegates.engine.PendingGateCreates;
 import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.MConfColl;
+import com.massivecraft.creativegates.entity.MPlayerColl;
+import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.entity.UGateColl;
+import com.massivecraft.creativegates.entity.migrator.MigratorMConf001Settings;
+import com.massivecraft.creativegates.gate.GateOrientation;
+import com.massivecraft.creativegates.gate.fill.GateType;
+import com.massivecraft.creativegates.gate.fill.SupportedGateType;
 import com.massivecraft.creativegates.index.IndexCombined;
 import com.massivecraft.massivecore.MassivePlugin;
 import com.massivecraft.massivecore.command.type.RegistryType;
@@ -62,14 +73,21 @@ public class CreativeGates extends MassivePlugin
 		// types
 		RegistryType.register(PermissionDefault.class, TypePermissionDefault.get());
 		
-		// Activate
+		// Activate (migrator before MConfColl so version upgrades run on load)
 		this.activate(
+			MigratorMConf001Settings.class,
+			
 			// Coll
 			MConfColl.class,
+			MPlayerColl.class,
 			UGateColl.class,
 		
 			// Engine
 			EngineMain.class,
+			EngineGateMobs.class,
+			PendingGateCreates.class,
+			EngineGateFillDisplay.class,
+			EngineGateFillParticles.class,
 			
 			// Command
 			CmdCg.class
@@ -78,6 +96,22 @@ public class CreativeGates extends MassivePlugin
 		// Schedule a permission update.
 		// Possibly it will be useful due to the way Bukkit loads permissions.
 		Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> MConf.get().updatePerms());
+		
+		// Resync BlockDisplay fills (and END_GATEWAY fallback overlays) after load.
+		// Particle fills also get a fill pass so interiors pick up light blocks.
+		Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+			for (UGate gate : UGateColl.get().getAll())
+			{
+				if (gate != null && (gate.usesBlockDisplayFill() || gate.usesParticleFill()))
+				{
+					gate.fill();
+				}
+			}
+			for (org.bukkit.entity.Player player : Bukkit.getOnlinePlayers())
+			{
+				EngineGateFillDisplay.get().syncPlayer(player);
+			}
+		}, 40L);
 	}
 	
 	@Override
@@ -107,26 +141,42 @@ public class CreativeGates extends MassivePlugin
 	}
 	
 	/**
-	 * The material used to fill a gate in the given world.
-	 * Water mode uses lava in the nether when {@link MConf#isUseLavaInNether()} is enabled.
-	 * Horizontal gates always use water/lava because nether portal blocks do not work reliably on floors.
+	 * Materials that can appear as real server-side gate interiors (fluids, nether portal).
 	 */
-	public static Material getFillMaterial(World world)
+	public static boolean isGateFillMaterial(Material material)
 	{
-		return getFillMaterial(world, null);
+		return SupportedGateType.fromServerMaterial(material) != null;
 	}
 	
-	public static Material getFillMaterial(World world, GateOrientation orientation)
+	/**
+	 * True for void, invisible light fills, or real fluid gate interiors (safe to replace on fill/empty).
+	 */
+	public static boolean isGateFillOrVoid(Material material)
 	{
-		MConf mconf = MConf.get();
-		if (orientation != null && orientation.isHorizontal())
+		return isVoid(material) || material == Material.LIGHT || isGateFillMaterial(material);
+	}
+	
+	/**
+	 * Resolves the server block to place for a gate type in a world.
+	 *
+	 * @param gateType Selected gate type; null falls back to config default.
+	 * @param world World the gate is in.
+	 * @param orientation Gate orientation for default selection / compatibility.
+	 * @return Material to place, never null.
+	 */
+	public static Material getFillMaterial(GateType gateType, World world, GateOrientation orientation)
+	{
+		GateType type = gateType;
+		if (type == null)
 		{
-			if (world.getEnvironment() == World.Environment.NETHER && mconf.isUseLavaInNether()) return Material.LAVA;
-			return Material.WATER;
+			type = MConf.get().resolveDefaultGateType(orientation, world);
 		}
-		if (!mconf.isUsingWater()) return Material.NETHER_PORTAL;
-		if (world.getEnvironment() == World.Environment.NETHER && mconf.isUseLavaInNether()) return Material.LAVA;
-		return Material.WATER;
+		if (type == null)
+		{
+			if (orientation != null && orientation.isHorizontal()) return Material.WATER;
+			return Material.AIR;
+		}
+		return type.getServerFillMaterial(world, orientation);
 	}
 	
 }

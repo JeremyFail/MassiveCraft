@@ -9,6 +9,10 @@ import com.failprooftech.factionschat.util.ColonChannelChatParser;
 import com.failprooftech.factionschat.util.ColonChannelChatParser.ParseType;
 import com.failprooftech.factionschat.util.ChatTxt;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -17,7 +21,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,7 +61,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
         {
             event.setCancelled(true);
             final String err = colon.getInvalidReason();
-            runSync(() -> sender.sendMessage(err));
+            runSync(() -> sendLegacy(sender, err));
             return;
         }
         if (colon.getType() == ParseType.TOGGLE)
@@ -64,7 +71,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
             runSync(() ->
             {
                 FactionsChat.instance.getPlayerChatModes().put(sender.getUniqueId(), mode);
-                sender.sendMessage(ChatTxt.parse("<i>Chat mode set to: <k>" + mode.name().toLowerCase()));
+                sendLegacy(sender, ChatTxt.parse("<i>Chat mode set to: <k>" + mode.name().toLowerCase()));
             });
             return;
         }
@@ -102,13 +109,15 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
                 notReceiving.add(recipient);
             }
         }
-
-        // Remove the recipients who should not receive the message
         event.getRecipients().removeAll(notReceiving);
-        
-        // Event is cancelled as we are handling the chat ourselves
+        Set<Player> recipients = new HashSet<>(event.getRecipients());
+
+        // Cancel so vanilla does not deliver or double-log to console. DiscordSRV skips cancelled
+        // chat events, so forward explicitly with the raw line (incl. colon prefixes) for channel routing.
+        final String rawForDiscord = event.getMessage();
         event.setCancelled(true);
-        handleChat(sender, messageText, event.getRecipients(), chatMode, colonQuick);
+        handleChat(sender, messageText, recipients, chatMode, colonQuick);
+        FactionsChat.instance.getDiscordSRVIntegration().processGameChat(sender, rawForDiscord);
     }
 
     /**
@@ -147,7 +156,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
             {
                 String personalizedFormat = applyRelationalPlaceholders(sender, recipient, formatTemplate);
                 personalizedFormat = personalizedFormat.replace(PLACEHOLDER_MESSAGE, processedMessage);
-                recipient.sendMessage(personalizedFormat);
+                sendLegacy(recipient, personalizedFormat, permissions.allowUrl);
             }
 
             // Always send to console (console should see all chat messages)
@@ -167,6 +176,171 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
     }
 
     /**
+     * Sends a legacy {@code §}-coded string with no URL click attachment (notices / errors).
+     *
+     * @param player the recipient
+     * @param legacy colored legacy string (may be null or empty)
+     */
+    private static void sendLegacy(Player player, String legacy)
+    {
+        sendLegacy(player, legacy, false);
+    }
+
+    /**
+     * Sends a legacy {@code §}-coded string to a player via the Bungee chat API.
+     * <p>
+     * {@link TextComponent#fromLegacyText(String)} turns section-sign / hex sequences into proper chat
+     * components (same approach as MassiveCore Spigot delivery). Relying on {@link Player#sendMessage(String)}
+     * alone is unreliable once Adventure is on the {@code Player} type hierarchy, because plain-string
+     * sends may not interpret legacy color codes.
+     * <p>
+     * Legacy strings cannot carry click events, so when {@code linkifyUrls} is true any {@code http(s)://}
+     * spans are split out and given {@link ClickEvent.Action#OPEN_URL} after deserialization.
+     *
+     * @param player the recipient
+     * @param legacy colored legacy string (may be null or empty)
+     * @param linkifyUrls whether to attach open-URL click events to detected links
+     */
+    @SuppressWarnings("deprecation")
+    private static void sendLegacy(Player player, String legacy, boolean linkifyUrls)
+    {
+        // fromLegacyText often leaves empty "extra" lists; modern Spigot rejects those.
+        // Rebuild as a flat list of TextComponents (optional URL click events) with no extras.
+        BaseComponent[] components = toSendableComponents(legacy != null ? legacy : "", linkifyUrls);
+        player.spigot().sendMessage(components);
+    }
+
+    /**
+     * Deserializes legacy text into a flat array of {@link TextComponent}s safe for modern Spigot
+     * ({@code extra == null}), optionally attaching {@link ClickEvent.Action#OPEN_URL} on URL spans.
+     *
+     * @param legacy      section-sign / hex colored string
+     * @param linkifyUrls whether to attach open-URL clicks
+     * @return sendable components (never null; may be a single empty text component)
+     */
+    @SuppressWarnings("deprecation")
+    static BaseComponent[] toSendableComponents(String legacy, boolean linkifyUrls)
+    {
+        BaseComponent[] raw = TextComponent.fromLegacyText(legacy != null ? legacy : "");
+        List<BaseComponent> out = new ArrayList<>();
+        for (BaseComponent component : raw)
+        {
+            flattenLegacyComponent(component, out, linkifyUrls);
+        }
+        if (out.isEmpty())
+        {
+            out.add(new TextComponent(""));
+        }
+        return out.toArray(new BaseComponent[0]);
+    }
+
+    /**
+     * @deprecated use {@link #toSendableComponents(String, boolean)}; kept for tests that assert URL clicks
+     */
+    @Deprecated
+    static BaseComponent[] attachUrlClickEvents(BaseComponent[] components)
+    {
+        if (components == null || components.length == 0)
+        {
+            return components != null ? components : new BaseComponent[0];
+        }
+        List<BaseComponent> out = new ArrayList<>();
+        for (BaseComponent component : components)
+        {
+            flattenLegacyComponent(component, out, true);
+        }
+        return out.toArray(new BaseComponent[0]);
+    }
+
+    /**
+     * @deprecated no longer needed when using {@link #toSendableComponents}; kept for DiscordSRV caller compatibility
+     */
+    @Deprecated
+    static void sanitizeEmptyExtras(BaseComponent[] components)
+    {
+        // no-op: send path rebuilds without extras
+    }
+
+    /**
+     * Flattens a Bungee component tree into sibling text pieces with no {@code extra} lists.
+     *
+     * @param component   source (typically from {@link TextComponent#fromLegacyText(String)})
+     * @param out         destination
+     * @param linkifyUrls whether to split URLs and attach open-URL clicks
+     */
+    private static void flattenLegacyComponent(BaseComponent component, List<BaseComponent> out, boolean linkifyUrls)
+    {
+        List<BaseComponent> extras = component.getExtra() != null
+            ? new ArrayList<>(component.getExtra())
+            : Collections.emptyList();
+
+        if (component instanceof TextComponent)
+        {
+            TextComponent textComponent = (TextComponent) component;
+            String text = textComponent.getText();
+            if (text != null && !text.isEmpty())
+            {
+                if (linkifyUrls)
+                {
+                    Matcher matcher = URL_PATTERN.matcher(text);
+                    if (matcher.find())
+                    {
+                        matcher.reset();
+                        int lastEnd = 0;
+                        while (matcher.find())
+                        {
+                            if (matcher.start() > lastEnd)
+                            {
+                                out.add(copyTextWithFormatting(textComponent, text.substring(lastEnd, matcher.start())));
+                            }
+                            String url = matcher.group(1);
+                            TextComponent link = copyTextWithFormatting(textComponent, url);
+                            link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
+                            out.add(link);
+                            lastEnd = matcher.end();
+                        }
+                        if (lastEnd < text.length())
+                        {
+                            out.add(copyTextWithFormatting(textComponent, text.substring(lastEnd)));
+                        }
+                    }
+                    else
+                    {
+                        out.add(copyTextWithFormatting(textComponent, text));
+                    }
+                }
+                else
+                {
+                    out.add(copyTextWithFormatting(textComponent, text));
+                }
+            }
+        }
+
+        for (BaseComponent extra : extras)
+        {
+            flattenLegacyComponent(extra, out, linkifyUrls);
+        }
+    }
+
+    /**
+     * New text component with {@code text} and formatting copied from {@code styleSource}.
+     * Never sets an {@code extra} list (empty lists break Spigot chat serialization).
+     *
+     * @param styleSource formatting donor
+     * @param text        plain text content
+     * @return styled text component without click/hover/extras from the donor
+     */
+    private static TextComponent copyTextWithFormatting(TextComponent styleSource, String text)
+    {
+        TextComponent copy = new TextComponent(text);
+        copy.copyFormatting(styleSource);
+        copy.setClickEvent(null);
+        copy.setHoverEvent(null);
+        // Do not call setExtra(null) - Bungee NPEs; new TextComponent starts with extra == null.
+        return copy;
+    }
+
+    /**
      * Processes links in the message for Spigot's string-based chat system.
      * Ensures links are underlined if allowed, and re-applies the most recent color code after each link.
      *
@@ -180,8 +354,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
         if (!permissions.allowUrl)
         {
             // Break links by removing periods
-            Pattern urlPattern = Pattern.compile(URL_REGEX);
-            Matcher matcher = urlPattern.matcher(message);
+            Matcher matcher = URL_PATTERN.matcher(message);
             StringBuffer sb = new StringBuffer();
             while (matcher.find())
             {
@@ -192,8 +365,7 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
             return sb.toString();
         }
 
-        Pattern urlPattern = Pattern.compile(URL_REGEX);
-        Matcher matcher = urlPattern.matcher(message);
+        Matcher matcher = URL_PATTERN.matcher(message);
         StringBuffer sb = new StringBuffer();
         int lastEnd = 0;
 

@@ -38,6 +38,7 @@ import com.massivecraft.massivecore.collections.MassiveTreeMapDef;
 import com.massivecraft.massivecore.collections.MassiveTreeSet;
 import com.massivecraft.massivecore.collections.MassiveTreeSetDef;
 import com.massivecraft.massivecore.command.type.RegistryType;
+import com.massivecraft.massivecore.engine.EngineMassiveCoreDialog;
 import com.massivecraft.massivecore.engine.EngineMassiveCoreChestGui;
 import com.massivecraft.massivecore.engine.EngineMassiveCoreClean;
 import com.massivecraft.massivecore.engine.EngineMassiveCoreCollTick;
@@ -331,6 +332,7 @@ public class MassiveCore extends MassivePlugin
 	{
 		return MUtil.list(
 			EngineMassiveCoreChestGui.class,
+			EngineMassiveCoreDialog.class,
 			EngineMassiveCoreClean.class,
 			EngineMassiveCoreCollTick.class,
 			EngineMassiveCoreCommandRegistration.class,

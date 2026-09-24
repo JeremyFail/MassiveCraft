@@ -409,6 +409,9 @@ public class MassiveCommand implements Active, PluginIdentifiableCommand
 		// Create Ret
 		Set<MassiveCommand> ret = new MassiveSet<>();
 		
+		// Swapping can leave null slots for optional parameters; those are not child aliases.
+		if (token == null) return ret;
+		
 		// Prepare
 		token = token.toLowerCase();
 		java.util.function.Predicate<String> predicate = levenshtein ? PredicateLevenshteinClose.get(token) : PredicateStartsWithIgnoreCase.get(token);
@@ -1124,51 +1127,56 @@ public class MassiveCommand implements Active, PluginIdentifiableCommand
 				// Get matches
 				String token = args.get(0);
 				
-				Set<MassiveCommand> matches = this.getChildren(token, false, null, true);
-				
-				// Score!
-				if (matches.size() == 1)
+				// Optional-parameter swapping pads missing args with null. Those are not subcommands;
+				// fall through to this command's own perform().
+				if (token != null)
 				{
-					MassiveCommand child = matches.iterator().next();
-					args.remove(0);
-					child.execute(sender, args);
-				}
-				// Crap!
-				else
-				{
-					Mson base = null;
-					Collection<MassiveCommand> suggestions = null;
+					Set<MassiveCommand> matches = this.getChildren(token, false, null, true);
 					
-					if (matches.isEmpty())
+					// Score!
+					if (matches.size() == 1)
 					{
-						base = Lang.COMMAND_CHILD_NONE;
-						suggestions = this.getChildren(token, true, sender, false);
+						MassiveCommand child = matches.iterator().next();
+						args.remove(0);
+						child.execute(sender, args);
 					}
+					// Crap!
 					else
 					{
-						base = Lang.COMMAND_CHILD_AMBIGUOUS;
-						suggestions = this.getChildren(token, false, sender, false);
+						Mson base = null;
+						Collection<MassiveCommand> suggestions = null;
+						
+						if (matches.isEmpty())
+						{
+							base = Lang.COMMAND_CHILD_NONE;
+							suggestions = this.getChildren(token, true, sender, false);
+						}
+						else
+						{
+							base = Lang.COMMAND_CHILD_AMBIGUOUS;
+							suggestions = this.getChildren(token, false, sender, false);
+						}
+						
+						// Message: "The sub command X couldn't be found."
+						// OR
+						// Message: "The sub command X is ambiguous."
+						Mson bluetoken = mson(token).color(ChatColor.AQUA);
+						MixinMessage.get().messageOne(sender, base.replaceAll(Lang.COMMAND_REPLACEMENT, bluetoken).command(this));
+					
+						// Message: "/f access ..."
+						// Message: "/f ally ..."
+						for (MassiveCommand suggestion : suggestions)
+						{
+							MixinMessage.get().messageOne(sender, suggestion.getTemplate(false, false, sender));
+						}
+					
+						// Message: "Use /Y to see all commands."
+						MixinMessage.get().messageOne(sender, Lang.COMMAND_CHILD_HELP.replaceAll(Lang.COMMAND_REPLACEMENT, this.getTemplate(false, false, sender)).command(this));
 					}
 					
-					// Message: "The sub command X couldn't be found."
-					// OR
-					// Message: "The sub command X is ambiguous."
-					Mson bluetoken = mson(token).color(ChatColor.AQUA);
-					MixinMessage.get().messageOne(sender, base.replaceAll(Lang.COMMAND_REPLACEMENT, bluetoken).command(this));
-				
-					// Message: "/f access ..."
-					// Message: "/f ally ..."
-					for (MassiveCommand suggestion : suggestions)
-					{
-						MixinMessage.get().messageOne(sender, suggestion.getTemplate(false, false, sender));
-					}
-				
-					// Message: "Use /Y to see all commands."
-					MixinMessage.get().messageOne(sender, Lang.COMMAND_CHILD_HELP.replaceAll(Lang.COMMAND_REPLACEMENT, this.getTemplate(false, false, sender)).command(this));
+					// NOTE: This return statement will jump to the finally block.
+					return;
 				}
-				
-				// NOTE: This return statement will jump to the finally block.
-				return;
 			}
 			
 			// Self Execution > Arguments Valid

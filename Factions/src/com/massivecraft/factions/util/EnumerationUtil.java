@@ -65,6 +65,7 @@ public class EnumerationUtil
         "POTTED_OXEYE_DAISY",           // Minecraft 1.13
         "POTTED_PALE_OAK_SAPLING",      // Minecraft 1.21.4
         "POTTED_PINK_TULIP",            // Minecraft 1.13
+        "POTTED_POPLAR_SAPLING",        // Minecraft 26.3
         "POTTED_POPPY",                 // Minecraft 1.13
         "POTTED_RED_MUSHROOM",          // Minecraft 1.13
         "POTTED_RED_TULIP",             // Minecraft 1.13
@@ -116,6 +117,10 @@ public class EnumerationUtil
         "PALE_OAK_HANGING_SIGN",        // Minecraft 1.21.4
         "PALE_OAK_WALL_SIGN",           // Minecraft 1.21.4
         "PALE_OAK_WALL_HANGING_SIGN",   // Minecraft 1.21.4
+        "POPLAR_SIGN",                  // Minecraft 26.3
+        "POPLAR_HANGING_SIGN",          // Minecraft 26.3
+        "POPLAR_WALL_SIGN",             // Minecraft 26.3
+        "POPLAR_WALL_HANGING_SIGN",     // Minecraft 26.3
         "SPRUCE_SIGN",                  // Minecraft 1.20
         "SPRUCE_HANGING_SIGN",          // Minecraft 1.20
         "SPRUCE_WALL_SIGN",             // Minecraft 1.20
@@ -205,6 +210,7 @@ public class EnumerationUtil
         "MANGROVE_DOOR",                   // Minecraft 1.19
         "OAK_DOOR",                        // Minecraft 1.8
         "PALE_OAK_DOOR",                   // Minecraft 1.21.4
+        "POPLAR_DOOR",                     // Minecraft 26.3
         "SPRUCE_DOOR",                     // Minecraft 1.8
         "WARPED_DOOR",                     // Minecraft 1.16
 
@@ -260,6 +266,7 @@ public class EnumerationUtil
         "MANGROVE_TRAPDOOR",               // Minecraft 1.19
         "OAK_TRAPDOOR",                    // Minecraft 1.8
         "PALE_OAK_TRAPDOOR",               // Minecraft 1.21.4
+        "POPLAR_TRAPDOOR",                 // Minecraft 26.3
         "SPRUCE_TRAPDOOR",                 // Minecraft 1.8
         "WARPED_TRAPDOOR",                 // Minecraft 1.16
 
@@ -302,6 +309,7 @@ public class EnumerationUtil
         "MANGROVE_FENCE_GATE",             // Minecraft 1.19
         "OAK_FENCE_GATE",                  // Minecraft 1.8
         "PALE_OAK_FENCE_GATE",             // Minecraft 1.21.4
+        "POPLAR_FENCE_GATE",               // Minecraft 26.3
         "SPRUCE_FENCE_GATE",               // Minecraft 1.8
         "WARPED_FENCE_GATE"                // Minecraft 1.16
     );
@@ -395,6 +403,7 @@ public class EnumerationUtil
         "MANGROVE_SHELF",               // Minecraft 1.21.9
         "OAK_SHELF",                    // Minecraft 1.21.9
         "PALE_OAK_SHELF",               // Minecraft 1.21.9
+        "POPLAR_SHELF",                 // Minecraft 26.3
         "SPRUCE_SHELF",                 // Minecraft 1.21.9
         "WARPED_SHELF"                  // Minecraft 1.21.9
     );
@@ -427,6 +436,7 @@ public class EnumerationUtil
         "MANGROVE_BUTTON",            // Minecraft 1.19
         "OAK_BUTTON",                 // Minecraft 1.4.2
         "PALE_OAK_BUTTON",            // Minecraft 1.21.4
+        "POPLAR_BUTTON",              // Minecraft 26.3
         "POLISHED_BLACKSTONE_BUTTON", // Minecraft 1.16
         "SPRUCE_BUTTON",              // Minecraft 1.13
         "STONE_BUTTON",               // Minecraft 1.0
@@ -462,6 +472,7 @@ public class EnumerationUtil
         "OAK_PRESSURE_PLATE",                 // Minecraft 1.0
         "PALE_OAK_PRESSURE_PLATE",            // Minecraft 1.21.4
         "POLISHED_BLACKSTONE_PRESSURE_PLATE", // Minecraft 1.16
+        "POPLAR_PRESSURE_PLATE",              // Minecraft 26.3
         "SPRUCE_PRESSURE_PLATE",              // Minecraft 1.13
         "STONE_PRESSURE_PLATE",               // Minecraft 1.0
         "WARPED_PRESSURE_PLATE"               // Minecraft 1.16
@@ -561,6 +572,8 @@ public class EnumerationUtil
         "OAK_CHEST_BOAT",           // Minecraft 1.19
         "PALE_OAK_BOAT",            // Minecraft 1.21.4
         "PALE_OAK_CHEST_BOAT",      // Minecraft 1.21.4
+        "POPLAR_BOAT",              // Minecraft 26.3
+        "POPLAR_CHEST_BOAT",        // Minecraft 26.3
         "SPRUCE_BOAT",              // Minecraft 1.9
         "SPRUCE_CHEST_BOAT",        // Minecraft 1.19
 
@@ -586,6 +599,59 @@ public class EnumerationUtil
     }
 
     // -------------------------------------------- //
+    // MATERIAL CUSHIONS
+    // -------------------------------------------- //
+
+    public static final BackstringSet<Material> MATERIALS_CUSHIONS = new BackstringSet<>(Material.class,
+        "BLACK_CUSHION",             // Minecraft 26.3
+        "BLUE_CUSHION",              // Minecraft 26.3
+        "BROWN_CUSHION",             // Minecraft 26.3
+        "CYAN_CUSHION",              // Minecraft 26.3
+        "GRAY_CUSHION",              // Minecraft 26.3
+        "GREEN_CUSHION",             // Minecraft 26.3
+        "LIGHT_BLUE_CUSHION",        // Minecraft 26.3
+        "LIGHT_GRAY_CUSHION",        // Minecraft 26.3
+        "LIME_CUSHION",              // Minecraft 26.3
+        "MAGENTA_CUSHION",           // Minecraft 26.3
+        "ORANGE_CUSHION",            // Minecraft 26.3
+        "PINK_CUSHION",              // Minecraft 26.3
+        "PURPLE_CUSHION",            // Minecraft 26.3
+        "RED_CUSHION",               // Minecraft 26.3
+        "WHITE_CUSHION",             // Minecraft 26.3
+        "YELLOW_CUSHION"             // Minecraft 26.3
+    );
+
+    /**
+     * Checks if the given material is a cushion.
+     * 
+     * @param material The material to check.
+     * @return True if the material is a cushion; false otherwise.
+     */
+    public static boolean isMaterialCushion(Material material)
+    {
+        return MATERIALS_CUSHIONS.contains(material) || MConf.get().materialsCushions.contains(material);
+    }
+
+    // -------------------------------------------- //
+    // ENTITY TYPE CUSHION
+    // -------------------------------------------- //
+
+    public static final BackstringSet<EntityType> ENTITY_TYPES_CUSHION = new BackstringSet<>(EntityType.class,
+        "CUSHION"                   // Minecraft 26.3
+    );
+
+    /**
+     * Checks if the given entity type is a cushion.
+     *
+     * @param entityType The entity type to check.
+     * @return True if the entity type is a cushion; false otherwise.
+     */
+    public static boolean isEntityTypeCushion(EntityType entityType)
+    {
+        return ENTITY_TYPES_CUSHION.contains(entityType);
+    }
+
+    // -------------------------------------------- //
     // MATERIAL NARROW BLOCKS
     // -------------------------------------------- //
     public static final BackstringSet<Material> MATERIALS_NARROW_BLOCKS_FENCES = new BackstringSet<>(Material.class,
@@ -600,6 +666,7 @@ public class EnumerationUtil
         "NETHER_BRICK_FENCE",        // Minecraft 1.0
         "OAK_FENCE",                 // Minecraft 1.8
         "PALE_OAK_FENCE",            // Minecraft 1.21.4
+        "POPLAR_FENCE",              // Minecraft 26.3
         "SPRUCE_FENCE",              // Minecraft 1.8
         "WARPED_FENCE"               // Minecraft 1.16
     );
@@ -746,6 +813,7 @@ public class EnumerationUtil
         "MANGROVE_CHEST_BOAT",  // Minecraft 1.19
         "OAK_CHEST_BOAT",       // Minecraft 1.19
         "PALE_OAK_CHEST_BOAT",  // Minecraft 1.21.4
+        "POPLAR_CHEST_BOAT",    // Minecraft 26.3
         "SPRUCE_CHEST_BOAT",    // Minecraft 1.19
         "CHEST_MINECART",       // Minecraft 1.0
         "HOPPER_MINECART"       // Minecraft 1.5
@@ -785,6 +853,8 @@ public class EnumerationUtil
         "OAK_CHEST_BOAT",           // Minecraft 1.19
         "PALE_OAK_BOAT",            // Minecraft 1.21.4
         "PALE_OAK_CHEST_BOAT",      // Minecraft 1.21.4
+        "POPLAR_BOAT",              // Minecraft 26.3
+        "POPLAR_CHEST_BOAT",        // Minecraft 26.3
         "SPRUCE_BOAT",              // Minecraft 1.9
         "SPRUCE_CHEST_BOAT"         // Minecraft 1.19
     );

@@ -557,6 +557,20 @@ public class ReflectionUtil
 	private static int versionRelease = Integer.valueOf(getVersionRawPart(2));
 	public static int getVersionRelease() { return versionRelease; }
 	
+	/**
+	 * True if the running Minecraft version is at least the given major.minor.release.
+	 * Missing version segments are treated as 0 (e.g. "26.2" → 26.2.0).
+	 */
+	public static boolean isAtLeastMinecraft(int major, int minor, int release)
+	{
+		int vMajor = getVersionMajor();
+		int vMinor = getVersionMinor();
+		int vRelease = getVersionRelease();
+		if (vMajor != major) return vMajor > major;
+		if (vMinor != minor) return vMinor > minor;
+		return vRelease >= release;
+	}
+	
 	// -------------------------------------------- //
 	// FORCE LOAD CLASSES
 	// -------------------------------------------- //

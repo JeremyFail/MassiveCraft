@@ -11,4 +11,11 @@ public class CmdFactionsFlag extends FactionsCommand
 	public CmdFactionsFlagManage cmdFactionsFlagManage = new CmdFactionsFlagManage();
 	public CmdFactionsFlagSet cmdFactionsFlagSet = new CmdFactionsFlagSet();
 
+	@Override
+	public void setup()
+	{
+		super.setup();
+		this.sortChildrenAlphabetically();
+	}
+
 }

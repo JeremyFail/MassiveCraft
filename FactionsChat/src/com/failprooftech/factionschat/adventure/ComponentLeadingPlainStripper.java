@@ -127,13 +127,9 @@ public final class ComponentLeadingPlainStripper
         }
 
         // Prefix fully consumed; keep trailing slice of content (if any) and all descendants unchanged.
-        TextComponent.Builder b = Component.text().style(tc.style());
-        if (ci < clen)
-        {
-            b.content(content.substring(ci));
-        }
-        b.append(tc.children());
-        return b.build();
+        // Component factories (not Builder#build()) keep Adventure 4 bytecode valid on Adventure 5.x.
+        String remaining = ci < clen ? content.substring(ci) : "";
+        return Component.text(remaining).style(tc.style()).children(tc.children());
     }
 
     /**
@@ -197,15 +193,11 @@ public final class ComponentLeadingPlainStripper
      *
      * @param style inherited style from the stripped parent text node
      * @param parts processed children (already stripped)
-     * @return a single text builder result containing those parts
+     * @return a single text component containing those parts
      */
     private static Component flattenWithStyle(net.kyori.adventure.text.format.Style style, List<Component> parts)
     {
-        TextComponent.Builder b = Component.text().style(style);
-        for (Component p : parts)
-        {
-            b.append(p);
-        }
-        return b.build();
+        // Component factories (not Builder#build()) keep Adventure 4 bytecode valid on Adventure 5.x.
+        return Component.text("").style(style).children(parts);
     }
 }

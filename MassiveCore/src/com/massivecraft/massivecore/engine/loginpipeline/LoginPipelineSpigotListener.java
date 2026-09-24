@@ -16,9 +16,9 @@ import org.bukkit.event.player.PlayerLoginEvent;
  * <p>
  * Event ordering on Spigot (all within the classic login → join window):
  * <ol>
- *   <li>{@code AsyncPlayerPreLoginEvent} — async DB prefetch (in {@code EngineMassiveCoreDatabase})</li>
- *   <li>{@code PlayerLoginEvent LOWEST} — store hydration, sender refs, IP cache, {@code LOGSYNC}, early IdUtil</li>
- *   <li>{@code PlayerJoinEvent LOWEST} — {@code JOINING}</li>
+ *   <li>{@code AsyncPlayerPreLoginEvent} - async DB prefetch (in {@code EngineMassiveCoreDatabase})</li>
+ *   <li>{@code PlayerLoginEvent LOWEST} - store hydration, sender refs, IP cache, {@code LOGSYNC}, early IdUtil</li>
+ *   <li>{@code PlayerJoinEvent LOWEST} - {@code JOINING}</li>
  * </ol>
  * This listener is registered on Spigot and on Paper 1.21.4–1.21.6 (soft-support fallback).
  * It is not registered on Paper 1.21.7+, which uses {@link LoginPipelinePaperListener} instead.

@@ -1,8 +1,8 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.CreativeGates;
-import com.massivecraft.creativegates.ExitComparator;
-import com.massivecraft.creativegates.NetworkIdEqualsPredicate;
+import com.massivecraft.creativegates.comparator.ExitComparator;
+import com.massivecraft.creativegates.util.NetworkIdEqualsPredicate;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.store.Coll;

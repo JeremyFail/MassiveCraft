@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.massivecraft.massivesuper</groupId>
         <artifactId>MassiveSuper</artifactId>
-        <version>3.4.2</version>
+        <version>3.4.3</version>
         <relativePath>../MassiveSuper</relativePath>
     </parent>
 
@@ -21,12 +21,17 @@
 
     <!-- Dependencies -->
     <dependencies>
+        <!-- Paper before Spigot so EntityMoveEvent resolves at compile time (runtime optional via Integration). -->
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+        </dependency>
         <!-- Spigot -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
         </dependency>
-        <!-- MassiveCore -->
+        <!-- MassiveCore (includes dialog facade + Paper/Spigot/ChestGui backends) -->
         <dependency>
             <groupId>com.massivecraft.massivecore</groupId>
             <artifactId>MassiveCore</artifactId>

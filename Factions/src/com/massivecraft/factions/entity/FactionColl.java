@@ -87,6 +87,7 @@ public class FactionColl extends Coll<Faction>
 
 		faction.setPermittedRelations(MPerm.getPermBuild(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermVehicle(), MPerm.getPermables(faction));
+		faction.setPermittedRelations(MPerm.getPermCushion(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermDoor(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermContainer(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermLectern(), MPerm.getPermables(faction));
@@ -126,6 +127,7 @@ public class FactionColl extends Coll<Faction>
 		faction.setFlag(MFlag.getFlagZombiegrief(), false);
 
 		faction.setPermittedRelations(MPerm.getPermVehicle(), MPerm.getPermables(faction));
+		faction.setPermittedRelations(MPerm.getPermCushion(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermDoor(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermContainer(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermLectern(), MPerm.getPermables(faction));
@@ -164,6 +166,7 @@ public class FactionColl extends Coll<Faction>
 		faction.setFlag(MFlag.getFlagZombiegrief(), true);
 		
 		faction.setPermittedRelations(MPerm.getPermVehicle(), MPerm.getPermables(faction));
+		faction.setPermittedRelations(MPerm.getPermCushion(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermDoor(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermContainer(), MPerm.getPermables(faction));
 		faction.setPermittedRelations(MPerm.getPermLectern(), MPerm.getPermables(faction));

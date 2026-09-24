@@ -143,6 +143,9 @@ public final class PermTableUtil
 	{
 		MPlayer msender = MPlayer.get(sender);
 
+		perms = new ArrayList<>(perms);
+		perms.sort(Comparator.comparing(MPerm::getName, String.CASE_INSENSITIVE_ORDER));
+
 		if (perms.isEmpty())
 		{
 			MixinMessage.get().msgOne(sender, "<i>No permissions to display.");

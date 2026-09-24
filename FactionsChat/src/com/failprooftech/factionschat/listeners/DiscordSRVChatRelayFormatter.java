@@ -13,11 +13,15 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
 /**
- * Formats Minecraft chat for DiscordSRV using the same UNIFIED legacy + MiniMessage + RGB pipeline as Paper chat,
+ * Paper-only DiscordSRV formatting: same UNIFIED legacy + MiniMessage + RGB pipeline as Paper chat,
  * then serializes to a legacy § string for DiscordSRV's deprecated {@code GameChatMessagePreProcessEvent#setMessage(String)}.
  *
  * <p>DiscordSRV ships a shaded copy of Adventure; {@code setMessageComponent} with {@code net.kyori} types is not
  * binary-compatible with that JAR, so we pass legacy text and let DiscordSRV parse it with its own {@code MessageUtil}.</p>
+ *
+ * <p>Referenced only from {@link DiscordSRVPaperListener} so Spigot never loads Adventure via this class.
+ * Spigot uses {@link com.failprooftech.factionschat.chat.BukkitLegacyPermissionChatMessage} /
+ * {@link com.failprooftech.factionschat.util.ChatTxt} instead.</p>
  *
  * <p>Lives in this package to use {@link FactionChatListenerBase}'s protected permission/strip helpers.</p>
  */

@@ -1,12 +1,18 @@
 package com.massivecraft.creativegates.entity;
 
 import com.massivecraft.creativegates.CreativeGates;
-import com.massivecraft.creativegates.EngineMain;
-import com.massivecraft.creativegates.EngineMain.HorizontalEntryContext;
-import com.massivecraft.creativegates.GateOrientation;
-import com.massivecraft.creativegates.GateTeleportSafety;
-import com.massivecraft.creativegates.HorizontalGateLaunchUtil;
-import com.massivecraft.creativegates.HorizontalGateLaunchUtil.LaunchPlan;
+import com.massivecraft.creativegates.engine.EngineGateFillDisplay;
+import com.massivecraft.creativegates.engine.EngineGateFillParticles;
+import com.massivecraft.creativegates.engine.EngineMain;
+import com.massivecraft.creativegates.engine.EngineMain.HorizontalEntryContext;
+import com.massivecraft.creativegates.gate.GateOrientation;
+import com.massivecraft.creativegates.gate.fill.GateType;
+import com.massivecraft.creativegates.gate.fill.GateTypeResolve;
+import com.massivecraft.creativegates.gate.fill.SupportedGateType;
+import com.massivecraft.creativegates.util.GateEntityTeleport;
+import com.massivecraft.creativegates.util.GateTeleportSafety;
+import com.massivecraft.creativegates.util.HorizontalGateLaunchUtil;
+import com.massivecraft.creativegates.util.HorizontalGateLaunchUtil.LaunchPlan;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.mixin.MixinTeleport;
 import com.massivecraft.massivecore.mixin.MixinVisibility;
@@ -16,9 +22,9 @@ import com.massivecraft.massivecore.store.Entity;
 import com.massivecraft.massivecore.teleport.Destination;
 import com.massivecraft.massivecore.teleport.DestinationSimple;
 import com.massivecraft.massivecore.util.IdUtil;
+import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.SmokeUtil;
 import com.massivecraft.massivecore.util.Txt;
-import org.bukkit.Axis;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -26,8 +32,8 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.Orientable;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -73,8 +79,13 @@ public class UGate extends Entity<UGate>
 		this.restricted = that.restricted;
 		this.enterEnabled = that.enterEnabled;
 		this.exitEnabled = that.exitEnabled;
+		this.allowPlayers = that.allowPlayers;
+		this.allowMobs = that.allowMobs;
+		this.allowVehicles = that.allowVehicles;
 		this.exit = that.exit;
 		this.orientation = that.orientation;
+		this.fillTypeId = that.fillTypeId;
+		this.fillParticleAmount = that.fillParticleAmount;
 		this.setCoordsNoChanged(that.coords);
 		this.setInteriorCoordsNoChanged(that.interiorCoords);
 		
@@ -248,6 +259,123 @@ public class UGate extends Entity<UGate>
 		this.changed(this.exitEnabled, exitEnabled);
 		this.exitEnabled = exitEnabled;
 	}
+
+	/**
+	 * Whether players may travel through this gate (when enter is also enabled).
+	 */
+	private boolean allowPlayers = true;
+
+	/**
+	 * Gets whether players may use this gate for travel.
+	 * 
+	 * @return True if players may use this gate for travel.
+	 */
+	public boolean isAllowPlayers()
+	{
+		return this.allowPlayers;
+	}
+
+	/**
+	 * Sets whether players may travel through this gate.
+	 *
+	 * @param allowPlayers True to allow player travel.
+	 */
+	public void setAllowPlayers(boolean allowPlayers)
+	{
+		this.changed(this.allowPlayers, allowPlayers);
+		this.allowPlayers = allowPlayers;
+	}
+
+	/**
+	 * Per-gate mob teleport override. {@code null} means follow the server when mobs are allowed.
+	 * Cannot enable mobs when {@link MConf#isGatesAllowMobs()} is false.
+	 */
+	private Boolean allowMobs = null;
+
+	/**
+	 * Effective whether mobs may use this gate.
+	 * <p>
+	 * Server {@link MConf#isGatesAllowMobs()} is a hard kill-switch: when false, every gate
+	 * is denied regardless of any stored per-gate {@code true}. When the server allows mobs,
+	 * a per-gate {@code false} can still disable them for that gate; {@code null} follows the server.
+	 * </p>
+	 */
+	public boolean isAllowMobs()
+	{
+		if (!MConf.get().isGatesAllowMobs()) return false;
+		if (this.allowMobs == null) return true;
+		return this.allowMobs;
+	}
+
+	/**
+	 * Raw per-gate override, or {@code null} when following server config.
+	 */
+	public Boolean getAllowMobsOverride()
+	{
+		return this.allowMobs;
+	}
+
+	/**
+	 * Sets the per-gate mob teleport override. Pass {@code null} to follow server config.
+	 * Values equal to the current server default are stored as {@code null}.
+	 * 
+	 * @param allowMobs The mob teleport override to set.
+	 */
+	public void setAllowMobs(Boolean allowMobs)
+	{
+		Boolean target = allowMobs;
+		if (MUtil.equals(target, MConf.get().isGatesAllowMobs())) target = null;
+
+		if (MUtil.equals(this.allowMobs, target)) return;
+
+		this.changed(this.allowMobs, target);
+		this.allowMobs = target;
+	}
+
+	/**
+	 * Per-gate vehicle teleport override. {@code null} means follow the server when vehicles are allowed.
+	 * Cannot enable vehicles when {@link MConf#isGatesAllowVehicles()} is false.
+	 */
+	private Boolean allowVehicles = null;
+
+	/**
+	 * Effective whether non-living vehicles may use this gate.
+	 * <p>
+	 * Server {@link MConf#isGatesAllowVehicles()} is a hard kill-switch. When the server allows
+	 * vehicles, a per-gate {@code false} can still disable them; {@code null} follows the server.
+	 * </p>
+	 */
+	public boolean isAllowVehicles()
+	{
+		if (!MConf.get().isGatesAllowVehicles()) return false;
+		if (this.allowVehicles == null) return true;
+		return this.allowVehicles;
+	}
+
+	/**
+	 * Raw per-gate override, or {@code null} when following server config.
+	 */
+	public Boolean getAllowVehiclesOverride()
+	{
+		return this.allowVehicles;
+	}
+
+	/**
+	 * Sets the per-gate vehicle teleport override. Pass {@code null} to follow server config.
+	 * Values equal to the current server default are stored as {@code null}.
+	 * 
+	 * @param allowVehicles The vehicle teleport override to set.
+	 */
+	public void setAllowVehicles(Boolean allowVehicles)
+	{
+		Boolean target = allowVehicles;
+		if (MUtil.equals(target, MConf.get().isGatesAllowVehicles())) target = null;
+
+		if (MUtil.equals(this.allowVehicles, target)) return;
+
+		this.changed(this.allowVehicles, target);
+		this.allowVehicles = target;
+	}
 	
 	private PS exit = null;
 	/**
@@ -357,6 +485,174 @@ public class UGate extends Entity<UGate>
 		this.orientation = orientation;
 	}
 	
+	/**
+	 * Config id of the fill type ({@link SupportedGateType} name, material name, or {@code PARTICLE_*}).
+	 * Resolved via {@link GateTypeResolve}.
+	 */
+	private String fillTypeId = null;
+	
+	/**
+	 * @return Stored fill type id, or null if unset.
+	 */
+	public String getFillTypeId()
+	{
+		return this.fillTypeId;
+	}
+	
+	/**
+	 * Sets the fill type by config id.
+	 *
+	 * @param fillTypeId Enum or material name; may be null.
+	 */
+	public void setFillTypeId(String fillTypeId)
+	{
+		String normalized = fillTypeId == null ? null : fillTypeId.trim().toUpperCase();
+		if (normalized != null && normalized.isEmpty()) normalized = null;
+		this.changed(this.fillTypeId, normalized);
+		this.fillTypeId = normalized;
+	}
+	
+	/**
+	 * Sets the fill from a resolved {@link GateType}.
+	 *
+	 * @param gateType Type to store; null clears.
+	 */
+	public void setFillType(GateType gateType)
+	{
+		this.setFillTypeId(gateType == null ? null : gateType.getConfigId());
+	}
+	
+	/**
+	 * Per-gate particle-fill spawn count. Null means use {@link MConf#getGateFillParticleAmountDefault()}.
+	 */
+	private Integer fillParticleAmount = null;
+	
+	/**
+	 * @return Stored particle amount, or null to use the server default.
+	 */
+	public Integer getFillParticleAmountRaw()
+	{
+		return this.fillParticleAmount;
+	}
+	
+	/**
+	 * Effective particle amount for ambient/burst, clamped to the server min/max window.
+	 *
+	 * @return Amount in {@code [min, max]}.
+	 */
+	public int getFillParticleAmount()
+	{
+		MConf conf = MConf.get();
+		int value = this.fillParticleAmount != null
+			? this.fillParticleAmount
+			: conf.getGateFillParticleAmountDefault();
+		return conf.clampParticleAmount(value);
+	}
+	
+	/**
+	 * Sets the per-gate particle amount (clamped). Pass null to clear back to server default.
+	 *
+	 * @param fillParticleAmount Raw amount or null.
+	 */
+	public void setFillParticleAmount(Integer fillParticleAmount)
+	{
+		Integer normalized = fillParticleAmount;
+		if (normalized != null)
+		{
+			normalized = MConf.get().clampParticleAmount(normalized);
+		}
+		this.changed(this.fillParticleAmount, normalized);
+		this.fillParticleAmount = normalized;
+	}
+	
+	/**
+	 * @return True when the look is BlockDisplay (or END_GATEWAY fallback) for this gate's orientation.
+	 */
+	public boolean usesBlockDisplayFill()
+	{
+		GateType type = this.getFillType();
+		return type != null && type.usesBlockDisplay(this.orientation);
+	}
+	
+	/**
+	 * @return True when the interior is a particle fill rather than blocks.
+	 */
+	public boolean usesParticleFill()
+	{
+		GateType type = this.getFillType();
+		return type != null && type.isParticleFill();
+	}
+	
+	/**
+	 * Material clients should see for this gate's interior.
+	 *
+	 * @return Display material, or null if unresolved.
+	 */
+	public Material getClientDisplayMaterial()
+	{
+		GateType type = this.getFillType();
+		return type != null ? type.getClientDisplayMaterial() : null;
+	}
+	
+	/**
+	 * Resolves the fill type from {@link #fillTypeId}, inferring and persisting when missing.
+	 *
+	 * @return Effective type, or null if none can be resolved.
+	 */
+	public GateType getFillType()
+	{
+		if (this.fillTypeId != null)
+		{
+			GateType parsed = GateTypeResolve.parse(this.fillTypeId);
+			if (parsed != null) return parsed;
+		}
+		
+		GateType inferred = this.inferGateTypeFromContent();
+		if (inferred == null)
+		{
+			inferred = MConf.get().resolveDefaultGateType(this.orientation, this.getWorld());
+		}
+		if (inferred != null)
+		{
+			this.setFillType(inferred);
+		}
+		return inferred;
+	}
+	
+	/**
+	 * Infers type from existing interior blocks without persisting.
+	 *
+	 * @return Inferred type, or null.
+	 */
+	private GateType inferGateTypeFromContent()
+	{
+		List<Block> blocks = this.getContentBlocks();
+		if (blocks == null || blocks.isEmpty()) return null;
+		
+		for (Block block : blocks)
+		{
+			SupportedGateType type = SupportedGateType.fromServerMaterial(block.getType());
+			if (type != null) return type;
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns whether the block is part of this gate's portal interior (not frame).
+	 *
+	 * @param block Block to test.
+	 * @return True if the block is interior content.
+	 */
+	public boolean isInteriorBlock(Block block)
+	{
+		if (block == null) return false;
+		World world = this.getWorld();
+		if (world == null || !world.equals(block.getWorld())) return false;
+		
+		PS ps = PS.valueOf(block).withWorld(null);
+		return this.getContentCoordSet().contains(ps);
+	}
+	
 	// -------------------------------------------- //
 	// ASSORTED
 	// -------------------------------------------- //
@@ -384,36 +680,6 @@ public class UGate extends Entity<UGate>
 		this.fxKitDestroy(null);
 	}
 	
-	/**
-	 * Toggles the mode of the gate.
-	 */
-	public void toggleMode()
-	{
-		boolean enter = this.isEnterEnabled();
-		boolean exit = this.isExitEnabled();
-		
-		if (enter == false && exit == false)
-		{
-			this.setEnterEnabled(true);
-			this.setExitEnabled(false);
-		}
-		else if (enter == true && exit == false)
-		{
-			this.setEnterEnabled(false);
-			this.setExitEnabled(true);
-		}
-		else if (enter == false && exit == true)
-		{
-			this.setEnterEnabled(true);
-			this.setExitEnabled(true);
-		}
-		else if (enter == true && exit == true)
-		{
-			this.setEnterEnabled(false);
-			this.setExitEnabled(false);
-		}
-	}
-	
 	// -------------------------------------------- //
 	// TRANSPORT
 	// -------------------------------------------- //
@@ -437,6 +703,12 @@ public class UGate extends Entity<UGate>
 	 */
 	public boolean transport(Player player, HorizontalEntryContext entryContext, Location sourceLocation)
 	{
+		if (this.isAllowMobs() && GateEntityTeleport.hasMobEntourage(player)
+			|| this.isAllowVehicles() && GateEntityTeleport.hasNonLivingVehicle(player))
+		{
+			return this.transportPlayerWithEntourage(player, sourceLocation);
+		}
+
 		List<UGate> gateChain = this.getGateChain();
 		
 		String message;
@@ -496,6 +768,145 @@ public class UGate extends Entity<UGate>
 		message = Txt.parse("<i>This gate does not seem to lead anywhere.");
 		MixinMessage.get().messageOne(player, message);
 		return false;
+	}
+
+	/**
+	 * Transports a player together with their mount and/or leashed mobs, keeping mounts and leads.
+	 * Momentum launch is skipped so the whole party can be moved as a unit.
+	 * 
+	 * @param player The player to transport.
+	 * @param sourceLocation The location the player entered from.
+	 * @return True if the player was teleported.
+	 */
+	private boolean transportPlayerWithEntourage(Player player, Location sourceLocation)
+	{
+		boolean bringMobs = this.isAllowMobs() && GateEntityTeleport.hasMobEntourage(player);
+		boolean bringVehicles = this.isAllowVehicles() && GateEntityTeleport.hasNonLivingVehicle(player);
+
+		List<UGate> gateChain = this.getGateChain();
+		String blockedMessage = Txt.parse("<b>The gate exit is blocked.");
+
+		for (UGate ugate : gateChain)
+		{
+			if (!ugate.isExitEnabled()) continue;
+			if (bringMobs && !ugate.isAllowMobs()) continue;
+			if (bringVehicles && !ugate.isAllowVehicles()) continue;
+
+			PS destinationPs = ugate.getExit();
+			if (!GateTeleportSafety.isDestinationSafe(player, destinationPs))
+			{
+				MixinMessage.get().messageOne(player, blockedMessage);
+				continue;
+			}
+
+			Location destination;
+			try
+			{
+				destination = destinationPs.asBukkitLocation(true);
+			}
+			catch (IllegalStateException e)
+			{
+				continue;
+			}
+
+			if (!GateEntityTeleport.teleportParty(player, destination)) continue;
+
+			if (!GateTeleportSafety.isDestinationSafe(player, destinationPs))
+			{
+				this.returnPlayerToSource(player, sourceLocation);
+				MixinMessage.get().messageOne(player, blockedMessage);
+				continue;
+			}
+
+			this.setUsedMillis(System.currentTimeMillis());
+			this.fxKitUse(player);
+			return true;
+		}
+
+		MixinMessage.get().messageOne(player, Txt.parse("<i>This gate does not seem to lead anywhere."));
+		return false;
+	}
+
+	/**
+	 * Transports a non-player entity (living mob or vehicle) and its mount / passengers / leash party
+	 * through the gate chain.
+	 *
+	 * @param entity The entity to transport.
+	 * @return {@code true} if the entity was teleported.
+	 */
+	public boolean transportEntity(org.bukkit.entity.Entity entity)
+	{
+		if (entity == null || !entity.isValid()) return false;
+		if (entity instanceof LivingEntity && ((LivingEntity) entity).isDead()) return false;
+		if (entity instanceof Player) return false;
+
+		boolean livingTrigger = entity instanceof LivingEntity;
+		if (livingTrigger)
+		{
+			if (!this.isAllowMobs()) return false;
+		}
+		else if (!this.isAllowVehicles())
+		{
+			return false;
+		}
+		if (!this.isEnterEnabled()) return false;
+
+		// Leash/mount party that includes a player: use the player path (perms, debounce, FX).
+		Player player = GateEntityTeleport.findPlayerInParty(entity);
+		if (player != null)
+		{
+			return EngineMain.tryUseGate(player, this);
+		}
+
+		List<UGate> gateChain = this.getGateChain();
+		for (UGate ugate : gateChain)
+		{
+			if (!ugate.isExitEnabled()) continue;
+			if (livingTrigger)
+			{
+				if (!ugate.isAllowMobs()) continue;
+			}
+			else if (!ugate.isAllowVehicles())
+			{
+				continue;
+			}
+
+			PS destinationPs = ugate.getExit();
+			if (!GateTeleportSafety.isDestinationSafe(entity, destinationPs)) continue;
+
+			Location destination;
+			try
+			{
+				destination = destinationPs.asBukkitLocation(true);
+			}
+			catch (IllegalStateException e)
+			{
+				continue;
+			}
+
+			if (!GateEntityTeleport.teleportParty(entity, destination)) continue;
+
+			this.setUsedMillis(System.currentTimeMillis());
+			this.fxKitUseEntity(entity);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Plays use FX for an entity party (player sound when a player is present).
+	 * 
+	 * @param entity The entity to play the use FX for.
+	 */
+	private void fxKitUseEntity(org.bukkit.entity.Entity entity)
+	{
+		Player player = GateEntityTeleport.findPlayerInParty(entity);
+		if (player != null)
+		{
+			this.fxKitUse(player);
+			return;
+		}
+		EngineGateFillParticles.get().burstGate(this);
 	}
 	
 	private void returnPlayerToSource(Player player, Location sourceLocation)
@@ -645,7 +1056,7 @@ public class UGate extends Entity<UGate>
 		for (PS coord : this.coords)
 		{
 			Material material = world.getBlockAt(coord.getBlockX(), coord.getBlockY(), coord.getBlockZ()).getType();
-			if (material != Material.NETHER_PORTAL && !CreativeGates.isFluidFillMaterial(material) && !CreativeGates.isVoid(material)) continue;
+			if (!CreativeGates.isGateFillOrVoid(material)) continue;
 			ret.add(coord);
 		}
 		
@@ -675,12 +1086,13 @@ public class UGate extends Entity<UGate>
 		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return true;
 		
+		GateType type = this.getFillType();
+		if (type == null) return true;
+		
+		World world = blocks.get(0).getWorld();
 		for (Block block : blocks)
 		{
-			if (CreativeGates.isVoid(block))
-			{
-				return false;
-			}
+			if (!type.isExpectedServerFill(block.getType(), world, this.orientation)) return false;
 		}
 		return true;
 	}
@@ -705,48 +1117,50 @@ public class UGate extends Entity<UGate>
 	{
 		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null) return;
-		Axis axis;
-		if (this.orientation == GateOrientation.NS)
-		{
-			axis = Axis.Z;
-		}
-		else if (this.orientation == GateOrientation.WE)
-		{
-			axis = Axis.X;
-		}
-		else
-		{
-			axis = Axis.Y;
-		}
+		
+		GateType type = this.getFillType();
+		int lightLevel = type != null ? type.getEmittedBlockLightLevel(this.orientation) : -1;
 		
 		for (Block block : blocks)
 		{
 			Material blockMaterial = block.getType();
 			
-			if (blockMaterial != Material.NETHER_PORTAL && !CreativeGates.isFluidFillMaterial(blockMaterial) && !CreativeGates.isVoid(blockMaterial)) continue;
+			if (!CreativeGates.isGateFillOrVoid(blockMaterial)) continue;
 			
-			block.setType(material, applyPhysics);
-			
-			// Apply orientation
-			if (material != Material.NETHER_PORTAL) continue;
-
-			Orientable orientable = (Orientable) block.getBlockData();
-			orientable.setAxis(axis);
-			block.setBlockData(orientable);
+			if (material == Material.LIGHT && lightLevel >= 0)
+			{
+				org.bukkit.block.data.type.Light light = (org.bukkit.block.data.type.Light) Material.LIGHT.createBlockData();
+				light.setLevel(Math.min(15, lightLevel));
+				block.setBlockData(light, applyPhysics);
+			}
+			else
+			{
+				block.setType(material, applyPhysics);
+			}
 		}
 	}
 	
 	/**
-	 * Fills the gate with the fill material.
+	 * Fills the gate with the fill material and syncs BlockDisplay visuals.
 	 */
 	public void fill()
 	{
 		List<Block> blocks = this.getContentBlocks();
 		if (blocks == null || blocks.isEmpty()) return;
 		
+		GateType type = this.getFillType();
 		CreativeGates.get().setFilling(true);
-		this.setContent(CreativeGates.getFillMaterial(blocks.get(0).getWorld(), this.orientation));
+		this.setContent(CreativeGates.getFillMaterial(type, blocks.get(0).getWorld(), this.orientation));
 		CreativeGates.get().setFilling(false);
+		
+		if (this.usesBlockDisplayFill())
+		{
+			EngineGateFillDisplay.get().syncGate(this);
+		}
+		else
+		{
+			EngineGateFillDisplay.get().clearGate(this);
+		}
 	}
 	
 	/**
@@ -754,6 +1168,7 @@ public class UGate extends Entity<UGate>
 	 */
 	public void empty()
 	{
+		EngineGateFillDisplay.get().clearGate(this);
 		this.setContent(Material.AIR, false);
 	}
 	
@@ -768,8 +1183,8 @@ public class UGate extends Entity<UGate>
 	 */
 	public void fxKitCreate(Player player)
 	{
-		//this.fxSmoke();
 		playConfiguredTeleportSound(player, false);
+		EngineGateFillParticles.get().burstGate(this);
 	}
 	
 	/**
@@ -780,6 +1195,7 @@ public class UGate extends Entity<UGate>
 	public void fxKitUse(Player player)
 	{
 		playConfiguredTeleportSound(player, true);
+		EngineGateFillParticles.get().burstGate(this);
 	}
 	
 	/**

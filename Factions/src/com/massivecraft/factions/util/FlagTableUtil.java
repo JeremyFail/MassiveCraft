@@ -16,6 +16,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,6 +61,9 @@ public final class FlagTableUtil
 		boolean management, MassiveCommand commandForPagination)
 	{
 		MPlayer msender = MPlayer.get(sender);
+
+		flags = new ArrayList<>(flags);
+		flags.sort(Comparator.comparing(MFlag::getName, String.CASE_INSENSITIVE_ORDER));
 
 		if (flags.isEmpty())
 		{

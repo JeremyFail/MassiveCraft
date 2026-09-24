@@ -5,7 +5,7 @@
     <groupId>com.massivecraft.massivesuper</groupId>
     <artifactId>MassiveSuper</artifactId>
     <!-- Change this release version when making updates to the code - update in all pom files -->
-    <version>3.4.2</version>
+    <version>3.4.3</version>
     <packaging>pom</packaging>
 
     <!-- Info -->
@@ -55,8 +55,13 @@
         <massiveHttpclientVersion>4.5.3</massiveHttpclientVersion>
 
         <!-- https://hub.spigotmc.org/nexus/content/groups/public/org/spigotmc/spigot-api/ -->
-        <massiveSpigotVersion>1.21.4-R0.1-SNAPSHOT</massiveSpigotVersion>
-        <massivePaperVersion>1.21.7-R0.1-SNAPSHOT</massivePaperVersion>
+        <massiveSpigotVersion>1.21.11-R0.2-SNAPSHOT</massiveSpigotVersion>
+        <!-- https://repo.papermc.io/repository/maven-public/{version}.build.{n}-{channel} -->
+        <massivePaperVersion>26.3.build.35-alpha</massivePaperVersion>
+        <!-- https://central.sonatype.com/artifact/net.md-5/bungeecord-dialog (Spigot dialog API types) -->
+        <massiveBungeeDialogVersion>1.21-R0.4</massiveBungeeDialogVersion>
+        <!-- Match dialog line; Paper's transitive bungeecord-chat is older and lacks ClickEventCustom. -->
+        <massiveBungeeChatVersion>1.21-R0.4</massiveBungeeChatVersion>
         <!-- Adventure MiniMessage for compile (match paper-api transitive BOM; run mvn dependency:tree on paper-api when bumping Paper).
              PaperMC format docs: https://docs.papermc.io/adventure/minimessage/format - sprite/head tags require MiniMessage 4.25+;
              at 4.20.0 those tags are absent from this artifact; newer Paper builds may ship a newer Adventure at runtime. -->
@@ -192,7 +197,7 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
-        <!-- Failproof Tech (FactionsBridge API, etc.) — https://repo.failprooftech.com/ -->
+        <!-- Failproof Tech (FactionsBridge API, etc.) - https://repo.failprooftech.com/ -->
         <repository>
             <id>failprooftech-repo-snapshots</id>
             <name>Failproof Tech Repository</name>
@@ -372,6 +377,18 @@
                 <groupId>io.papermc.paper</groupId>
                 <artifactId>paper-api</artifactId>
                 <version>${massivePaperVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.md-5</groupId>
+                <artifactId>bungeecord-dialog</artifactId>
+                <version>${massiveBungeeDialogVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.md-5</groupId>
+                <artifactId>bungeecord-chat</artifactId>
+                <version>${massiveBungeeChatVersion}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

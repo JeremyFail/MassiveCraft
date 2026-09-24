@@ -12,6 +12,9 @@ public enum Perm implements Identified
 	
 	CREATE,
 	CREATE_BYPASSDISABLED,
+	CREATE_BYPASSFRAME,
+	SET_GATE_FILL,
+	SET_FILL_PARTICLE_COUNT,
 	USE,
 	CG,
 	CG_WORLD,
@@ -19,6 +22,11 @@ public enum Perm implements Identified
 	CG_WORLD_DELETE,
 	CG_VERSION,
 	CG_CONFIG,
+	CG_INSPECT,
+	CG_MANAGE,
+	CG_TOOL,
+	CG_OVERRIDE,
+	CG_OVERRIDE_BYPASS,
 	
 	// END OF LIST
 	;

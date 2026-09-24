@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.massivecraft.massivesuper</groupId>
         <artifactId>MassiveSuper</artifactId>
-        <version>3.4.2</version>
+        <version>3.4.3</version>
         <relativePath>../MassiveSuper</relativePath>
     </parent>
 
@@ -30,6 +30,16 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
+        </dependency>
+        <!-- Bungee dialog + chat for Spigot showDialog backend (runtime-gated).
+             Explicit chat pin overrides Paper's older transitive bungeecord-chat (needs ClickEventCustom). -->
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-dialog</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-chat</artifactId>
         </dependency>
         <dependency>
 		    <groupId>com.googlecode.json-simple</groupId>

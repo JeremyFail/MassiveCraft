@@ -11,12 +11,15 @@ import github.scarsz.discordsrv.api.events.DiscordGuildMessagePostProcessEvent;
 import github.scarsz.discordsrv.api.events.DiscordReadyEvent;
 import github.scarsz.discordsrv.api.events.GameChatMessagePreProcessEvent;
 
+import org.bukkit.entity.Player;
+
 /**
  * Shared DiscordSRV API subscription: game chat routing, staff channel registration, and staff Discord→Minecraft relay.
  * <p>
  * Staff channel bindings are applied through {@link FactionsChat#getDiscordSRVIntegration()} (see {@link DiscordSRVIntegration}),
  * same pattern as Essentials SocialSpy via {@link FactionsChat#getEssentialsIntegration()}.</p>
- * Subclasses implement {@link #deliverStaffDiscordToMinecraft} for Paper (Adventure) vs Spigot (legacy string) servers.
+ * Subclasses implement {@link #deliverStaffDiscordToMinecraft} and {@link #formatPlayerBodyForDiscord}
+ * for Paper (Adventure) vs Spigot (legacy string) servers so Spigot never loads {@code net.kyori.adventure}.
  *
  * @see DiscordSRVIntegration
  * @see com.failprooftech.factionschat.integrations.discordsrv.DiscordSRVIntegrations
@@ -29,6 +32,12 @@ public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
      * @param event Post-process event; already matched to the configured staff channel and cancelled for DiscordSRV.
      */
     protected abstract void deliverStaffDiscordToMinecraft(DiscordGuildMessagePostProcessEvent event);
+
+    /**
+     * Permission-aware player chat body as a legacy {@code §} string for DiscordSRV's {@code setMessage}.
+     * Paper uses Adventure; Spigot must not reference Adventure classes.
+     */
+    protected abstract String formatPlayerBodyForDiscord(Player player, String body);
 
     /**
      * Runs after the chat message is displayed to the player in-game.
@@ -51,12 +60,11 @@ public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
         }
         else
         {
-            cm = FactionsChat.instance.getPlayerChatModes().getOrDefault(event.getPlayer().getUniqueId(), ChatMode.GLOBAL);
+            cm = ChatMode.getChatModeForPlayer(event.getPlayer());
         }
         cm = FactionsChat.resolveEffectiveChatMode(cm);
 
-        // Strip all formatting from the message before we send it to Discord
-        event.setMessage(DiscordSRVChatRelayFormatter.playerBodyToDiscordLegacy(event.getPlayer(), colon.getMessageBody(), this));
+        event.setMessage(formatPlayerBodyForDiscord(event.getPlayer(), colon.getMessageBody()));
 
         if (cm == ChatMode.GLOBAL)
         {

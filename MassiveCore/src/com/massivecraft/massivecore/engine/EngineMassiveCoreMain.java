@@ -2,15 +2,10 @@ package com.massivecraft.massivecore.engine;
 
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.MassiveCore;
-import com.massivecraft.massivecore.SenderPresence;
-import com.massivecraft.massivecore.SenderType;
 import com.massivecraft.massivecore.entity.MassiveCoreMConf;
 import com.massivecraft.massivecore.event.EventMassiveCoreAfterPlayerRespawn;
 import com.massivecraft.massivecore.event.EventMassiveCoreAfterPlayerTeleport;
 import com.massivecraft.massivecore.event.EventMassiveCorePermissionDeniedFormat;
-import com.massivecraft.massivecore.mixin.MixinVisibility;
-import com.massivecraft.massivecore.predicate.PredicateStartsWithIgnoreCase;
-import com.massivecraft.massivecore.util.IdUtil;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.SmokeUtil;
 import org.bukkit.Bukkit;
@@ -19,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.player.PlayerChatTabCompleteEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -27,12 +21,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
-import java.util.function.Predicate;
 
-// TODO: Look into PlayerChatTabCompleteEvent deprecation
 public class EngineMassiveCoreMain extends Engine
 {
 	// -------------------------------------------- //
@@ -58,36 +48,6 @@ public class EngineMassiveCoreMain extends Engine
 		
 		// ... then make use of that format.
 		event.setFormat(customFormat);
-	}
-	
-	// -------------------------------------------- //
-	// CHAT TAB COMPLETE
-	// -------------------------------------------- //
-	
-	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-	public void chatTabComplete(PlayerChatTabCompleteEvent event)
-	{
-		// So the player is watching ...
-		Player watcher = event.getPlayer();
-		if (MUtil.isntPlayer(watcher)) return;
-		
-		// Get the lowercased token predicate
-		Predicate<String> predicate = PredicateStartsWithIgnoreCase.get(event.getLastToken());
-		
-		// Create a case insensitive set to check for already added stuff
-		Set<String> current = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-		current.addAll(event.getTabCompletions());
-		
-		// Add names of all online senders that match and isn't added yet.
-		// TODO: Should this only be players? Would a player actually want to tab-complete @console?
-		for (String senderName : IdUtil.getNames(SenderPresence.ONLINE, SenderType.ANY))
-		{
-			if ( ! predicate.test(senderName)) continue;
-			if (current.contains(senderName)) continue;
-			if ( ! MixinVisibility.get().isVisible(senderName, watcher)) continue;
-			
-			event.getTabCompletions().add(senderName);
-		}
 	}
 	
 	// -------------------------------------------- //
