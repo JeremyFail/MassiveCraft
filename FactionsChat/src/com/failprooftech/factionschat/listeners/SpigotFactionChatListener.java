@@ -109,17 +109,15 @@ public class SpigotFactionChatListener extends FactionChatListenerBase implement
                 notReceiving.add(recipient);
             }
         }
-
-        // Remove excluded players, then snapshot and clear recipients.
-        // Do NOT cancel: DiscordSRV listens at MONITOR with ignoreCancelled and will not
-        // relay game chat when AsyncPlayerChatEvent is cancelled. Clearing recipients still
-        // prevents vanilla/Bukkit from delivering the unformatted line; we send our own below.
-        // Leave event.getMessage() as the raw line (incl. colon quick prefixes) so DiscordSRV's
-        // GameChatMessagePreProcessEvent can route global vs staff vs other channels.
         event.getRecipients().removeAll(notReceiving);
         Set<Player> recipients = new HashSet<>(event.getRecipients());
-        event.getRecipients().clear();
+
+        // Cancel so vanilla does not deliver or double-log to console. DiscordSRV skips cancelled
+        // chat events, so forward explicitly with the raw line (incl. colon prefixes) for channel routing.
+        final String rawForDiscord = event.getMessage();
+        event.setCancelled(true);
         handleChat(sender, messageText, recipients, chatMode, colonQuick);
+        FactionsChat.instance.getDiscordSRVIntegration().processGameChat(sender, rawForDiscord);
     }
 
     /**

@@ -28,10 +28,9 @@ public interface DiscordSRVIntegration
 	/**
 	 * Asks DiscordSRV to process a Minecraft chat line for Discord relay.
 	 * <p>
-	 * Used when FactionsChat must cancel the Bukkit/Paper chat event (e.g. Paper
-	 * {@code DisableChatReporting}) so DiscordSRV's own listener would otherwise skip it.
-	 * Spigot's normal path clears recipients instead of cancelling and does not need this.
-	 * Fires DiscordSRV's {@code GameChatMessagePreProcessEvent}, where FactionsChat routes
+	 * Used when FactionsChat cancels the Bukkit/Paper chat event so DiscordSRV's own listener
+	 * would otherwise skip it (Spigot always cancels; Paper cancels when {@code DisableChatReporting}
+	 * is true). Fires DiscordSRV's {@code GameChatMessagePreProcessEvent}, where FactionsChat routes
 	 * global / staff / other channels.
 	 *
 	 * @param player     the speaking player
