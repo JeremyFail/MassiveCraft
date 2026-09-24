@@ -169,7 +169,9 @@ public class MConf extends Entity<MConf>
 		SupportedGateType.WATER.name(),
 		SupportedGateType.LAVA.name(),
 		Material.POWDER_SNOW.name(),
-		Material.ICE.name()
+		Material.ICE.name(),
+		Material.SCULK_VEIN.name(),
+		Material.SCULK.name()
 	);
 	public Set<String> getAllowedGateTypes() { return new LinkedHashSet<>(this.allowedGateTypes); }
 	public void setAllowedGateTypes(Set<String> allowedGateTypes)
@@ -190,7 +192,9 @@ public class MConf extends Entity<MConf>
 		SupportedGateType.WATER.name(),
 		SupportedGateType.LAVA.name(),
 		Material.POWDER_SNOW.name(),
-		Material.ICE.name()
+		Material.ICE.name(),
+		Material.SCULK_VEIN.name(),
+		Material.SCULK.name()
 	);
 	public Set<String> getAllowedHorizontalGateTypes() { return new LinkedHashSet<>(this.allowedHorizontalGateTypes); }
 	public void setAllowedHorizontalGateTypes(Set<String> allowedHorizontalGateTypes)
