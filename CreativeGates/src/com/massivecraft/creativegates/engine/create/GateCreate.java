@@ -2,6 +2,7 @@ package com.massivecraft.creativegates.engine.create;
 
 import com.massivecraft.creativegates.CreativeGates;
 import com.massivecraft.creativegates.Perm;
+import com.massivecraft.creativegates.engine.EngineGateOverride;
 import com.massivecraft.creativegates.engine.PendingGateCreates;
 import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.UGate;
@@ -65,6 +66,13 @@ public final class GateCreate
 		if (!player.getWorld().getName().equals(pending.getWorldName()))
 		{
 			MixinMessage.get().messageOne(player, Txt.parse("<b>Gate creation cancelled because you changed worlds."));
+			return false;
+		}
+		
+		if (MConf.get().isGateCreationDisabledIn(pending.getWorldName())
+			&& !EngineGateOverride.canBypassCreationWorldRestriction(player))
+		{
+			MixinMessage.get().messageOne(player, Txt.parse("<b>Gate creation is disabled in this world."));
 			return false;
 		}
 		

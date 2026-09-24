@@ -583,14 +583,26 @@ public class MConf extends Entity<MConf>
 		this.materialManage = materialManage;
 	}
 
-	// Prevent gate creation in these worlds
-	// Can be bypassed with the bypass permission
-	// This still allows gate usage in these world if gates exist there
+	// Prevent gate creation in these worlds (by Bukkit world name).
+	// Bypassed by creativegates.create.bypassdisabled, override mode, or cg.override.bypass.
+	// Existing gates in these worlds can still be used.
 	private Set<String> gateCreationDisabledWorlds = new MassiveSet<>();
 	public Set<String> getGateCreationDisabledWorlds() { return new MassiveSet<>(this.gateCreationDisabledWorlds); }
 	public void setGateCreationDisabledWorlds(Set<String> gateCreationDisabledWorlds)
 	{
 		this.changed(this.gateCreationDisabledWorlds, gateCreationDisabledWorlds);
 		this.gateCreationDisabledWorlds = new MassiveSet<>(gateCreationDisabledWorlds);
+	}
+	
+	/**
+	 * True if gate creation is disabled in the named world (unless the player bypasses).
+	 *
+	 * @param worldName Bukkit world name.
+	 * @return True if creation is disabled there.
+	 */
+	public boolean isGateCreationDisabledIn(String worldName)
+	{
+		if (worldName == null) return false;
+		return this.gateCreationDisabledWorlds.contains(worldName);
 	}
 }
