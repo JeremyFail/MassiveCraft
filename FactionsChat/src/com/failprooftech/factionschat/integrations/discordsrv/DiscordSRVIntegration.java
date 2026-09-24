@@ -12,7 +12,8 @@ package com.failprooftech.factionschat.integrations.discordsrv;
 public interface DiscordSRVIntegration
 {
 	/**
-	 * @return {@code true} when DiscordSRV is installed and this integration is active
+	 * @return {@code true} when DiscordSRV is installed, this integration is wired, and DiscordSRV is still enabled
+	 *         (false if DiscordSRV later self-disables, e.g. missing bot token)
 	 */
 	boolean isActive();
 

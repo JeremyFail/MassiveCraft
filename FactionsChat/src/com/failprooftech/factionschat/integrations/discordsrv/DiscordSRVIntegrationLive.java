@@ -6,6 +6,8 @@ import github.scarsz.discordsrv.DiscordSRV;
  * Implementation of {@link DiscordSRVIntegration} backed by the DiscordSRV plugin.
  * <p>
  * Reads and writes the {@code staff} channel alias via DiscordSRV's channel map.
+ * All calls no-op when DiscordSRV has disabled itself (e.g. missing bot token), so
+ * FactionsChat does not touch a closed plugin classloader.
  *
  * @see DiscordSRVIntegration
  * @see DiscordSRVIntegrationNoop
@@ -30,25 +32,33 @@ final class DiscordSRVIntegrationLive implements DiscordSRVIntegration
 	@Override
 	public boolean isActive()
 	{
-		return true;
+		return this.plugin.isEnabled();
 	}
 
 	@Override
 	public String getStaffChannelBinding()
 	{
+		if (!this.plugin.isEnabled())
+		{
+			return null;
+		}
 		return this.plugin.getChannels().get("staff");
 	}
 
 	@Override
 	public void setStaffChannelBinding(final String discordChannelId)
 	{
+		if (!this.plugin.isEnabled())
+		{
+			return;
+		}
 		this.plugin.getChannels().put("staff", discordChannelId);
 	}
 
 	@Override
 	public void processGameChat(final org.bukkit.entity.Player player, final String rawMessage)
 	{
-		if (player == null || rawMessage == null)
+		if (player == null || rawMessage == null || !this.plugin.isEnabled())
 		{
 			return;
 		}
