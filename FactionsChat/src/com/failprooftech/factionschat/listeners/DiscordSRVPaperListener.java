@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 /**
  * DiscordSRV integration on Paper: staff relay uses Adventure {@link org.bukkit.Server#broadcast(Component, String)}.
@@ -17,6 +18,12 @@ import org.bukkit.Bukkit;
  */
 public final class DiscordSRVPaperListener extends DiscordSRVListenerBase
 {
+    @Override
+    protected String formatPlayerBodyForDiscord(Player player, String body)
+    {
+        return DiscordSRVChatRelayFormatter.playerBodyToDiscordLegacy(player, body, this);
+    }
+
     @Override
     protected void deliverStaffDiscordToMinecraft(DiscordGuildMessagePostProcessEvent event)
     {
