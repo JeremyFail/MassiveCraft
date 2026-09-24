@@ -17,7 +17,7 @@ import java.util.Set;
  * <p>
  * Server fill is an invisible {@link Material#LIGHT} block at {@link GateType#DISPLAY_BLOCK_LIGHT_LEVEL}
  * so players walk through and the area is lit like BlockDisplay fills. Only particles that can be
- * spawned without extra data (no dust color, block data, item, vibration, …) are accepted — there
+ * spawned without extra data (no dust color, block data, item, vibration, …) are accepted - there
  * is no per-particle kit. Config ids are {@code PARTICLE_} plus the enum name so they never collide
  * with materials ({@link Particle#LAVA} vs {@link Material#LAVA}).
  * </p>

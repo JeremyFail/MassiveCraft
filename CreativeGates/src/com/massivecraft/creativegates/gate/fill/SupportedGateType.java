@@ -19,7 +19,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
  * <p>
  * <b>Server fill vs look:</b> {@link #WATER} and {@link #LAVA} place real fluid blocks.
  * All other supported types keep invisible {@link Material#LIGHT} on the server and show the
- * look via BlockDisplay and/or {@code Player#sendBlockChange} — never real portal/fire blocks
+ * look via BlockDisplay and/or {@code Player#sendBlockChange} - never real portal/fire blocks
  * (so no piglin portal spawns, vanilla nether travel, or fire damage from the fill).
  * {@link #FIRE}, {@link #SOUL_FIRE}, and <em>vertical</em> {@link #NETHER_PORTAL} use
  * {@code sendBlockChange} (client sees real blocks → correct animation).

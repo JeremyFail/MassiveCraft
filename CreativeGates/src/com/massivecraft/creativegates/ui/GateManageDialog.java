@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
  * Native Dialog manage UI for gate settings.
  * <p>
  * Uses action buttons (not {@code single_option} inputs) because Minecraft ignores
- * {@code hover_event} on dialog input controls — see MC-298405. Action buttons have a
+ * {@code hover_event} on dialog input controls - see MC-298405. Action buttons have a
  * real {@code tooltip} field that the client shows.
  * </p>
  */

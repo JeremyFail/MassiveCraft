@@ -167,7 +167,7 @@ public class EngineGateFillDisplay extends Engine
 	
 	/**
 	 * Ensures display fills near the player exist (respawn after /kill, chunk issues, etc.).
-	 * Client block-change fills are always re-sent to this player — they vanish when the
+	 * Client block-change fills are always re-sent to this player - they vanish when the
 	 * client reloads chunk data (disconnect/reconnect).
 	 */
 	public void syncPlayer(Player player)

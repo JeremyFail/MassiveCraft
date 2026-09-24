@@ -124,7 +124,7 @@ public final class MDialog
 	}
 	
 	/**
-	 * Probe only — does not load {@link PaperMDialogBackend}.
+	 * Probe only - does not load {@link PaperMDialogBackend}.
 	 *
 	 * @return True when Paper Dialog API types exist on the classpath.
 	 */
@@ -135,7 +135,7 @@ public final class MDialog
 	}
 	
 	/**
-	 * Probe only — does not load {@link SpigotMDialogBackend}.
+	 * Probe only - does not load {@link SpigotMDialogBackend}.
 	 *
 	 * @return True when Spigot Bungee Dialog + custom-click types exist.
 	 */

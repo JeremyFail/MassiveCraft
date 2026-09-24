@@ -353,7 +353,7 @@ public class MConf extends Entity<MConf>
 	}
 
 	// Floor/ceiling portals (Portal-style). Nether portal fill uses rotated BlockDisplays
-	// (client animation can freeze at some camera pitches — BlockDisplay limitation).
+	// (client animation can freeze at some camera pitches - BlockDisplay limitation).
 	private boolean horizontalGatesEnabled = true;
 	public boolean isHorizontalGatesEnabled() { return this.horizontalGatesEnabled; }
 	public void setHorizontalGatesEnabled(boolean horizontalGatesEnabled)

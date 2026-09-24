@@ -121,7 +121,7 @@ public interface GateType
 	 * Fire and soul fire always use overlays (BlockDisplays cannot animate those atlases
 	 * reliably). Vertical nether portal uses overlays so the client sees real portal blocks
 	 * (correct animation) without server-side portal blocks (no piglin spawns / vanilla travel).
-	 * Horizontal nether portal stays BlockDisplay — vanilla portal models cannot lie flat.
+	 * Horizontal nether portal stays BlockDisplay - vanilla portal models cannot lie flat.
 	 * </p>
 	 *
 	 * @param orientation Gate orientation; null is treated as vertical.
