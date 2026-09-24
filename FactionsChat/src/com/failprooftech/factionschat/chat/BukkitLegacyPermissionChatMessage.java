@@ -104,10 +104,10 @@ public final class BukkitLegacyPermissionChatMessage
                         + hex.charAt(1) + hex.charAt(1)
                         + hex.charAt(2) + hex.charAt(2);
                 }
-                StringBuilder bukkit = new StringBuilder("§x");
+                StringBuilder bukkit = new StringBuilder("\u00A7x");
                 for (char c : hex.toCharArray())
                 {
-                    bukkit.append('§').append(c);
+                    bukkit.append('\u00A7').append(c);
                 }
                 matcher.appendReplacement(sb, Matcher.quoteReplacement(bukkit.toString()));
             }

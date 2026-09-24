@@ -10,7 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Legacy section codes + FactionsChat RGB patterns ({@code &#RRGGBB}, {@code §R§R§G§G§B§B}), used as the fallback pipeline
+ * Legacy section codes + FactionsChat RGB patterns ({@code &#RRGGBB}, {@code §x§R§R§G§G§B§B}), used as the fallback pipeline
  * inside {@link PaperAdventureChatCodec}.
  */
 public final class LegacyRgbMessageCodec implements PaperAdventureChatCodec.LegacyRgbPipeline
@@ -32,7 +32,10 @@ public final class LegacyRgbMessageCodec implements PaperAdventureChatCodec.Lega
     @Override
     public Component toComponent(String normalizedExpanded, TextColor baseColor)
     {
-        if (normalizedExpanded.contains("&#") || normalizedExpanded.contains("?#") || normalizedExpanded.contains("?x"))
+        // Use \u00A7 escapes so section signs are not lost to source-file encoding (previously corrupted to '?').
+        if (normalizedExpanded.contains("&#")
+            || normalizedExpanded.contains("\u00A7#")
+            || normalizedExpanded.contains("\u00A7x"))
         {
             return processRgbColorCodes(normalizedExpanded, baseColor);
         }
@@ -41,7 +44,7 @@ public final class LegacyRgbMessageCodec implements PaperAdventureChatCodec.Lega
 
     /**
      * Processes RGB color codes in multiple formats and converts them to Bukkit's legacy RGB format.
-     * Supports modern RGB (&#RRGGBB, &#RGB), section variants of those, and legacy Bukkit (§R§R§G§G§B§B).
+     * Supports modern RGB (&#RRGGBB, &#RGB), section variants of those, and legacy Bukkit ({@code §x§R§R§G§G§B§B}).
      * 
      * @param message The message to process.
      * @param baseColor The base color to apply.
@@ -129,8 +132,8 @@ public final class LegacyRgbMessageCodec implements PaperAdventureChatCodec.Lega
 
     /**
      * Deserializes a legacy run. When the run contains {@code §} codes (including {@code §r}), those codes alone
-     * define color ? do not apply {@link Component#colorIfAbsent(TextColor)} from a prior {@code §#} segment.
-     * Plain text with no {@code ?} still inherits the active RGB tint between hex codes.
+     * define color - do not apply {@link Component#colorIfAbsent(TextColor)} from a prior {@code §#} segment.
+     * Plain text with no {@code §} still inherits the active RGB tint between hex codes.
      */
     private Component deserializeLegacyRun(String run, TextColor currentColor, TextColor baseColor)
     {

@@ -605,10 +605,10 @@ public abstract class FactionChatListenerBase
                 {
                     return legacyColor != null ? legacyColor.toString() : "";
                 }
-                StringBuilder sb = new StringBuilder("§x");
+                StringBuilder sb = new StringBuilder("\u00A7x");
                 for (char c : hex.toCharArray())
                 {
-                    sb.append('§').append(Character.toLowerCase(c));
+                    sb.append('\u00A7').append(Character.toLowerCase(c));
                 }
                 return sb.toString();
             }

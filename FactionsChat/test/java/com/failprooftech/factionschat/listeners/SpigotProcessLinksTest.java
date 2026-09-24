@@ -2,6 +2,9 @@ package com.failprooftech.factionschat.listeners;
 
 import com.failprooftech.factionschat.chat.ChatPermissions;
 import com.failprooftech.factionschat.testsupport.ChatPermissionsFixtures;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.junit.jupiter.api.Test;
 
@@ -138,6 +141,92 @@ class SpigotProcessLinksTest
     void getLastColorCodeStringFallsBackToBase() throws Exception
     {
         assertEquals(ChatColor.GOLD.toString(), getLastColorCodeString("plain", ChatColor.GOLD));
+    }
+
+    /**
+     * After legacy deserialization, URL spans receive {@link net.md_5.bungee.api.chat.ClickEvent.Action#OPEN_URL}.
+     */
+    @Test
+    @SuppressWarnings("deprecation")
+    void attachUrlClickEventsMakesUnderlinedUrlClickable()
+    {
+        String legacy = ChatColor.UNDERLINE + "https://a.com" + ChatColor.RESET + "§a";
+        BaseComponent[] linked = SpigotFactionChatListener.toSendableComponents(legacy, true);
+
+        boolean found = false;
+        for (BaseComponent c : linked)
+        {
+            if (c instanceof TextComponent text
+                && "https://a.com".equals(text.getText())
+                && text.getClickEvent() != null
+                && text.getClickEvent().getAction() == ClickEvent.Action.OPEN_URL
+                && "https://a.com".equals(text.getClickEvent().getValue()))
+            {
+                found = true;
+                break;
+            }
+        }
+        assertTrue(found, java.util.Arrays.toString(linked));
+    }
+
+    /**
+     * URLs embedded in a larger legacy run are split so only the URL carries the click event.
+     */
+    @Test
+    void attachUrlClickEventsSplitsUrlOutOfSurroundingText()
+    {
+        BaseComponent[] linked = SpigotFactionChatListener.toSendableComponents("§ago https://a.com end", true);
+
+        StringBuilder plain = new StringBuilder();
+        boolean foundClick = false;
+        for (BaseComponent c : linked)
+        {
+            if (c instanceof TextComponent text)
+            {
+                plain.append(text.getText());
+                if ("https://a.com".equals(text.getText())
+                    && text.getClickEvent() != null
+                    && text.getClickEvent().getAction() == ClickEvent.Action.OPEN_URL)
+                {
+                    foundClick = true;
+                }
+            }
+        }
+        assertEquals("go https://a.com end", plain.toString());
+        assertTrue(foundClick, plain.toString());
+    }
+
+    /**
+     * Sendable components must not carry empty {@code extra} lists (Spigot chat codec rejects them).
+     */
+    @Test
+    void toSendableComponentsLeavesNoEmptyExtras()
+    {
+        BaseComponent[] linked = SpigotFactionChatListener.toSendableComponents(
+            "see https://a.com please", true);
+        for (BaseComponent c : linked)
+        {
+            assertTrue(c.getExtra() == null || !c.getExtra().isEmpty(), c.toString());
+        }
+    }
+
+    /**
+     * Without linkify, colors still survive as styled text components with no extras.
+     */
+    @Test
+    void toSendableComponentsWithoutLinkifyPreservesText()
+    {
+        BaseComponent[] comps = SpigotFactionChatListener.toSendableComponents("§etest", false);
+        StringBuilder plain = new StringBuilder();
+        for (BaseComponent c : comps)
+        {
+            if (c instanceof TextComponent text)
+            {
+                plain.append(text.getText());
+                assertTrue(c.getExtra() == null || !c.getExtra().isEmpty());
+            }
+        }
+        assertEquals("test", plain.toString());
     }
 
     /**
