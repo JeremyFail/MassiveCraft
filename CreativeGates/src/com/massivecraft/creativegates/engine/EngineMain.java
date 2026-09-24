@@ -1076,13 +1076,16 @@ public class EngineMain extends Engine
 			Set<Block> blocks = gateFloodInfo.allBlocks;
 			Set<Block> interiorBlocks = gateFloodInfo.interiorBlocks;
 			
-			// ... ensure the required blocks are present ...
-			Map<Material, Integer> materialCounts = MaterialCountUtil.count(blocks);
-			if ( ! MaterialCountUtil.has(materialCounts, MConf.get().getBlocksrequired()))
+			// ... ensure the required blocks are present (unless bypassed) ...
+			if (!EngineGateOverride.canBypassFrameRequirement(player))
 			{
-				message = Txt.parse("<b>The frame must contain %s<b>.", MaterialCountUtil.desc(MConf.get().getBlocksrequired()));
-				MixinMessage.get().messageOne(player, message);
-				return;
+				Map<Material, Integer> materialCounts = MaterialCountUtil.count(blocks);
+				if ( ! MaterialCountUtil.has(materialCounts, MConf.get().getBlocksrequired()))
+				{
+					message = Txt.parse("<b>The frame must contain %s<b>.", MaterialCountUtil.desc(MConf.get().getBlocksrequired()));
+					MixinMessage.get().messageOne(player, message);
+					return;
+				}
 			}
 			
 			// ... calculate the exit location ...

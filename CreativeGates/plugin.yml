@@ -12,6 +12,7 @@ permissions:
 # -------------------------------------------- #
   creativegates.create: {description: create a gate, default: false}
   creativegates.create.bypassdisabled: {description: always bypass disabled worlds for gate creation (override mode also bypasses), default: false}
+  creativegates.create.bypassframe: {description: always bypass required frame materials for gate creation (override mode also bypasses), default: false}
   creativegates.setgatefill: {description: choose gate fill when creating or managing, default: false}
   creativegates.setfillparticlecount: {description: choose particle fill amount when creating or managing, default: false}
   creativegates.use: {description: use a gate, default: false}

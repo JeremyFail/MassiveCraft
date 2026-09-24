@@ -47,6 +47,20 @@ public final class EngineGateOverride
 	}
 	
 	/**
+	 * True if the sender may skip {@code blocksrequired} frame materials
+	 * ({@link Perm#CREATE_BYPASSFRAME}, override mode, or {@link Perm#CG_OVERRIDE_BYPASS}).
+	 *
+	 * @param sender Command sender.
+	 * @return True if frame material requirements do not apply.
+	 */
+	public static boolean canBypassFrameRequirement(CommandSender sender)
+	{
+		if (sender == null) return false;
+		if (Perm.CREATE_BYPASSFRAME.has(sender)) return true;
+		return canBypassOwnership(sender);
+	}
+	
+	/**
 	 * True if the sender may change settings on the gate.
 	 * 
 	 * @param sender Command sender.
