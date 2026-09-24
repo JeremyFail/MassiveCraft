@@ -197,7 +197,7 @@ public class EngineMain extends Engine
 	// -------------------------------------------- //
 	
 	/**
-	 * Cancel damage the gate fill asks to suppress (lava/fire for lava fills).
+	 * Cancel damage the gate fill asks to suppress (lava/fire for lava, drowning for water).
 	 *
 	 * @param event The entity damage event.
 	 */

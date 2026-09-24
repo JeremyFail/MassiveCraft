@@ -93,10 +93,16 @@ public enum SupportedGateType implements GateType
 	public boolean shouldPreventDamage(DamageCause cause)
 	{
 		if (cause == null) return false;
+
 		// Only real lava fill deals contact damage; client-overlay fire does not.
 		if (this == LAVA)
 		{
 			return cause == DamageCause.LAVA || cause == DamageCause.FIRE || cause == DamageCause.FIRE_TICK;
+		}
+		// Real water fill - prevent drowning if the player lingers in the column (unlikely, but just in case)
+		if (this == WATER)
+		{
+			return cause == DamageCause.DROWNING;
 		}
 		return false;
 	}
