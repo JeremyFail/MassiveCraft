@@ -51,7 +51,7 @@ public abstract class DiscordSRVListenerBase extends FactionChatListenerBase
         }
         else
         {
-            cm = FactionsChat.instance.getPlayerChatModes().getOrDefault(event.getPlayer().getUniqueId(), ChatMode.GLOBAL);
+            cm = ChatMode.getChatModeForPlayer(event.getPlayer());
         }
         cm = FactionsChat.resolveEffectiveChatMode(cm);
 

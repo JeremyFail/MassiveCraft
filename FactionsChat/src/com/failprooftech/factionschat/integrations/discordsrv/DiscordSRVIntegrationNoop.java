@@ -27,6 +27,12 @@ public enum DiscordSRVIntegrationNoop implements DiscordSRVIntegration
 	@Override
 	public void setStaffChannelBinding(final String discordChannelId)
 	{
+		// no-op
+	}
 
+	@Override
+	public void processGameChat(final org.bukkit.entity.Player player, final String rawMessage)
+	{
+		// no-op
 	}
 }

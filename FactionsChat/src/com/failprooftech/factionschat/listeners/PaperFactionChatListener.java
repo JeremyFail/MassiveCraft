@@ -138,6 +138,9 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
 
     private void deliverLegacyCancelled(AsyncChatEvent event, Player sender, ChatMode chatMode, String messagePlain, boolean colonQuick, ChatPermissions senderPerms)
     {
+        // Capture the original line before cancel so DiscordSRV can still relay (its chat listener
+        // skips cancelled events). Includes colon quick prefixes for channel routing in PreProcess.
+        final String rawForDiscord = plainSerializer.serialize(event.message());
         event.setCancelled(true);
 
         try
@@ -176,6 +179,9 @@ public class PaperFactionChatListener extends FactionChatListenerBase implements
             // Always send to console (console should see all chat messages) on the main thread
             final Component consoleMessage = formatMessageForRecipient(sender, preParsedFormat, processedMessageComponent, null, baseColor, chatMode);
             logFormattedChatToConsoleSync(consoleMessage);
+
+            // DiscordSRV never saw this chat event (cancelled); forward so PreProcess can route channels.
+            FactionsChat.instance.getDiscordSRVIntegration().processGameChat(sender, rawForDiscord);
         }
         finally
         {

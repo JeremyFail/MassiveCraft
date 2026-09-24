@@ -44,4 +44,15 @@ final class DiscordSRVIntegrationLive implements DiscordSRVIntegration
 	{
 		this.plugin.getChannels().put("staff", discordChannelId);
 	}
+
+	@Override
+	public void processGameChat(final org.bukkit.entity.Player player, final String rawMessage)
+	{
+		if (player == null || rawMessage == null)
+		{
+			return;
+		}
+		// cancelled=false: we already delivered in-game ourselves; DiscordSRV should still relay.
+		this.plugin.processChatMessage(player, rawMessage, null, false);
+	}
 }
