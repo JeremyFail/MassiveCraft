@@ -54,10 +54,21 @@ permissions:
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
-  massivecore.*:
+  massivecore.player.base.*:
     default: false
     children:
       massivecore.basecommand: true
+      massivecore.click: true
+      massivecore.version: true
+  massivecore.player.*:
+    default: false
+    children:
+      massivecore.player.base.*: true
+      massivecore.variable.book: true
+      massivecore.variable.buffer: true
+  massivecore.admin.*:
+    default: false
+    children:
       massivecore.test: true
       massivecore.id: true
       massivecore.store: true
@@ -89,31 +100,33 @@ permissions:
       massivecore.cmdurl: true
       massivecore.config: true
       massivecore.sponsor: true
-      massivecore.click: true
-      massivecore.version: true
       massivecore.notpdelay: true
-      massivecore.variable.book: true
-      massivecore.variable.buffer: true
+  massivecore.*:
+    default: false
+    children:
+      massivecore.player.*: true
+      massivecore.admin.*: true
 # -------------------------------------------- #
 # KITS
 # -------------------------------------------- #
-  massivecore.kit.operator:
+  massivecore.kit.op:
     default: op
     children:
       massivecore.*: true
+  massivecore.kit.rank4:
+    default: false
+    children:
+      massivecore.kit.rank3: true
+      massivecore.store.clean: true
+      massivecore.config: true
   massivecore.kit.rank3:
     default: false
     children:
-      massivecore.store.clean: true
       massivecore.kit.rank2: true
   massivecore.kit.rank2:
     default: false
     children:
       massivecore.kit.rank1: true
-  massivecore.kit.rank1:
-    default: false
-    children:
-      massivecore.kit.rank0: true
       massivecore.id: true
       massivecore.store: true
       massivecore.store.stats: true
@@ -132,14 +145,14 @@ permissions:
       massivecore.buffer.add: true
       massivecore.buffer.whitespace: true
       massivecore.notpdelay: true
-      massivecore.variable.book: true
-      massivecore.variable.buffer: true
+  massivecore.kit.rank1:
+    default: false
+    children:
+      massivecore.player.*: true
   massivecore.kit.rank0:
     default: false
     children:
-      massivecore.basecommand: true
-      massivecore.click: true
-      massivecore.version: true
+      massivecore.player.base.*: true
   massivecore.kit.default:
     default: true
     children:
