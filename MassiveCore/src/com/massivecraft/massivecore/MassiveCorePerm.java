@@ -9,7 +9,7 @@ public enum MassiveCorePerm implements Identified
 	// ENUM
 	// -------------------------------------------- //
 	
-	/*BASECOMMAND,
+	BASECOMMAND,
 	TEST,
 	ID,
 
@@ -20,7 +20,7 @@ public enum MassiveCorePerm implements Identified
 	STORE_CLEAN,
 	USYS,
 	USYS_MULTIVERSE,
-
+	USYS_MULTIVERSE_LIST,
 	USYS_MULTIVERSE_SHOW,
 	USYS_MULTIVERSE_NEW,
 	USYS_MULTIVERSE_DEL,
@@ -29,10 +29,6 @@ public enum MassiveCorePerm implements Identified
 	USYS_UNIVERSE_DEL,
 	USYS_UNIVERSE_CLEAR,
 	USYS_WORLD,
-	USYS_ASPECT,
-
-	USYS_ASPECT_SHOW,
-	USYS_ASPECT_USE,
 	BUFFER,
 	BUFFER_PRINT,
 	BUFFER_CLEAR,
@@ -41,14 +37,9 @@ public enum MassiveCorePerm implements Identified
 	BUFFER_WHITESPACE,
 	CMDURL,
 
-	SPONSOR,
-	CLICK,
-	NOTPDELAY,*/
-
 	CONFIG,
 	VERSION,
-	USYS_MULTIVERSE_LIST,
-	USYS_ASPECT_LIST,
+	NOTPDELAY,
 	VARIABLE_BOOK,
 	VARIABLE_BUFFER,
 	

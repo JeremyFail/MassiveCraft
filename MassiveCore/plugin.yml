@@ -31,10 +31,6 @@ permissions:
   massivecore.usys.universe.del: {description: delete universe in multiverse, default: false}
   massivecore.usys.universe.clear: {description: clear universe in multiverse, default: false}
   massivecore.usys.world: {description: set a worlds universe in a multiverse, default: false}
-  massivecore.usys.aspect: {description: manage aspects, default: false}
-  massivecore.usys.aspect.list: {description: list aspects, default: false}
-  massivecore.usys.aspect.show: {description: show aspect, default: false}
-  massivecore.usys.aspect.use: {description: set multiverse for aspect, default: false}
   massivecore.buffer: {description: use the buffer command, default: false}
   massivecore.buffer.print: {description: print buffer, default: false}
   massivecore.buffer.clear: {description: clear buffer, default: false}
@@ -43,8 +39,6 @@ permissions:
   massivecore.buffer.whitespace: {description: add whitespace to buffer, default: false}
   massivecore.cmdurl: {description: run all lines of url content, default: false}
   massivecore.config: {description: edit config, default: false}
-  massivecore.sponsor: {description: toggle sponsor message, default: false}
-  massivecore.click: {description: click, default: false}
   massivecore.version: {description: diplay plugin version, default: false}
 # misc
   massivecore.update.notify: {description: receive in-game update notices on join, default: false}
@@ -58,14 +52,13 @@ permissions:
     default: false
     children:
       massivecore.basecommand: true
-      massivecore.click: true
       massivecore.version: true
+      massivecore.variable.book: true
+      massivecore.variable.buffer: true
   massivecore.player.*:
     default: false
     children:
       massivecore.player.base.*: true
-      massivecore.variable.book: true
-      massivecore.variable.buffer: true
   massivecore.admin.*:
     default: false
     children:
@@ -87,10 +80,6 @@ permissions:
       massivecore.usys.universe.del: true
       massivecore.usys.universe.clear: true
       massivecore.usys.world: true
-      massivecore.usys.aspect: true
-      massivecore.usys.aspect.list: true
-      massivecore.usys.aspect.show: true
-      massivecore.usys.aspect.use: true
       massivecore.buffer: true
       massivecore.buffer.print: true
       massivecore.buffer.clear: true
@@ -99,7 +88,6 @@ permissions:
       massivecore.buffer.whitespace: true
       massivecore.cmdurl: true
       massivecore.config: true
-      massivecore.sponsor: true
       massivecore.notpdelay: true
   massivecore.*:
     default: false
@@ -135,9 +123,6 @@ permissions:
       massivecore.usys.multiverse: true
       massivecore.usys.multiverse.list: true
       massivecore.usys.multiverse.show: true
-      massivecore.usys.aspect: true
-      massivecore.usys.aspect.list: true
-      massivecore.usys.aspect.show: true
       massivecore.buffer: true
       massivecore.buffer.print: true
       massivecore.buffer.clear: true
