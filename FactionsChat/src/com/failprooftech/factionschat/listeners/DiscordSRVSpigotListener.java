@@ -55,7 +55,7 @@ public final class DiscordSRVSpigotListener extends DiscordSRVListenerBase
         });
     }
 
-    /** MassiveCore tags + {@code &} codes only — no Adventure / MiniMessage on Spigot. */
+    /** MassiveCore tags + {@code &} codes only - no Adventure / MiniMessage on Spigot. */
     private static String trustedConfigSnippetToLegacy(String snippet)
     {
         if (snippet == null || snippet.isEmpty())

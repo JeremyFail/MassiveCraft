@@ -2,6 +2,7 @@ package com.massivecraft.factions.entity;
 
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.Rel;
+import com.massivecraft.factions.WildTpTeleportMode;
 import com.massivecraft.factions.event.EventFactionsChunkChangeType;
 import com.massivecraft.factions.integration.map.MapStyle;
 import com.massivecraft.factions.integration.map.MapStyleDefaults;
@@ -13,6 +14,7 @@ import com.massivecraft.massivecore.command.editor.annotation.EditorType;
 import com.massivecraft.massivecore.command.editor.annotation.EditorTypeInner;
 import com.massivecraft.massivecore.command.editor.annotation.EditorVisible;
 import com.massivecraft.massivecore.command.type.TypeMillisDiff;
+import com.massivecraft.massivecore.entity.MassiveCoreMConf;
 import com.massivecraft.massivecore.store.Entity;
 import com.massivecraft.massivecore.util.MUtil;
 import com.massivecraft.massivecore.util.TimeUnit;
@@ -20,6 +22,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventPriority;
+import org.bukkit.permissions.Permissible;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +32,7 @@ import java.util.Set;
 @EditorName("config")
 public class MConf extends Entity<MConf>
 {
+	// #region META
 	// -------------------------------------------- //
 	// META
 	// -------------------------------------------- //
@@ -36,6 +40,10 @@ public class MConf extends Entity<MConf>
 	protected static transient MConf i;
 	public static MConf get() { return i; }
 	
+	// #endregion META
+
+
+	// #region OVERRIDE: ENTITY
 	// -------------------------------------------- //
 	// OVERRIDE: ENTITY
 	// -------------------------------------------- //
@@ -47,12 +55,20 @@ public class MConf extends Entity<MConf>
 		return this;
 	}
 	
+	// #endregion OVERRIDE: ENTITY
+
+
+	// #region VERSION
 	// -------------------------------------------- //
 	// VERSION
 	// -------------------------------------------- //
 	
 	public int version = 6;
 	
+	// #endregion VERSION
+
+
+	// #region COMMAND ALIASES
 	// -------------------------------------------- //
 	// COMMAND ALIASES
 	// -------------------------------------------- //
@@ -60,6 +76,10 @@ public class MConf extends Entity<MConf>
 	// Don't you want "f" as the base command alias? Simply change it here.
 	public List<String> aliasesF = MUtil.list("f");
 	
+	// #endregion COMMAND ALIASES
+
+
+	// #region WORLDS FEATURE ENABLED
 	// -------------------------------------------- //
 	// WORLDS FEATURE ENABLED
 	// -------------------------------------------- //
@@ -73,6 +93,10 @@ public class MConf extends Entity<MConf>
 	
 	public WorldExceptionSet worldsPvpRulesEnabled = new WorldExceptionSet();
 	
+	// #endregion WORLDS FEATURE ENABLED
+
+
+	// #region DERPY OVERRIDES
 	// -------------------------------------------- //
 	// DERPY OVERRIDES
 	// -------------------------------------------- //
@@ -82,6 +106,10 @@ public class MConf extends Entity<MConf>
 	// This is for other plugins/mods that use a fake player to take actions, which shouldn't be subject to our protections.
 	public Set<String> playersWhoBypassAllProtection = new MassiveSet<>();
 	
+	// #endregion DERPY OVERRIDES
+
+
+	// #region REMOVE DATA
 	// -------------------------------------------- //
 	// REMOVE DATA
 	// -------------------------------------------- //
@@ -108,6 +136,10 @@ public class MConf extends Entity<MConf>
 		2 * TimeUnit.MILLIS_PER_WEEK,  5 * TimeUnit.MILLIS_PER_DAY  // +5 days after 2 weeks
 	);
 	
+	// #endregion REMOVE DATA
+
+
+	// #region DEFAULTS
 	// -------------------------------------------- //
 	// DEFAULTS
 	// -------------------------------------------- //
@@ -119,6 +151,10 @@ public class MConf extends Entity<MConf>
 	// What power should the player start with?
 	public double defaultPlayerPower = 0.0;
 	
+	// #endregion DEFAULTS
+
+
+	// #region MOTD
 	// -------------------------------------------- //
 	// MOTD
 	// -------------------------------------------- //
@@ -134,6 +170,10 @@ public class MConf extends Entity<MConf>
 	// 5 means we delay it yet another 5 ticks.
 	public int motdDelayTicks = -1;
 
+	// #endregion MOTD
+
+
+	// #region POWER
 	// -------------------------------------------- //
 	// POWER
 	// -------------------------------------------- //
@@ -155,6 +195,10 @@ public class MConf extends Entity<MConf>
 	// NOTE: This only makes sense to set to false if your "powerMin" setting is negative.
 	public boolean canLeaveWithNegativePower = true;
 	
+	// #endregion POWER
+
+
+	// #region CORE
 	// -------------------------------------------- //
 	// CORE
 	// -------------------------------------------- //
@@ -171,6 +215,10 @@ public class MConf extends Entity<MConf>
 	public int factionNameLengthMin = 3;
 	public int factionNameLengthMax = 16;
 
+	// #endregion CORE
+
+
+	// #region SET LIMITS
 	// -------------------------------------------- //
 	// SET LIMITS
 	// -------------------------------------------- //
@@ -181,6 +229,10 @@ public class MConf extends Entity<MConf>
 	// When using fill setting of faction territory, what is the maximum chunk count allowed?
 	public int setFillMax = 1000;
 	
+	// #endregion SET LIMITS
+
+
+	// #region CLAIMS
 	// -------------------------------------------- //
 	// CLAIMS
 	// -------------------------------------------- //
@@ -232,6 +284,10 @@ public class MConf extends Entity<MConf>
 	// The max amount of worlds in which a player can have claims in.
 	public int claimedWorldsMax = -1;
 	
+	// #endregion CLAIMS
+
+
+	// #region PROTECTION
 	// -------------------------------------------- //
 	// PROTECTION
 	// -------------------------------------------- //
@@ -242,6 +298,10 @@ public class MConf extends Entity<MConf>
 	// through the denying of MPerm build
 	public boolean handlePistonProtectionThroughDenyBuild = true;
 	
+	// #endregion PROTECTION
+
+
+	// #region WARPS
 	// -------------------------------------------- //
 	// WARPS
 	// -------------------------------------------- //
@@ -278,6 +338,10 @@ public class MConf extends Entity<MConf>
 	// Choose between: LOWEST, LOW, NORMAL, HIGH, HIGHEST and MONITOR.
 	public EventPriority warpsTeleportToOnDeathPriority = EventPriority.NORMAL;
 
+	// #endregion WARPS
+
+
+	// #region TERRITORY INFO
 	// -------------------------------------------- //
 	// TERRITORY INFO
 	// -------------------------------------------- //
@@ -294,6 +358,10 @@ public class MConf extends Entity<MConf>
 
 	public boolean territoryAccessShowMessage = true;
 
+	// #endregion TERRITORY INFO
+
+
+	// #region SEE CHUNK PARTICLE
 	// -------------------------------------------- //
 	// SEE CHUNK PARTICLE
 	// -------------------------------------------- //
@@ -310,6 +378,10 @@ public class MConf extends Entity<MConf>
 	// The number of particles to spawn when seeing a chunk.
 	public int seeChunkParticleAmount = 10;
 	
+	// #endregion SEE CHUNK PARTICLE
+
+
+	// #region ASSORTED
 	// -------------------------------------------- //
 	// ASSORTED
 	// -------------------------------------------- //
@@ -359,6 +431,10 @@ public class MConf extends Entity<MConf>
 	// For reference: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/SimpleDateFormat.html
 	public String foundedDateFormat = "yyyy-MM-dd";
 
+	// #endregion ASSORTED
+
+
+	// #region DENY COMMANDS
 	// -------------------------------------------- //
 	// DENY COMMANDS
 	// -------------------------------------------- //
@@ -450,6 +526,10 @@ public class MConf extends Entity<MConf>
 		Rel.ALLY
 	);
 	
+	// #endregion DENY COMMANDS
+
+
+	// #region RELATION COLORS
 	// -------------------------------------------- //
 	// RELATION COLORS
 	// -------------------------------------------- //
@@ -469,6 +549,10 @@ public class MConf extends Entity<MConf>
 	// This one is for example applied to WarZone since that faction has the friendly fire flag set to true.
 	public ChatColor colorFriendlyFire = ChatColor.DARK_RED;
 	
+	// #endregion RELATION COLORS
+
+
+	// #region COLORS
 	// -------------------------------------------- //
 	// COLORS
 	// -------------------------------------------- //
@@ -483,6 +567,10 @@ public class MConf extends Entity<MConf>
 	// Format: "#RRGGBB" (e.g., "#00FF00" for green)
 	public String defaultFactionSecondaryColor = "#00FF00";
 
+	// #endregion COLORS
+
+
+	// #region EXPLOITS
 	// -------------------------------------------- //
 	// EXPLOITS
 	// -------------------------------------------- //
@@ -493,6 +581,10 @@ public class MConf extends Entity<MConf>
 	public boolean handleExploitEnderPearlBlockBreak = true;
 	public long enderPearlBlockBreakCooldownMillis = 1000L;
 	
+	// #endregion EXPLOITS
+
+
+	// #region UNSTUCK
 	// -------------------------------------------- //
 	// UNSTUCK
 	// -------------------------------------------- //
@@ -500,6 +592,284 @@ public class MConf extends Entity<MConf>
 	public int unstuckSeconds = 30;
 	public int unstuckChunkRadius = 10;
 
+	// #endregion UNSTUCK
+
+
+	// #region WILDERNESS TELEPORT (/f wildtp)
+	// -------------------------------------------- //
+	// WILDERNESS TELEPORT (/f wildtp)
+	// -------------------------------------------- //
+
+	/**
+	 * Master switch for /f wildtp. When false, the command refuses with a clear message.
+	 */
+	public boolean wildTpEnabled = false;
+
+	/**
+	 * World names where wildtp destination search is allowed.
+	 * If the player is elsewhere, see {@link #wildTpNonEnabledWorldBehavior}.
+	 * NOTE: If this list is empty, wildtp will be disabled for all worlds.
+	 */
+	public List<String> wildTpEnabledWorlds = new ArrayList<>();
+
+	/**
+	 * What to do when the player is not in {@link #wildTpEnabledWorlds}:
+	 * {@code deny} (refuse) the teleport, or {@code redirect} (search in 
+	 * {@link #wildTpRedirectTargetWorld} instead).
+	 */
+	public String wildTpNonEnabledWorldBehavior = "deny";
+
+	/**
+	 * World name used when {@link #wildTpNonEnabledWorldBehavior} is {@code redirect}.
+	 * The world name must be a valid (loaded) world name or the command will fail. It must also
+	 * be listed in {@link #wildTpEnabledWorlds}.
+	 */
+	public String wildTpRedirectTargetWorld = "";
+
+	/**
+	 * Destination strategy: {@code random}, {@code predefined}, or {@code hybrid}
+	 * (random tiers first, then predefined fallback). Parsed via {@link WildTpTeleportMode#parse(String)}.
+	 */
+	public String wildTpTeleportMode = "random";
+
+	/**
+	 * Minimum Chebyshev chunk distance from normal faction claims.
+	 * Default 25 exceeds half of {@code /f map} width (49 Ã¢â€ â€™ 24), so a successful
+	 * landing typically shows no other factions on the ascii map.
+	 */
+	public int wildTpMinChunksFromClaims = 25;
+
+	/**
+	 * Minimum Chebyshev chunk distance from online players in the same world.
+	 * Default 10 matches a common server view distance so players usually cannot see each other.
+	 */
+	public int wildTpMinChunksFromPlayers = 10;
+
+	/**
+	 * Minimum Chebyshev chunk distance from the world spawn chunk.
+	 */
+	public int wildTpMinChunksFromSpawn = 5;
+
+	/**
+	 * Biome names (Bukkit enum name) that must not be used as destinations.
+	 */
+	public List<String> wildTpDisallowedBiomes = new ArrayList<>();
+
+	/**
+	 * When true, require solid ground underfoot and non-solid feet/head blocks.
+	 */
+	public boolean wildTpCheckSurfaceBlock = true;
+
+	/**
+	 * When true, reject water (and similar) landings.
+	 */
+	public boolean wildTpAvoidWater = true;
+
+	/**
+	 * Stand-still teleport delay in seconds (MassiveCore scheduled teleport),
+	 * used when {@link #wildTpUseMassiveCoreTpDelay} is false.
+	 */
+	public int wildTpWarmupSeconds = 5;
+
+	/**
+	 * When true, {@code /f wildtp} uses MassiveCore's permission-based teleport delay
+	 * ({@code permissionToTpdelay} / {@code massivecore.notpdelay}) instead of
+	 * {@link #wildTpWarmupSeconds}. Useful so VIP/staff delays match other teleports.
+	 * {@code /f wildtp goto} always uses MassiveCore delays.
+	 */
+	public boolean wildTpUseMassiveCoreTpDelay = false;
+
+	/**
+	 * Controls when destination search runs relative to the stand-still delay,
+	 * for {@code random} and {@code hybrid} modes only ({@code predefined} always resolves first).
+	 * <ul>
+	 *   <li>If the effective warmup is <b>at or above</b> this value: start the delay
+	 *       immediately and search during it; fail at expiry if nothing is found (delay is not extended).</li>
+	 *   <li>If warmup is <b>below</b> this value: find a destination first, then start the delay
+	 *       (classic MassiveCore resolve-then-wait). Fail immediately if none can be found.</li>
+	 * </ul>
+	 * Default 5 so a default warmup of 5 uses search-during-delay.
+	 */
+	public int wildTpSearchDuringDelayMinSeconds = 5;
+
+	/**
+	 * Cooldown after a successful wildtp, in seconds. Default 300 (5 minutes).
+	 * Applied only after success; bypassed by {@code factions.wildtp.bypass.cooldown}.
+	 */
+	public int wildTpCooldownSeconds = 300;
+
+	/**
+	 * When true, charge {@link #wildTpCostAmount} after a successful teleport
+	 * (same payer rules as other Factions costs via {@code bankFactionPaysCosts}).
+	 */
+	public boolean wildTpCostEnabled = false;
+
+	/**
+	 * Economy cost charged after success when {@link #wildTpCostEnabled} is true.
+	 */
+	public double wildTpCostAmount = 0D;
+
+	/**
+	 * Hard cap on destination attempts per /f wildtp use (shared across cache/random/claim-edge).
+	 * Each attempt may load a chunk and run validation on the main thread.
+	 * 64 fills roughly two seconds of paced search (engine batches ~8 attempts every 5 ticks)
+	 * inside a default 5s delay without unbounded lag; lower on weak Spigot hosts if needed,
+	 * raise on open maps if success rate is poor.
+	 */
+	public int wildTpMaxAttempts = 64;
+
+	/**
+	 * Operator-defined named locations used by {@code predefined} mode and {@code hybrid} fallback.
+	 * Prefer {@code /f wildtp add|edit|remove} over raw config editing for this list.
+	 */
+	@EditorVisible(false)
+	public List<WildTpPredefinedLocation> wildTpPredefinedLocations = new ArrayList<>();
+
+	/**
+	 * Default chunk radius written when an admin runs {@code /f wildtp add} without a radius arg.
+	 */
+	public int wildTpPredefinedDefaultRadiusNoPlayerClaims = 25;
+
+	/**
+	 * How predefined locations enforce {@link WildTpPredefinedLocation#radiusNoPlayerClaims}:
+	 * {@code strict} (reject any with disallowed claims in radius) or
+	 * {@code soft} (prefer clear; allow non-clear only when no clear location remains).
+	 */
+	public String wildTpPredefinedRadiusEnforcement = "strict";
+
+	/**
+	 * Max previously validated wilderness spots retained per world (runtime only).
+	 */
+	public int wildTpLocationCacheSizePerWorld = 16;
+
+	// #endregion WILDERNESS TELEPORT (/f wildtp)
+
+
+	// #region WILDERNESS TELEPORT HELPERS
+	// -------------------------------------------- //
+	// WILDERNESS TELEPORT HELPERS
+	// -------------------------------------------- //
+
+	/**
+	 * @return parsed wildtp mode (never null); unknown config values fall back to {@link WildTpTeleportMode#RANDOM}
+	 */
+	public WildTpTeleportMode getWildTpTeleportMode()
+	{
+		return WildTpTeleportMode.parse(this.wildTpTeleportMode);
+	}
+
+	/**
+	 * @return normalized wildtp mode id string (never null); unknown values fall back to {@code random}
+	 */
+	public String getWildTpTeleportModeNormalized()
+	{
+		return this.getWildTpTeleportMode().getId();
+	}
+
+	/**
+	 * @return true when mode is {@code random}
+	 */
+	public boolean isWildTpModeRandom()
+	{
+		return this.getWildTpTeleportMode() == WildTpTeleportMode.RANDOM;
+	}
+
+	/**
+	 * @return true when mode is {@code predefined}
+	 */
+	public boolean isWildTpModePredefined()
+	{
+		return this.getWildTpTeleportMode() == WildTpTeleportMode.PREDEFINED;
+	}
+
+	/**
+	 * @return true when mode is {@code hybrid}
+	 */
+	public boolean isWildTpModeHybrid()
+	{
+		return this.getWildTpTeleportMode() == WildTpTeleportMode.HYBRID;
+	}
+
+	/**
+	 * @return true when predefined locations are used ({@code predefined} or {@code hybrid})
+	 */
+	public boolean isWildTpModeUsingPredefined()
+	{
+		return this.getWildTpTeleportMode().usesPredefined();
+	}
+
+	/**
+	 * @return true when predefined radius enforcement is {@code soft}
+	 */
+	public boolean isWildTpPredefinedRadiusSoft()
+	{
+		return this.wildTpPredefinedRadiusEnforcement != null
+			&& "soft".equalsIgnoreCase(this.wildTpPredefinedRadiusEnforcement.trim());
+	}
+
+	/**
+	 * @return true when predefined radius enforcement is strict (default if unset/unknown)
+	 */
+	public boolean isWildTpPredefinedRadiusStrict()
+	{
+		return !this.isWildTpPredefinedRadiusSoft();
+	}
+
+	/**
+	 * @return true when players outside enabled worlds should be redirected
+	 */
+	public boolean isWildTpNonEnabledWorldRedirect()
+	{
+		return this.wildTpNonEnabledWorldBehavior != null
+			&& "redirect".equalsIgnoreCase(this.wildTpNonEnabledWorldBehavior.trim());
+	}
+
+	/**
+	 * Effective stand-still delay for {@code /f wildtp} for this permissible.
+	 * Uses MassiveCore permission delays when {@link #wildTpUseMassiveCoreTpDelay} is true.
+	 *
+	 * @param permissible player/sender used for permission delay lookup
+	 * @return delay in seconds (never negative)
+	 */
+	public int getWildTpWarmupSeconds(Permissible permissible)
+	{
+		if (this.wildTpUseMassiveCoreTpDelay)
+		{
+			return Math.max(0, MassiveCoreMConf.get().getTpdelay(permissible));
+		}
+		return Math.max(0, this.wildTpWarmupSeconds);
+	}
+
+	/**
+	 * Whether search should run during the stand-still delay for the given warmup and current mode.
+	 * Predefined mode always resolves before the delay.
+	 *
+	 * @param warmupSeconds effective warmup for this teleport
+	 * @return true to start delay immediately and search during it
+	 */
+	public boolean isWildTpSearchDuringDelay(int warmupSeconds)
+	{
+		if (this.isWildTpModePredefined()) return false;
+		int warmup = Math.max(0, warmupSeconds);
+		int threshold = Math.max(0, this.wildTpSearchDuringDelayMinSeconds);
+		return warmup >= threshold;
+	}
+
+	/**
+	 * Whether search should run during the stand-still delay using configured {@link #wildTpWarmupSeconds}.
+	 * Prefer {@link #isWildTpSearchDuringDelay(int)} when the effective warmup may differ per player.
+	 *
+	 * @return true to start delay immediately and search during it
+	 */
+	public boolean isWildTpSearchDuringDelay()
+	{
+		return this.isWildTpSearchDuringDelay(this.wildTpWarmupSeconds);
+	}
+
+	// #endregion WILDERNESS TELEPORT HELPERS
+
+
+	// #region ENDER PEARL AND CHORUS FRUIT
 	// -------------------------------------------- //
 	// ENDER PEARL AND CHORUS FRUIT
 	// -------------------------------------------- //
@@ -514,6 +884,10 @@ public class MConf extends Entity<MConf>
 	public boolean allowChorusFruitInOwnTerritory = true;
 	public boolean allowChorusFruitInOtherTerritory = true;
 
+	// #endregion ENDER PEARL AND CHORUS FRUIT
+
+
+	// #region LOGGING
 	// -------------------------------------------- //
 	// LOGGING
 	// -------------------------------------------- //
@@ -528,6 +902,10 @@ public class MConf extends Entity<MConf>
 	public boolean logLandClaims = true;
 	public boolean logMoneyTransactions = true;
 
+	// #endregion LOGGING
+
+
+	// #region TAX
 	// -------------------------------------------- //
 	// TAX
 	// -------------------------------------------- //
@@ -557,6 +935,10 @@ public class MConf extends Entity<MConf>
 	// How often should the task be run?
 	public long taxTaskPeriodMillis = TimeUnit.MILLIS_PER_DAY;
 
+	// #endregion TAX
+
+
+	// #region RANKS
 	// -------------------------------------------- //
 	// RANKS
 	// -------------------------------------------- //
@@ -569,6 +951,10 @@ public class MConf extends Entity<MConf>
 		new Rank("Recruit", 100, "-")
 	);
 
+	// #endregion RANKS
+
+
+	// #region PERMISSIONS
 	// -------------------------------------------- //
 	// PERMISSIONS
 	// -------------------------------------------- //
@@ -610,6 +996,10 @@ public class MConf extends Entity<MConf>
 		MPerm.ID_PERMS, MUtil.set("LEADER")
 	);
 	
+	// #endregion PERMISSIONS
+
+
+	// #region ENUMERATIONS
 	// -------------------------------------------- //
 	// ENUMERATIONS
 	// -------------------------------------------- //
@@ -677,6 +1067,10 @@ public class MConf extends Entity<MConf>
 	// List of entities considered to be animals.
 	public BackstringSet<EntityType> entityTypesAnimals = new BackstringSet<>(EntityType.class);
 
+	// #endregion ENUMERATIONS
+
+
+	// #region INTEGRATION: PLACEHOLDERAPI - TERRITORY MAP (%factions_faction_map_row_N%)
 	// -------------------------------------------- //
 	// INTEGRATION: PLACEHOLDERAPI - TERRITORY MAP (%factions_faction_map_row_N%)
 	// -------------------------------------------- //
@@ -686,7 +1080,7 @@ public class MConf extends Entity<MConf>
 	public int placeholderMapWidth = 9;
 	public int placeholderMapHeight = 9;
 	
-	// Legacy § color code for each map cell (one character: 0-9, a-f).
+	// Legacy Ã‚Â§ color code for each map cell (one character: 0-9, a-f).
 	public String placeholderMapColorWilderness = "8";
 	public String placeholderMapColorSafezone = "6";
 	public String placeholderMapColorWarzone = "c";
@@ -697,6 +1091,10 @@ public class MConf extends Entity<MConf>
 	public String placeholderMapColorPlayerFaction = "a";
 	public String placeholderMapColorYou = "e";
 
+	// #endregion INTEGRATION: PLACEHOLDERAPI - TERRITORY MAP (%factions_faction_map_row_N%)
+
+
+	// #region INTEGRATION: LWC
 	// -------------------------------------------- //
 	// INTEGRATION: LWC
 	// -------------------------------------------- //
@@ -719,6 +1117,10 @@ public class MConf extends Entity<MConf>
 		EventFactionsChunkChangeType.PILLAGE, false // when unclaiming (to wilderness) from another player faction
 	);
 	
+	// #endregion INTEGRATION: LWC
+
+
+	// #region INTEGRATION: WorldGuard
 	// -------------------------------------------- //
 	// INTEGRATION: WorldGuard
 	// -------------------------------------------- //
@@ -730,6 +1132,10 @@ public class MConf extends Entity<MConf>
 	// Specify which worlds the WorldGuard Check can be used in
 	public WorldExceptionSet worldguardCheckWorldsEnabled = new WorldExceptionSet();
 
+	// #endregion INTEGRATION: WorldGuard
+
+
+	// #region INTEGRATION: ECONOMY
 	// -------------------------------------------- //
 	// INTEGRATION: ECONOMY
 	// -------------------------------------------- //
@@ -801,6 +1207,10 @@ public class MConf extends Entity<MConf>
 	// WARNING: Once you have converted to the new money system there is no going back!
 	public boolean useNewMoneySystem = false;
 
+	// #endregion INTEGRATION: ECONOMY
+
+
+	// #region INTEGRATION: MAP PLUGINS (Dynmap, BlueMap, etc.)
 	// -------------------------------------------- //
 	// INTEGRATION: MAP PLUGINS (Dynmap, BlueMap, etc.)
 	// -------------------------------------------- //
@@ -961,5 +1371,7 @@ public class MConf extends Entity<MConf>
 	// Optional default fill color override. If null/empty, uses defaultFactionPrimaryColor.
 	// Format: "#RRGGBB"
 	public String mapDefaultFillColor = null;
+
+	// #endregion INTEGRATION: MAP PLUGINS (Dynmap, BlueMap, etc.)
 
 }

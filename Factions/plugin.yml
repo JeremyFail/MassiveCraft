@@ -148,6 +148,14 @@ permissions:
   factions.warp.add: {description: add new warp, default: false}
   factions.warp.remove: {description: remove warp, default: false}
   factions.unstuck: {description: teleport to nearest wilderness, default: false}
+  factions.wildtp.use: {description: use wilderness teleport, default: false}
+  factions.wildtp.add: {description: add a predefined wilderness teleport location, default: false}
+  factions.wildtp.edit: {description: edit a predefined wilderness teleport location, default: false}
+  factions.wildtp.remove: {description: remove a predefined wilderness teleport location, default: false}
+  factions.wildtp.list: {description: list predefined wilderness teleport locations, default: false}
+  factions.wildtp.list.teleport: {description: click-teleport to a listed wilderness teleport location, default: false}
+  factions.wildtp.bypass.cooldown: {description: bypass wilderness teleport cooldown, default: false}
+  factions.wildtp.bypass.cost: {description: bypass wilderness teleport economy cost, default: false}
   factions.config: {description: edit the factions config, default: false}
   factions.clean: {description: clean the factions database, default: false}
   factions.version: {description: see plugin version, default: false}
@@ -300,6 +308,12 @@ permissions:
       factions.warp.list: true
       factions.warp.add: true
       factions.warp.remove: true
+      factions.wildtp.use: true
+      factions.wildtp.add: true
+      factions.wildtp.edit: true
+      factions.wildtp.remove: true
+      factions.wildtp.list: true
+      factions.wildtp.list.teleport: true
       factions.config: true
       factions.clean: true
       factions.version: true
@@ -335,6 +349,11 @@ permissions:
       factions.access.any: true
       factions.fly.other: true
       factions.setpower: true
+      factions.wildtp.add: true
+      factions.wildtp.edit: true
+      factions.wildtp.remove: true
+      factions.wildtp.list: true
+      factions.wildtp.list.teleport: true
   factions.kit.rank1:
     default: false
     children:
@@ -379,6 +398,7 @@ permissions:
       factions.documentation.perms: true
       factions.documentation.power: true
       factions.documentation.ranks: true
+      factions.documentation.tax: true
       factions.documentation.warps: true
       factions.expansions: true
       factions.faction: true
@@ -471,6 +491,7 @@ permissions:
       factions.warp.list: true
       factions.warp.add: true
       factions.warp.remove: true
+      factions.wildtp.use: true
       factions.version: true
   factions.kit.default:
     default: true

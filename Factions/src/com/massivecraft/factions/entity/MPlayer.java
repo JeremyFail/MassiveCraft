@@ -71,6 +71,7 @@ public class MPlayer extends SenderEntity<MPlayer> implements FactionsParticipat
 		this.setMapAutoUpdating(that.mapAutoUpdating);
 		this.setOverriding(that.overriding);
 		this.setTerritoryInfoTitles(that.territoryInfoTitles);
+		this.setWildTpLastMillis(that.wildTpLastMillis);
 
 		return this;
 	}
@@ -91,6 +92,7 @@ public class MPlayer extends SenderEntity<MPlayer> implements FactionsParticipat
 		// if (this.isMapAutoUpdating()) return false; // Just having an auto updating map is not in itself reason enough for database storage.
 		if (this.isOverriding()) return false;
 		if (this.isTerritoryInfoTitles() != MConf.get().territoryInfoTitlesDefault) return false;
+		if (this.getWildTpCooldownRemainingMillis() > 0L) return false;
 
 		return true;
 	}
@@ -139,6 +141,9 @@ public class MPlayer extends SenderEntity<MPlayer> implements FactionsParticipat
 	// Server owners clear those files at times, or move their database data around between different servers.
 	private long lastActivityMillis = System.currentTimeMillis();
 
+	/** Epoch millis of the player's last successful wildtp; 0 means none. */
+	private long wildTpLastMillis = 0L;
+
 	// This is a foreign key.
 	// Each player belong to a faction.
 	// Null means default.
@@ -154,7 +159,7 @@ public class MPlayer extends SenderEntity<MPlayer> implements FactionsParticipat
 	//
 	// Question: Can the title contain chat colors?
 	// Answer: Yes but in such case the policy is that they already must be parsed using Txt.parse.
-	// If the title contains raw markup, such as "<white>" instead of "§f" it will not be parsed and "<white>" will be displayed.
+	// If the title contains raw markup, such as "<white>" instead of "Â§f" it will not be parsed and "<white>" will be displayed.
 	//
 	// Null means the player has no title.
 	private String title = null;
@@ -237,7 +242,45 @@ public class MPlayer extends SenderEntity<MPlayer> implements FactionsParticipat
 	{
 		this.setLastActivityMillis(System.currentTimeMillis());
 	}
-	
+
+	// -------------------------------------------- //
+	// FIELD: wildTpLastMillis
+	// -------------------------------------------- //
+
+	/**
+	 * Returns when the player last completed a wildtp.
+	 *
+	 * @return epoch millis of last wildtp (0 if never)
+	 */
+	public long getWildTpLastMillis()
+	{
+		return this.wildTpLastMillis;
+	}
+
+	/**
+	 * Sets last successful wildtp time. Persists via MPlayer Coll.
+	 *
+	 * @param wildTpLastMillis epoch millis of the teleport
+	 */
+	public void setWildTpLastMillis(long wildTpLastMillis)
+	{
+		this.wildTpLastMillis = convertSet(wildTpLastMillis, this.wildTpLastMillis, null);
+	}
+
+	/**
+	 * Remaining cooldown under the current {@link MConf#wildTpCooldownSeconds}.
+	 *
+	 * @return millis still remaining, or 0 if ready / cooldown disabled / never used
+	 */
+	public long getWildTpCooldownRemainingMillis()
+	{
+		if (this.wildTpLastMillis <= 0L) return 0L;
+		int seconds = MConf.get().wildTpCooldownSeconds;
+		if (seconds <= 0) return 0L;
+		long until = this.wildTpLastMillis + seconds * 1000L;
+		return Math.max(0L, until - System.currentTimeMillis());
+	}
+
 	@Override
 	public boolean shouldBeCleaned(long now)
 	{

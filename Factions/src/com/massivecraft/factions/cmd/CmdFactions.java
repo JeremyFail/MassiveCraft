@@ -60,6 +60,7 @@ public class CmdFactions extends FactionsCommand
 	public CmdFactionsFlag cmdFactionsFlag = new CmdFactionsFlag();
 	public CmdFactionsFly cmdFactionsFly = new CmdFactionsFly();
 	public CmdFactionsUnstuck cmdFactionsUnstuck = new CmdFactionsUnstuck();
+	public CmdFactionsWildtp cmdFactionsWildtp = new CmdFactionsWildtp();
 	public CmdFactionsOverride cmdFactionsOverride = new CmdFactionsOverride();
 	public CmdFactionsDisband cmdFactionsDisband = new CmdFactionsDisband();
 	public CmdFactionsPowerboost cmdFactionsPowerBoost = new CmdFactionsPowerboost();

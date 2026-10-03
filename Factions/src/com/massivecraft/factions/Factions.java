@@ -31,6 +31,7 @@ import com.massivecraft.factions.engine.EngineShow;
 import com.massivecraft.factions.engine.EngineTeleportHomeOnDeath;
 import com.massivecraft.factions.engine.EngineTerritoryShield;
 import com.massivecraft.factions.engine.EngineVisualizations;
+import com.massivecraft.factions.engine.EngineWildtp;
 import com.massivecraft.factions.entity.Board;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.FactionColl;
@@ -242,7 +243,8 @@ public class Factions extends MassivePlugin
 			EngineTeleportHomeOnDeath.class,
 			EngineTerritoryShield.class,
 			EngineVisualizations.class,
-			EngineEcon.class
+			EngineEcon.class,
+			EngineWildtp.class
 		);
 	}
 

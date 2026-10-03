@@ -49,6 +49,16 @@ public enum Perm implements Identified
 	FLAG_MANAGE_BYPASS,
 	FLAG_VIEW,
 
+	// Wildtp (explicit nodes - not auto-derived from CmdFactionsWildtp alone)
+	WILDTP_USE,
+	WILDTP_ADD,
+	WILDTP_EDIT,
+	WILDTP_REMOVE,
+	WILDTP_LIST,
+	WILDTP_LIST_TELEPORT,
+	WILDTP_BYPASS_COOLDOWN,
+	WILDTP_BYPASS_COST,
+
 	// These are just here to tell the system that it is seechunk rather than see.chunk
 	SEECHUNK,
 	
