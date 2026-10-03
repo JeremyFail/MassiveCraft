@@ -30,12 +30,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Utility class for book-related operations.
+ */
 public class BookUtil
 {
 	// -------------------------------------------- //
 	// BOOK META
 	// -------------------------------------------- //
 	
+	/**
+	 * Check if the item has book meta.
+	 * 
+	 * @param item The item to check.
+	 * @return True if the item has book meta, false otherwise.
+	 */
 	public static boolean hasBookMeta(ItemStack item)
 	{
 		if (item == null) return false;
@@ -45,6 +54,12 @@ public class BookUtil
 		return false;
 	}
 	
+	/**
+	 * Get the book meta for the item.
+	 * 
+	 * @param item The item to get the book meta for.
+	 * @return The book meta for the item, or null if the item has no book meta.
+	 */
 	public static BookMeta getBookMeta(ItemStack item)
 	{
 		if (item == null) return null;
@@ -53,6 +68,12 @@ public class BookUtil
 		return (BookMeta) meta;
 	}
 	
+	/**
+	 * Check if the book meta is empty.
+	 * 
+	 * @param item The item to check.
+	 * @return True if the book meta is empty, false otherwise.
+	 */
 	public static boolean isBookMetaEmpty(ItemStack item)
 	{
 		if (item == null) return true;
@@ -60,6 +81,12 @@ public class BookUtil
 		return isBookMetaEmpty(meta);
 	}
 	
+	/**
+	 * Check if the book meta is empty.
+	 * 
+	 * @param meta The book meta to check.
+	 * @return True if the book meta is empty, false otherwise.
+	 */
 	public static boolean isBookMetaEmpty(BookMeta meta)
 	{
 		if (meta == null) return true;
@@ -73,9 +100,17 @@ public class BookUtil
 	// BOOK METADATA (PDC): bookId, bookType
 	// -------------------------------------------- //
 
+	/** The key for the book ID in the item PDC. */
 	private static NamespacedKey keyBookId() { return new NamespacedKey(MassiveBooks.get(), "book_id"); }
+	/** The key for the book type in the item PDC. */
 	private static NamespacedKey keyBookType() { return new NamespacedKey(MassiveBooks.get(), "book_type"); }
 
+	/**
+	 * Get the book ID for the item.
+	 * 
+	 * @param item The item to get the book ID for.
+	 * @return The book ID for the item, or null if the item has no book ID.
+	 */
 	public static UUID getBookId(ItemStack item)
 	{
 		if (item == null || !item.hasItemMeta()) return null;
@@ -86,6 +121,12 @@ public class BookUtil
 		try { return UUID.fromString(s); } catch (IllegalArgumentException e) { return null; }
 	}
 
+	/**
+	 * Set the book ID for the item.
+	 * 
+	 * @param item The item to set the book ID for.
+	 * @param bookId The book ID to set.
+	 */
 	public static void setBookId(ItemStack item, UUID bookId)
 	{
 		if (item == null) return;
@@ -95,6 +136,12 @@ public class BookUtil
 		item.setItemMeta(meta);
 	}
 
+	/**
+	 * Get the book type for the item.
+	 * 
+	 * @param item The item to get the book type for.
+	 * @return The book type for the item, or null if the item has no book type.
+	 */
 	public static BookType getBookType(ItemStack item)
 	{
 		if (item == null || !item.hasItemMeta()) return null;
@@ -105,6 +152,12 @@ public class BookUtil
 		try { return BookType.valueOf(s); } catch (IllegalArgumentException e) { return null; }
 	}
 
+	/**
+	 * Set the book type for the item.
+	 * 
+	 * @param item The item to set the book type for.
+	 * @param type The book type to set.
+	 */
 	public static void setBookType(ItemStack item, BookType type)
 	{
 		if (item == null) return;
@@ -114,7 +167,11 @@ public class BookUtil
 		item.setItemMeta(meta);
 	}
 
-	/** Remove bookId and bookType from item PDC (e.g. so they are not stored in MBook template). */
+	/** 
+	 * Remove bookId and bookType from item PDC (e.g. so they are not stored in MBook template).
+	 * 
+	 * @param item The item to remove the book metadata from.
+	 */
 	public static void removeBookMetadata(ItemStack item)
 	{
 		if (item == null || !item.hasItemMeta()) return;
@@ -124,7 +181,10 @@ public class BookUtil
 		item.setItemMeta(meta);
 	}
 
-	/** Remove the book-type lore line (e.g. "Server Book") from the item. Call while item still has bookType set so we know which line to remove. Does not touch copyrighted. */
+	/** Remove the book-type lore line (e.g. "Server Book") from the item. Call while item still has bookType set so we know which line to remove. Does not touch copyrighted.
+	 * 
+	 * @param item The item to remove the book type lore line from.
+	 */
 	public static void removeBookTypeLoreLine(ItemStack item)
 	{
 		if (item == null) return;
@@ -148,7 +208,12 @@ public class BookUtil
 		}
 	}
 
-	/** Clear server-book identity from item when the saved book was deleted (bookId, bookType, type lore). Keeps copyrighted status. */
+	/** 
+	 * Clear server-book identity from item when the saved book was deleted 
+	 * (bookId, bookType, type lore). Keeps copyrighted status.
+	 * 
+	 * @param item The item to clear the serverbook metadata from.
+	 */
 	public static void clearServerbookMetadataFromItem(ItemStack item)
 	{
 		if (item == null) return;
@@ -161,9 +226,17 @@ public class BookUtil
 	// UNLOCK TITLE/AUTHOR (PDC) – writable books don't support title/author in BookMeta
 	// -------------------------------------------- //
 
+	/** The key for the unlock title in the item PDC. */
 	private static NamespacedKey keyUnlockTitle() { return new NamespacedKey(MassiveBooks.get(), "unlock_title"); }
+	/** The key for the unlock author in the item PDC. */
 	private static NamespacedKey keyUnlockAuthor() { return new NamespacedKey(MassiveBooks.get(), "unlock_author"); }
 
+	/**
+	 * Get the unlock title for the item.
+	 * 
+	 * @param item The item to get the unlock title for.
+	 * @return The unlock title for the item, or null if the item has no unlock title.
+	 */
 	public static String getUnlockTitle(ItemStack item)
 	{
 		if (item == null || !item.hasItemMeta()) return null;
@@ -174,6 +247,12 @@ public class BookUtil
 		return meta.getPersistentDataContainer().get(keyUnlockTitle(), PersistentDataType.STRING);
 	}
 
+	/**
+	 * Get the unlock author for the item.
+	 * 
+	 * @param item The item to get the unlock author for.
+	 * @return The unlock author for the item, or null if the item has no unlock author.
+	 */
 	public static String getUnlockAuthor(ItemStack item)
 	{
 		if (item == null || !item.hasItemMeta()) return null;
@@ -184,6 +263,13 @@ public class BookUtil
 		return meta.getPersistentDataContainer().get(keyUnlockAuthor(), PersistentDataType.STRING);
 	}
 
+	/**
+	 * Set the unlock title and author for the item.
+	 * 
+	 * @param item The item to set the unlock title and author for.
+	 * @param title The title to set.
+	 * @param author The author to set.
+	 */
 	private static void setUnlockTitleAuthor(ItemStack item, String title, String author)
 	{
 		if (item == null) return;
@@ -211,6 +297,11 @@ public class BookUtil
 		item.setItemMeta(meta);
 	}
 
+	/**
+	 * Clear the unlock title and author from the item.
+	 * 
+	 * @param item The item to clear the unlock title and author from.
+	 */
 	private static void clearUnlockTitleAuthor(ItemStack item)
 	{
 		if (item == null || !item.hasItemMeta()) return;
@@ -221,12 +312,23 @@ public class BookUtil
 		item.setItemMeta(meta);
 	}
 
+	/**
+	 * Check if the item is a server book.
+	 * 
+	 * @param item The item to check if it is a server book.
+	 * @return True if the item is a server book, false otherwise.
+	 */
 	public static boolean isServerBook(ItemStack item)
 	{
 		return getBookType(item) == BookType.SERVER_BOOK;
 	}
 
-	/** If showBookTypeAsLore is enabled, append the type's friendly name as a lore line (not saved in book data). Removes any existing type line first. */
+	/** 
+	 * If showBookTypeAsLore is enabled, append the type's friendly name as a lore line (not saved in book data). 
+	 * Removes any existing type line first.
+	 * 
+	 * @param item The item to apply the book type lore to.
+	 */
 	public static void applyBookTypeLore(ItemStack item)
 	{
 		if (item == null) return;
@@ -250,7 +352,14 @@ public class BookUtil
 		InventoryUtil.setLore(item, lore);
 	}
 
-	/** Apply MBook identity and display to a book item (bookId, bookType, copyrighted, display name, type lore). Use when giving/loading or after setting content from an MBook. */
+	/** 
+	 * Apply MBook identity and display to a book item 
+	 * (bookId, bookType, copyrighted, display name, type lore). 
+	 * Use when giving/loading or after setting content from an MBook.
+	 * 
+	 * @param item The item to apply the metadata to.
+	 * @param mbook The MBook to apply the metadata from.
+	 */
 	public static void applyMBookMetadata(ItemStack item, MBook mbook)
 	{
 		if (item == null || mbook == null) return;
@@ -272,14 +381,22 @@ public class BookUtil
 	// UPDATE BOOKS
 	// -------------------------------------------- //
 	
-	// Many books
-	
+	/**
+	 * Update all books in the player's inventory.
+	 * 
+	 * @param player The player to update the books for.
+	 */
 	public static void updateBooks(HumanEntity player)
 	{
 		if (player == null) return;
 		updateBooks(player.getInventory());
 	}
 	
+	/**
+	 * Update all books in the inventory.
+	 * 
+	 * @param inventory The inventory to update the books in.
+	 */
 	public static void updateBooks(Inventory inventory)
 	{
 		if (inventory == null) return;
@@ -312,25 +429,47 @@ public class BookUtil
 		if (update) sendInventoryContentToViewersSoon(inventory);
 	}
 	
-	// One Book
-	
+	/**
+	 * Update a single book in an item frame by ID first, then display name.
+	 * 
+	 * @param itemFrame The item frame to update.
+	 */
 	public static void updateBook(ItemFrame itemFrame)
 	{
 		ItemStack item = itemFrame.getItem();
 		if (updateBook(item, null)) itemFrame.setItem(item);
 	}
 	
+	/**
+	 * Update a single book by ID first, then display name.
+	 * 
+	 * @param item The item to update.
+	 * @param viewer The viewer to apply the content to.
+	 */
 	public static void updateBook(Item item, Player viewer)
 	{
 		ItemStack stack = item.getItemStack();
 		if (updateBook(stack, viewer)) item.setItemStack(stack);
 	}
 	
+	/**
+	 * Update a single book by ID first, then display name.
+	 * 
+	 * @param item The item to update.
+	 * @return True if the book was updated, false otherwise.
+	 */
 	public static boolean updateBook(ItemStack item)
 	{
 		return updateBook(item, null);
 	}
 	
+	/**
+	 * Update the book by ID first, then display name.
+	 * 
+	 * @param item The item to update.
+	 * @param viewer The viewer to apply the content to.
+	 * @return True if the book was updated, false otherwise.
+	 */
 	public static boolean updateBook(ItemStack item, Player viewer)
 	{
 		if (item == null) return false;
@@ -339,8 +478,13 @@ public class BookUtil
 		return updateDisplayName(item);
 	}
 
-	// Saved (server books): by ID first, then legacy by title
-
+	/**
+	 * Update the serverbook by ID first, then legacy by title.
+	 * 
+	 * @param item The item to update.
+	 * @param viewer The viewer to apply the content to.
+	 * @return True if the serverbook was updated, false otherwise.
+	 */
 	public static boolean updateServerbook(ItemStack item, Player viewer)
 	{
 		if (!MConf.get().autoupdatingServerbooks) return false;
@@ -365,7 +509,13 @@ public class BookUtil
 		return updateServerbookLegacy(item, viewer);
 	}
 
-	/** Legacy serverbook update by title. Remove when dropping support for old-format books. */
+	/** 
+	 * Legacy serverbook update by title. Remove when dropping support for old-format books.
+	 * 
+	 * @param item The item to update.
+	 * @param viewer The viewer to apply the content to.
+	 * @return True if the serverbook was updated, false otherwise.
+	 */
 	public static boolean updateServerbookLegacy(ItemStack item, Player viewer)
 	{
 		String title = getTitle(item);
@@ -384,7 +534,14 @@ public class BookUtil
 		return true;
 	}
 
-	/** Apply saved serverbook content to item (content + bookId/bookType + display name + type lore). */
+	/**
+	 * Apply saved serverbook content to item 
+	 * (content + bookId/bookType + display name + type lore).
+	 * 
+	 * @param item The item to apply the content to.
+	 * @param mbook The MBook to apply the content from.
+	 * @param viewer The viewer to apply the content to.
+	 */
 	public static void applyServerbookContent(ItemStack item, MBook mbook, Player viewer)
 	{
 		ItemStack blueprint = mbook.getItem();
@@ -401,7 +558,12 @@ public class BookUtil
 		applyMBookMetadata(item, mbook);
 	}
 
-	/** If item is a legacy serverbook (title matches saved, no bookId), upgrade it in place to new format and apply latest content. Used when loading from item frame. */
+	/**
+	 * Upgrade a legacy serverbook to the new format and apply the latest content.
+	 * 
+	 * @param item The item to upgrade.
+	 * @param viewer The viewer to apply the content to.
+	 */
 	public static void upgradeLegacyServerbook(ItemStack item, Player viewer)
 	{
 		if (item == null || !hasBookMeta(item)) return;
@@ -409,8 +571,12 @@ public class BookUtil
 		updateServerbookLegacy(item, viewer);
 	}
 	
-	// DisplayName
-	
+	/**
+	 * Update the item's display name.
+	 * 
+	 * @param item The item to update the display name of.
+	 * @return True if the item's display name was updated, false otherwise.
+	 */
 	public static boolean updateDisplayName(ItemStack item)
 	{
 		if (!MConf.get().autoupdatingDisplayNames) return false;
@@ -420,6 +586,13 @@ public class BookUtil
 		return setDisplayName(item, targetDisplayname);
 	}
 	
+	/**
+	 * Set the item's display name to the given display name.
+	 * 
+	 * @param item The item to set the display name of.
+	 * @param targetDisplayName The display name to set.
+	 * @return True if the item's display name was set, false otherwise.
+	 */
 	public static boolean setDisplayName(ItemStack item, String targetDisplayName)
 	{
 		if (item == null || targetDisplayName == null) return false;
@@ -433,7 +606,11 @@ public class BookUtil
 	}
 	
 	// The awesomest trick to force-update-clients :O
-	
+	/**
+	 * Send the inventory content to the viewers soon.
+	 * 
+	 * @param inventory The inventory to send the content to.
+	 */
 	public static void sendInventoryContentToViewersSoon(Inventory inventory)
 	{
 		final Set<Player> players = new HashSet<>();
@@ -456,6 +633,12 @@ public class BookUtil
 	// TITLE
 	// -------------------------------------------- //
 	
+	/**
+	 * Get the item's title.
+	 * 
+	 * @param item The item to get the title of.
+	 * @return The item's title, or null if the item has no title.
+	 */
 	public static String getTitle(ItemStack item)
 	{
 		BookMeta meta = getBookMeta(item);
@@ -465,6 +648,12 @@ public class BookUtil
 		return null;
 	}
 	
+	/**
+	 * Set the item's title to the given title.
+	 * 
+	 * @param item The item to set the title of.
+	 * @param title The title to set.
+	 */
 	public static void setTitle(ItemStack item, String title)
 	{
 		BookMeta meta = getBookMeta(item);
@@ -477,6 +666,13 @@ public class BookUtil
 		updateBook(item);
 	}
 	
+	/**
+	 * Check if the item's title is equal to the given title.
+	 * 
+	 * @param item The item to check the title of.
+	 * @param title The title to check against.
+	 * @return True if the item's title is equal to the given title, false otherwise.
+	 */
 	public static boolean isTitleEquals(ItemStack item, String title)
 	{
 		String actualTitle = getTitle(item);
@@ -488,6 +684,12 @@ public class BookUtil
 	// AUTHOR
 	// -------------------------------------------- //
 	
+	/**
+	 * Get the item's author.
+	 * 
+	 * @param item The item to get the author of.
+	 * @return The item's author, or null if the item has no author.
+	 */
 	public static String getAuthor(ItemStack item)
 	{
 		BookMeta meta = getBookMeta(item);
@@ -497,6 +699,12 @@ public class BookUtil
 		return null;
 	}
 	
+	/**
+	 * Set the item's author to the given author.
+	 * 
+	 * @param item The item to set the author of.
+	 * @param author The author to set.
+	 */
 	public static void setAuthor(ItemStack item, String author)
 	{
 		BookMeta meta = getBookMeta(item);
@@ -507,6 +715,13 @@ public class BookUtil
 		updateDisplayName(item);
 	}
 	
+	/**
+	 * Check if the item's author is equal to the given author.
+	 * 
+	 * @param item The item to check the author of.
+	 * @param author The author to check against.
+	 * @return True if the item's author is equal to the given author, false otherwise.
+	 */
 	public static boolean isAuthorEqualsId(ItemStack item, String author)
 	{
 		String actualAuthor = getAuthor(item);
@@ -514,6 +729,13 @@ public class BookUtil
 		return actualAuthor.equalsIgnoreCase(author);
 	}
 	
+	/**
+	 * Check if the item's author is equal to the given author.
+	 * 
+	 * @param item The item to check the author of.
+	 * @param author The author to check against.
+	 * @return True if the item's author is equal to the given author, false otherwise.
+	 */
 	public static boolean isAuthorEquals(ItemStack item, CommandSender author)
 	{
 		return isAuthorEqualsId(item, IdUtil.getName(author));
@@ -523,6 +745,12 @@ public class BookUtil
 	// PAGES
 	// -------------------------------------------- //
 	
+	/**
+	 * Get the item's pages.
+	 * 
+	 * @param item The item to get the pages of.
+	 * @return The item's pages, or null if the item has no pages.
+	 */
 	public static List<String> getPages(ItemStack item)
 	{
 		BookMeta meta = getBookMeta(item);
@@ -531,6 +759,13 @@ public class BookUtil
 		return meta.getPages();
 	}
 	
+	/**
+	 * Set the item's pages to the given pages.
+	 * 
+	 * @param item The item to set the pages of.
+	 * @param pages The pages to set.
+	 * @return True if the item's pages were set, false otherwise.
+	 */
 	public static boolean setPages(ItemStack item, List<String> pages)
 	{
 		BookMeta meta = getBookMeta(item);
@@ -543,6 +778,13 @@ public class BookUtil
 		return true;
 	}
 	
+	/**
+	 * Check if the item's pages are equal to the given pages.
+	 * 
+	 * @param item The item to check the pages of.
+	 * @param pages The pages to check against.
+	 * @return True if the item's pages are equal to the given pages, false otherwise.
+	 */
 	public static boolean isPagesEquals(ItemStack item, List<String> pages)
 	{
 		List<String> actualPages = getPages(item);
@@ -740,6 +982,11 @@ public class BookUtil
 	// UNLOCK & LOCK
 	// -------------------------------------------- //
 	
+	/**
+	 * Unlock the item by setting it to a writable book and removing the item meta.
+	 * 
+	 * @param item The item to unlock.
+	 */
 	public static void unlock(ItemStack item)
 	{
 		if (item == null) return;
@@ -772,6 +1019,11 @@ public class BookUtil
 		updateDisplayName(item);
 	}
 	
+	/**
+	 * Lock the item by setting it to a written book and removing the item meta.
+	 * 
+	 * @param item The item to lock.
+	 */
 	public static void lock(ItemStack item)
 	{
 		if (item == null) return;
@@ -800,12 +1052,24 @@ public class BookUtil
 		updateDisplayName(item);
 	}
 	
+	/**
+	 * Check if the item is locked.
+	 * 
+	 * @param item The item to check if it is locked.
+	 * @return True if the item is locked, false otherwise.
+	 */
 	public static boolean isLocked(ItemStack item)
 	{
 		if (item == null) return false;
 		return item.getType() == Material.WRITTEN_BOOK;
 	}
 	
+	/**
+	 * Check if the item is unlocked.
+	 * 
+	 * @param item The item to check if it is unlocked.
+	 * @return True if the item is unlocked, false otherwise.
+	 */
 	public static boolean isUnlocked(ItemStack item)
 	{
 		if (item == null) return false;
@@ -816,12 +1080,23 @@ public class BookUtil
 	// CLEAR
 	// -------------------------------------------- //
 	
+	/**
+	 * Clear the item by setting it to a writable book and removing the item meta.
+	 * 
+	 * @param item The item to clear.
+	 */
 	public static void clear(ItemStack item)
 	{
 		item.setType(Material.WRITABLE_BOOK);
 		item.setItemMeta(null);
 	}
 	
+	/**
+	 * Check if the item is cleared.
+	 * 
+	 * @param item The item to check if it is cleared.
+	 * @return True if the item is cleared, false otherwise.
+	 */
 	public static boolean isCleared(ItemStack item)
 	{
 		return item != null && item.getType() == Material.WRITABLE_BOOK && !item.hasItemMeta();
@@ -831,6 +1106,13 @@ public class BookUtil
 	// LORE-FLAGS
 	// -------------------------------------------- //
 	
+	/**
+	 * Check if the item contains a flag.
+	 * 
+	 * @param item The item to check the flag for.
+	 * @param flag The flag to check for.
+	 * @return True if the item contains the flag, false otherwise.
+	 */
 	public static boolean containsFlag(ItemStack item, String flag)
 	{
 		if (flag == null) return false;
@@ -841,6 +1123,12 @@ public class BookUtil
 		return lore != null && lore.contains(flag);
 	}
 	
+	/**
+	 * Add a flag to the item's lore.
+	 * 
+	 * @param item The item to add the flag to.
+	 * @param flag The flag to add.
+	 */
 	public static void addFlag(ItemStack item, String flag)
 	{
 		if (flag == null) return;
@@ -859,6 +1147,12 @@ public class BookUtil
 		updateDisplayName(item);
 	}
 	
+	/**
+	 * Remove a flag from the item's lore.
+	 * 
+	 * @param item The item to remove the flag from.
+	 * @param flag The flag to remove.
+	 */
 	public static void removeFlag(ItemStack item, String flag)
 	{
 		if (flag == null) return;
@@ -879,7 +1173,12 @@ public class BookUtil
 		updateDisplayName(item);
 	}
 
-	/** Remove the COPYRIGHTED lore line only (no display name update). Used when building the MBook template so copyrighted is stored as entity field, not in lore. */
+	/** 
+	 * Remove the COPYRIGHTED lore line only (no display name update). 
+	 * Used when building the MBook template so copyrighted is stored as entity field, not in lore.
+	 * 
+	 * @param item The item to remove the COPYRIGHTED lore line from.
+	 */
 	public static void removeCopyrightedFromLoreOnly(ItemStack item)
 	{
 		if (item == null || !containsFlag(item, Const.COPYRIGHTED)) return;
@@ -898,7 +1197,7 @@ public class BookUtil
 	}
 	
 	// -------------------------------------------- //
-	// COPY PERMS
+	// PERMISSION UTILITIES
 	// -------------------------------------------- //
 	
 	/**
