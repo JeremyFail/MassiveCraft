@@ -30,7 +30,7 @@ permissions:
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
-  creativegates.*:
+  creativegates.player.base.*:
     default: false
     children:
       creativegates.create: true
@@ -42,15 +42,23 @@ permissions:
       creativegates.cg.inspect: true
       creativegates.cg.manage: true
       creativegates.cg.tool: true
+  creativegates.player.*:
+    default: false
+    children:
+      creativegates.player.base.*: true
   creativegates.admin.*:
     default: false
     children:
-      creativegates.*: true
       creativegates.cg.override: true
       creativegates.cg.config: true
       creativegates.cg.world: true
       creativegates.cg.world.list: true
       creativegates.cg.world.delete: true
+  creativegates.*:
+    default: false
+    children:
+      creativegates.player.*: true
+      creativegates.admin.*: true
 # -------------------------------------------- #
 # KITS
 # -------------------------------------------- #
@@ -58,26 +66,31 @@ permissions:
     default: op
     children:
       creativegates.*: true
-      creativegates.admin.*: true
+  creativegates.kit.rank4:
+    default: false
+    children:
+      creativegates.kit.rank3: true
+      creativegates.cg.config: true
   creativegates.kit.rank3:
     default: false
     children:
       creativegates.kit.rank2: true
-      creativegates.admin.*: true
+      creativegates.cg.override: true
+      creativegates.cg.world.delete: true
   creativegates.kit.rank2:
     default: false
     children:
       creativegates.kit.rank1: true
+      creativegates.cg.world: true
+      creativegates.cg.world.list: true
   creativegates.kit.rank1:
     default: false
     children:
-      creativegates.kit.rank0: true
-      creativegates.cg: true
+      creativegates.player.*: true
   creativegates.kit.rank0:
     default: false
     children:
-      creativegates.cg: true
-      creativegates.cg.version: true
+      creativegates.player.base.*: true
   creativegates.kit.default:
     default: true
     children:
