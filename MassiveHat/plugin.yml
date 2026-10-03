@@ -18,10 +18,54 @@ permissions:
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
-  massivehat.*:
-    default: op
+  massivehat.player.base.*:
+    default: false
     children:
       massivehat.basecommand: true
       massivehat.use: true
-      massivehat.config: true
       massivehat.version: true
+  massivehat.player.*:
+    default: false
+    children:
+      massivehat.player.base.*: true
+  massivehat.admin.*:
+    default: false
+    children:
+      massivehat.config: true
+  massivehat.*:
+    default: false
+    children:
+      massivehat.player.*: true
+      massivehat.admin.*: true
+# -------------------------------------------- #
+# KITS
+# -------------------------------------------- #
+  massivehat.kit.op:
+    default: op
+    children:
+      massivehat.*: true
+  massivehat.kit.rank4:
+    default: false
+    children:
+      massivehat.kit.rank3: true
+      massivehat.config: true
+  massivehat.kit.rank3:
+    default: false
+    children:
+      massivehat.kit.rank2: true
+  massivehat.kit.rank2:
+    default: false
+    children:
+      massivehat.kit.rank1: true
+  massivehat.kit.rank1:
+    default: false
+    children:
+      massivehat.player.*: true
+  massivehat.kit.rank0:
+    default: false
+    children:
+      massivehat.player.base.*: true
+  massivehat.kit.default:
+    default: true
+    children:
+      massivehat.kit.rank0: true
