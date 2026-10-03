@@ -20,6 +20,7 @@ public enum Perm implements Identified
 	
 	CLEAR,
 	CLEAR_OTHER,
+	CLEAR_COPYRIGHTED,
 	
 	TITLE,
 	TITLE_OTHER,
