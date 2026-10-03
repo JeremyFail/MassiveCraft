@@ -162,7 +162,8 @@ permissions:
 # -------------------------------------------- #
 # STAR NOTATION
 # -------------------------------------------- #
-  factions.*:
+  factions.player.base.*:
+    default: false
     children:
       factions.access: true
       factions.access.deny: true
@@ -177,7 +178,6 @@ permissions:
       factions.access.grant.circle: true
       factions.access.inspect: true
       factions.access.view: true
-      factions.override: true
       factions.basecommand: true
       factions.chunkname: true
       factions.claim: true
@@ -210,15 +210,12 @@ permissions:
       factions.flag.view: true
       factions.flag.manage: true
       factions.fly: true
-      factions.fly.other: true
       factions.home: true
       factions.invite: true
       factions.invite.list: true
-      factions.invite.list.other: true
       factions.invite.add: true
       factions.invite.remove: true
       factions.join: true
-      factions.join.others: true
       factions.kick: true
       factions.leader: true
       factions.leave: true
@@ -232,7 +229,6 @@ permissions:
       factions.money.f2p: true
       factions.money.p2f: true
       factions.money.withdraw: true
-      factions.moneyconvert: true
       factions.motd: true
       factions.officer: true
       factions.open: true
@@ -244,19 +240,12 @@ permissions:
       factions.perm.viewall: true
       factions.perm.manage: true
       factions.player: true
+      factions.promote: true
       factions.powerboost: true
       factions.powerboost.faction: true
-      factions.powerboost.faction.add: true
-      factions.powerboost.faction.multiply: true
-      factions.powerboost.faction.set: true
       factions.powerboost.faction.show: true
-      factions.powerboost.faction.take: true
       factions.powerboost.player: true
-      factions.powerboost.player.add: true
-      factions.powerboost.player.multiply: true
-      factions.powerboost.player.set: true
       factions.powerboost.player.show: true
-      factions.powerboost.player.take: true
       factions.rank: true
       factions.rank.show: true
       factions.rank.set: true
@@ -267,19 +256,16 @@ permissions:
       factions.rank.edit.prefix: true
       factions.rank.edit.priority: true
       factions.rank.edit.delete: true
-      factions.promote: true
       factions.relation: true
       factions.relation.list: true
       factions.relation.set: true
       factions.relation.wishes: true
       factions.seechunk: true
       factions.sethome: true
-      factions.setpower: true
       factions.status: true
       factions.tax: true
       factions.tax.faction: true
       factions.tax.player: true
-      factions.tax.run: true
       factions.tax.set: true
       factions.name: true
       factions.title: true
@@ -307,6 +293,29 @@ permissions:
       factions.warp.add: true
       factions.warp.remove: true
       factions.wildtp.use: true
+      factions.version: true
+  factions.player.*:
+    default: false
+    children:
+      factions.player.base.*: true
+  factions.admin.*:
+    default: false
+    children:
+      factions.override: true
+      factions.fly.other: true
+      factions.invite.list.other: true
+      factions.join.others: true
+      factions.moneyconvert: true
+      factions.powerboost.faction.add: true
+      factions.powerboost.faction.multiply: true
+      factions.powerboost.faction.set: true
+      factions.powerboost.faction.take: true
+      factions.powerboost.player.add: true
+      factions.powerboost.player.multiply: true
+      factions.powerboost.player.set: true
+      factions.powerboost.player.take: true
+      factions.setpower: true
+      factions.tax.run: true
       factions.wildtp.add: true
       factions.wildtp.edit: true
       factions.wildtp.remove: true
@@ -314,7 +323,11 @@ permissions:
       factions.wildtp.list.teleport: true
       factions.config: true
       factions.clean: true
-      factions.version: true
+  factions.*:
+    default: false
+    children:
+      factions.player.*: true
+      factions.admin.*: true
 # -------------------------------------------- #
 # KITS
 # -------------------------------------------- #
@@ -322,17 +335,17 @@ permissions:
     default: op
     children:
       factions.*: true
+  factions.kit.rank4:
+    default: false
+    children:
+      factions.kit.rank3: true
+      factions.moneyconvert: true
+      factions.config: true
+      factions.clean: true
   factions.kit.rank3:
     default: false
     children:
       factions.kit.rank2: true
-      factions.moneyconvert: true
-      factions.config: true
-      factions.clean: true
-  factions.kit.rank2:
-    default: false
-    children:
-      factions.kit.rank1: true
       factions.powerboost.faction.add: true
       factions.powerboost.faction.multiply: true
       factions.powerboost.faction.set: true
@@ -342,8 +355,6 @@ permissions:
       factions.powerboost.player.set: true
       factions.powerboost.player.take: true
       factions.join.others: true
-      factions.leader.any: true
-      factions.officer.any: true
       factions.fly.other: true
       factions.setpower: true
       factions.tax.run: true
@@ -352,144 +363,20 @@ permissions:
       factions.wildtp.remove: true
       factions.wildtp.list: true
       factions.wildtp.list.teleport: true
+  factions.kit.rank2:
+    default: false
+    children:
+      factions.kit.rank1: true
+      factions.override: true
+      factions.invite.list.other: true
   factions.kit.rank1:
     default: false
     children:
-      factions.kit.rank0: true
-      factions.override: true
-      factions.invite.list.other: true
+      factions.player.*: true
   factions.kit.rank0:
     default: false
     children:
-      factions.access: true
-      factions.access.deny: true
-      factions.access.deny.one: true
-      factions.access.deny.fill: true
-      factions.access.deny.square: true
-      factions.access.deny.circle: true
-      factions.access.grant: true
-      factions.access.grant.one: true
-      factions.access.grant.fill: true
-      factions.access.grant.square: true
-      factions.access.grant.circle: true
-      factions.access.inspect: true
-      factions.access.view: true
-      factions.basecommand: true
-      factions.chunkname: true
-      factions.claim: true
-      factions.claim.one: true
-      factions.claim.auto: true
-      factions.claim.fill: true
-      factions.claim.square: true
-      factions.claim.circle: true
-      factions.claim.all: true
-      factions.color: true
-      factions.color.set: true
-      factions.color.reset: true
-      factions.color.show: true
-      factions.create: true
-      factions.demote: true
-      factions.description: true
-      factions.disband: true
-      factions.documentation: true
-      factions.documentation.flags: true
-      factions.documentation.perms: true
-      factions.documentation.power: true
-      factions.documentation.ranks: true
-      factions.documentation.tax: true
-      factions.documentation.warps: true
-      factions.expansions: true
-      factions.faction: true
-      factions.flag: true
-      factions.flag.list: true
-      factions.flag.set: true
-      factions.flag.view: true
-      factions.flag.manage: true
-      factions.fly: true
-      factions.home: true
-      factions.invite: true
-      factions.invite.list: true
-      factions.invite.add: true
-      factions.invite.remove: true
-      factions.join: true
-      factions.kick: true
-      factions.leader: true
-      factions.leave: true
-      factions.list: true
-      factions.map: true
-      factions.money: true
-      factions.money.balance: true
-      factions.money.balance.any: true
-      factions.money.deposit: true
-      factions.money.f2f: true
-      factions.money.f2p: true
-      factions.money.p2f: true
-      factions.money.withdraw: true
-      factions.motd: true
-      factions.officer: true
-      factions.open: true
-      factions.perm: true
-      factions.perm.list: true
-      factions.perm.set: true
-      factions.perm.inspect: true
-      factions.perm.view: true
-      factions.perm.viewall: true
-      factions.perm.manage: true
-      factions.player: true
-      factions.promote: true
-      factions.powerboost: true
-      factions.powerboost.faction: true
-      factions.powerboost.faction.show: true
-      factions.powerboost.player: true
-      factions.powerboost.player.show: true
-      factions.rank: true
-      factions.rank.show: true
-      factions.rank.set: true
-      factions.rank.list: true
-      factions.rank.edit: true
-      factions.rank.edit.create: true
-      factions.rank.edit.name: true
-      factions.rank.edit.prefix: true
-      factions.rank.edit.priority: true
-      factions.rank.edit.delete: true
-      factions.relation: true
-      factions.relation.list: true
-      factions.relation.set: true
-      factions.relation.wishes: true
-      factions.seechunk: true
-      factions.sethome: true
-      factions.status: true
-      factions.tax: true
-      factions.tax.faction: true
-      factions.tax.player: true
-      factions.tax.set: true
-      factions.name: true
-      factions.title: true
-      factions.title.color: true
-      factions.territorytitles: true
-      factions.top: true
-      factions.unclaim: true
-      factions.unclaim.one: true
-      factions.unclaim.auto: true
-      factions.unclaim.fill: true
-      factions.unclaim.square: true
-      factions.unclaim.circle: true
-      factions.unclaim.all: true
-      factions.unsethome: true
-      factions.unstuck: true
-      factions.vote: true
-      factions.vote.do: true
-      factions.vote.list: true
-      factions.vote.show: true
-      factions.vote.create: true
-      factions.vote.remove: true
-      factions.warp: true
-      factions.warp.go: true
-      factions.warp.list: true
-      factions.warp.add: true
-      factions.warp.remove: true
-      factions.wildtp.use: true
-      factions.version: true
+      factions.player.base.*: true
   factions.kit.default:
     default: true
     children:
