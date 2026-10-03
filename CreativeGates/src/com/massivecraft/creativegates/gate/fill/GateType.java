@@ -30,7 +30,7 @@ public interface GateType
 	Material getBaseMaterial();
 	
 	/**
-	 * Material the client should see for this type (BlockDisplay or legacy overlay).
+	 * Material the client should see for this type (BlockDisplay, ItemDisplay, or legacy overlay).
 	 *
 	 * @return Client display material; never null.
 	 */

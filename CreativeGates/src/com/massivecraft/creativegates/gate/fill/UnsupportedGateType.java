@@ -10,9 +10,11 @@ import java.util.Objects;
 /**
  * Experimental / custom gate fill keyed by an arbitrary block {@link Material}.
  * <p>
- * Always enterable and BlockDisplay-based (invisible {@link Material#LIGHT} at
- * {@link GateType#DISPLAY_BLOCK_LIGHT_LEVEL}). Not officially supported;
- * admins opt in via string ids in the MConf allow-lists.
+ * Always enterable and display-based (invisible {@link Material#LIGHT} at
+ * {@link GateType#DISPLAY_BLOCK_LIGHT_LEVEL}). Most materials use BlockDisplay;
+ * face-attached fills in {@link com.massivecraft.creativegates.util.GateFillDisplayUtil}
+ * use ItemDisplay instead. Not officially supported; admins opt in via string ids
+ * in the MConf allow-lists.
  * </p>
  */
 public final class UnsupportedGateType implements GateType

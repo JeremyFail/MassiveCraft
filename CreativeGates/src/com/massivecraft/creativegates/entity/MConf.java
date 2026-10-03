@@ -170,8 +170,16 @@ public class MConf extends Entity<MConf>
 		SupportedGateType.LAVA.name(),
 		Material.POWDER_SNOW.name(),
 		Material.ICE.name(),
-		Material.SCULK_VEIN.name(),
-		Material.SCULK.name()
+		Material.SCULK.name(),
+		// ItemDisplay face-attached fills (see GateFillDisplayUtil). Strings avoid enum coupling.
+		"SCULK_VEIN",
+		"RESIN_CLUMP",
+		"VINE",
+		"WEEPING_VINES",
+		"TWISTING_VINES",
+		"PALE_HANGING_MOSS"
+		// LEAF_LITTER (26.3): listed in GateFillDisplayUtil for ItemDisplay, but omitted here until
+		// sanitizeGateTypeIds won't strip it on older runtimes / min version is ≥ 26.3.
 	);
 	public Set<String> getAllowedGateTypes() { return new LinkedHashSet<>(this.allowedGateTypes); }
 	public void setAllowedGateTypes(Set<String> allowedGateTypes)
@@ -193,8 +201,15 @@ public class MConf extends Entity<MConf>
 		SupportedGateType.LAVA.name(),
 		Material.POWDER_SNOW.name(),
 		Material.ICE.name(),
-		Material.SCULK_VEIN.name(),
-		Material.SCULK.name()
+		Material.SCULK.name(),
+		// ItemDisplay face-attached fills (see GateFillDisplayUtil). Strings avoid enum coupling.
+		"SCULK_VEIN",
+		"RESIN_CLUMP",
+		"VINE",
+		"WEEPING_VINES",
+		"TWISTING_VINES",
+		"PALE_HANGING_MOSS"
+		// LEAF_LITTER (26.3): see vertical allow-list note / GateFillDisplayUtil TODO.
 	);
 	public Set<String> getAllowedHorizontalGateTypes() { return new LinkedHashSet<>(this.allowedHorizontalGateTypes); }
 	public void setAllowedHorizontalGateTypes(Set<String> allowedHorizontalGateTypes)

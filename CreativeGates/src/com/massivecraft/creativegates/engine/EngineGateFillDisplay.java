@@ -6,6 +6,7 @@ import com.massivecraft.creativegates.entity.UGateColl;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.gate.fill.SupportedGateType;
+import com.massivecraft.creativegates.util.GateFillDisplayUtil;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.util.ReflectionUtil;
 import org.bukkit.Axis;
@@ -18,7 +19,9 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -30,6 +33,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
@@ -42,7 +46,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Spawns and heals BlockDisplay fill visuals for creative gates.
+ * Spawns and heals BlockDisplay / ItemDisplay fill visuals for creative gates.
  * <p>
  * END_GATEWAY on Minecraft versions before 26.1 cannot render as a BlockDisplay
  * (shader block). Those versions use a temporary {@link Player#sendBlockChange} fallback.
@@ -55,14 +59,28 @@ import java.util.UUID;
  * animation without real portal/fire blocks. Horizontal nether portal stays BlockDisplay
  * (vanilla portal models cannot lie flat).
  * </p>
+ * <p>
+ * Face-attached fills listed in {@link GateFillDisplayUtil#MATERIALS_ITEM_DISPLAY_FILL}
+ * (sculk vein, resin clump, vines, etc.) use {@link ItemDisplay} with the item model
+ * instead of a squashed BlockDisplay.
+ * </p>
  */
 public class EngineGateFillDisplay extends Engine
 {
 	private static final EngineGateFillDisplay i = new EngineGateFillDisplay();
+	
+	/**
+	 * @return Singleton engine instance.
+	 */
 	public static EngineGateFillDisplay get() { return i; }
 	
+	/** Max distance (blocks) from gate center at which overlays / display sync run for a player. */
 	private static final int VIEW_DISTANCE_BLOCKS = 64;
+	
+	/** Minimum time between move-triggered {@link #syncPlayer(Player)} calls per player. */
 	private static final long MOVE_SYNC_INTERVAL_MS = 750L;
+	
+	/** Z/X/Y scale used when squashing a BlockDisplay into a thin gate pane. */
 	private static final float PANE_THICKNESS = 0.125f;
 	
 	private final Map<UUID, Long> lastMoveSyncMillis = new HashMap<>();
@@ -70,6 +88,11 @@ public class EngineGateFillDisplay extends Engine
 	private NamespacedKey keyGateId;
 	private NamespacedKey keyFillDisplay;
 	
+	/**
+	 * Registers persistent-data keys used to tag gate-owned display entities when the engine activates.
+	 *
+	 * @param active True when this engine is being enabled.
+	 */
 	@Override
 	public void setActiveInner(boolean active)
 	{
@@ -82,7 +105,10 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
+	 * Whether END_GATEWAY fills must use {@link Player#sendBlockChange} instead of BlockDisplay.
 	 * TODO: Delete when minimum MC version ≥ 26.1 - END_GATEWAY BlockDisplays render correctly then.
+	 *
+	 * @return True on Minecraft versions before 26.1.
 	 */
 	public static boolean usesEndGatewayBlockChangeFallback()
 	{
@@ -90,7 +116,10 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Clears previous visuals and spawns the correct look for this gate.
+	 * Clears previous visuals and spawns the correct look for this gate
+	 * (client overlay, BlockDisplays, or ItemDisplays).
+	 *
+	 * @param gate Gate to refresh; null is ignored.
 	 */
 	public void syncGate(UGate gate)
 	{
@@ -107,6 +136,7 @@ public class EngineGateFillDisplay extends Engine
 		
 		GateOrientation orientation = gate.getOrientation();
 		
+		// Path 1: fire / soul fire / vertical nether portal — fake blocks via sendBlockChange.
 		if (type.usesClientBlockChangeFill(orientation))
 		{
 			Material overlay = type.getClientDisplayMaterial();
@@ -116,6 +146,7 @@ public class EngineGateFillDisplay extends Engine
 			return;
 		}
 		
+		// Path 2: END_GATEWAY on older clients that cannot render it as a BlockDisplay.
 		if (type == SupportedGateType.END_GATEWAY && usesEndGatewayBlockChangeFallback())
 		{
 			this.sendClientBlockChanges(blocks, Material.END_GATEWAY, orientation, true);
@@ -123,6 +154,7 @@ public class EngineGateFillDisplay extends Engine
 			return;
 		}
 		
+		// Path 3: entity displays (BlockDisplay or ItemDisplay per material).
 		Material displayMaterial = type.getClientDisplayMaterial();
 		if (displayMaterial == null || !displayMaterial.isBlock()) return;
 		
@@ -136,7 +168,10 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Removes BlockDisplays and clears client block-change overlays for a gate.
+	 * Removes BlockDisplays / ItemDisplays tagged for this gate and clears any client
+	 * block-change overlays on the interior cells.
+	 *
+	 * @param gate Gate whose visuals to remove; null is ignored.
 	 */
 	public void clearGate(UGate gate)
 	{
@@ -151,7 +186,7 @@ public class EngineGateFillDisplay extends Engine
 		{
 			Location center = contentCenter(blocks);
 			double radius = contentSearchRadius(blocks);
-			Collection<Entity> nearby = world.getNearbyEntities(center, radius, radius, radius, entity -> entity instanceof BlockDisplay);
+			Collection<Entity> nearby = world.getNearbyEntities(center, radius, radius, radius, entity -> entity instanceof Display);
 			for (Entity entity : nearby)
 			{
 				if (this.isGateDisplay(entity, gateId))
@@ -169,6 +204,8 @@ public class EngineGateFillDisplay extends Engine
 	 * Ensures display fills near the player exist (respawn after /kill, chunk issues, etc.).
 	 * Client block-change fills are always re-sent to this player - they vanish when the
 	 * client reloads chunk data (disconnect/reconnect).
+	 *
+	 * @param player Player to sync nearby gates for; null is ignored.
 	 */
 	public void syncPlayer(Player player)
 	{
@@ -198,6 +235,7 @@ public class EngineGateFillDisplay extends Engine
 				continue;
 			}
 			
+			// Entity displays: only rebuild the whole gate if the entity count drifted.
 			if (this.needsResync(gate, blocks))
 			{
 				this.syncGate(gate);
@@ -205,6 +243,14 @@ public class EngineGateFillDisplay extends Engine
 		}
 	}
 	
+	/**
+	 * Whether a display-entity fill is missing entities (or has extras) relative to content size.
+	 * Client-overlay fills never need entity resync.
+	 *
+	 * @param gate Gate being checked.
+	 * @param blocks Interior content blocks for {@code gate}.
+	 * @return True if {@link #syncGate(UGate)} should rebuild entity displays.
+	 */
 	private boolean needsResync(UGate gate, List<Block> blocks)
 	{
 		GateType type = gate.getFillType();
@@ -227,13 +273,19 @@ public class EngineGateFillDisplay extends Engine
 		Location center = contentCenter(blocks);
 		double radius = contentSearchRadius(blocks);
 		int found = 0;
-		for (Entity entity : world.getNearbyEntities(center, radius, radius, radius, e -> e instanceof BlockDisplay))
+		for (Entity entity : world.getNearbyEntities(center, radius, radius, radius, e -> e instanceof Display))
 		{
 			if (this.isGateDisplay(entity, gateId)) found++;
 		}
 		return found != expected;
 	}
 	
+	/**
+	 * Geometric center of the content AABB (block centers), used for proximity and entity search.
+	 *
+	 * @param blocks Non-empty interior blocks.
+	 * @return Center location in the blocks' world.
+	 */
 	private static Location contentCenter(List<Block> blocks)
 	{
 		Block first = blocks.get(0);
@@ -258,6 +310,12 @@ public class EngineGateFillDisplay extends Engine
 		return new Location(first.getWorld(), (minX + maxX) * 0.5 + 0.5, (minY + maxY) * 0.5 + 0.5, (minZ + maxZ) * 0.5 + 0.5);
 	}
 	
+	/**
+	 * Search radius large enough to find all gate display entities around the content AABB.
+	 *
+	 * @param blocks Non-empty interior blocks.
+	 * @return Radius in blocks (at least 16).
+	 */
 	private static double contentSearchRadius(List<Block> blocks)
 	{
 		Block first = blocks.get(0);
@@ -287,38 +345,105 @@ public class EngineGateFillDisplay extends Engine
 		return Math.max(16.0, halfDiag + 8.0);
 	}
 	
+	/**
+	 * Spawns one cell's fill visual at the block center (ItemDisplay or BlockDisplay).
+	 *
+	 * @param block Content cell to cover.
+	 * @param material Client look material.
+	 * @param orientation Gate plane orientation.
+	 * @param gateId Persistent gate id stored on the entity.
+	 * @param type Fill type (used for nether-portal axis / transform quirks).
+	 */
 	private void spawnDisplay(Block block, Material material, GateOrientation orientation, String gateId, GateType type)
 	{
 		World world = block.getWorld();
 		if (world == null) return;
 		
-		boolean netherPortal = type == SupportedGateType.NETHER_PORTAL || material == Material.NETHER_PORTAL;
 		Location loc = block.getLocation().add(0.5, 0.5, 0.5);
+		
+		if (GateFillDisplayUtil.usesItemDisplay(material))
+		{
+			Transformation transformation = createItemTransformation(orientation);
+			this.applyItemDisplay(world, loc, material, transformation, gateId);
+			return;
+		}
+		
+		boolean netherPortal = type == SupportedGateType.NETHER_PORTAL || material == Material.NETHER_PORTAL;
 		BlockData blockData = createDisplayBlockData(material, orientation, netherPortal);
 		Transformation transformation = createTransformation(orientation, netherPortal);
-		this.applyDisplay(world, loc, blockData, transformation, gateId);
+		this.applyBlockDisplay(world, loc, blockData, transformation, gateId);
 	}
 	
-	private void applyDisplay(World world, Location loc, BlockData blockData, Transformation transformation, String gateId)
+	/**
+	 * Spawns a {@link BlockDisplay} for one interior cell.
+	 *
+	 * @param world World to spawn in.
+	 * @param loc Entity location (typically block center).
+	 * @param blockData Block state rendered by the display.
+	 * @param transformation Scale / rotation / translation for the gate plane.
+	 * @param gateId Persistent gate id.
+	 */
+	private void applyBlockDisplay(World world, Location loc, BlockData blockData, Transformation transformation, String gateId)
 	{
 		world.spawn(loc, BlockDisplay.class, entity ->
 		{
 			entity.setBlock(blockData);
-			entity.setTransformation(transformation);
-			entity.setBrightness(null);
-			entity.setShadowRadius(0f);
-			entity.setShadowStrength(0f);
-			entity.setViewRange(1.0f);
-			// width/height 0 disables frustum culling (helps nether-portal BlockDisplay freezes).
-			entity.setDisplayWidth(0f);
-			entity.setDisplayHeight(0f);
-			entity.setTeleportDuration(0);
-			entity.setPersistent(true);
-			entity.getPersistentDataContainer().set(this.keyGateId, PersistentDataType.STRING, gateId);
-			entity.getPersistentDataContainer().set(this.keyFillDisplay, PersistentDataType.BYTE, (byte) 1);
+			this.applyCommonDisplay(entity, transformation, gateId);
 		});
 	}
 	
+	/**
+	 * Spawns an {@link ItemDisplay} for one interior cell using the material's item model.
+	 *
+	 * @param world World to spawn in.
+	 * @param loc Entity location (typically block center).
+	 * @param material Item / block material for the stack.
+	 * @param transformation Rotation for the gate plane (scale usually identity).
+	 * @param gateId Persistent gate id.
+	 */
+	private void applyItemDisplay(World world, Location loc, Material material, Transformation transformation, String gateId)
+	{
+		ItemStack stack = new ItemStack(material);
+		world.spawn(loc, ItemDisplay.class, entity ->
+		{
+			entity.setItemStack(stack);
+			entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+			entity.setBillboard(Display.Billboard.FIXED);
+			this.applyCommonDisplay(entity, transformation, gateId);
+		});
+	}
+	
+	/**
+	 * Shared Display entity setup: transform, no shadow, wide culling box, persistence, PDC tags.
+	 *
+	 * @param entity BlockDisplay or ItemDisplay to configure.
+	 * @param transformation Local transform applied to the model.
+	 * @param gateId Persistent gate id written to PDC.
+	 */
+	private void applyCommonDisplay(Display entity, Transformation transformation, String gateId)
+	{
+		entity.setTransformation(transformation);
+		entity.setBrightness(null);
+		entity.setShadowRadius(0f);
+		entity.setShadowStrength(0f);
+		entity.setViewRange(1.0f);
+		// width/height 0 disables frustum culling (helps nether-portal BlockDisplay freezes).
+		entity.setDisplayWidth(0f);
+		entity.setDisplayHeight(0f);
+		entity.setTeleportDuration(0);
+		entity.setPersistent(true);
+		entity.getPersistentDataContainer().set(this.keyGateId, PersistentDataType.STRING, gateId);
+		entity.getPersistentDataContainer().set(this.keyFillDisplay, PersistentDataType.BYTE, (byte) 1);
+	}
+	
+	/**
+	 * Builds block data for a BlockDisplay, including nether-portal axis for the gate plane.
+	 *
+	 * @param material Display material.
+	 * @param orientation Gate orientation; may be null (treated as vertical NS).
+	 * @param netherPortal True when the material/type is a nether portal fill.
+	 * @return Block data to set on the BlockDisplay.
+	 */
 	private static BlockData createDisplayBlockData(Material material, GateOrientation orientation, boolean netherPortal)
 	{
 		BlockData data = material.createBlockData();
@@ -338,8 +463,13 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Entity at cell center. Nether portal horizontal uses a 90° X rotation; other fills use a
-	 * thin pane scale on the gate normal.
+	 * Local transform for BlockDisplay fills at the cell center.
+	 * Nether portal horizontal uses a 90° X rotation; other fills use a thin pane scale on the
+	 * gate normal (block models are corner-origin, hence the -0.5 translations).
+	 *
+	 * @param orientation Gate plane orientation; null treated as vertical NS.
+	 * @param netherPortal True for nether-portal BlockDisplays (full cube, optional flat rotate).
+	 * @return Transformation applied to the BlockDisplay.
 	 */
 	private static Transformation createTransformation(GateOrientation orientation, boolean netherPortal)
 	{
@@ -349,6 +479,7 @@ public class EngineGateFillDisplay extends Engine
 		{
 			if (orientation != null && orientation.isHorizontal())
 			{
+				// Lay the portal model flat on the floor/ceiling plane.
 				return new Transformation(
 					new Vector3f(-0.5f, 0.5f, -0.5f),
 					new AxisAngle4f((float) (Math.PI / 2.0), 1f, 0f, 0f),
@@ -367,6 +498,7 @@ public class EngineGateFillDisplay extends Engine
 		float half = PANE_THICKNESS / 2f;
 		if (orientation == GateOrientation.WE)
 		{
+			// Thin along Z — plane faces north/south.
 			return new Transformation(
 				new Vector3f(-0.5f, -0.5f, -half),
 				noRotation,
@@ -376,6 +508,7 @@ public class EngineGateFillDisplay extends Engine
 		}
 		if (orientation != null && orientation.isHorizontal())
 		{
+			// Thin along Y — floor/ceiling pane.
 			return new Transformation(
 				new Vector3f(-0.5f, -half, -0.5f),
 				noRotation,
@@ -383,6 +516,7 @@ public class EngineGateFillDisplay extends Engine
 				noRotation
 			);
 		}
+		// NS vertical: thin along X — plane faces east/west.
 		return new Transformation(
 			new Vector3f(-half, -0.5f, -0.5f),
 			noRotation,
@@ -391,9 +525,53 @@ public class EngineGateFillDisplay extends Engine
 		);
 	}
 	
+	/**
+	 * Local transform for ItemDisplay fills. Item models are already flat cards centered on the
+	 * entity; scale stays identity. Vertical NS gets a 90° Y rotation so the card faces the gate
+	 * plane (WE uses the FIXED default facing). Horizontal keeps a 90° X lay-flat rotation.
+	 *
+	 * @param orientation Gate plane orientation; null treated as vertical NS.
+	 * @return Transformation applied to the ItemDisplay.
+	 */
+	private static Transformation createItemTransformation(GateOrientation orientation)
+	{
+		AxisAngle4f noRotation = new AxisAngle4f(0f, 0f, 1f, 0f);
+		Vector3f translation = new Vector3f(0f, 0f, 0f);
+		Vector3f scale = new Vector3f(1f, 1f, 1f);
+		
+		if (orientation == GateOrientation.WE)
+		{
+			// FIXED default faces along Z — correct for WE vertical gates.
+			return new Transformation(translation, noRotation, scale, noRotation);
+		}
+		if (orientation != null && orientation.isHorizontal())
+		{
+			return new Transformation(
+				translation,
+				new AxisAngle4f((float) (Math.PI / 2.0), 1f, 0f, 0f),
+				scale,
+				noRotation
+			);
+		}
+		// NS vertical: rotate 90° around Y so the card faces east/west with the gate plane.
+		return new Transformation(
+			translation,
+			new AxisAngle4f((float) (Math.PI / 2.0), 0f, 1f, 0f),
+			scale,
+			noRotation
+		);
+	}
+	
+	/**
+	 * Whether an entity is a fill display owned by the given gate (PDC marker + gate id).
+	 *
+	 * @param entity Candidate entity.
+	 * @param gateId Expected gate id.
+	 * @return True if {@code entity} is a tagged Display for {@code gateId}.
+	 */
 	private boolean isGateDisplay(Entity entity, String gateId)
 	{
-		if (!(entity instanceof BlockDisplay)) return false;
+		if (!(entity instanceof Display)) return false;
 		Byte marker = entity.getPersistentDataContainer().get(this.keyFillDisplay, PersistentDataType.BYTE);
 		if (marker == null || marker != 1) return false;
 		String id = entity.getPersistentDataContainer().get(this.keyGateId, PersistentDataType.STRING);
@@ -403,6 +581,11 @@ public class EngineGateFillDisplay extends Engine
 	/**
 	 * Sends or clears a client-only block overlay on every interior cell for nearby players.
 	 * Used for fire / soul fire / vertical nether portal and END_GATEWAY on MC &lt; 26.1.
+	 *
+	 * @param blocks Interior cells.
+	 * @param displayMaterial Overlay material when {@code show} is true; ignored when clearing.
+	 * @param orientation Gate orientation for portal axis.
+	 * @param show True to apply overlay; false to restore real server block data.
 	 */
 	private void sendClientBlockChanges(List<Block> blocks, Material displayMaterial, GateOrientation orientation, boolean show)
 	{
@@ -419,7 +602,13 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Sends or clears a client-only block overlay for one player.
+	 * Sends or clears a client-only block overlay for one player on every interior cell.
+	 *
+	 * @param player Recipient of the fake blocks.
+	 * @param blocks Interior cells.
+	 * @param displayMaterial Overlay material when {@code show} is true; ignored when clearing.
+	 * @param orientation Gate orientation for portal axis.
+	 * @param show True to apply overlay; false to restore real server block data.
 	 */
 	private void sendClientBlockChanges(Player player, List<Block> blocks, Material displayMaterial, GateOrientation orientation, boolean show)
 	{
@@ -446,7 +635,12 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Client overlay block data. Nether portal gets the gate's NS/WE axis so the plane faces correctly.
+	 * Builds client overlay block data. Nether portal gets the gate's NS/WE axis so the plane
+	 * faces correctly.
+	 *
+	 * @param displayMaterial Overlay material.
+	 * @param orientation Gate orientation; may be null.
+	 * @return Block data to send, or null if {@code displayMaterial} is invalid.
 	 */
 	private static BlockData createClientOverlayBlockData(Material displayMaterial, GateOrientation orientation)
 	{
@@ -469,8 +663,10 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Re-sends client overlays for nearby gates to one player.
+	 * Re-sends client overlays for nearby overlay-style gates to one player.
 	 * Used after join/teleport when chunk packets may have overwritten sendBlockChange.
+	 *
+	 * @param player Player to refresh overlays for.
 	 */
 	private void syncClientOverlaysForPlayer(Player player)
 	{
@@ -494,7 +690,11 @@ public class EngineGateFillDisplay extends Engine
 	}
 	
 	/**
-	 * Material used for this gate's {@code sendBlockChange} interior overlay, or null if none.
+	 * Material used for this gate's {@code sendBlockChange} interior overlay, or null if the gate
+	 * uses entity displays (or has no fill).
+	 *
+	 * @param gate Gate to inspect.
+	 * @return Overlay material, or null when none.
 	 */
 	private Material resolveClientOverlayMaterial(UGate gate)
 	{
@@ -517,6 +717,9 @@ public class EngineGateFillDisplay extends Engine
 	
 	/**
 	 * Re-applies a gate's client overlay for one player (no-op if the gate has none or is gone).
+	 *
+	 * @param player Player to refresh.
+	 * @param gate Gate whose overlay to re-send.
 	 */
 	private void refreshClientOverlay(Player player, UGate gate)
 	{
@@ -536,6 +739,8 @@ public class EngineGateFillDisplay extends Engine
 	 * Left-click is intentionally ignored: it starts block breaking, and a delayed overlay
 	 * refresh would fight gate destroy (nether portal fills looked unbreakable).
 	 * </p>
+	 *
+	 * @param event Interact event (monitor; may already be cancelled).
 	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void onInteractClientOverlay(PlayerInteractEvent event)
@@ -557,6 +762,13 @@ public class EngineGateFillDisplay extends Engine
 		Bukkit.getScheduler().runTaskLater(plugin, () -> this.refreshClientOverlay(player, gate), 2L);
 	}
 	
+	/**
+	 * Whether the player is within {@link #VIEW_DISTANCE_BLOCKS} of the gate center (same world).
+	 *
+	 * @param playerLoc Player location.
+	 * @param gateLoc Gate content center.
+	 * @return True if close enough for overlay / display sync.
+	 */
 	private static boolean isNear(Location playerLoc, Location gateLoc)
 	{
 		if (playerLoc == null || gateLoc == null) return false;
@@ -567,6 +779,10 @@ public class EngineGateFillDisplay extends Engine
 	/**
 	 * Re-sends a gate's client overlay a few ticks later so it wins over real block-update packets
 	 * from {@link UGate#fill()} (otherwise nether portal / fire fills stay invisible until move).
+	 *
+	 * @param gate Gate that just received an overlay.
+	 * @param overlayMaterial Material to re-send.
+	 * @param orientation Orientation captured at schedule time; falls back to live gate if null.
 	 */
 	private void scheduleClientOverlayResyncForGate(UGate gate, Material overlayMaterial, GateOrientation orientation)
 	{
@@ -591,6 +807,8 @@ public class EngineGateFillDisplay extends Engine
 	/**
 	 * Client overlays are wiped when chunk data arrives after join. Spigot has no per-player
 	 * chunk-receive event, so re-send several times while terrain finishes loading.
+	 *
+	 * @param player Player who just joined / changed world / respawned.
 	 */
 	private void scheduleClientOverlayResync(Player player)
 	{
@@ -607,18 +825,33 @@ public class EngineGateFillDisplay extends Engine
 		}
 	}
 	
+	/**
+	 * After join, schedule staggered overlay / display sync while chunks load.
+	 *
+	 * @param event Join event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onJoin(PlayerJoinEvent event)
 	{
 		this.scheduleClientOverlayResync(event.getPlayer());
 	}
 	
+	/**
+	 * After world change, schedule staggered overlay / display sync in the destination world.
+	 *
+	 * @param event World-change event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onWorldChange(PlayerChangedWorldEvent event)
 	{
 		this.scheduleClientOverlayResync(event.getPlayer());
 	}
 	
+	/**
+	 * Shortly after teleport, re-sync nearby entity displays and client overlays.
+	 *
+	 * @param event Teleport event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onTeleport(PlayerTeleportEvent event)
 	{
@@ -631,12 +864,22 @@ public class EngineGateFillDisplay extends Engine
 		}, 5L);
 	}
 	
+	/**
+	 * After respawn, schedule staggered overlay / display sync near the respawn point.
+	 *
+	 * @param event Respawn event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onRespawn(PlayerRespawnEvent event)
 	{
 		this.scheduleClientOverlayResync(event.getPlayer());
 	}
 	
+	/**
+	 * On block-to-block movement, periodically sync nearby display fills (throttled).
+	 *
+	 * @param event Move event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onMove(PlayerMoveEvent event)
 	{
@@ -654,6 +897,11 @@ public class EngineGateFillDisplay extends Engine
 		this.syncPlayer(player);
 	}
 	
+	/**
+	 * Drops move-sync throttle state when a player disconnects.
+	 *
+	 * @param event Quit event.
+	 */
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onQuit(PlayerQuitEvent event)
 	{
