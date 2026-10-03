@@ -41,38 +41,52 @@ permissions:
   massivebooks.version: {description: see plugin version, default: false}
   massivebooks.config: {description: edit plugin config, default: false}
 # -------------------------------------------- #
-# START NOTATION
+# STAR NOTATION
 # -------------------------------------------- #
-  massivebooks.*:
+  massivebooks.player.base.*:
     default: false
     children:
       massivebooks.book: true
       massivebooks.unlock: true
-      massivebooks.unlock.other: true
       massivebooks.lock: true
-      massivebooks.lock.other: true
       massivebooks.clear: true
       massivebooks.clear.other: true
       massivebooks.title: true
-      massivebooks.title.other: true
-      massivebooks.title.color: true
-      massivebooks.author: true
-      massivebooks.author.other: true
       massivebooks.copy: true
       massivebooks.copy.other: true
-      massivebooks.copy.copyrighted: true
       massivebooks.list: true
       massivebooks.load: true
+      massivebooks.copyrighted: true
+      massivebooks.autoupdate: true
+      massivebooks.version: true
+  massivebooks.player.*:
+    default: false
+    children:
+      massivebooks.player.base.*: true
+      massivebooks.title.color: true
+  massivebooks.admin.*:
+    default: false
+    children:
+      massivebooks.unlock.other: true
+      massivebooks.lock.other: true
+      massivebooks.clear.copyrighted: true
+      massivebooks.title.other: true
+      massivebooks.author: true
+      massivebooks.author.other: true
+      massivebooks.copy.copyrighted: true
       massivebooks.give: true
+      massivebooks.givesilent: true
       massivebooks.save: true
       massivebooks.delete: true
-      massivebooks.autoupdate: true
       massivebooks.powertool: true
       massivebooks.powertool.other: true
-      massivebooks.copyrighted: true
       massivebooks.copyrighted.other: true
-      massivebooks.version: true
       massivebooks.config: true
+  massivebooks.*:
+    default: false
+    children:
+      massivebooks.player.*: true
+      massivebooks.admin.*: true
 # -------------------------------------------- #
 # KITS
 # -------------------------------------------- #
@@ -80,49 +94,40 @@ permissions:
     default: op
     children:
       massivebooks.*: true
+  massivebooks.kit.rank4:
+    default: false
+    children:
+      massivebooks.kit.rank3: true
+      massivebooks.config: true
   massivebooks.kit.rank3:
     default: false
     children:
       massivebooks.kit.rank2: true
-      massivebooks.config: true
   massivebooks.kit.rank2:
     default: false
     children:
       massivebooks.kit.rank1: true
-  massivebooks.kit.rank1:
-    default: false
-    children:
-      massivebooks.kit.rank0: true
       massivebooks.unlock.other: true
       massivebooks.lock.other: true
       massivebooks.clear.copyrighted: true
       massivebooks.title.other: true
-      massivebooks.title.color: true
       massivebooks.author: true
       massivebooks.author.other: true
       massivebooks.copy.copyrighted: true
       massivebooks.give: true
       massivebooks.save: true
       massivebooks.delete: true
-      massivebooks.autoupdate: true
       massivebooks.powertool: true
       massivebooks.powertool.other: true
       massivebooks.copyrighted.other: true
+  massivebooks.kit.rank1:
+    default: false
+    children:
+      massivebooks.player.*: true
   massivebooks.kit.rank0:
     default: false
     children:
-      massivebooks.book: true
-      massivebooks.unlock: true
-      massivebooks.lock: true
-      massivebooks.clear: true
-      massivebooks.clear.other: true
-      massivebooks.title: true
-      massivebooks.copy: true
-      massivebooks.copy.other: true
-      massivebooks.list: true
-      massivebooks.load: true
-      massivebooks.copyrighted: true
-      massivebooks.version: true
+      massivebooks.player.base.*: true
   massivebooks.kit.default:
     default: true
     children:
