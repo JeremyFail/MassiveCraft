@@ -18,6 +18,7 @@ permissions:
   massivebooks.lock.other: {description: lock a book by another author, default: false}
   massivebooks.clear: {description: clear a book, default: false}
   massivebooks.clear.other: {description: clear a book by another author, default: false}
+  massivebooks.clear.copyrighted: {description: clear a copyrighted book by another author, default: false}
   massivebooks.title: {description: change title for a book, default: false}
   massivebooks.title.other: {description: change title for a book by another author, default: false}
   massivebooks.title.color: {description: use colors in book titles, default: false}
@@ -94,6 +95,7 @@ permissions:
       massivebooks.kit.rank0: true
       massivebooks.unlock.other: true
       massivebooks.lock.other: true
+      massivebooks.clear.copyrighted: true
       massivebooks.title.other: true
       massivebooks.title.color: true
       massivebooks.author: true

@@ -901,6 +901,33 @@ public class BookUtil
 	// COPY PERMS
 	// -------------------------------------------- //
 	
+	/**
+	 * Check if the sender has the clear permission for the item.
+	 * If the item is copyrighted, the sender must have the clear copyrighted permission.
+	 * 
+	 * @param item The item to check the permission for.
+	 * @param sender The sender to check the permission for.
+	 * @param verbose Whether to send a verbose message if the permission is not granted.
+	 * @return True if the sender has the clear permission for the item, false otherwise.
+	 */
+	public static boolean hasClearPerm(ItemStack item, CommandSender sender, boolean verbose)
+	{
+		if (BookUtil.isAuthorEquals(item, sender)) return true;
+		if (!Perm.CLEAR_OTHER.has(sender, verbose)) return false;
+		if (!BookUtil.containsFlag(item, Const.COPYRIGHTED)) return true;
+		if (!Perm.CLEAR_COPYRIGHTED.has(sender, verbose)) return false;
+		return true;
+	}
+	
+	/**
+	 * Check if the sender has the copy permission for the item.
+	 * If the item is copyrighted, the sender must have the copy copyrighted permission.
+	 * 
+	 * @param item The item to check the permission for.
+	 * @param sender The sender to check the permission for.
+	 * @param verbose Whether to send a verbose message if the permission is not granted.
+	 * @return True if the sender has the copy permission for the item, false otherwise.
+	 */
 	public static boolean hasCopyPerm(ItemStack item, CommandSender sender, boolean verbose)
 	{
 		if (BookUtil.isAuthorEquals(item, sender)) return true;

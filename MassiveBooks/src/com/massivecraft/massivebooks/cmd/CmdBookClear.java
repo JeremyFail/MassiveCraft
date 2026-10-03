@@ -48,7 +48,7 @@ public class CmdBookClear extends MassiveBooksCommand
 			return;
 		}
 		
-		if (!BookUtil.isAuthorEquals(item, sender) && !Perm.CLEAR_OTHER.has(sender, true)) return;
+		if (!BookUtil.hasClearPerm(item, sender, true)) return;
 		
 		// Check if we have a stack - book and quills don't stack
 		int amount = item.getAmount();
