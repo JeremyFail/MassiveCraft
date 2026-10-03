@@ -221,7 +221,6 @@ permissions:
       factions.join.others: true
       factions.kick: true
       factions.leader: true
-      factions.leader.any: true
       factions.leave: true
       factions.list: true
       factions.map: true
@@ -236,7 +235,6 @@ permissions:
       factions.moneyconvert: true
       factions.motd: true
       factions.officer: true
-      factions.officer.any: true
       factions.open: true
       factions.perm: true
       factions.perm.list: true
@@ -346,9 +344,9 @@ permissions:
       factions.join.others: true
       factions.leader.any: true
       factions.officer.any: true
-      factions.access.any: true
       factions.fly.other: true
       factions.setpower: true
+      factions.tax.run: true
       factions.wildtp.add: true
       factions.wildtp.edit: true
       factions.wildtp.remove: true
@@ -464,7 +462,6 @@ permissions:
       factions.tax: true
       factions.tax.faction: true
       factions.tax.player: true
-      factions.tax.run: true
       factions.tax.set: true
       factions.name: true
       factions.title: true
