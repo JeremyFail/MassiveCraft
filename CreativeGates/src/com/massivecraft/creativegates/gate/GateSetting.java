@@ -1,13 +1,14 @@
 package com.massivecraft.creativegates.gate;
 
 import com.massivecraft.creativegates.entity.UGate;
+import com.massivecraft.creativegates.util.FactionTerm;
 
 /**
  * Configurable boolean settings exposed by inspect/manage UIs.
  */
 public enum GateSetting
 {
-	SECRET("secret", "Secret", "Hides full inscriptions from outsiders (creator for personal gates; own faction for FACTION gates)."),
+	SECRET("secret", "Secret", "Hides full inscriptions from outsiders."),
 	ENTRY("entry", "Entry", "Whether this gate may be used as an entrance."),
 	EXIT("exit", "Exit", "Whether this gate may be used as an exit."),
 	PLAYERS("players", "Players", "Whether players may travel through this gate."),
@@ -35,7 +36,15 @@ public enum GateSetting
 	
 	public String getId() { return this.id; }
 	public String getDisplayName() { return this.displayName; }
-	public String getDescription() { return this.description; }
+	public String getDescription()
+	{
+		if (this == SECRET)
+		{
+			return "Hides full inscriptions from outsiders (creator for personal gates; own "
+				+ FactionTerm.get() + " for FACTION gates).";
+		}
+		return this.description;
+	}
 	
 	/**
 	 * Resolves a setting by id (case-insensitive).

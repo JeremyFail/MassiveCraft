@@ -128,7 +128,7 @@ public final class GateNetworkTransfer
 		if (actor == null || sample == null || destScope == null) return 0;
 		if (!EngineGateOverride.canTransferWholeNetwork(actor))
 		{
-			if (message) MixinMessage.get().messageOne(actor, Txt.parse("<b>You need creativegates.cg.manage.transfernetwork or override."));
+			if (message) MixinMessage.get().messageOne(actor, Txt.parse("<b>You may not transfer an entire network."));
 			return 0;
 		}
 		

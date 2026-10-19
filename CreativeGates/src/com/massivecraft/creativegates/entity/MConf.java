@@ -712,6 +712,18 @@ public class MConf extends Entity<MConf>
 	}
 	
 	/**
+	 * Display word used in player messaging for FACTION scope (e.g. faction, guild, nation).
+	 * Does not rename the FACTION scope id itself.
+	 */
+	private String factionTerm = "faction";
+	public String getFactionTerm() { return this.factionTerm; }
+	public void setFactionTerm(String factionTerm)
+	{
+		this.changed(this.factionTerm, factionTerm);
+		this.factionTerm = factionTerm;
+	}
+	
+	/**
 	 * When true, FACTION gates must sit in that team's claimed land for create/scope-change,
 	 * and travel skips destinations (refuses entry) outside own land. Gates stay in the network.
 	 */

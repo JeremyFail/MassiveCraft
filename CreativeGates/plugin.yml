@@ -5,17 +5,23 @@ website: ${project.url}
 description: ${project.description}
 authors: [Ymerejliaf, Madus, Cayorion, Ulumulu1510]
 depend: [MassiveCore]
+softdepend: [Factions, TeamsAPI, FactionsBridge]
 api-version: 1.21
 permissions:
 # -------------------------------------------- #
 # THE REAL NODES
 # -------------------------------------------- #
   creativegates.create: {description: create a gate, default: false}
+  creativegates.create.scope.shared: {description: create or convert gates into SHARED scope, default: false}
+  creativegates.create.scope.player: {description: create or convert gates into PLAYER scope, default: false}
+  creativegates.create.scope.faction: {description: create or convert gates into FACTION scope when a team bridge is available, default: false}
+  creativegates.create.scope.global: {description: create or convert gates into GLOBAL scope, default: false}
   creativegates.create.bypassdisabled: {description: always bypass disabled worlds for gate creation (override mode also bypasses), default: false}
   creativegates.create.bypassframe: {description: always bypass required frame materials for gate creation (override mode also bypasses), default: false}
   creativegates.setgatefill: {description: choose gate fill when creating or managing, default: false}
   creativegates.setfillparticlecount: {description: choose particle fill amount when creating or managing, default: false}
   creativegates.use: {description: use a gate, default: false}
+  creativegates.limits.bypass: {description: bypass gate and network limit checks, default: false}
   creativegates.cg: {description: use creativegates base command, default: false}
   creativegates.cg.world: {description: world gate management, default: false}
   creativegates.cg.world.list: {description: gate count per world, default: false}
@@ -24,6 +30,8 @@ permissions:
   creativegates.cg.config: {description: edit configuration, default: false}
   creativegates.cg.inspect: {description: inspect gate details, default: false}
   creativegates.cg.manage: {description: manage gate settings, default: false}
+  creativegates.cg.manage.transfernetwork: {description: move all gates on a network identity to another scope/owner, default: false}
+  creativegates.cg.perm: {description: edit faction/team ranks allowed to create and manage FACTION gates, default: false}
   creativegates.cg.tool: {description: toggle inspect and manage tools, default: false}
   creativegates.cg.override: {description: toggle override mode for managing others gates, default: false}
   creativegates.cg.override.bypass: {description: always manage any gate without override mode, default: false}
@@ -34,6 +42,9 @@ permissions:
     default: false
     children:
       creativegates.create: true
+      creativegates.create.scope.shared: true
+      creativegates.create.scope.player: true
+      creativegates.create.scope.faction: true
       creativegates.setgatefill: true
       creativegates.setfillparticlecount: true
       creativegates.use: true
@@ -41,6 +52,7 @@ permissions:
       creativegates.cg.version: true
       creativegates.cg.inspect: true
       creativegates.cg.manage: true
+      creativegates.cg.perm: true
       creativegates.cg.tool: true
   creativegates.player.*:
     default: false
@@ -49,6 +61,8 @@ permissions:
   creativegates.admin.*:
     default: false
     children:
+      creativegates.create.scope.global: true
+      creativegates.cg.manage.transfernetwork: true
       creativegates.cg.override: true
       creativegates.cg.config: true
       creativegates.cg.world: true
@@ -62,6 +76,12 @@ permissions:
 # -------------------------------------------- #
 # KITS
 # -------------------------------------------- #
+# rank0 = default player (player.base.*)
+# rank1 = full player tree (player.*)
+# rank2 = light staff (rank1 + selected staff leaves)
+# rank3 = stronger staff (rank2 + override / world delete / similar)
+# rank4 = highest non-op staff (rank3 + admin.* → config + remaining admin perms)
+# op     = full plugin.* (player.* + admin.*)
   creativegates.kit.op:
     default: op
     children:
@@ -70,7 +90,7 @@ permissions:
     default: false
     children:
       creativegates.kit.rank3: true
-      creativegates.cg.config: true
+      creativegates.admin.*: true
   creativegates.kit.rank3:
     default: false
     children:

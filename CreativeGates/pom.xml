@@ -36,6 +36,21 @@
             <groupId>com.massivecraft.massivecore</groupId>
             <artifactId>MassiveCore</artifactId>
         </dependency>
+        <!-- Soft team bridges (runtime optional; compile provided) -->
+        <dependency>
+            <groupId>com.massivecraft.factions</groupId>
+            <artifactId>Factions</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ez-plugins.teams-api</groupId>
+            <artifactId>teams-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cc.javajobs.factionsbridge</groupId>
+            <artifactId>FactionsBridge-API</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <!-- Build -->
