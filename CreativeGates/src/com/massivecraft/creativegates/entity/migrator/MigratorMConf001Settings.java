@@ -10,8 +10,8 @@ import com.massivecraft.massivecore.store.migrator.MigratorRoot;
 /**
  * Migrates legacy MConf fields for this release:
  * <ul>
- *   <li>Fill flags ({@code usingWater}, {@code useLavaInNether}) → allow-lists</li>
- *   <li>{@code materialMode} → {@code materialManage}</li>
+ *   <li>Fill flags ({@code usingWater}, {@code useLavaInNether}) -> allow-lists</li>
+ *   <li>{@code materialMode} -> {@code materialManage}</li>
  *   <li>Removes obsolete {@code materialSecret}</li>
  * </ul>
  */

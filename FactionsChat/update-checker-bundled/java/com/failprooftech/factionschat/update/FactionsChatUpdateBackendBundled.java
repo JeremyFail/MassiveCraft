@@ -165,7 +165,7 @@ public final class FactionsChatUpdateBackendBundled implements FactionsChatUpdat
 	/**
 	 * Normalizes a Git {@code tag_name} for comparison to {@code plugin.yml} {@code version} strings.
 	 * Strips a leading {@code refs/tags/} prefix and a leading {@code v} when followed by a digit
-	 * (e.g. {@code v3.4.0} → {@code 3.4.0}).
+	 * (e.g. {@code v3.4.0} -> {@code 3.4.0}).
 	 */
 	private static String normalizeReleaseTag(String tag)
 	{

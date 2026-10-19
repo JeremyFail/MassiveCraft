@@ -65,7 +65,7 @@ public class CmdFactionsWildtpGoto extends FactionsCommand
 
 		try
 		{
-			// Permissible overload → MassiveCoreMConf.getTpdelay(sender) (e.g. massivecore.notpdelay → 0)
+			// Permissible overload -> MassiveCoreMConf.getTpdelay(sender) (e.g. massivecore.notpdelay -> 0)
 			MixinTeleport.get().teleport(me, destination, sender);
 		}
 		catch (TeleporterException e)

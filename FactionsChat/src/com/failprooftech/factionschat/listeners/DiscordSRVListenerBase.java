@@ -14,7 +14,7 @@ import github.scarsz.discordsrv.api.events.GameChatMessagePreProcessEvent;
 import org.bukkit.entity.Player;
 
 /**
- * Shared DiscordSRV API subscription: game chat routing, staff channel registration, and staff Discord→Minecraft relay.
+ * Shared DiscordSRV API subscription: game chat routing, staff channel registration, and staff Discord->Minecraft relay.
  * <p>
  * Staff channel bindings are applied through {@link FactionsChat#getDiscordSRVIntegration()} (see {@link DiscordSRVIntegration}),
  * same pattern as Essentials SocialSpy via {@link FactionsChat#getEssentialsIntegration()}.</p>

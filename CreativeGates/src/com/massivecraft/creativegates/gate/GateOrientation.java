@@ -81,7 +81,7 @@ public enum GateOrientation
 	 * Resolves which horizontal block face the exit lies on relative to a reference gate block.
 	 * <p>
 	 * For {@link #HORIZONTAL} gates, uses the larger of |ΔX| and |ΔZ| between exit and gate.
-	 * For vertical gates, the face is perpendicular to the gate plane (NS → E/W, WE → N/S).
+	 * For vertical gates, the face is perpendicular to the gate plane (NS -> E/W, WE -> N/S).
 	 * </p>
 	 *
 	 * @param exit Exit position (block coordinates used).

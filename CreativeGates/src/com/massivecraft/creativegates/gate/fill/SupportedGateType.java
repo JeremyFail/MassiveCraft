@@ -22,7 +22,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
  * look via BlockDisplay and/or {@code Player#sendBlockChange} - never real portal/fire blocks
  * (so no piglin portal spawns, vanilla nether travel, or fire damage from the fill).
  * {@link #FIRE}, {@link #SOUL_FIRE}, and <em>vertical</em> {@link #NETHER_PORTAL} use
- * {@code sendBlockChange} (client sees real blocks → correct animation).
+ * {@code sendBlockChange} (client sees real blocks -> correct animation).
  * <em>Horizontal</em> {@link #NETHER_PORTAL} uses rotated BlockDisplays (vanilla portal models
  * cannot lie flat; BlockDisplay animation may freeze at some pitches).
  * {@link #END_GATEWAY} uses BlockDisplay (or {@code sendBlockChange} before MC 26.1).

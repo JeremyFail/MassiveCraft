@@ -253,9 +253,9 @@ public class PvPIndexFactionsBridge implements FactionsBridge
      * {@code recipient}'s faction.
      *
      * <ul>
-     *   <li>Same faction → {@link Relation#MEMBER}</li>
-     *   <li>Entry in sender's {@code relationsJson} → that relation</li>
-     *   <li>Otherwise → {@link Relation#NEUTRAL}</li>
+     *   <li>Same faction -> {@link Relation#MEMBER}</li>
+     *   <li>Entry in sender's {@code relationsJson} -> that relation</li>
+     *   <li>Otherwise -> {@link Relation#NEUTRAL}</li>
      * </ul>
      */
     private Relation getRelationBetween(Player sender, Player recipient)
@@ -263,7 +263,7 @@ public class PvPIndexFactionsBridge implements FactionsBridge
         Optional<FactionModel> senderFactionOpt    = factionService.getFactionByPlayer(sender.getUniqueId());
         Optional<FactionModel> recipientFactionOpt = factionService.getFactionByPlayer(recipient.getUniqueId());
 
-        // Either player has no faction → treat as neutral
+        // Either player has no faction -> treat as neutral
         if (senderFactionOpt.isEmpty() || recipientFactionOpt.isEmpty())
         {
             return Relation.NEUTRAL;

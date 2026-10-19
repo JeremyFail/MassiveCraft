@@ -81,7 +81,7 @@ class SpigotProcessLinksTest
     @Test
     void secondUrlFallsBackToBaseColorWhenSegmentHasNoCode() throws Exception
     {
-        // First URL's "before" includes §a; second URL's "before" is only " y " → base WHITE.
+        // First URL's "before" includes §a; second URL's "before" is only " y " -> base WHITE.
         String out = processLinks(
             "§ax https://a.com y https://b.com",
             ChatPermissionsFixtures.urlOnly(true, true),

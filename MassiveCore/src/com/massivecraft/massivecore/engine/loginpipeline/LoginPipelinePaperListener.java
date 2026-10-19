@@ -24,7 +24,7 @@ import java.util.UUID;
  * hydration always completes before {@code JOINING} is set (ordering that Spigot got for free via
  * separate login and join events).
  * <p>
- * {@code LOGSYNC} is not used on Paper; players transition {@code LOGASYNC} → {@code JOINING} directly.
+ * {@code LOGSYNC} is not used on Paper; players transition {@code LOGASYNC} -> {@code JOINING} directly.
  * <p>
  * Only registered when {@link LoginPipeline#supportsModernPaperLogin()} is true (Paper 1.21.7+).
  * Older Paper versions fall back to {@link LoginPipelineSpigotListener}; see {@link LoginPipelineMode#PAPER_LEGACY}.

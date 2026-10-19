@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 /**
  * Spigot login pipeline: handles work that Paper moved off deprecated {@link PlayerLoginEvent}.
  * <p>
- * Event ordering on Spigot (all within the classic login → join window):
+ * Event ordering on Spigot (all within the classic login -> join window):
  * <ol>
  *   <li>{@code AsyncPlayerPreLoginEvent} - async DB prefetch (in {@code EngineMassiveCoreDatabase})</li>
  *   <li>{@code PlayerLoginEvent LOWEST} - store hydration, sender refs, IP cache, {@code LOGSYNC}, early IdUtil</li>

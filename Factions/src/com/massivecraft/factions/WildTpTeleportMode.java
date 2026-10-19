@@ -10,7 +10,7 @@ public enum WildTpTeleportMode
 	// ENUM
 	// -------------------------------------------- //
 
-	/** Cache → pure random → claim-edge band. */
+	/** Cache -> pure random -> claim-edge band. */
 	RANDOM,
 
 	/** Operator-defined locations only (resolve before delay). */

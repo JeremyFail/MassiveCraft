@@ -17,7 +17,7 @@ Strings accept MassiveCore `Txt` color codes (e.g. `<h>Title`); backends convert
 | Class | Role |
 | --- | --- |
 | `MDialog` | Entry point: `builder()`, `open(player, …)`. Resolves and caches the backend. |
-| `MDialogBuilder` / `MDialogSpec` | Fluent builder → immutable dialog definition. |
+| `MDialogBuilder` / `MDialogSpec` | Fluent builder -> immutable dialog definition. |
 | `MDialogButton` | Action button (`id`, label, tooltip, icon, `onClick`). |
 | `MDialogResponse` | Snapshot of button id + input values at click time. |
 | `MDialogClickHandler` / `MDialogCloseHandler` | Button click vs cancel/close (no completing button). |
@@ -134,8 +134,8 @@ Builder shortcuts: `inputBool`, `inputText`, `inputNumber`, `inputSingleOption` 
 
 ## Click vs close
 
-- **Button click** → `MDialogClickHandler.onClick(player, response)`. Session is completed and removed first.
-- **Close without a completing button** (Escape, inventory close on ChestGui fallback, etc.) → `MDialogCloseHandler.onClose(player)` if set. A prior button click does **not** also fire `onClose`.
+- **Button click** -> `MDialogClickHandler.onClick(player, response)`. Session is completed and removed first.
+- **Close without a completing button** (Escape, inventory close on ChestGui fallback, etc.) -> `MDialogCloseHandler.onClose(player)` if set. A prior button click does **not** also fire `onClose`.
 - Quit clears any open session without calling handlers.
 
 One open session is kept per player (`EngineMassiveCoreDialog`).

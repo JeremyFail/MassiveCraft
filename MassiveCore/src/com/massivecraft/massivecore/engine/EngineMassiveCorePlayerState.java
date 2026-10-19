@@ -15,7 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Tracks each player's position in the login → join → play → leave cycle ({@link PlayerState}).
+ * Tracks each player's position in the login -> join -> play -> leave cycle ({@link PlayerState}).
  * <p>
  * {@code LOGSYNC} and {@code JOINING} (at join) are handled by
  * {@link com.massivecraft.massivecore.engine.loginpipeline.LoginPipelineSpigotListener} on Spigot only.

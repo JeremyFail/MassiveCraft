@@ -47,7 +47,7 @@ public class EngineMassiveCoreDatabase extends Engine
 	// Sender refs are wired during login/join by LoginPipeline*Listener.
 	// Connection IP is cached separately because Player#getAddress() is often null during early connect.
 	
-	/** UUID string → client address, populated at async prelogin and cleared on deny/quit. */
+	/** UUID string -> client address, populated at async prelogin and cleared on deny/quit. */
 	public static Map<String, InetAddress> idToConnectionAddress = new MassiveMap<>();
 	
 	/**

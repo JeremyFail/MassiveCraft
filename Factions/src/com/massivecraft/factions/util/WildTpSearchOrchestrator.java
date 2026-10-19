@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Coordinates wilderness destination search for the configured teleport mode.
- * Order for random/hybrid: location cache → pure random → claim-edge band → (hybrid only) predefined.
+ * Order for random/hybrid: location cache -> pure random -> claim-edge band -> (hybrid only) predefined.
  */
 public final class WildTpSearchOrchestrator
 {

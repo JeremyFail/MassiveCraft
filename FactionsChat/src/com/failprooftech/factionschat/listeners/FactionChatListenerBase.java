@@ -346,7 +346,7 @@ public abstract class FactionChatListenerBase
      *
      * <p>Channel tint for the message body still comes from {@link #extractBaseColorFromFormat} on the full
      * pre-message segment; only the visible header parse should omit this suffix.</p>
-     * @param expandedBeforeMessage expanded format before {@code %MESSAGE%} (placeholders resolved, {@code &} → {@code §})
+     * @param expandedBeforeMessage expanded format before {@code %MESSAGE%} (placeholders resolved, {@code &} -> {@code §})
      * @return header text safe to pass to the format codec without a trailing message-only color tail
      */
     protected static String stripTrailingFormatCodesForHeaderParse(String expandedBeforeMessage)
