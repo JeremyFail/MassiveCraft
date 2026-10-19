@@ -7,7 +7,7 @@ import com.massivecraft.creativegates.entity.UGate;
  */
 public enum GateSetting
 {
-	SECRET("secret", "Secret", "Only the creator can read full gate inscriptions."),
+	SECRET("secret", "Secret", "Hides full inscriptions from outsiders (creator for personal gates; own faction for FACTION gates)."),
 	ENTRY("entry", "Entry", "Whether this gate may be used as an entrance."),
 	EXIT("exit", "Exit", "Whether this gate may be used as an exit."),
 	PLAYERS("players", "Players", "Whether players may travel through this gate."),

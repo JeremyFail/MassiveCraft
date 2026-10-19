@@ -5,6 +5,7 @@ import com.massivecraft.creativegates.Perm;
 import com.massivecraft.creativegates.cmd.CmdCg;
 import com.massivecraft.creativegates.engine.create.GateCreate;
 import com.massivecraft.creativegates.engine.create.PendingGateCreate;
+import com.massivecraft.creativegates.entity.GateScopeType;
 import com.massivecraft.creativegates.entity.MConf;
 import com.massivecraft.creativegates.entity.MPlayer;
 import com.massivecraft.creativegates.entity.UGate;
@@ -12,6 +13,7 @@ import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.ui.GateFillPicker;
 import com.massivecraft.creativegates.ui.GateManageUi;
+import com.massivecraft.creativegates.util.FactionTerm;
 import com.massivecraft.creativegates.util.FloodUtil;
 import com.massivecraft.creativegates.util.GateFloodInfo;
 import com.massivecraft.creativegates.util.GateInspectUtil;
@@ -578,6 +580,13 @@ public class EngineMain extends Engine
 			return false;
 		}
 		
+		if (!com.massivecraft.creativegates.util.GateAccessUtil.canUse(player, ugate))
+		{
+			String message = Txt.parse("<b>You do not have access to use this gate.");
+			MixinMessage.get().messageOne(player, message);
+			return false;
+		}
+		
 		HorizontalEntryContext entryContext = null;
 		if (ugate.getOrientation().isHorizontal() && MConf.get().isHorizontalGatesPreserveVelocity())
 		{
@@ -787,7 +796,7 @@ public class EngineMain extends Engine
 		// Still inside at the start of this move - not a fresh entry.
 		if (fromGate == ugate) return true;
 		
-		// Must end the tick inside this gate (outside → inside), not a grazing path sample.
+		// Must end the tick inside this gate (outside -> inside), not a grazing path sample.
 		if (toGate != ugate) return true;
 		
 		return false;
@@ -1188,9 +1197,20 @@ public class EngineMain extends Engine
 			if (material == MConf.get().getMaterialInspect())
 			{
 				// ... we are trying to inspect ...
-				if (currentGate.isRestricted() && EngineGateOverride.canReadSecret(player, currentGate) && currentGate.isCreator(player))
+				if (currentGate.isRestricted() && EngineGateOverride.canReadSecret(player, currentGate))
 				{
-					message = Txt.parse("<i>... the gate is restricted but you are the creator ...");
+					if (currentGate.getScopeType() == GateScopeType.FACTION)
+					{
+						message = Txt.parse("<i>... the gate is restricted but you are in that %s ...", FactionTerm.get());
+					}
+					else if (currentGate.isCreator(player))
+					{
+						message = Txt.parse("<i>... the gate is restricted but you are the creator ...");
+					}
+					else
+					{
+						message = Txt.parse("<i>... the gate is restricted but you may read it ...");
+					}
 					MixinMessage.get().messageOne(player, message);
 				}
 				
@@ -1201,7 +1221,7 @@ public class EngineMain extends Engine
 				// ... we are trying to manage ...
 				if (!EngineGateOverride.canManage(player, currentGate))
 				{
-					message = Txt.parse("<b>... only the gate creator can manage this gate.");
+					message = Txt.parse("<b>... you may not manage that gate.");
 					MixinMessage.get().messageOne(player, message);
 					return;
 				}

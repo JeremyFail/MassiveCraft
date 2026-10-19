@@ -1,8 +1,13 @@
 package com.massivecraft.creativegates.ui;
 
 import com.massivecraft.creativegates.cmd.CmdCg;
+import com.massivecraft.creativegates.entity.GateScopeType;
 import com.massivecraft.creativegates.entity.UGate;
+import com.massivecraft.creativegates.entity.UGateColl;
 import com.massivecraft.creativegates.gate.GateSetting;
+import com.massivecraft.creativegates.util.GateChainReorder;
+import com.massivecraft.creativegates.util.GateNetworkRename;
+import com.massivecraft.creativegates.util.GateScopeUtil;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.mson.Mson;
@@ -55,8 +60,19 @@ public final class GateManageChat
 		
 		int pageHeight = (sender instanceof Player) ? Txt.PAGEHEIGHT_PLAYER : Txt.PAGEHEIGHT_CONSOLE;
 		boolean showFill = sender instanceof Player && GateFillPicker.canChangeFill((Player) sender, gate);
-		int extraLines = showFill ? 1 : 0;
-		int pageCount = Math.max(1, (int) Math.ceil((double) (settings.size() + extraLines) / pageHeight));
+		boolean showScopeAction = sender instanceof Player && GateScopeUtil.canChangeGateScope((Player) sender, gate);
+		boolean showNetworkAction = sender instanceof Player;
+		boolean showReorder = sender instanceof Player && GateChainReorder.canReorder((Player) sender, gate);
+		// Scope/Network/Chain Order move to action rows when editable; keep them in identity otherwise.
+		int identityLinesOnPage1 = 2 // creator, owner
+			+ (showScopeAction ? 0 : 1)
+			+ (showNetworkAction ? 0 : 1)
+			+ (showReorder ? 0 : 1);
+		int actionLines = (showScopeAction ? 1 : 0) + (showNetworkAction ? 1 : 0) + (showReorder ? 2 : 0);
+		int hintLines = (sender instanceof Player) ? 1 : 0;
+		int fillLines = showFill ? 1 : 0;
+		int totalContent = identityLinesOnPage1 + actionLines + hintLines + settings.size() + fillLines;
+		int pageCount = Math.max(1, (int) Math.ceil((double) totalContent / pageHeight));
 		
 		if (page < 1 || page > pageCount)
 		{
@@ -64,33 +80,58 @@ public final class GateManageChat
 			return;
 		}
 		
+		List<Mson> content = new MassiveList<>();
+		List<UGate> chain = UGateColl.get().getGateChain(gate);
+		int chainPos = chain.indexOf(gate) + 1;
+		int chainSize = chain.size();
+		content.add(Mson.mson(Txt.parse("<k>Creator: <v>%s", ownerName)));
+		if (!showScopeAction)
+		{
+			content.add(Mson.mson(Txt.parse("<k>Scope: <v>%s", gate.getScopeType().name())));
+		}
+		content.add(Mson.mson(Txt.parse("<k>Network Owner: <v>%s", GateScopeUtil.describeOwner(gate.getScopeType(), gate.getNetworkOwnerId()))));
+		if (!showNetworkAction)
+		{
+			content.add(Mson.mson(Txt.parse("<k>Network: <v>%s", String.valueOf(gate.getNetworkId()))));
+		}
+		if (!showReorder)
+		{
+			content.add(Mson.mson(Txt.parse(
+				"<k>Chain Order: <v>%s",
+				chainPos > 0 ? (chainPos + "/" + chainSize) : String.valueOf(chainSize)
+			)));
+		}
+		if (sender instanceof Player)
+		{
+			Player player = (Player) sender;
+			if (showScopeAction)
+			{
+				content.add(buildScopeCycleRow(player, gate));
+			}
+			content.add(buildNetworkSuggestRow(player, gate));
+			if (showReorder)
+			{
+				content.add(buildReorderRow(gate, true, chainPos, chainSize));
+				content.add(buildReorderRow(gate, false, chainPos, chainSize));
+			}
+			content.add(Mson.mson("(click YES/NOO to toggle; access via /cg manage access)").color(ChatColor.GRAY));
+		}
+		for (GateSetting setting : settings)
+		{
+			content.add(buildRow(setting, gate, page));
+		}
+		if (showFill)
+		{
+			content.add(buildFillRow(gate));
+		}
+		
 		int from = (page - 1) * pageHeight;
-		int to = Math.min(from + pageHeight, settings.size());
+		int to = Math.min(from + pageHeight, content.size());
 		
 		List<Mson> messages = new MassiveList<>();
 		List<String> paginationArgs = new MassiveList<>(gate.getId(), String.valueOf(page));
 		messages.add(Txt.titleizeMson(title, pageCount, page, CmdCg.get().cmdCgManage, paginationArgs));
-		
-		if (sender instanceof Player)
-		{
-			messages.add(Mson.mson("(click YES/NOO to toggle)").color(ChatColor.GRAY));
-		}
-		
-		if (from < settings.size())
-		{
-			List<GateSetting> pageSettings = settings.subList(from, to);
-			for (GateSetting setting : pageSettings)
-			{
-				messages.add(buildRow(setting, gate, page));
-			}
-		}
-		
-		// Fill control sits after Vehicles; show when this page would include that "slot".
-		int fillIndex = settings.size();
-		if (showFill && fillIndex >= from && fillIndex < from + pageHeight)
-		{
-			messages.add(buildFillRow(gate));
-		}
+		messages.addAll(content.subList(from, to));
 		
 		MixinMessage.get().messageOne(sender, messages);
 	}
@@ -131,7 +172,94 @@ public final class GateManageChat
 	}
 	
 	/**
+	 * Builds the scope cycle row.
+	 * 
+	 * @param player The player who is viewing the scope cycle row.
+	 * @param gate The gate that is being viewed.
+	 * @return The scope cycle row.
+	 */
+	private static Mson buildScopeCycleRow(Player player, UGate gate)
+	{
+		GateScopeType next = GateScopeUtil.nextOfferedScope(player, gate.getScopeType());
+		Mson value = Mson.mson(gate.getScopeType().name()).color(ChatColor.YELLOW);
+		if (next != null && next != gate.getScopeType())
+		{
+			value = value
+				.tooltipParse(Txt.parse("<i>Click to change scope to <h>%s<i>.", next.name()))
+				.command(CmdCg.get().cmdCgManage.cmdCgManageScope.getCommandLine(
+					next.name(),
+					"auto",
+					gate.getId()
+				));
+		}
+		else
+		{
+			value = value.tooltipParse(Txt.parse("<i>No other scopes available to cycle."));
+		}
+		return Mson.mson(
+			Mson.mson("Scope").color(ChatColor.AQUA),
+			Mson.mson(": ").color(ChatColor.GRAY),
+			value
+		);
+	}
+	
+	/**
+	 * Builds the network suggest row.
+	 * 
+	 * @param player The player who is viewing the network suggest row.
+	 * @param gate The gate that is being viewed.
+	 * @return The network suggest row.
+	 */
+	private static Mson buildNetworkSuggestRow(Player player, UGate gate)
+	{
+		Mson value = Mson.mson(String.valueOf(gate.getNetworkId())).color(ChatColor.LIGHT_PURPLE)
+			.tooltipParse(GateNetworkRename.costTooltip(player));
+		if (GateNetworkRename.canAfford(player))
+		{
+			// Suggest the command prefix only; looking-gate supplies the target. Trailing space for typing the new name.
+			String suggest = CmdCg.get().cmdCgManage.cmdCgManageNetwork.getCommandLine() + " ";
+			value = value
+				.tooltipParse(GateNetworkRename.costTooltip(player) + "\n" + Txt.parse("<i>Click to type a new name."))
+				.suggest(suggest);
+		}
+		return Mson.mson(
+			Mson.mson("Network").color(ChatColor.GREEN),
+			Mson.mson(": ").color(ChatColor.GRAY),
+			value
+		);
+	}
+	
+	/**
+	 * Builds the reorder row.
+	 * 
+	 * @param gate The gate that is being viewed.
+	 * @param up Whether the gate should be moved up.
+	 * @param chainPos The position of the gate in the chain.
+	 * @param chainSize The size of the chain.
+	 * @return The reorder row.
+	 */
+	private static Mson buildReorderRow(UGate gate, boolean up, int chainPos, int chainSize)
+	{
+		String mode = up ? "up" : "down";
+		String label = up ? "Move Earlier (+)" : "Move Later (-)";
+		String clickCommand = CmdCg.get().cmdCgManage.cmdCgManageReorder.getCommandLine(mode, "0", gate.getId());
+		String tip = Txt.parse(
+			"<k>Chain Order: <h>%d/%d\n",
+			chainPos > 0 ? chainPos : 0,
+			chainSize
+		) + Txt.parse(up ? "<i>Move earlier in the travel chain." : "<i>Move later in the travel chain.");
+		return Mson.mson(
+			Mson.mson(label).color(up ? ChatColor.GREEN : ChatColor.GRAY)
+				.tooltipParse(tip)
+				.command(clickCommand)
+		);
+	}
+	
+	/**
 	 * Clickable fill row: opens {@link GateFillPicker} via {@link com.massivecraft.creativegates.cmd.CmdCgManageFill}.
+	 * 
+	 * @param gate The gate that is being viewed.
+	 * @return The fill row.
 	 */
 	private static Mson buildFillRow(UGate gate)
 	{

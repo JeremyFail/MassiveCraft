@@ -1,7 +1,9 @@
 package com.massivecraft.creativegates.util;
 
 import com.massivecraft.creativegates.engine.EngineGateOverride;
+import com.massivecraft.creativegates.entity.GateScopeType;
 import com.massivecraft.creativegates.entity.UGate;
+import com.massivecraft.creativegates.entity.UGateColl;
 import com.massivecraft.creativegates.gate.GateSetting;
 import com.massivecraft.massivecore.collections.MassiveList;
 import com.massivecraft.massivecore.command.MassiveCommand;
@@ -39,7 +41,14 @@ public final class GateInspectUtil
 		
 		if (!EngineGateOverride.canReadSecret(sender, gate))
 		{
-			MixinMessage.get().messageOne(sender, Txt.parse("<b>The gate is restricted and you are not the creator."));
+			if (gate.getScopeType() == GateScopeType.FACTION)
+			{
+				MixinMessage.get().messageOne(sender, Txt.parse("<b>The gate is restricted and you are not in that %s.", FactionTerm.get()));
+			}
+			else
+			{
+				MixinMessage.get().messageOne(sender, Txt.parse("<b>The gate is restricted and you are not the creator."));
+			}
 			return false;
 		}
 		
@@ -96,12 +105,18 @@ public final class GateInspectUtil
 	{
 		List<Mson> lines = new MassiveList<>();
 		
-		String ownerName = IdUtil.getName(gate.getCreatorId());
-		if (ownerName == null || ownerName.isEmpty()) ownerName = "unknown";
+		String creatorName = IdUtil.getName(gate.getCreatorId());
+		if (creatorName == null || creatorName.isEmpty()) creatorName = "unknown";
 		
-		lines.add(kv("Owner", ownerName));
+		int chainSize = UGateColl.get().getGateChain(gate).size();
+		int chainPos = UGateColl.get().getGateChain(gate).indexOf(gate) + 1;
+		
+		lines.add(kv("Creator", creatorName));
+		lines.add(kv("Scope", gate.getScopeType().name()));
+		lines.add(kv("Network Owner", GateScopeUtil.describeOwner(gate.getScopeType(), gate.getNetworkOwnerId())));
 		lines.add(kv("Network", String.valueOf(gate.getNetworkId())));
-		lines.add(kv("Gates", String.valueOf(gate.getGateChain().size())));
+		lines.add(kv("Chain", chainPos > 0 ? (chainPos + "/" + chainSize) : String.valueOf(chainSize)));
+		lines.add(kv("Chain Index", String.valueOf(gate.getChainIndex())));
 		
 		lines.add(Mson.mson(Txt.parse("<a>-------")));
 		lines.add(settingRow(GateSetting.SECRET, gate));

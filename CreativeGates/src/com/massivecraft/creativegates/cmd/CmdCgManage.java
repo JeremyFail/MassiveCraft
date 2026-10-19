@@ -27,6 +27,11 @@ public class CmdCgManage extends MassiveCommand
 	
 	public CmdCgManageSet cmdCgManageSet = new CmdCgManageSet();
 	public CmdCgManageFill cmdCgManageFill = new CmdCgManageFill();
+	public CmdCgManageScope cmdCgManageScope = new CmdCgManageScope();
+	public CmdCgManageReorder cmdCgManageReorder = new CmdCgManageReorder();
+	public CmdCgManageTransferNetwork cmdCgManageTransferNetwork = new CmdCgManageTransferNetwork();
+	public CmdCgManageAccess cmdCgManageAccess = new CmdCgManageAccess();
+	public CmdCgManageNetwork cmdCgManageNetwork = new CmdCgManageNetwork();
 	
 	// -------------------------------------------- //
 	// CONSTRUCT
@@ -37,6 +42,11 @@ public class CmdCgManage extends MassiveCommand
 		// Children
 		this.addChild(this.cmdCgManageSet);
 		this.addChild(this.cmdCgManageFill);
+		this.addChild(this.cmdCgManageScope);
+		this.addChild(this.cmdCgManageReorder);
+		this.addChild(this.cmdCgManageTransferNetwork);
+		this.addChild(this.cmdCgManageAccess);
+		this.addChild(this.cmdCgManageNetwork);
 		
 		// Parameters: optional gate id (chat pagination), optional page
 		this.addParameter(TypeEntity.get(UGateColl.get()), "gate", "look");
@@ -75,7 +85,7 @@ public class CmdCgManage extends MassiveCommand
 		
 		if (!EngineGateOverride.canManage(this.me, gate))
 		{
-			msg("<b>Only the gate creator can manage this gate.");
+			msg("<b>You may not manage that gate.");
 			return;
 		}
 		

@@ -11,7 +11,14 @@ import com.massivecraft.creativegates.entity.MConfColl;
 import com.massivecraft.creativegates.entity.MPlayerColl;
 import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.entity.UGateColl;
+import com.massivecraft.creativegates.entity.UFactionPermsColl;
+import com.massivecraft.creativegates.entity.UNetworkAccessColl;
 import com.massivecraft.creativegates.entity.migrator.MigratorMConf001Settings;
+import com.massivecraft.creativegates.entity.migrator.MigratorUGate001NetworkScope;
+import com.massivecraft.creativegates.integration.team.IntegrationFactions;
+import com.massivecraft.creativegates.integration.team.IntegrationFactionsBridge;
+import com.massivecraft.creativegates.integration.team.IntegrationTeamsApi;
+import com.massivecraft.creativegates.integration.team.TeamBridgeBootstrap;
 import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.gate.fill.SupportedGateType;
@@ -76,11 +83,14 @@ public class CreativeGates extends MassivePlugin
 		// Activate (migrator before MConfColl so version upgrades run on load)
 		this.activate(
 			MigratorMConf001Settings.class,
+			MigratorUGate001NetworkScope.class,
 			
 			// Coll
 			MConfColl.class,
 			MPlayerColl.class,
 			UGateColl.class,
+			UNetworkAccessColl.class,
+			UFactionPermsColl.class,
 		
 			// Engine
 			EngineMain.class,
@@ -89,13 +99,21 @@ public class CreativeGates extends MassivePlugin
 			EngineGateFillDisplay.class,
 			EngineGateFillParticles.class,
 			
+			// Soft team integrations (FACTION scope)
+			IntegrationFactions.class,
+			IntegrationTeamsApi.class,
+			IntegrationFactionsBridge.class,
+			
 			// Command
 			CmdCg.class
 		);
 	
-		// Schedule a permission update.
+		// Schedule a permission update and refresh the team bridge.
 		// Possibly it will be useful due to the way Bukkit loads permissions.
-		Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> MConf.get().updatePerms());
+		Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+			MConf.get().updatePerms();
+			TeamBridgeBootstrap.refresh();
+		});
 		
 		// Resync BlockDisplay fills (and END_GATEWAY fallback overlays) after load.
 		// Particle fills also get a fill pass so interiors pick up light blocks.

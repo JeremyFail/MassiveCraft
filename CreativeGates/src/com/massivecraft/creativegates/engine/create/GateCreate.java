@@ -4,10 +4,16 @@ import com.massivecraft.creativegates.CreativeGates;
 import com.massivecraft.creativegates.Perm;
 import com.massivecraft.creativegates.engine.EngineGateOverride;
 import com.massivecraft.creativegates.engine.PendingGateCreates;
+import com.massivecraft.creativegates.entity.GateScopeType;
 import com.massivecraft.creativegates.entity.MConf;
+import com.massivecraft.creativegates.entity.MPlayer;
 import com.massivecraft.creativegates.entity.UGate;
 import com.massivecraft.creativegates.entity.UGateColl;
 import com.massivecraft.creativegates.gate.fill.GateType;
+import com.massivecraft.creativegates.util.FactionTerm;
+import com.massivecraft.creativegates.util.GateAccessUtil;
+import com.massivecraft.creativegates.util.GateLimitUtil;
+import com.massivecraft.creativegates.util.GateScopeUtil;
 import com.massivecraft.massivecore.mixin.MixinMessage;
 import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.util.IdUtil;
@@ -15,6 +21,7 @@ import com.massivecraft.massivecore.util.InventoryUtil;
 import com.massivecraft.massivecore.util.Txt;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -61,6 +68,28 @@ public final class GateCreate
 		PendingGateCreates.get().remove(player);
 		
 		if (!Perm.CREATE.has(player, MConf.get().verboseCreatePermission)) return false;
+		
+		GateScopeType scope = MPlayer.get(player).getCreateScope();
+		if (!GateScopeUtil.isScopeOffered(player, scope, true)) return false;
+		
+		String networkOwnerId = GateScopeUtil.resolveOwnerIdForCreate(player, scope, true);
+		if (networkOwnerId != null && networkOwnerId.isEmpty()) return false;
+		
+		String creatorId = IdUtil.getId(player);
+		if (!GateLimitUtil.checkCanAdd(player, scope, networkOwnerId, pending.getNetworkId(), creatorId, null, true))
+		{
+			return false;
+		}
+		
+		if (scope == GateScopeType.FACTION)
+		{
+			Location landLoc = pending.getExit() != null ? pending.getExit().asBukkitLocation() : player.getLocation();
+			if (!GateAccessUtil.isFactionLandOk(networkOwnerId, landLoc))
+			{
+				MixinMessage.get().messageOne(player, Txt.parse("<b>%s gates must be created in your %s land.", FactionTerm.capital(), FactionTerm.possessive()));
+				return false;
+			}
+		}
 		
 		if (!player.getUniqueId().equals(pending.getPlayerId())) return false;
 		if (!player.getWorld().getName().equals(pending.getWorldName()))
@@ -132,8 +161,11 @@ public final class GateCreate
 		}
 		
 		UGate newGate = UGateColl.get().create();
-		newGate.setCreatorId(IdUtil.getId(player));
+		newGate.setCreatorId(creatorId);
 		newGate.setNetworkId(pending.getNetworkId());
+		newGate.setScopeType(scope);
+		newGate.setNetworkOwnerId(networkOwnerId);
+		newGate.setChainIndex(UGateColl.get().nextChainIndex(scope, networkOwnerId, pending.getNetworkId()));
 		newGate.setExit(pending.getExit());
 		newGate.setCoords(pending.getCoords());
 		newGate.setInteriorCoords(pending.getInteriorCoords());
@@ -146,8 +178,13 @@ public final class GateCreate
 		
 		newGate.fill();
 		newGate.fxKitCreate(player);
+		GateAccessUtil.ensureAccess(newGate);
 		
-		MixinMessage.get().messageOne(player, Txt.parse("<g>A \"<h>%s<g>\" gate takes form in front of you.", pending.getNetworkId()));
+		MixinMessage.get().messageOne(player, Txt.parse(
+			"<g>A <h>%s<g> \"<h>%s<g>\" gate takes form in front of you.",
+			scope.name(),
+			pending.getNetworkId()
+		));
 		
 		applyCreateToolCost(player, hand, currentItem, createMaterial);
 		return true;

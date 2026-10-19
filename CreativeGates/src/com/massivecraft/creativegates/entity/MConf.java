@@ -105,6 +105,34 @@ public class MConf extends Entity<MConf>
 	public Set<String> getAliasesCgManageFill() { return this.aliasesCgManageFill; }
 	public void setAliasesCgManageFill(Set<String> aliasesCgManageFill) { this.aliasesCgManageFill = aliasesCgManageFill; }
 	
+	private Set<String> aliasesCgManageScope = MUtil.set("scope");
+	public Set<String> getAliasesCgManageScope() { return this.aliasesCgManageScope; }
+	public void setAliasesCgManageScope(Set<String> aliasesCgManageScope) { this.aliasesCgManageScope = aliasesCgManageScope; }
+	
+	private Set<String> aliasesCgManageReorder = MUtil.set("reorder", "order", "chain");
+	public Set<String> getAliasesCgManageReorder() { return this.aliasesCgManageReorder; }
+	public void setAliasesCgManageReorder(Set<String> aliasesCgManageReorder) { this.aliasesCgManageReorder = aliasesCgManageReorder; }
+	
+	private Set<String> aliasesCgManageTransferNetwork = MUtil.set("transfernetwork", "movenetwork");
+	public Set<String> getAliasesCgManageTransferNetwork() { return this.aliasesCgManageTransferNetwork; }
+	public void setAliasesCgManageTransferNetwork(Set<String> aliasesCgManageTransferNetwork) { this.aliasesCgManageTransferNetwork = aliasesCgManageTransferNetwork; }
+	
+	private Set<String> aliasesCgManageAccess = MUtil.set("access");
+	public Set<String> getAliasesCgManageAccess() { return this.aliasesCgManageAccess; }
+	public void setAliasesCgManageAccess(Set<String> aliasesCgManageAccess) { this.aliasesCgManageAccess = aliasesCgManageAccess; }
+	
+	private Set<String> aliasesCgManageNetwork = MUtil.set("network", "rename", "name");
+	public Set<String> getAliasesCgManageNetwork() { return this.aliasesCgManageNetwork; }
+	public void setAliasesCgManageNetwork(Set<String> aliasesCgManageNetwork) { this.aliasesCgManageNetwork = aliasesCgManageNetwork; }
+	
+	private Set<String> aliasesCgPerm = MUtil.set("perm", "perms");
+	public Set<String> getAliasesCgPerm() { return this.aliasesCgPerm; }
+	public void setAliasesCgPerm(Set<String> aliasesCgPerm) { this.aliasesCgPerm = aliasesCgPerm; }
+
+	private Set<String> aliasesCgScope = MUtil.set("createscope", "scope");
+	public Set<String> getAliasesCgScope() { return this.aliasesCgScope; }
+	public void setAliasesCgScope(Set<String> aliasesCgScope) { this.aliasesCgScope = aliasesCgScope; }
+	
 	private Set<String> aliasesCgOverride = MUtil.set("override", "admin");
 	public Set<String> getAliasesCgOverride() { return this.aliasesCgOverride; }
 	public void setAliasesCgOverride(Set<String> aliasesCgOverride) { this.aliasesCgOverride = aliasesCgOverride; }
@@ -619,5 +647,236 @@ public class MConf extends Entity<MConf>
 	{
 		if (worldName == null) return false;
 		return this.gateCreationDisabledWorlds.contains(worldName);
+	}
+	
+	// -------------------------------------------- //
+	// NETWORK SCOPE & LIMITS
+	// -------------------------------------------- //
+	
+	/** Default scope for new creates when the player does not override. */
+	private String defaultCreateScope = GateScopeType.PLAYER.name();
+	public GateScopeType getDefaultCreateScope()
+	{
+		GateScopeType parsed = GateScopeType.parse(this.defaultCreateScope, GateScopeType.PLAYER);
+		if (this.isScopeEnabled(parsed)) return parsed;
+		return this.firstEnabledScope(GateScopeType.SHARED, GateScopeType.PLAYER, GateScopeType.GLOBAL, GateScopeType.FACTION);
+	}
+	public void setDefaultCreateScope(GateScopeType defaultCreateScope)
+	{
+		GateScopeType next = defaultCreateScope != null ? defaultCreateScope : GateScopeType.PLAYER;
+		this.changed(this.defaultCreateScope, next.name());
+		this.defaultCreateScope = next.name();
+	}
+	
+	/** Scopes players may create/convert into. Empty/null treated as all scopes. */
+	private Set<String> enabledScopes = MUtil.set(
+		GateScopeType.PLAYER.name(),
+		GateScopeType.SHARED.name(),
+		GateScopeType.GLOBAL.name(),
+		GateScopeType.FACTION.name()
+	);
+	public Set<String> getEnabledScopes() { return this.enabledScopes; }
+	public void setEnabledScopes(Set<String> enabledScopes)
+	{
+		this.changed(this.enabledScopes, enabledScopes);
+		this.enabledScopes = enabledScopes;
+	}
+	
+	/**
+	 * True if the scope is enabled in config (FACTION still needs a team bridge to be offered).
+	 *
+	 * @param scope Scope type.
+	 * @return True when enabled.
+	 */
+	public boolean isScopeEnabled(GateScopeType scope)
+	{
+		if (scope == null) return false;
+		if (this.enabledScopes == null || this.enabledScopes.isEmpty()) return true;
+		for (String raw : this.enabledScopes)
+		{
+			if (scope == GateScopeType.parse(raw, null)) return true;
+		}
+		return false;
+	}
+	
+	private GateScopeType firstEnabledScope(GateScopeType... order)
+	{
+		if (order != null)
+		{
+			for (GateScopeType scope : order)
+			{
+				if (this.isScopeEnabled(scope)) return scope;
+			}
+		}
+		return GateScopeType.SHARED;
+	}
+	
+	/**
+	 * When true, FACTION gates must sit in that team's claimed land for create/scope-change,
+	 * and travel skips destinations (refuses entry) outside own land. Gates stay in the network.
+	 */
+	private boolean factionGatesRequireOwnLand = true;
+	public boolean isFactionGatesRequireOwnLand() { return this.factionGatesRequireOwnLand; }
+	public void setFactionGatesRequireOwnLand(boolean factionGatesRequireOwnLand)
+	{
+		this.changed(this.factionGatesRequireOwnLand, factionGatesRequireOwnLand);
+		this.factionGatesRequireOwnLand = factionGatesRequireOwnLand;
+	}
+	
+	/** Default use-access relations for new FACTION networks. */
+	private Set<String> defaultFactionUseRelations = MUtil.set(GateTeamRelation.MEMBER.name());
+	public Set<String> getDefaultFactionUseRelations() { return this.defaultFactionUseRelations; }
+	public void setDefaultFactionUseRelations(Set<String> defaultFactionUseRelations)
+	{
+		this.changed(this.defaultFactionUseRelations, defaultFactionUseRelations);
+		this.defaultFactionUseRelations = defaultFactionUseRelations;
+	}
+	
+	/**
+	 * Default portable ranks allowed to create/manage FACTION gates for a team
+	 * ({@link GateTeamRank}: LEADER, OFFICER, MEMBER). Default is leader only.
+	 */
+	private Set<String> defaultFactionManageRanks = MUtil.set(GateTeamRank.LEADER.name());
+	public Set<String> getDefaultFactionManageRanks() { return this.defaultFactionManageRanks; }
+	public void setDefaultFactionManageRanks(Set<String> defaultFactionManageRanks)
+	{
+		this.changed(this.defaultFactionManageRanks, defaultFactionManageRanks);
+		this.defaultFactionManageRanks = defaultFactionManageRanks;
+	}
+	
+	/** Default use-access relations for new PLAYER networks (owner always allowed separately). */
+	private Set<String> defaultPlayerUseRelations = new MassiveSet<>();
+	public Set<String> getDefaultPlayerUseRelations() { return this.defaultPlayerUseRelations; }
+	public void setDefaultPlayerUseRelations(Set<String> defaultPlayerUseRelations)
+	{
+		this.changed(this.defaultPlayerUseRelations, defaultPlayerUseRelations);
+		this.defaultPlayerUseRelations = defaultPlayerUseRelations;
+	}
+	
+	/** When true, renaming a gate's network costs XP levels (override bypasses). */
+	private boolean networkRenameConsumesXp = false;
+	public boolean isNetworkRenameConsumesXp() { return this.networkRenameConsumesXp; }
+	public void setNetworkRenameConsumesXp(boolean networkRenameConsumesXp)
+	{
+		this.changed(this.networkRenameConsumesXp, networkRenameConsumesXp);
+		this.networkRenameConsumesXp = networkRenameConsumesXp;
+	}
+	
+	/** Levels charged when {@link #networkRenameConsumesXp} is true. */
+	private int networkRenameXpLevels = 1;
+	public int getNetworkRenameXpLevels() { return this.networkRenameXpLevels; }
+	public void setNetworkRenameXpLevels(int networkRenameXpLevels)
+	{
+		this.changed(this.networkRenameXpLevels, networkRenameXpLevels);
+		this.networkRenameXpLevels = networkRenameXpLevels;
+	}
+	
+	/** When true, override mode also skips limit checks. */
+	private boolean overrideBypassesLimits = false;
+	public boolean isOverrideBypassesLimits() { return this.overrideBypassesLimits; }
+	public void setOverrideBypassesLimits(boolean overrideBypassesLimits)
+	{
+		this.changed(this.overrideBypassesLimits, overrideBypassesLimits);
+		this.overrideBypassesLimits = overrideBypassesLimits;
+	}
+	
+	/** Max PLAYER-scoped gates per player owner; 0 = unlimited. */
+	private int maxGatesPerPlayerOwner = 0;
+	public int getMaxGatesPerPlayerOwner() { return this.maxGatesPerPlayerOwner; }
+	public void setMaxGatesPerPlayerOwner(int maxGatesPerPlayerOwner)
+	{
+		this.changed(this.maxGatesPerPlayerOwner, maxGatesPerPlayerOwner);
+		this.maxGatesPerPlayerOwner = maxGatesPerPlayerOwner;
+	}
+	
+	/** Max distinct PLAYER network names per owner; 0 = unlimited. */
+	private int maxNetworksPerPlayer = 0;
+	public int getMaxNetworksPerPlayer() { return this.maxNetworksPerPlayer; }
+	public void setMaxNetworksPerPlayer(int maxNetworksPerPlayer)
+	{
+		this.changed(this.maxNetworksPerPlayer, maxNetworksPerPlayer);
+		this.maxNetworksPerPlayer = maxNetworksPerPlayer;
+	}
+	
+	/** Max FACTION-scoped gates per team id; 0 = unlimited. */
+	private int maxGatesPerFactionOwner = 0;
+	public int getMaxGatesPerFactionOwner() { return this.maxGatesPerFactionOwner; }
+	public void setMaxGatesPerFactionOwner(int maxGatesPerFactionOwner)
+	{
+		this.changed(this.maxGatesPerFactionOwner, maxGatesPerFactionOwner);
+		this.maxGatesPerFactionOwner = maxGatesPerFactionOwner;
+	}
+	
+	/** Max distinct FACTION network names per team; 0 = unlimited. */
+	private int maxNetworksPerFaction = 0;
+	public int getMaxNetworksPerFaction() { return this.maxNetworksPerFaction; }
+	public void setMaxNetworksPerFaction(int maxNetworksPerFaction)
+	{
+		this.changed(this.maxNetworksPerFaction, maxNetworksPerFaction);
+		this.maxNetworksPerFaction = maxNetworksPerFaction;
+	}
+	
+	/** Max gates on one SHARED network identity; 0 = unlimited. */
+	private int maxGatesPerNetworkShared = 0;
+	public int getMaxGatesPerNetworkShared() { return this.maxGatesPerNetworkShared; }
+	public void setMaxGatesPerNetworkShared(int maxGatesPerNetworkShared)
+	{
+		this.changed(this.maxGatesPerNetworkShared, maxGatesPerNetworkShared);
+		this.maxGatesPerNetworkShared = maxGatesPerNetworkShared;
+	}
+	
+	/** Max gates on one PLAYER network identity; 0 = unlimited. */
+	private int maxGatesPerNetworkPlayer = 0;
+	public int getMaxGatesPerNetworkPlayer() { return this.maxGatesPerNetworkPlayer; }
+	public void setMaxGatesPerNetworkPlayer(int maxGatesPerNetworkPlayer)
+	{
+		this.changed(this.maxGatesPerNetworkPlayer, maxGatesPerNetworkPlayer);
+		this.maxGatesPerNetworkPlayer = maxGatesPerNetworkPlayer;
+	}
+	
+	/** Max gates on one FACTION network identity; 0 = unlimited. */
+	private int maxGatesPerNetworkFaction = 0;
+	public int getMaxGatesPerNetworkFaction() { return this.maxGatesPerNetworkFaction; }
+	public void setMaxGatesPerNetworkFaction(int maxGatesPerNetworkFaction)
+	{
+		this.changed(this.maxGatesPerNetworkFaction, maxGatesPerNetworkFaction);
+		this.maxGatesPerNetworkFaction = maxGatesPerNetworkFaction;
+	}
+	
+	/** Max gates on one GLOBAL network identity; 0 = unlimited. */
+	private int maxGatesPerNetworkGlobal = 0;
+	public int getMaxGatesPerNetworkGlobal() { return this.maxGatesPerNetworkGlobal; }
+	public void setMaxGatesPerNetworkGlobal(int maxGatesPerNetworkGlobal)
+	{
+		this.changed(this.maxGatesPerNetworkGlobal, maxGatesPerNetworkGlobal);
+		this.maxGatesPerNetworkGlobal = maxGatesPerNetworkGlobal;
+	}
+	
+	/** Max SHARED gates a player may create (by creatorId); 0 = unlimited. */
+	private int maxSharedGatesCreatedPerPlayer = 0;
+	public int getMaxSharedGatesCreatedPerPlayer() { return this.maxSharedGatesCreatedPerPlayer; }
+	public void setMaxSharedGatesCreatedPerPlayer(int maxSharedGatesCreatedPerPlayer)
+	{
+		this.changed(this.maxSharedGatesCreatedPerPlayer, maxSharedGatesCreatedPerPlayer);
+		this.maxSharedGatesCreatedPerPlayer = maxSharedGatesCreatedPerPlayer;
+	}
+	
+	/**
+	 * Max gates allowed on a single network identity for the given scope.
+	 *
+	 * @param scope Scope type.
+	 * @return Cap, or 0 for unlimited.
+	 */
+	public int getMaxGatesPerNetwork(GateScopeType scope)
+	{
+		if (scope == null) return 0;
+		switch (scope)
+		{
+			case SHARED: return this.maxGatesPerNetworkShared;
+			case PLAYER: return this.maxGatesPerNetworkPlayer;
+			case FACTION: return this.maxGatesPerNetworkFaction;
+			case GLOBAL: return this.maxGatesPerNetworkGlobal;
+			default: return 0;
+		}
 	}
 }

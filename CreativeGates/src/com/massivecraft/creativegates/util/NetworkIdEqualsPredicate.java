@@ -4,6 +4,13 @@ import com.massivecraft.creativegates.entity.UGate;
 
 import java.util.function.Predicate;
 
+/**
+ * Legacy name-only matcher.
+ * Prefer {@link NetworkIdentityEqualsPredicate} for chain membership.
+ *
+ * @deprecated Use {@link NetworkIdentityEqualsPredicate}.
+ */
+@Deprecated
 public class NetworkIdEqualsPredicate implements Predicate<UGate>
 {
 	// -------------------------------------------- //
@@ -29,6 +36,7 @@ public class NetworkIdEqualsPredicate implements Predicate<UGate>
 	@Override
 	public boolean test(UGate ugate)
 	{
+		if (ugate == null || ugate.getNetworkId() == null || this.networkId == null) return false;
 		return ugate.getNetworkId().equalsIgnoreCase(this.networkId);
 	}
 	

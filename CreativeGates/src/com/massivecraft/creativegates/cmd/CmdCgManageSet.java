@@ -65,7 +65,7 @@ public class CmdCgManageSet extends MassiveCommand
 		
 		if (!EngineGateOverride.canManage(this.me, gate))
 		{
-			msg("<b>Only the gate creator can manage this gate.");
+			msg("<b>You may not manage that gate.");
 			return;
 		}
 		

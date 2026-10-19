@@ -23,6 +23,8 @@ public class CmdCg extends MassiveCommand
 	
 	public CmdCgInspect cmdCgInspect = new CmdCgInspect();
 	public CmdCgManage cmdCgManage = new CmdCgManage();
+	public CmdCgPerm cmdCgPerm = new CmdCgPerm();
+	public CmdCgScope cmdCgScope = new CmdCgScope();
 	public CmdCgTool cmdCgTool = new CmdCgTool();
 	public CmdCgOverride cmdCgOverride = new CmdCgOverride();
 	public CmdCgWorld cmdCgWorld = new CmdCgWorld();
@@ -38,6 +40,8 @@ public class CmdCg extends MassiveCommand
 		// Children
 		this.addChild(this.cmdCgInspect);
 		this.addChild(this.cmdCgManage);
+		this.addChild(this.cmdCgPerm);
+		this.addChild(this.cmdCgScope);
 		this.addChild(this.cmdCgTool);
 		this.addChild(this.cmdCgOverride);
 		this.addChild(this.cmdCgWorld);

@@ -33,6 +33,7 @@ public class MPlayer extends SenderEntity<MPlayer>
 	{
 		this.overriding = that.overriding;
 		this.toolsEnabled = that.toolsEnabled;
+		this.createScope = that.createScope;
 		return this;
 	}
 	
@@ -41,6 +42,7 @@ public class MPlayer extends SenderEntity<MPlayer>
 	{
 		if (this.overriding != null && this.overriding) return false;
 		if (this.toolsEnabled != null && !this.toolsEnabled) return false;
+		if (this.createScope != null) return false;
 		return true;
 	}
 	
@@ -114,6 +116,45 @@ public class MPlayer extends SenderEntity<MPlayer>
 		if (MUtil.equals(this.toolsEnabled, target)) return;
 		
 		this.toolsEnabled = target;
+		this.changed();
+	}
+	
+	/** Null means use {@link MConf#getDefaultCreateScope()}. */
+	private String createScope = null;
+	
+	/**
+	 * Preferred create scope for this player, or the server default when unset.
+	 *
+	 * @return Preferred create scope.
+	 */
+	public GateScopeType getCreateScope()
+	{
+		GateScopeType fallback = MConf.get().getDefaultCreateScope();
+		GateScopeType scope = this.createScope == null
+			? fallback
+			: GateScopeType.parse(this.createScope, fallback);
+		// Do not keep FACTION selected when no team bridge is present.
+		if (scope == GateScopeType.FACTION && !com.massivecraft.creativegates.util.GateScopeUtil.isFactionScopeAvailable())
+		{
+			scope = fallback == GateScopeType.FACTION ? GateScopeType.PLAYER : fallback;
+		}
+		if (!MConf.get().isScopeEnabled(scope))
+		{
+			return fallback;
+		}
+		return scope;
+	}
+	
+	/**
+	 * Sets preferred create scope. Passing null clears the override (use MConf default).
+	 *
+	 * @param createScope Preferred scope, or null for server default.
+	 */
+	public void setCreateScope(GateScopeType createScope)
+	{
+		String target = createScope == null ? null : createScope.name();
+		if (MUtil.equals(this.createScope, target)) return;
+		this.createScope = target;
 		this.changed();
 	}
 	

@@ -9,6 +9,10 @@ import com.massivecraft.creativegates.gate.GateOrientation;
 import com.massivecraft.creativegates.gate.fill.GateType;
 import com.massivecraft.creativegates.gate.fill.GateTypeResolve;
 import com.massivecraft.creativegates.gate.fill.SupportedGateType;
+import com.massivecraft.creativegates.integration.team.TeamBridge;
+import com.massivecraft.creativegates.integration.team.TeamBridgeRegistry;
+import com.massivecraft.creativegates.util.FactionTerm;
+import com.massivecraft.creativegates.util.GateAccessUtil;
 import com.massivecraft.creativegates.util.GateEntityTeleport;
 import com.massivecraft.creativegates.util.GateTeleportSafety;
 import com.massivecraft.creativegates.util.HorizontalGateLaunchUtil;
@@ -76,6 +80,9 @@ public class UGate extends Entity<UGate>
 		this.createdMillis = that.createdMillis;
 		this.usedMillis = that.usedMillis;
 		this.networkId = that.networkId;
+		this.scopeType = that.scopeType != null ? that.scopeType : GateScopeType.SHARED;
+		this.networkOwnerId = that.networkOwnerId;
+		this.chainIndex = that.chainIndex;
 		this.restricted = that.restricted;
 		this.enterEnabled = that.enterEnabled;
 		this.exitEnabled = that.exitEnabled;
@@ -111,6 +118,15 @@ public class UGate extends Entity<UGate>
 	{
 		return (UGateColl) super.getColl();
 	}
+	
+	// -------------------------------------------- //
+	// VERSION
+	// -------------------------------------------- //
+	
+	/**
+	 * Persistence schema version for migrators.
+	 */
+	public int version = 1;
 	
 	// -------------------------------------------- //
 	// FIELDS
@@ -195,6 +211,93 @@ public class UGate extends Entity<UGate>
 	{
 		this.changed(this.networkId, networkId);
 		this.networkId = networkId;
+	}
+	
+	private GateScopeType scopeType = GateScopeType.SHARED;
+	/**
+	 * Gets the network scope type for this gate.
+	 *
+	 * @return Scope type; never null (defaults to SHARED).
+	 */
+	public GateScopeType getScopeType()
+	{
+		return this.scopeType != null ? this.scopeType : GateScopeType.SHARED;
+	}
+	/**
+	 * Sets the network scope type.
+	 *
+	 * @param scopeType Scope type to set; null is treated as SHARED.
+	 */
+	public void setScopeType(GateScopeType scopeType)
+	{
+		GateScopeType next = scopeType != null ? scopeType : GateScopeType.SHARED;
+		this.changed(this.scopeType, next);
+		this.scopeType = next;
+	}
+	
+	private String networkOwnerId = null;
+	/**
+	 * Gets the network owner id (player UUID or team id).
+	 * Null for GLOBAL and SHARED scopes.
+	 *
+	 * @return Owner id or null.
+	 */
+	public String getNetworkOwnerId()
+	{
+		return this.networkOwnerId;
+	}
+	/**
+	 * Sets the network owner id.
+	 * Must be null for GLOBAL/SHARED; non-null stable id for PLAYER/FACTION.
+	 *
+	 * @param networkOwnerId Owner id or null.
+	 */
+	public void setNetworkOwnerId(String networkOwnerId)
+	{
+		this.changed(this.networkOwnerId, networkOwnerId);
+		this.networkOwnerId = networkOwnerId;
+	}
+	
+	private int chainIndex = 0;
+	/**
+	 * Gets the explicit travel order index within the network identity.
+	 * Lower values are visited earlier; ties break by exit location.
+	 *
+	 * @return Chain index.
+	 */
+	public int getChainIndex()
+	{
+		return this.chainIndex;
+	}
+	/**
+	 * Sets the explicit travel order index within the network identity.
+	 *
+	 * @param chainIndex Chain index to set.
+	 */
+	public void setChainIndex(int chainIndex)
+	{
+		this.changed(this.chainIndex, chainIndex);
+		this.chainIndex = chainIndex;
+	}
+	
+	/**
+	 * True when another gate shares this gate's full network identity
+	 * (scope, owner id, case-insensitive network name).
+	 *
+	 * @param other Other gate, or null.
+	 * @return True if both gates belong to the same chain identity.
+	 */
+	public boolean isSameNetworkIdentity(UGate other)
+	{
+		if (other == null) return false;
+		if (this.getScopeType() != other.getScopeType()) return false;
+		String a = this.getNetworkOwnerId();
+		String b = other.getNetworkOwnerId();
+		if (a == null ? b != null : !a.equals(b)) return false;
+		String n1 = this.getNetworkId();
+		String n2 = other.getNetworkId();
+		if (n1 == null || n2 == null) return n1 == n2;
+		return n1.equalsIgnoreCase(n2);
 	}
 	
 	private boolean restricted = false;
@@ -675,9 +778,15 @@ public class UGate extends Entity<UGate>
 	 */
 	public void destroy()
 	{
+		GateScopeType scope = this.getScopeType();
+		String ownerId = this.getNetworkOwnerId();
+		String networkId = this.getNetworkId();
+		
 		this.empty();
 		this.detach();
 		this.fxKitDestroy(null);
+		
+		UNetworkAccessColl.get().cleanupIfOrphaned(scope, ownerId, networkId);
 	}
 	
 	// -------------------------------------------- //
@@ -703,6 +812,14 @@ public class UGate extends Entity<UGate>
 	 */
 	public boolean transport(Player player, HorizontalEntryContext entryContext, Location sourceLocation)
 	{
+		if (!this.ensureFactionUsable(player)) return false;
+		
+		if (this.getScopeType() == GateScopeType.FACTION && !GateAccessUtil.isFactionLandOk(this))
+		{
+			MixinMessage.get().messageOne(player, Txt.parse("<b>This gate is not in %s land and cannot be used.", FactionTerm.get()));
+			return false;
+		}
+		
 		if (this.isAllowMobs() && GateEntityTeleport.hasMobEntourage(player)
 			|| this.isAllowVehicles() && GateEntityTeleport.hasNonLivingVehicle(player))
 		{
@@ -713,10 +830,18 @@ public class UGate extends Entity<UGate>
 		
 		String message;
 		String blockedMessage = Txt.parse("<b>The gate exit is blocked.");
+		boolean skippedLand = false;
+		boolean triedAny = false;
 		
 		for (UGate ugate : gateChain)
 		{
 			if ( ! ugate.isExitEnabled()) continue;
+			if (ugate.getScopeType() == GateScopeType.FACTION && !GateAccessUtil.isFactionLandOk(ugate))
+			{
+				skippedLand = true;
+				continue;
+			}
+			triedAny = true;
 			
 			PS destinationPs = ugate.getExit();
 			String destinationDesc = (MConf.get().teleportationMessageActive ? "the gate destination" : "");
@@ -765,7 +890,14 @@ public class UGate extends Entity<UGate>
 			}
 		}
 		
-		message = Txt.parse("<i>This gate does not seem to lead anywhere.");
+		if (!triedAny && skippedLand)
+		{
+			message = Txt.parse("<b>No destination gates are in %s land.", FactionTerm.get());
+		}
+		else
+		{
+			message = Txt.parse("<i>This gate does not seem to lead anywhere.");
+		}
 		MixinMessage.get().messageOne(player, message);
 		return false;
 	}
@@ -785,12 +917,20 @@ public class UGate extends Entity<UGate>
 
 		List<UGate> gateChain = this.getGateChain();
 		String blockedMessage = Txt.parse("<b>The gate exit is blocked.");
+		boolean skippedLand = false;
+		boolean triedAny = false;
 
 		for (UGate ugate : gateChain)
 		{
 			if (!ugate.isExitEnabled()) continue;
 			if (bringMobs && !ugate.isAllowMobs()) continue;
 			if (bringVehicles && !ugate.isAllowVehicles()) continue;
+			if (ugate.getScopeType() == GateScopeType.FACTION && !GateAccessUtil.isFactionLandOk(ugate))
+			{
+				skippedLand = true;
+				continue;
+			}
+			triedAny = true;
 
 			PS destinationPs = ugate.getExit();
 			if (!GateTeleportSafety.isDestinationSafe(player, destinationPs))
@@ -823,7 +963,14 @@ public class UGate extends Entity<UGate>
 			return true;
 		}
 
-		MixinMessage.get().messageOne(player, Txt.parse("<i>This gate does not seem to lead anywhere."));
+		if (!triedAny && skippedLand)
+		{
+			MixinMessage.get().messageOne(player, Txt.parse("<b>No destination gates are in %s land.", FactionTerm.get()));
+		}
+		else
+		{
+			MixinMessage.get().messageOne(player, Txt.parse("<i>This gate does not seem to lead anywhere."));
+		}
 		return false;
 	}
 
@@ -839,6 +986,10 @@ public class UGate extends Entity<UGate>
 		if (entity == null || !entity.isValid()) return false;
 		if (entity instanceof LivingEntity && ((LivingEntity) entity).isDead()) return false;
 		if (entity instanceof Player) return false;
+		
+		Player partyPlayer = GateEntityTeleport.findPlayerInParty(entity);
+		if (!this.ensureFactionUsable(partyPlayer)) return false;
+		if (this.getScopeType() == GateScopeType.FACTION && !GateAccessUtil.isFactionLandOk(this)) return false;
 
 		boolean livingTrigger = entity instanceof LivingEntity;
 		if (livingTrigger)
@@ -862,6 +1013,7 @@ public class UGate extends Entity<UGate>
 		for (UGate ugate : gateChain)
 		{
 			if (!ugate.isExitEnabled()) continue;
+			if (ugate.getScopeType() == GateScopeType.FACTION && !GateAccessUtil.isFactionLandOk(ugate)) continue;
 			if (livingTrigger)
 			{
 				if (!ugate.isAllowMobs()) continue;
@@ -956,8 +1108,9 @@ public class UGate extends Entity<UGate>
 	{
 		List<UGate> ret = new ArrayList<>();
 		
-		List<UGate> rawchain = this.getColl().getGateChain(this.getNetworkId());
+		List<UGate> rawchain = this.getColl().getGateChain(this);
 		int myIndex = rawchain.indexOf(this);
+		if (myIndex < 0) return ret;
 		
 		// Add what is after me
 		ret.addAll(rawchain.subList(myIndex+1, rawchain.size()));
@@ -966,6 +1119,42 @@ public class UGate extends Entity<UGate>
 		ret.addAll(rawchain.subList(0, myIndex));
 		
 		return ret;
+	}
+	
+	/**
+	 * For FACTION gates: verify the team still exists and the player may use it.
+	 * If the team is gone, destroy all FACTION gates for that team id and message the player.
+	 *
+	 * @param player Travelling player (may be null for entity transport).
+	 * @return False if travel must abort.
+	 */
+	public boolean ensureFactionUsable(Player player)
+	{
+		if (this.getScopeType() != GateScopeType.FACTION) return true;
+		String teamId = this.getNetworkOwnerId();
+		if (teamId == null || teamId.isEmpty()) return false;
+		
+		TeamBridge bridge = TeamBridgeRegistry.getActive();
+		boolean exists = bridge != null && bridge.isAvailable() && bridge.teamExists(teamId);
+		if (!exists)
+		{
+			UGateColl.get().destroyFactionGatesForTeam(teamId);
+			if (player != null)
+			{
+				MixinMessage.get().messageOne(player, Txt.parse(
+					"<b>That %s no longer exists. Its gates have been removed.",
+					FactionTerm.get()
+				));
+			}
+			return false;
+		}
+		
+		if (player != null && !bridge.canUse(player, teamId))
+		{
+			MixinMessage.get().messageOne(player, Txt.parse("<b>You may not use this %s gate.", FactionTerm.get()));
+			return false;
+		}
+		return true;
 	}
 	
 	// -------------------------------------------- //
