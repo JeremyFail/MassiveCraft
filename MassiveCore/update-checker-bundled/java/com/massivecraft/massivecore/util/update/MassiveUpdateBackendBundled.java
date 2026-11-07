@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 /**
  * {@link MassiveUpdateBackend} that embeds {@link PluginUpdateChecker} for one GitHub Releases API call,
@@ -78,7 +77,16 @@ public final class MassiveUpdateBackendBundled implements MassiveUpdateBackend, 
 		checker.setNotifyOperatorsOnJoin(false);
 		checker.setDownloadUrl(MassiveUpdateVersions.DEFAULT_RELEASES_URL);
 		checker.setOnSuccess(this::onFetchSuccess);
-		checker.setOnFailure(ex -> plugin.getLogger().log(Level.WARNING, "MassiveCraft update check failed.", ex));
+		// Network / API failures are expected offline or when GitHub is unreachable; log a short line, not a stack dump.
+		checker.setOnFailure(ex ->
+		{
+			String detail = ex.getMessage();
+			if (detail == null || detail.isEmpty())
+			{
+				detail = ex.getClass().getSimpleName();
+			}
+			plugin.getLogger().warning("Could not check for MassiveCraft updates: " + detail);
+		});
 
 		// Silent initial check (no built-in requestors); suite results handled in onFetchSuccess.
 		checker.checkNow(Collections.emptyList());

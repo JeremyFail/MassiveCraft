@@ -66,8 +66,16 @@ public final class FactionsChatUpdateBackendBundled implements FactionsChatUpdat
 		checker.setNotifyOperatorsOnJoin(false);
 		checker.setDownloadUrl(RELEASES_URL);
 		checker.setOnSuccess(this::onFetchSuccess);
-		// Silent failure: if the API is unreachable or returns no releases, treat as up-to-date.
-		checker.setOnFailure(ex -> { /* silent */ });
+		// Network / API failures are expected offline or when GitHub is unreachable; log a short line, not a stack dump.
+		checker.setOnFailure(ex ->
+		{
+			String detail = ex.getMessage();
+			if (detail == null || detail.isEmpty())
+			{
+				detail = ex.getClass().getSimpleName();
+			}
+			plugin.getLogger().warning("Could not check for FactionsChat updates: " + detail);
+		});
 
 		// Silent initial check; results handled in onFetchSuccess.
 		checker.checkNow(Collections.emptyList());
